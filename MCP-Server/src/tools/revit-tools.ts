@@ -440,10 +440,15 @@ export function registerRevitTools(): Tool[] {
                 properties: {
                     elementId: {
                         type: "number",
-                        description: "要選取的元素 ID",
+                        description: "要選取的元素 ID (單選)",
+                    },
+                    elementIds: {
+                        type: "array",
+                        items: { type: "number" },
+                        description: "要選取的元素 ID 列表 (多選)",
                     },
                 },
-                required: ["elementId"],
+                // required: ["elementId"], // 讓後端驗證
             },
         },
 
@@ -554,32 +559,55 @@ export function registerRevitTools(): Tool[] {
             },
         },
 
-        // 26. 查詢指定位置附近的牆體
+        // 25. 根據位置查詢牆體
         {
             name: "query_walls_by_location",
-            description: "查詢指定座標附近的牆體，回傳牆的資訊包含厚度、位置線座標、以及內外面座標。用於走廊寬度精確測量。",
+            description: "查詢指定座標附近的牆體，回傳牆厚度、位置線與牆面座標。",
             inputSchema: {
                 type: "object",
                 properties: {
                     x: {
                         type: "number",
-                        description: "查詢中心點 X 座標（公釐）",
+                        description: "搜尋中心 X 座標",
                     },
                     y: {
                         type: "number",
-                        description: "查詢中心點 Y 座標（公釐）",
+                        description: "搜尋中心 Y 座標",
                     },
                     searchRadius: {
                         type: "number",
-                        description: "搜尋半徑（公釐），預設 5000",
-                        default: 5000,
+                        description: "搜尋半徑 (mm)",
                     },
                     level: {
                         type: "string",
-                        description: "樓層名稱（選填）",
+                        description: "樓層名稱 (選填，例如 '2FL')",
                     },
                 },
-                required: ["x", "y"],
+                required: ["x", "y", "searchRadius"],
+            },
+        },
+
+        // 26. 通用元素查詢
+        {
+            name: "query_elements",
+            description: "查詢視圖中的元素，可依照類別 (Category) 過濾。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    category: {
+                        type: "string",
+                        description: "元素類別 (例如 'Dimensions', 'Walls', 'Rooms', 'Windows')",
+                    },
+                    viewId: {
+                        type: "number",
+                        description: "視圖 ID (選填，若未提供則查詢目前視圖)",
+                    },
+                    maxCount: {
+                        type: "number",
+                        description: "最大回傳數量 (預設 100)",
+                    },
+                },
+                required: ["category"],
             },
         },
     ];

@@ -58,7 +58,7 @@ export class RevitSocketClient {
                     console.error('[Socket] 收到回應:', response);
 
                     // 處理回應
-                    if (response.requestId && this.responseHandlers.has(response.requestId)) {
+                    if (response.requestId) {
                         const handler = this.responseHandlers.get(response.requestId);
                         if (handler) {
                             handler(response);

@@ -22,6 +22,33 @@ namespace RevitMCP.Core
         }
 
         /// <summary>
+        /// 共用方法：查找樓層
+        /// </summary>
+        private Level FindLevel(Document doc, string levelName, bool useFirstIfNotFound = true)
+        {
+            var level = new FilteredElementCollector(doc)
+                .OfClass(typeof(Level))
+                .Cast<Level>()
+                .FirstOrDefault(l => l.Name == levelName || l.Name.Contains(levelName) || levelName.Contains(l.Name));
+
+            if (level == null && useFirstIfNotFound)
+            {
+                level = new FilteredElementCollector(doc)
+                    .OfClass(typeof(Level))
+                    .Cast<Level>()
+                    .OrderBy(l => l.Elevation)
+                    .FirstOrDefault();
+            }
+
+            if (level == null)
+            {
+                throw new Exception($"找不到樓層: {levelName}");
+            }
+
+            return level;
+        }
+
+        /// <summary>
         /// 執行命令
         /// </summary>
         public RevitCommandResponse ExecuteCommand(RevitCommandRequest request)
@@ -40,10 +67,7 @@ namespace RevitMCP.Core
                     case "get_project_info":
                         result = GetProjectInfo();
                         break;
-                    
-                    case "query_elements":
-                        result = QueryElements(parameters);
-                        break;
+
                     
                     case "create_floor":
                         result = CreateFloor(parameters);
@@ -135,6 +159,10 @@ namespace RevitMCP.Core
                     
                     case "query_walls_by_location":
                         result = QueryWallsByLocation(parameters);
+                        break;
+                    
+                    case "query_elements":
+                        result = QueryElements(parameters);
                         break;
                     
                     default:
@@ -234,46 +262,6 @@ namespace RevitMCP.Core
                 ClientName = projInfo.ClientName,
                 ProjectNumber = projInfo.Number,
                 ProjectStatus = projInfo.Status
-            };
-        }
-
-        /// <summary>
-        /// 查詢元素
-        /// </summary>
-        private object QueryElements(JObject parameters)
-        {
-            Document doc = _uiApp.ActiveUIDocument.Document;
-            string category = parameters["category"]?.Value<string>();
-
-            var collector = new FilteredElementCollector(doc);
-            
-            if (!string.IsNullOrEmpty(category))
-            {
-                // 依類別篩選
-                BuiltInCategory builtInCategory;
-                if (Enum.TryParse($"OST_{category}", true, out builtInCategory))
-                {
-                    collector.OfCategory(builtInCategory);
-                }
-            }
-
-            var elements = collector
-                .WhereElementIsNotElementType()
-                .ToElements()
-                .Take(100) // 限制回傳數量
-                .Select(e => new
-                {
-                    ElementId = e.Id.IntegerValue,
-                    Name = e.Name,
-                    Category = e.Category?.Name,
-                    LevelName = doc.GetElement(e.LevelId)?.Name
-                })
-                .ToList();
-
-            return new
-            {
-                Count = elements.Count,
-                Elements = elements
             };
         }
 
@@ -390,24 +378,7 @@ namespace RevitMCP.Core
                 trans.Start();
 
                 // 取得樓層
-                Level level = new FilteredElementCollector(doc)
-                    .OfClass(typeof(Level))
-                    .Cast<Level>()
-                    .FirstOrDefault(l => l.Name.Contains(levelName) || levelName.Contains(l.Name));
-
-                if (level == null)
-                {
-                    level = new FilteredElementCollector(doc)
-                        .OfClass(typeof(Level))
-                        .Cast<Level>()
-                        .OrderBy(l => l.Elevation)
-                        .FirstOrDefault();
-                }
-
-                if (level == null)
-                {
-                    throw new Exception($"找不到樓層: {levelName}");
-                }
+                Level level = FindLevel(doc, levelName, true);
 
                 // 建立邊界曲線
                 var points = pointsArray.Select(p => new XYZ(
@@ -761,25 +732,7 @@ namespace RevitMCP.Core
                 trans.Start();
 
                 // 取得底部樓層
-                Level bottomLevel = new FilteredElementCollector(doc)
-                    .OfClass(typeof(Level))
-                    .Cast<Level>()
-                    .FirstOrDefault(l => l.Name == bottomLevelName);
-
-                if (bottomLevel == null)
-                {
-                    // 如果找不到指定名稱，嘗試取得第一個樓層
-                    bottomLevel = new FilteredElementCollector(doc)
-                        .OfClass(typeof(Level))
-                        .Cast<Level>()
-                        .OrderBy(l => l.Elevation)
-                        .FirstOrDefault();
-                }
-
-                if (bottomLevel == null)
-                {
-                    throw new Exception($"找不到樓層: {bottomLevelName}");
-                }
+                Level bottomLevel = FindLevel(doc, bottomLevelName, true);
 
                 // 取得柱類型（FamilySymbol）
                 FamilySymbol columnSymbol = new FilteredElementCollector(doc)
@@ -901,24 +854,7 @@ namespace RevitMCP.Core
                 trans.Start();
 
                 // 取得樓層
-                Level level = new FilteredElementCollector(doc)
-                    .OfClass(typeof(Level))
-                    .Cast<Level>()
-                    .FirstOrDefault(l => l.Name == levelName);
-
-                if (level == null)
-                {
-                    level = new FilteredElementCollector(doc)
-                        .OfClass(typeof(Level))
-                        .Cast<Level>()
-                        .OrderBy(l => l.Elevation)
-                        .FirstOrDefault();
-                }
-
-                if (level == null)
-                {
-                    throw new Exception($"找不到樓層: {levelName}");
-                }
+                Level level = FindLevel(doc, levelName, true);
 
                 // 取得家具類型
                 FamilySymbol furnitureSymbol = new FilteredElementCollector(doc)
@@ -1047,15 +983,7 @@ namespace RevitMCP.Core
             }
 
             // 取得指定樓層
-            Level targetLevel = new FilteredElementCollector(doc)
-                .OfClass(typeof(Level))
-                .Cast<Level>()
-                .FirstOrDefault(l => l.Name.Contains(levelName) || levelName.Contains(l.Name));
-
-            if (targetLevel == null)
-            {
-                throw new Exception($"找不到樓層: {levelName}");
-            }
+            Level targetLevel = FindLevel(doc, levelName, false);
 
             // 取得該樓層的所有房間
             var rooms = new FilteredElementCollector(doc)
@@ -1210,26 +1138,40 @@ namespace RevitMCP.Core
         /// </summary>
         private object SelectElement(JObject parameters)
         {
-            int elementId = parameters["elementId"]?.Value<int>() ?? 0;
-            Document doc = _uiApp.ActiveUIDocument.Document;
-
-            Element element = doc.GetElement(new ElementId(elementId));
-            if (element == null)
+            var elementIds = new List<ElementId>();
+            
+            // 支援單一 ID
+            if (parameters.ContainsKey("elementId"))
             {
-                throw new Exception($"找不到元素 ID: {elementId}");
+                int id = parameters["elementId"].Value<int>();
+                if (id > 0) elementIds.Add(new ElementId(id));
             }
 
+            // 支援多個 ID
+            if (parameters.ContainsKey("elementIds"))
+            {
+                var ids = parameters["elementIds"].Values<int>();
+                foreach (var id in ids)
+                {
+                    if (id > 0) elementIds.Add(new ElementId(id));
+                }
+            }
+
+            if (elementIds.Count == 0)
+            {
+                throw new Exception("未提供有效的 elementId 或 elementIds");
+            }
+
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            
             // 選取元素
-            var elementIds = new List<ElementId> { new ElementId(elementId) };
             _uiApp.ActiveUIDocument.Selection.SetElementIds(elementIds);
 
             return new
             {
                 Success = true,
-                ElementId = elementId,
-                ElementName = element.Name,
-                Category = element.Category?.Name,
-                Message = $"已選取元素: {element.Name} (ID: {elementId})"
+                Count = elementIds.Count,
+                Message = $"已選取 {elementIds.Count} 個元素"
             };
         }
 
@@ -1463,10 +1405,6 @@ namespace RevitMCP.Core
                 Curve curve = locCurve.Curve;
                 XYZ startPoint = curve.GetEndPoint(0);
                 XYZ endPoint = curve.GetEndPoint(1);
-                XYZ midPoint = (startPoint + endPoint) / 2;
-
-                // 計算牆與查詢點的距離
-                double distance = center.DistanceTo(midPoint) * 304.8;
                 
                 // 計算點到線段的最近距離
                 XYZ wallDir = (endPoint - startPoint).Normalize();
@@ -1491,8 +1429,6 @@ namespace RevitMCP.Core
                     
                     // 計算牆的方向向量（垂直於位置線）
                     XYZ perpendicular = new XYZ(-wallDir.Y, wallDir.X, 0);
-                    
-                    // 計算內外面座標（假設位置線在中心）
                     double halfThickness = wall.Width / 2;
                     
                     // 牆的兩個面
@@ -1547,6 +1483,100 @@ namespace RevitMCP.Core
                 SearchRadius = searchRadius,
                 Walls = nearbyWalls
             };
+        }
+
+
+        /// <summary>
+        /// 查詢視圖中的元素
+        /// </summary>
+        private object QueryElements(JObject parameters)
+        {
+            try
+            {
+                string categoryName = parameters["category"]?.Value<string>();
+                int? viewId = parameters["viewId"]?.Value<int>();
+                int maxCount = parameters["maxCount"]?.Value<int>() ?? 100;
+                
+                Document doc = _uiApp.ActiveUIDocument.Document;
+                
+                if (string.IsNullOrEmpty(categoryName))
+                {
+                    throw new Exception("必須提供 category 參數");
+                }
+                
+                // 決定查詢範圍: 指定視圖 或 目前視圖
+                ElementId targetViewId = viewId.HasValue ? new ElementId(viewId.Value) : doc.ActiveView.Id;
+                
+                FilteredElementCollector collector = new FilteredElementCollector(doc, targetViewId);
+                
+                // 嘗試解析 BuiltInCategory
+                BuiltInCategory category = BuiltInCategory.INVALID;
+                bool isBuiltIn = Enum.TryParse("OST_" + categoryName, true, out category) || 
+                                 Enum.TryParse(categoryName, true, out category);
+                
+                List<Element> elements = new List<Element>();
+                
+                if (isBuiltIn && category != BuiltInCategory.INVALID)
+                {
+                    elements = collector.OfCategory(category).ToElements().ToList();
+                }
+                else
+                {
+                    // 嘗試用 Class 查詢
+                    if (categoryName.Equals("Dimensions", StringComparison.OrdinalIgnoreCase))
+                    {
+                        elements = collector.OfClass(typeof(Dimension)).ToElements().ToList();
+                    }
+                    else if (categoryName.Equals("Walls", StringComparison.OrdinalIgnoreCase))
+                    {
+                        elements = collector.OfClass(typeof(Wall)).ToElements().ToList();
+                    }
+                    else if (categoryName.Equals("Rooms", StringComparison.OrdinalIgnoreCase))
+                    {
+                        elements = collector.OfCategory(BuiltInCategory.OST_Rooms).ToElements().ToList();
+                    }
+                    else
+                    {
+                        throw new Exception($"不支援的類別: {categoryName}");
+                    }
+                }
+                
+                // 提取基本資訊
+                var resultList = elements.Take(maxCount).Select(elem =>
+                {
+                    var item = new Dictionary<string, object>
+                    {
+                        { "ElementId", elem.Id.IntegerValue },
+                        { "Name", elem.Name ?? "" },
+                        { "Category", elem.Category?.Name ?? "" }
+                    };
+                    
+                    // 特殊處理 Dimension
+                    if (elem is Dimension dim)
+                    {
+                        if (dim.Value.HasValue)
+                            item.Add("Value", Math.Round(dim.Value.Value * 304.8, 2)); // 轉 mm
+                        if (dim.DimensionType != null)
+                            item.Add("DimensionType", dim.DimensionType.Name);
+                    }
+                    
+                    return item;
+                }).ToList();
+                
+                return new
+                {
+                    Success = true,
+                    Count = resultList.Count,
+                    TotalFound = elements.Count,
+                    ViewId = targetViewId.IntegerValue,
+                    Category = categoryName,
+                    Elements = resultList
+                };
+            }
+            catch (Exception ex)
+            {
+                 throw new Exception($"QueryElements 錯誤: {ex.Message}");
+            }
         }
 
         #endregion
