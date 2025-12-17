@@ -464,11 +464,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\User\\Desktop\\REVIT MCP\\MCP\\MCP\\RevitMCP.2024.csproj",
+      "projectUniqueName": "C:\\Users\\User\\Desktop\\REVIT MCP\\MCP\\RevitMCP.2024.csproj",
       "projectName": "RevitMCP",
-      "projectPath": "C:\\Users\\User\\Desktop\\REVIT MCP\\MCP\\MCP\\RevitMCP.2024.csproj",
+      "projectPath": "C:\\Users\\User\\Desktop\\REVIT MCP\\MCP\\RevitMCP.2024.csproj",
       "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\User\\Desktop\\REVIT MCP\\MCP\\MCP\\obj\\",
+      "outputPath": "C:\\Users\\User\\Desktop\\REVIT MCP\\MCP\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"

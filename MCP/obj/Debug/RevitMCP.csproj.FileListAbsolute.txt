@@ -1,9 +1,0 @@
-C:\Users\01102088\Desktop\DEV\MCP\bin\Debug\RevitMCP.dll
-C:\Users\01102088\Desktop\DEV\MCP\bin\Debug\RevitMCP.pdb
-C:\Users\01102088\Desktop\DEV\MCP\bin\Debug\Newtonsoft.Json.dll
-C:\Users\01102088\Desktop\DEV\MCP\obj\Debug\RevitMCP.csproj.AssemblyReference.cache
-C:\Users\01102088\Desktop\DEV\MCP\obj\Debug\RevitMCP.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\01102088\Desktop\DEV\MCP\obj\Debug\RevitMCP.csproj.CoreCompileInputs.cache
-C:\Users\01102088\Desktop\DEV\MCP\obj\Debug\RevitMCP.csproj.Up2Date
-C:\Users\01102088\Desktop\DEV\MCP\obj\Debug\RevitMCP.dll
-C:\Users\01102088\Desktop\DEV\MCP\obj\Debug\RevitMCP.pdb
