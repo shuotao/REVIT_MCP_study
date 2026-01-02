@@ -37,3 +37,6 @@ npm-debug.log*
 
 # Agent/workflow files
 .agent/
+
+# Private User Guide (Excluded from Push)
+PRIVATE_INSTRUCTIONS.md

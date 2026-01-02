@@ -17,10 +17,10 @@
 ### 1. 元素上色與視覺化
 *   **流程文件**：`domain/element-coloring-workflow.md`
 *   **執行腳本**：
-    *   清除顏色：`node MCP-Server/clear_walls.js`
-    *   取消接合：`node MCP-Server/step_unjoin.js`
-    *   上色：`node MCP-Server/fire_rating_full.js`
-    *   恢復接合：`node MCP-Server/step_rejoin.js`
+    *   清除顏色：`node MCP-Server/scripts/clear_walls.js`
+    *   取消接合：`node MCP-Server/scripts/step_unjoin.js`
+    *   上色：`node MCP-Server/scripts/fire_rating_full.js`
+    *   恢復接合：`node MCP-Server/scripts/step_rejoin.js`
 
 ### 2. 房間邊界處理
 *   **流程文件**：`domain/room-boundary.md`
@@ -34,6 +34,30 @@
 1.  **修改 C# 後**：必須關閉 Revit -> 編譯 -> 部署 -> 開啟 Revit。
 2.  **腳本路徑**：所有 Node.js 腳本預設在 `MCP-Server/` 目錄下執行。
 3.  **依賴關係**：`MCP-Server` 透過 WebSocket (Port 8964) 與 Revit Add-in 通訊。
+4.  **代碼品質**：
+    - **C#**：必須處理 Revit API 的 `Transaction` 和 `Exception`，確保操作可逆。
+    - **Node.js**：必須處理 WebSocket 的連接錯誤與超時。
+
+## 🧠 專業開發者協作協議 (Jackle Protocol)
+
+此專案採用「上下文工程 (Context Engineering)」策略，區分 **高階規則 (Rules)** 與 **具體規格 (Specs)**。AI 助手必須遵循以下指令與行為模式：
+
+### 1. 指令定義與行為模式
+| 指令 | 行為規範 (AI 必須執行的動作) |
+| :--- | :--- |
+| **`/lessons`** | **智慧提煉**：從成功對話中提取「高階規則或避坑經驗」，並以 **Append (追加)** 方式寫入此 `GEMINI.md` 末尾。嚴禁只記代碼細節。 |
+| **`/review`** | **憲法審計**：檢查 `GEMINI.md` 是否過於肥大。當規則超過 100 行，提議將具體的「規格或案例」遷移至 `domain/` 或 `docs/`。 |
+| **`/explain`** | **視覺化解構**：解釋複雜概念時，**強制使用** Markdown 表格、ASCII 流程圖或 Mermaid 圖表。嚴禁提供冗長的文字牆。 |
+
+### 2. 核心行為義務 (不需要指令即可觸發)
+- **自動預檢 (Auto-Precheck)**：在開始任何任務前，我 **必須主動** 檢索 `domain/`、`scripts/` 以及 `GEMINI.md`。如果已有先前成功的策略，必須優先參考，嚴禁重複撰寫類似邏輯的 JS。
+- **規格驅動 (SDD)**：重大變更前應先更新 `domain/` 中的 MD 文件（規格），而非直接修改程式碼。
+
+### 📂 腳本與知識組織規範
+- **`domain/`**: 存放長期業務邏輯、法規分析策略、成功的 AI 協作經驗 (MD 格式)。
+- **`MCP-Server/src/tools/`**: 存放穩定的底層核心 MCP 工具 (TS/JS)。
+- **`MCP-Server/scripts/`**: 存放參數化、可重複調用的穩定工作流腳本。
+- **`MCP-Server/scratch/`**: 存放任務導向、一次性或除錯用的雜餘腳本。
 
 ---
 
@@ -242,4 +266,19 @@ npm run build
 
 ---
 
-**最後更新**: 2024-12-18
+**最後更新**: 2026-01-02
+
+## 🔬 智慧提煉 (Lessons Learned)
+
+> 此章節由 AI 助手透過 `/lessons` 指令自動維護，記錄專案特定的高階開發規則。
+
+### [L-001] 走廊識別策略
+- **規則**：Revit 中的區域功能查詢應具備語言容錯性。
+- **實踐**：篩選房間應包含 `走廊`, `Corridor`, `廊道`, `通道`, `廊下` (日文)。
+
+### [L-002] 自動尺寸標註定位原則
+- **規則**：建立 `Dimension` 必須依附於宿主元素的中心幾何，且必須匹配正確的「視圖 ID」。
+- **座標轉換**：
+    - 取得元素的 `BoundingBox`。
+    - 標註位置線應定義在 `(max + min) / 2` 的中心軌跡上，以確保標註文字不與邊界牆重疊。
+    - **警告**：嚴禁在 3D 視圖中直接建立平面標註，必須先查詢 `ActiveView`。
