@@ -1,6 +1,27 @@
+# domain/ 領域知識目錄
+
+此目錄存放業務流程、工作流程和法規參考資料。
+
+---
+
+## 📂 目錄結構
+
+| 檔案 | 說明 | 狀態 |
+|-----|------|:----:|
+| `floor-area-review.md` | 容積檢討流程 | ✅ |
+| `fire-rating-check.md` | 防火等級檢查流程 | ✅ |
+| `corridor-analysis-protocol.md` | 走廊分析流程 | ✅ |
+| `element-coloring-workflow.md` | 元素上色流程 | ✅ |
+| `room-boundary.md` | 房間邊界計算 | ✅ |
+| `wall-check.md` | 牆壁檢查機制 | ✅ |
+| `path-maintenance-qa.md` | 路徑維護 QA | ✅ |
+| `references/building-code-tw.md` | 台灣建築法規摘要 | ✅ |
+
+---
+
 # 容積檢討工具開發計劃
 
-本文件記錄容積檢討功能的開發思路與工具設計。
+> ⚠️ **注意**：以下為開發計劃，列出的工具**尚未全部實作**。目前已實作的工具請參考 README.md 的工具清單。
 
 ---
 
