@@ -61,9 +61,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\h3019\\Documents\\vscode_projects\\REVIT_MCP_study\\MCP\\RevitMCP.csproj",
+      "projectUniqueName": "C:\\Users\\h3019\\Documents\\vscode_projects\\REVIT_MCP_study\\MCP\\RevitMCP.2024.csproj",
       "projectName": "RevitMCP",
-      "projectPath": "C:\\Users\\h3019\\Documents\\vscode_projects\\REVIT_MCP_study\\MCP\\RevitMCP.csproj",
+      "projectPath": "C:\\Users\\h3019\\Documents\\vscode_projects\\REVIT_MCP_study\\MCP\\RevitMCP.2024.csproj",
       "packagesPath": "C:\\Users\\h3019\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\h3019\\Documents\\vscode_projects\\REVIT_MCP_study\\MCP\\obj\\",
       "projectStyle": "PackageReference",
