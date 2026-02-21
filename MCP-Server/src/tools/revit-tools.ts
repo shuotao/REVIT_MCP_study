@@ -587,34 +587,113 @@ export function registerRevitTools(): Tool[] {
             },
         },
 
-        // 26. 通用元素查詢
+        // 26. Get active schema (Phase 1: Exploration)
         {
-            name: "query_elements",
-            description: "查詢視圖中的元素，可依照類別 (Category) 過濾。",
+            name: "get_active_schema",
+            description: "[Phase 1: Exploration] Get all categories and their element counts in the active view. ALWAYS run this first to confirm if the target category exists. (取得目前視圖中的所有品類及數量。在查詢前請先執行此工具確認目標品類是否存在。)",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    viewId: {
+                        type: "number",
+                        description: "The view Element ID (Optional, defaults to active view)",
+                    },
+                },
+            },
+        },
+
+        // 27. Get category fields (Phase 2: Alignment)
+        {
+            name: "get_category_fields",
+            description: "[Phase 2: Alignment] Get all parameter names for a specific category. MANDATORY: Run this before 'query_elements_with_filter' to identify exact localized parameter names. (取得指定品類的所有參數欄位名稱。在執行進階查詢前，務必先跑此工具確認精確名稱，嚴禁猜測。)",
             inputSchema: {
                 type: "object",
                 properties: {
                     category: {
                         type: "string",
-                        description: "元素類別 (例如 'Dimensions', 'Walls', 'Rooms', 'Windows')",
-                    },
-                    viewId: {
-                        type: "number",
-                        description: "視圖 ID (選填，若未提供則查詢目前視圖)",
-                    },
-                    maxCount: {
-                        type: "number",
-                        description: "最大回傳數量 (預設 100)",
+                        description: "The category internal name (e.g., 'Walls', 'Windows')",
                     },
                 },
                 required: ["category"],
             },
         },
 
-        // 27. 覆寫元素圖形顯示
+        // 28. Get field value distribution (Phase 2.5)
+        {
+            name: "get_field_values",
+            description: "[Optional Phase 2.5] Get the distribution of existing values (unique list or range) for a specific parameter. (取得指定參數的現有值分佈情況，協助確定過濾條件的值範圍。)",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    category: {
+                        type: "string",
+                        description: "The category internal name",
+                    },
+                    fieldName: {
+                        type: "string",
+                        description: "The parameter name (e.g., 'Fire Rating')",
+                    },
+                    maxSamples: {
+                        type: "number",
+                        description: "Max samples to analyze (Default: 500)",
+                        default: 500,
+                    },
+                },
+                required: ["category", "fieldName"],
+            },
+        },
+
+        // 29. Advanced element query (Phase 3: Retrieval)
+        {
+            name: "query_elements_with_filter",
+            description: "[Phase 3: Retrieval] Query elements with multi-filter support. NOTE: The 'field' name MUST match names from 'get_category_fields'. Units are typically in mm. (進階查詢工具，支援多重過濾。注意：filters 中的 field 必須嚴格匹配從 get_category_fields 取得的名稱。)",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    category: {
+                        type: "string",
+                        description: "The category internal name (e.g., 'Walls', 'Windows')",
+                    },
+                    viewId: {
+                        type: "number",
+                        description: "The view Element ID (Optional)",
+                    },
+                    filters: {
+                        type: "array",
+                        description: "List of filter conditions",
+                        items: {
+                            type: "object",
+                            properties: {
+                                field: { type: "string", description: "Parameter name (MUST be from get_category_fields)" },
+                                operator: { 
+                                    type: "string", 
+                                    enum: ["equals", "contains", "less_than", "greater_than", "not_equals"],
+                                    description: "Comparison operator"
+                                },
+                                value: { type: "string", description: "Comparison value (strings for text, numeric strings for numbers)" }
+                            },
+                            required: ["field", "operator", "value"]
+                        }
+                    },
+                    returnFields: {
+                        type: "array",
+                        description: "指定要回傳的參數欄位清單",
+                        items: { type: "string" }
+                    },
+                    maxCount: {
+                        type: "number",
+                        description: "最大回傳數量 (預設 100)",
+                        default: 100,
+                    },
+                },
+                required: ["category"],
+            },
+        },
+
+        // 30. 覆寫元素圖形顯示
         {
             name: "override_element_graphics",
-            description: "在指定視圖中覆寫元素的圖形顯示（填滿顏色、圖樣、線條顏色等）。適用於平面圖中標記不同狀態的牆體或其他元素。",
+            description: "在指定視圖中覆寫元素的圖形顯示（填滿顏色、圖樣、線條顏色等）。",
             inputSchema: {
                 type: "object",
                 properties: {
@@ -661,7 +740,7 @@ export function registerRevitTools(): Tool[] {
             },
         },
 
-        // 28. 清除元素圖形覆寫
+        // 31. 清除元素圖形覆寫
         {
             name: "clear_element_override",
             description: "清除元素在指定視圖中的圖形覆寫，恢復為預設顯示。",
@@ -696,7 +775,8 @@ export async function executeRevitTool(
     client: RevitSocketClient
 ): Promise<any> {
     // 將工具名稱轉換為 Revit 命令名稱
-    const commandName = toolName;
+    // 如果是 query_elements_with_filter，映射到 C# 的 query_elements
+    const commandName = toolName === "query_elements_with_filter" ? "query_elements" : toolName;
 
     // 發送命令到 Revit
     const response = await client.sendCommand(commandName, args);

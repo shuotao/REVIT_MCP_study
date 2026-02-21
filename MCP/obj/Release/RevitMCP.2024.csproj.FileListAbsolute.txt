@@ -18,3 +18,13 @@ C:\Users\User\Desktop\REVIT_MCP\REVIT_MCP_study\MCP\obj\Release\RevitMCP.2024.so
 C:\Users\User\Desktop\REVIT_MCP\REVIT_MCP_study\MCP\obj\Release\RevitMCP.22A43059.Up2Date
 C:\Users\User\Desktop\REVIT_MCP\REVIT_MCP_study\MCP\obj\Release\RevitMCP.dll
 C:\Users\User\Desktop\REVIT_MCP\REVIT_MCP_study\MCP\obj\Release\RevitMCP.pdb
+C:\Users\h3019\Documents\vscode_projects\REVIT_MCP_study\MCP\obj\Release\RevitMCP.2024.csproj.AssemblyReference.cache
+C:\Users\h3019\Documents\vscode_projects\REVIT_MCP_study\MCP\obj\Release\RevitMCP.2024.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\h3019\Documents\vscode_projects\REVIT_MCP_study\MCP\obj\Release\RevitMCP.2024.csproj.CoreCompileInputs.cache
+C:\Users\h3019\Documents\vscode_projects\REVIT_MCP_study\MCP\obj\Release\RevitMCP.2024.sourcelink.json
+C:\Users\h3019\Documents\vscode_projects\REVIT_MCP_study\MCP\obj\Release\RevitMCP.dll
+C:\Users\h3019\Documents\vscode_projects\REVIT_MCP_study\MCP\obj\Release\RevitMCP.pdb
+C:\Users\h3019\Documents\vscode_projects\REVIT_MCP_study\MCP\bin\Release.2024\RevitMCP.dll
+C:\Users\h3019\Documents\vscode_projects\REVIT_MCP_study\MCP\bin\Release.2024\RevitMCP.pdb
+C:\Users\h3019\Documents\vscode_projects\REVIT_MCP_study\MCP\bin\Release.2024\Newtonsoft.Json.dll
+C:\Users\h3019\Documents\vscode_projects\REVIT_MCP_study\MCP\obj\Release\RevitMCP.22A43059.Up2Date

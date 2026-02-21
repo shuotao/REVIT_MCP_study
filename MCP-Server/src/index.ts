@@ -99,6 +99,21 @@ async function main() {
 
     console.error("MCP Server 已準備就緒");
     console.error("Socket 伺服器監聽埠號: 8964");
+
+    // 處理優雅退出
+    const shutdown = async () => {
+        console.error("\n[MCP Server] 正在關閉伺服器...");
+        try {
+            await revitClient.disconnect();
+            console.error("[MCP Server] 已中斷 Revit 連線");
+        } catch (e) {
+            // 忽略關閉時的錯誤
+        }
+        process.exit(0);
+    };
+
+    process.on("SIGINT", shutdown);
+    process.on("SIGTERM", shutdown);
 }
 
 main().catch((error) => {
