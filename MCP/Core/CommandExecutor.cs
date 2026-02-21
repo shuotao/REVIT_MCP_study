@@ -161,11 +161,31 @@ namespace RevitMCP.Core
                         result = QueryWallsByLocation(parameters);
                         break;
                     
-                    case "query_elements":
-                        result = QueryElements(parameters);
-                        break;
+                                        case "query_elements":
                     
-                    case "override_element_graphics":
+                                            result = QueryElements(parameters);
+                    
+                                            break;
+                    
+                                        case "get_active_schema":
+                    
+                                            result = GetActiveSchema(parameters);
+                    
+                                            break;
+                    
+                                        case "get_category_fields":
+                    
+                                            result = GetCategoryFields(parameters);
+                    
+                                            break;
+                    
+                                        case "get_field_values":
+                    
+                                            result = GetFieldValues(parameters);
+                    
+                                            break;
+                    
+                                        case "override_element_graphics":
                         result = OverrideElementGraphics(parameters);
                         break;
                     
@@ -1503,7 +1523,7 @@ namespace RevitMCP.Core
 
 
         /// <summary>
-        /// 查詢視圖中的元素
+        /// 查詢視圖中的元素 (增強版)
         /// </summary>
         private object QueryElements(JObject parameters)
         {
@@ -1512,95 +1532,298 @@ namespace RevitMCP.Core
                 string categoryName = parameters["category"]?.Value<string>();
                 int? viewId = parameters["viewId"]?.Value<int>();
                 int maxCount = parameters["maxCount"]?.Value<int>() ?? 100;
+                JArray filters = parameters["filters"] as JArray;
+                JArray returnFields = parameters["returnFields"] as JArray;
                 
                 Document doc = _uiApp.ActiveUIDocument.Document;
-                
-                if (string.IsNullOrEmpty(categoryName))
-                {
-                    throw new Exception("必須提供 category 參數");
-                }
-                
-                // 決定查詢範圍: 指定視圖 或 目前視圖
                 ElementId targetViewId = viewId.HasValue ? new ElementId(viewId.Value) : doc.ActiveView.Id;
                 
                 FilteredElementCollector collector = new FilteredElementCollector(doc, targetViewId);
                 
-                // 嘗試解析 BuiltInCategory
-                BuiltInCategory category = BuiltInCategory.INVALID;
-                bool isBuiltIn = Enum.TryParse("OST_" + categoryName, true, out category) || 
-                                 Enum.TryParse(categoryName, true, out category);
-                
-                List<Element> elements = new List<Element>();
-                
-                if (isBuiltIn && category != BuiltInCategory.INVALID)
+                // 1. 品類過濾
+                ElementId catId = ResolveCategoryId(doc, categoryName);
+                if (catId != ElementId.InvalidElementId)
                 {
-                    elements = collector.OfCategory(category).ToElements().ToList();
+                    collector.OfCategoryId(catId);
                 }
                 else
                 {
-                    // 嘗試用 Class 查詢
-                    if (categoryName.Equals("Dimensions", StringComparison.OrdinalIgnoreCase))
-                    {
-                        elements = collector.OfClass(typeof(Dimension)).ToElements().ToList();
-                    }
-                    else if (categoryName.Equals("Walls", StringComparison.OrdinalIgnoreCase))
-                    {
-                        elements = collector.OfClass(typeof(Wall)).ToElements().ToList();
-                    }
-                    else if (categoryName.Equals("Rooms", StringComparison.OrdinalIgnoreCase))
-                    {
-                        elements = collector.OfCategory(BuiltInCategory.OST_Rooms).ToElements().ToList();
-                    }
-                    else if (categoryName.Equals("StructuralColumns", StringComparison.OrdinalIgnoreCase))
-                    {
-                        elements = collector.OfCategory(BuiltInCategory.OST_StructuralColumns).ToElements().ToList();
-                    }
-                    else if (categoryName.Equals("Columns", StringComparison.OrdinalIgnoreCase))
-                    {
-                        elements = collector.OfCategory(BuiltInCategory.OST_Columns).ToElements().ToList();
-                    }
-                    else
-                    {
-                        throw new Exception($"不支援的類別: {categoryName}");
-                    }
+                    // 備用方案: 根據常用名稱
+                    if (categoryName.Equals("Walls", StringComparison.OrdinalIgnoreCase)) collector.OfClass(typeof(Wall));
+                    else if (categoryName.Equals("Rooms", StringComparison.OrdinalIgnoreCase)) collector.OfCategory(BuiltInCategory.OST_Rooms);
+                    else throw new Exception($"無法辨識品類: {categoryName}");
                 }
-                
-                // 提取基本資訊
-                var resultList = elements.Take(maxCount).Select(elem =>
+
+                var elements = collector.WhereElementIsNotElementType().ToElements();
+                var filteredList = new List<Element>();
+
+                // 2. 執行過濾邏輯
+                foreach (var elem in elements)
+                {
+                    bool match = true;
+                    if (filters != null)
+                    {
+                        foreach (var filter in filters)
+                        {
+                            string field = filter["field"]?.Value<string>();
+                            string op = filter["operator"]?.Value<string>();
+                            string targetValue = filter["value"]?.Value<string>();
+                            
+                            if (!CheckFilterMatch(elem, field, op, targetValue))
+                            {
+                                match = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (match) filteredList.Add(elem);
+                    if (filteredList.Count >= maxCount) break;
+                }
+
+                // 3. 準備回傳欄位
+                var resultList = filteredList.Select(elem =>
                 {
                     var item = new Dictionary<string, object>
                     {
-                        { "ElementId", elem.Id.IntegerValue },
-                        { "Name", elem.Name ?? "" },
-                        { "Category", elem.Category?.Name ?? "" }
+                        { "ElementId", elem.Id.Value },
+                        { "Name", elem.Name ?? "" }
                     };
-                    
-                    // 特殊處理 Dimension
-                    if (elem is Dimension dim)
+
+                    if (returnFields != null)
                     {
-                        if (dim.Value.HasValue)
-                            item.Add("Value", Math.Round(dim.Value.Value * 304.8, 2)); // 轉 mm
-                        if (dim.DimensionType != null)
-                            item.Add("DimensionType", dim.DimensionType.Name);
+                        foreach (var f in returnFields)
+                        {
+                            string fieldName = f.Value<string>();
+                            if (string.IsNullOrEmpty(fieldName) || item.ContainsKey(fieldName)) continue;
+                            
+                            Parameter p = FindParameter(elem, fieldName);
+                            if (p != null) 
+                            {
+                                string val = p.AsValueString() ?? p.AsString() ?? "";
+                                item[fieldName] = val;
+                            }
+                            else
+                            {
+                                item[fieldName] = "N/A";
+                            }
+                        }
                     }
-                    
                     return item;
                 }).ToList();
-                
-                return new
-                {
-                    Success = true,
-                    Count = resultList.Count,
-                    TotalFound = elements.Count,
-                    ViewId = targetViewId.IntegerValue,
-                    Category = categoryName,
-                    Elements = resultList
-                };
+
+                return new { Success = true, Count = resultList.Count, Elements = resultList };
             }
             catch (Exception ex)
             {
-                 throw new Exception($"QueryElements 錯誤: {ex.Message}");
+                throw new Exception($"QueryElements 錯誤: {ex.Message}");
             }
+        }
+
+        private Parameter FindParameter(Element elem, string name)
+        {
+            // 1. 優先找實例參數
+            foreach (Parameter p in elem.Parameters)
+            {
+                if (p.Definition.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) return p;
+            }
+
+            // 2. 找類型參數
+            Element typeElem = elem.Document.GetElement(elem.GetTypeId());
+            if (typeElem != null)
+            {
+                foreach (Parameter p in typeElem.Parameters)
+                {
+                    if (p.Definition.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) return p;
+                }
+            }
+
+            return null;
+        }
+
+        private bool CheckFilterMatch(Element elem, string field, string op, string targetValue)
+        {
+            Parameter p = FindParameter(elem, field);
+            if (p == null) return false;
+
+            string val = p.AsValueString() ?? p.AsString() ?? "";
+            
+            switch (op)
+            {
+                case "equals": return val.Equals(targetValue, StringComparison.OrdinalIgnoreCase);
+                case "contains": return val.Contains(targetValue);
+                case "not_equals": return !val.Equals(targetValue, StringComparison.OrdinalIgnoreCase);
+                case "less_than":
+                case "greater_than":
+                    // 移除單位字串並嘗試解析
+                    string cleanVal = System.Text.RegularExpressions.Regex.Replace(val, @"[^\d.-]", "");
+                    if (double.TryParse(cleanVal, out double v1) && 
+                        double.TryParse(targetValue, out double v2))
+                    {
+                        return op == "less_than" ? v1 < v2 : v1 > v2;
+                    }
+                    return false;
+                default: return false;
+            }
+        }
+
+        private ElementId ResolveCategoryId(Document doc, string name)
+        {
+            foreach (Category cat in doc.Settings.Categories)
+            {
+                if (cat.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || 
+                    cat.BuiltInCategory.ToString().Equals("OST_" + name, StringComparison.OrdinalIgnoreCase) ||
+                    cat.BuiltInCategory.ToString().Equals(name, StringComparison.OrdinalIgnoreCase))
+                    return cat.Id;
+            }
+            return ElementId.InvalidElementId;
+        }
+
+        /// <summary>
+        /// 取得視圖架構 (第一階段)
+        /// </summary>
+        private object GetActiveSchema(JObject parameters)
+        {
+            try
+            {
+                Document doc = _uiApp.ActiveUIDocument.Document;
+                int? viewId = parameters["viewId"]?.Value<int>();
+                ElementId targetViewId = viewId.HasValue ? new ElementId(viewId.Value) : doc.ActiveView.Id;
+
+                var collector = new FilteredElementCollector(doc, targetViewId);
+                var categories = collector.WhereElementIsNotElementType()
+                    .Where(e => e.Category != null)
+                    .GroupBy(e => e.Category.Id.Value)
+                    .Select(g => {
+                        ElementId catId = new ElementId(g.Key);
+                        Category cat = Category.GetCategory(doc, catId);
+                        return new { 
+                            Name = cat?.Name ?? "未知品類",
+                            InternalName = cat?.BuiltInCategory.ToString().Replace("OST_", "") ?? "Unknown",
+                            Count = g.Count() 
+                        };
+                    })
+                    .OrderByDescending(c => c.Count)
+                    .ToList();
+
+                return new { Success = true, ViewId = targetViewId.IntegerValue, Categories = categories };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"GetActiveSchema 錯誤: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 取得品類參數欄位 (第二階段 - A)
+        /// </summary>
+        private object GetCategoryFields(JObject parameters)
+        {
+            try
+            {
+                string categoryName = parameters["category"]?.Value<string>();
+                Document doc = _uiApp.ActiveUIDocument.Document;
+                ElementId catId = ResolveCategoryId(doc, categoryName);
+                
+                if (catId == ElementId.InvalidElementId)
+                    throw new Exception($"找不到品類: {categoryName}");
+
+                Element sample = new FilteredElementCollector(doc)
+                    .OfCategoryId(catId)
+                    .WhereElementIsNotElementType()
+                    .FirstElement();
+                
+                if (sample == null) 
+                    return new { Success = false, Message = $"專案中沒有任何 {categoryName} 元素可供分析" };
+
+                var instanceFields = sample.GetOrderedParameters()
+                    .Where(p => {
+                        InternalDefinition def = p.Definition as InternalDefinition;
+                        return def == null || def.Visible;
+                    })
+                    .Select(p => p.Definition.Name)
+                    .Distinct()
+                    .ToList();
+
+                var typeFields = new List<string>();
+                ElementId typeId = sample.GetTypeId();
+                if (typeId != ElementId.InvalidElementId)
+                {
+                    Element typeElem = doc.GetElement(typeId);
+                    if (typeElem != null)
+                    {
+                        typeFields = typeElem.GetOrderedParameters()
+                            .Where(p => {
+                                InternalDefinition def = p.Definition as InternalDefinition;
+                                return def == null || def.Visible;
+                            })
+                            .Select(p => p.Definition.Name)
+                            .Distinct()
+                            .ToList();
+                    }
+                }
+
+                return new { Success = true, Category = categoryName, InstanceFields = instanceFields, TypeFields = typeFields };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"GetCategoryFields 錯誤: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 取得參數值分布 (第二階段 - B)
+        /// </summary>
+        private object GetFieldValues(JObject parameters)
+        {
+            string categoryName = parameters["category"]?.Value<string>();
+            string fieldName = parameters["fieldName"]?.Value<string>();
+            int maxSamples = parameters["maxSamples"]?.Value<int>() ?? 500;
+            
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            ElementId catId = ResolveCategoryId(doc, categoryName);
+            var elements = new FilteredElementCollector(doc).OfCategoryId(catId).WhereElementIsNotElementType().Take(maxSamples);
+
+            var values = new HashSet<string>();
+            bool isNumeric = false;
+            double min = double.MaxValue;
+            double max = double.MinValue;
+
+            foreach (var elem in elements)
+            {
+                Parameter p = elem.LookupParameter(fieldName);
+                if (p == null)
+                {
+                    Element typeElem = doc.GetElement(elem.GetTypeId());
+                    if (typeElem != null) p = typeElem.LookupParameter(fieldName);
+                }
+                
+                if (p != null && p.HasValue)
+                {
+                    string valString = p.AsValueString() ?? p.AsString();
+                    if (valString != null) values.Add(valString);
+
+                    if (p.StorageType == StorageType.Double || p.StorageType == StorageType.Integer)
+                    {
+                        isNumeric = true;
+                        double val = (p.StorageType == StorageType.Double) ? p.AsDouble() : p.AsInteger();
+                        
+                        // 轉換為 mm (如果適用，Revit 2024 寫法)
+                        if (p.Definition.GetDataType() == SpecTypeId.Length) val *= 304.8;
+                        
+                        if (val < min) min = val;
+                        if (val > max) max = val;
+                    }
+                }
+            }
+
+            return new { 
+                Success = true, 
+                Category = categoryName, 
+                Field = fieldName, 
+                UniqueValues = values.Take(20).ToList(),
+                IsNumeric = isNumeric,
+                Range = isNumeric ? new { Min = Math.Round(min, 2), Max = Math.Round(max, 2) } : null
+            };
         }
 
         /// <summary>
