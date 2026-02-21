@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>帷幕牆面板排列預覽器 v3</title>
+    <style>
+        :root {
+            --bg-dark: #1a1a2e;
+            --bg-card: #16213e;
+            --accent: #0f3460;
+            --highlight: #e94560;
+            --success: #00d26a;
+            --warning: #ffa726;
+            --text: #eaeaea;
+            --text-muted: #a0a0a0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #0f0f23 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            background: linear-gradient(90deg, #e94560, #0f3460);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 0.3rem;
+            font-size: 0.75rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        .status-dot.offline {
+            background: var(--highlight);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 1rem;
+        }
+
+        .panel {
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel h2 {
+            font-size: 0.85rem;
+            color: var(--highlight);
+            margin-bottom: 0.6rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid var(--accent);
+        }
+
+        /* 資訊區塊 */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.4rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .info-item {
+            background: var(--accent);
+            padding: 0.5rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .info-item .label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .info-item .value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--highlight);
+        }
+
+        /* 類型管理表格 */
+        .type-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .type-table th {
+            background: var(--accent);
+            padding: 0.4rem;
+            text-align: left;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .type-table td {
+            padding: 0.4rem;
+            border-bottom: 1px solid var(--accent);
+            vertical-align: middle;
+        }
+
+        .type-table tr:hover {
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        .color-swatch {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+        }
+
+        .type-id {
+            font-weight: 700;
+            color: var(--highlight);
+            width: 30px;
+        }
+
+        .type-name {
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .type-source {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .type-source.new {
+            color: var(--warning);
+        }
+
+        .type-source.linked {
+            color: var(--success);
+        }
+
+        .type-actions button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.2rem;
+            font-size: 0.9rem;
+        }
+
+        .type-actions button:hover {
+            color: var(--highlight);
+        }
+
+        .add-type-btn {
+            width: 100%;
+            padding: 0.4rem;
+            background: transparent;
+            border: 1px dashed var(--accent);
+            border-radius: 4px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .add-type-btn:hover {
+            border-color: var(--highlight);
+            color: var(--highlight);
+        }
+
+        /* 可折疊區塊 */
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .collapse-icon {
+            transition: transform 0.3s;
+            font-size: 0.7rem;
+        }
+
+        .collapsible-header.collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            max-height: 400px;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+        }
+
+        /* 排列模式 */
+        .form-group {
+            margin-bottom: 0.6rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 0.2rem;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 0.4rem;
+            background: var(--accent);
+            border: 1px solid transparent;
+            border-radius: 4px;
+            color: var(--text);
+            font-size: 0.8rem;
+        }
+
+        /* 按鈕 */
+        .btn-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.8rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.6rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--highlight), #c73e54);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--accent);
+            color: var(--text);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 預覽區域 */
+        .preview-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 120px);
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .zoom-controls button {
+            background: var(--accent);
+            border: none;
+            color: var(--text);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .grid-preview {
+            flex: 1;
+            overflow: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            position: relative;
+        }
+
+        .dimension-label {
+            position: absolute;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            background: var(--bg-card);
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+        }
+
+        .dim-top {
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .dim-left {
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-90deg);
+            transform-origin: center;
+        }
+
+        .curtain-grid-wrapper {
+            display: inline-block;
+            transform-origin: top left;
+            transition: transform 0.2s;
+        }
+
+        .curtain-grid {
+            display: grid;
+            gap: 2px;
+            background: #333;
+            padding: 2px;
+            border-radius: 4px;
+        }
+
+        .panel-cell {
+            border-radius: 2px;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+        }
+
+        .panel-cell:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+
+        /* 圖例 */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            font-size: 0.7rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* 訊息框 */
+        .message-box {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            display: none;
+        }
+
+        .message-box.success {
+            display: block;
+            background: rgba(0, 210, 106, 0.2);
+            border: 1px solid var(--success);
+        }
+
+        .message-box.error {
+            display: block;
+            background: rgba(233, 69, 96, 0.2);
+            border: 1px solid var(--highlight);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🏢 帷幕牆面板排列預覽器</h1>
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-dot" id="serverStatus"></span>
+                    <span id="serverStatusText">連接中...</span>
+                </div>
+                <div class="status-item" id="revitInfo" style="display:none;">
+                    <span>🏗️ Element ID:</span>
+                    <strong id="elementIdDisplay">-</strong>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-grid">
+            <!-- 控制面板 -->
+            <div class="panel">
+                <h2>📐 帷幕牆資訊</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="label">列數 (寬)</span>
+                        <span class="value" id="colDisplay">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">行數 (高)</span>
+                        <span class="value" id="rowDisplay">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">單片寬</span>
+                        <span class="value"><span id="widthDisplay">-</span><small>mm</small></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">單片高</span>
+                        <span class="value"><span id="heightDisplay">-</span><small>mm</small></span>
+                    </div>
+                </div>
+
+                <h2>🎨 類型管理 (Type Mapping)</h2>
+                <table class="type-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>色</th>
+                            <th>名稱</th>
+                            <th>來源 / Revit 對應</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="typeTableBody"></tbody>
+                </table>
+                <button class="add-type-btn" onclick="addType()">+ 新增類型</button>
+
+                <!-- 可折疊: Revit 現有類型 -->
+                <h2 class="collapsible-header" onclick="toggleCollapse(this)" style="margin-top:0.8rem;">
+                    📦 Revit 現有類型
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="collapsible-content">
+                    <div id="revitTypesList" style="font-size:0.7rem; color:var(--text-muted); padding:0.5rem 0;">
+                        載入中...
+                    </div>
+                </div>
+
+                <!-- 可折疊: 色彩主題 -->
+                <h2 class="collapsible-header collapsed" onclick="toggleCollapse(this)" style="margin-top:0.8rem;">
+                    🎭 色彩主題 (快速套用)
+                    <span class="collapse-icon">▼</span>
+                </h2>
+                <div class="collapsible-content collapsed">
+                    <div id="themeGrid"
+                        style="display:grid; grid-template-columns:repeat(2,1fr); gap:0.3rem; padding:0.5rem 0;"></div>
+                </div>
+
+                <h2 style="margin-top:0.8rem;">⚙️ 排列模式</h2>
+                <div class="form-group">
+                    <label>選擇模式</label>
+                    <select id="pattern" onchange="updatePreview()">
+                        <option value="offset">錯位遞移 (Offset)</option>
+                        <option value="stripe_h">水平條紋 (Horizontal)</option>
+                        <option value="stripe_v">垂直條紋 (Vertical)</option>
+                        <option value="checkerboard">棋盤格 (Checkerboard)</option>
+                        <option value="diagonal">斜紋 (Diagonal)</option>
+                        <option value="random">隨機 (Random)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="offsetGroup">
+                    <label>偏移量</label>
+                    <input type="number" id="offsetAmount" value="1" min="1" max="10" onchange="updatePreview()">
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="submitToServer()">✅ 確認套用</button>
+                    <button class="btn btn-secondary" onclick="copyJSON()">📋 複製 JSON</button>
+                </div>
+                <div class="message-box" id="messageBox"></div>
+            </div>
+
+            <!-- 預覽區域 -->
+            <div class="panel preview-container">
+                <div class="preview-header">
+                    <h2>👁️ 即時預覽</h2>
+                    <div class="zoom-controls">
+                        <button onclick="zoomOut()">−</button>
+                        <span id="zoomLevel">100%</span>
+                        <button onclick="zoomIn()">+</button>
+                        <button onclick="resetZoom()">重置</button>
+                    </div>
+                </div>
+                <div class="legend" id="legend"></div>
+                <div class="grid-preview" id="gridPreview">
+                    <div class="dimension-label dim-top" id="dimTop">-</div>
+                    <div class="dimension-label dim-left" id="dimLeft">-</div>
+                    <div class="curtain-grid-wrapper" id="gridWrapper">
+                        <div class="curtain-grid" id="curtainGrid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 狀態
+        let serverData = null;
+        let panelTypes = [];
+        let revitPanelTypes = [];
+        let gridConfig = { columns: 18, rows: 5, panelWidth: 1200, panelHeight: 1500 };
+        let zoomLevel = 1;
+
+        const API_BASE = 'http://localhost:10001';
+
+        // 色彩主題
+        const colorThemes = {
+            earth: { name: '大地色', colors: ['#5C4033', '#8B7355', '#C4A484', '#DEB887'] },
+            gray: { name: '灰階', colors: ['#2C2C2C', '#6B6B6B', '#9E9E9E', '#C0C0C0'] },
+            ocean: { name: '海洋藍', colors: ['#1E3A5F', '#3A5F8A', '#5A8AB5', '#7AB5D3'] },
+            sunset: { name: '夕陽橘', colors: ['#8B2500', '#CD4F00', '#FF6B35', '#FFA500'] },
+            forest: { name: '森林綠', colors: ['#1B4332', '#2D6A4F', '#40916C', '#52B788'] },
+        };
+
+        // 初始化
+        async function init() {
+            await fetchDataFromServer();
+            renderThemeGrid();
+            renderTypeTable();
+            renderRevitTypesList();
+            updatePreview();
+        }
+
+        // 從伺服器取得資料
+        async function fetchDataFromServer() {
+            try {
+                const res = await fetch(`${API_BASE}/api/data`);
+                if (res.ok) {
+                    serverData = await res.json();
+                    panelTypes = serverData.panelTypes || [];
+                    revitPanelTypes = serverData.revitPanelTypes || [];
+                    gridConfig = {
+                        columns: serverData.columns || 18,
+                        rows: serverData.rows || 5,
+                        panelWidth: serverData.panelWidth || 1200,
+                        panelHeight: serverData.panelHeight || 1500
+                    };
+
+                    // 更新顯示
+                    document.getElementById('colDisplay').textContent = gridConfig.columns;
+                    document.getElementById('rowDisplay').textContent = gridConfig.rows;
+                    document.getElementById('widthDisplay').textContent = gridConfig.panelWidth;
+                    document.getElementById('heightDisplay').textContent = gridConfig.panelHeight;
+
+                    // 更新尺寸標註
+                    const totalWidth = gridConfig.columns * gridConfig.panelWidth;
+                    const totalHeight = gridConfig.rows * gridConfig.panelHeight;
+                    document.getElementById('dimTop').textContent = `${gridConfig.panelWidth}mm × ${gridConfig.columns} = ${totalWidth}mm`;
+                    document.getElementById('dimLeft').textContent = `${gridConfig.panelHeight}mm × ${gridConfig.rows} = ${totalHeight}mm`;
+
+                    if (serverData.elementId) {
+                        document.getElementById('revitInfo').style.display = 'block';
+                        document.getElementById('elementIdDisplay').textContent = serverData.elementId;
+                    }
+
+                    setServerStatus(true);
+                } else {
+                    throw new Error('Server error');
+                }
+            } catch (err) {
+                console.warn('無法連接伺服器，使用預設值', err);
+                setServerStatus(false);
+                panelTypes = [
+                    { id: 'A', name: 'Type A', color: '#5C4033', revitTypeId: null },
+                    { id: 'B', name: 'Type B', color: '#8B7355', revitTypeId: null },
+                    { id: 'C', name: 'Type C', color: '#C4A484', revitTypeId: null }
+                ];
+            }
+        }
+
+        function setServerStatus(online) {
+            const dot = document.getElementById('serverStatus');
+            const text = document.getElementById('serverStatusText');
+            if (online) {
+                dot.classList.remove('offline');
+                text.textContent = '伺服器已連接';
+            } else {
+                dot.classList.add('offline');
+                text.textContent = '離線模式';
+            }
+        }
+
+        // 渲染類型管理表格
+        function renderTypeTable() {
+            const tbody = document.getElementById('typeTableBody');
+            tbody.innerHTML = panelTypes.map((pt, idx) => {
+                const sourceText = pt.revitTypeId
+                    ? `<span class="type-source linked">🔗 Revit ID: ${pt.revitTypeId}</span>`
+                    : `<span class="type-source new">➕ 新建類型</span>`;
+
+                return `
+                    <tr>
+                        <td class="type-id">${pt.id}</td>
+                        <td><input type="color" class="color-swatch" value="${pt.color}" onchange="updateTypeColor(${idx}, this.value)"></td>
+                        <td class="type-name" title="${pt.name}">${pt.name}</td>
+                        <td>${sourceText}</td>
+                        <td class="type-actions">
+                            <button onclick="deleteType(${idx})" title="刪除">✕</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // 渲染 Revit 現有類型
+        function renderRevitTypesList() {
+            const container = document.getElementById('revitTypesList');
+            if (revitPanelTypes.length === 0) {
+                container.innerHTML = '<em>尚無 Revit 類型資料</em>';
+                return;
+            }
+
+            container.innerHTML = revitPanelTypes.map(rt => {
+                const color = rt.MaterialColor || '#808080';
+                const matName = rt.MaterialName || '(無材料)';
+                return `
+                    <div style="display:flex; align-items:center; gap:0.5rem; padding:0.3rem 0; border-bottom:1px solid var(--accent);">
+                        <span style="width:16px; height:16px; background:${color}; border-radius:3px; border:1px solid rgba(255,255,255,0.3);"></span>
+                        <strong>${rt.TypeName}</strong>
+                        <span style="color:var(--text-muted);">ID: ${rt.TypeId}</span>
+                        <span style="color:var(--text-muted); font-size:0.65rem;">${matName}</span>
+                        <button style="margin-left:auto; background:var(--accent); border:none; color:var(--text); padding:0.2rem 0.4rem; border-radius:3px; cursor:pointer; font-size:0.65rem;" 
+                                onclick="useRevitType(${rt.TypeId}, '${rt.TypeName}', '${color}')">使用</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 使用 Revit 類型
+        function useRevitType(typeId, typeName, color) {
+            const existingIndex = panelTypes.findIndex(pt => pt.revitTypeId === typeId);
+            if (existingIndex >= 0) {
+                showMessage('此類型已在列表中', 'error');
+                return;
+            }
+
+            const newId = String.fromCharCode(65 + panelTypes.length);
+            panelTypes.push({
+                id: newId,
+                name: typeName,
+                color: color,
+                revitTypeId: typeId
+            });
+
+            renderTypeTable();
+            updatePreview();
+            showMessage(`已新增: ${typeName}`, 'success');
+        }
+
+        // 更新類型顏色
+        function updateTypeColor(idx, color) {
+            panelTypes[idx].color = color;
+            updatePreview();
+        }
+
+        // 刪除類型
+        function deleteType(idx) {
+            panelTypes.splice(idx, 1);
+            // 重新分配 ID
+            panelTypes.forEach((pt, i) => pt.id = String.fromCharCode(65 + i));
+            renderTypeTable();
+            updatePreview();
+        }
+
+        // 新增類型
+        function addType() {
+            const newId = String.fromCharCode(65 + panelTypes.length);
+            const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+            panelTypes.push({
+                id: newId,
+                name: `新類型 ${newId}`,
+                color: randomColor,
+                revitTypeId: null
+            });
+            renderTypeTable();
+            updatePreview();
+        }
+
+        // 渲染主題格
+        function renderThemeGrid() {
+            const container = document.getElementById('themeGrid');
+            container.innerHTML = Object.entries(colorThemes).map(([key, theme]) => `
+                <button style="display:flex; align-items:center; gap:0.3rem; padding:0.3rem; background:var(--accent); border:none; border-radius:4px; cursor:pointer;" 
+                        onclick="applyTheme('${key}')">
+                    <div style="display:flex; gap:1px;">
+                        ${theme.colors.slice(0, 4).map(c => `<span style="width:12px; height:14px; background:${c}; border-radius:2px;"></span>`).join('')}
+                    </div>
+                    <span style="font-size:0.7rem; color:var(--text);">${theme.name}</span>
+                </button>
+            `).join('');
+        }
+
+        // 套用主題
+        function applyTheme(key) {
+            const theme = colorThemes[key];
+            panelTypes = theme.colors.map((color, i) => ({
+                id: String.fromCharCode(65 + i),
+                name: `${theme.name} ${i + 1}`,
+                color: color,
+                revitTypeId: null
+            }));
+            renderTypeTable();
+            updatePreview();
+        }
+
+        // 折疊切換
+        function toggleCollapse(header) {
+            header.classList.toggle('collapsed');
+            const content = header.nextElementSibling;
+            if (content && content.classList.contains('collapsible-content')) {
+                content.classList.toggle('collapsed');
+            }
+        }
+
+        // 縮放控制
+        function zoomIn() {
+            zoomLevel = Math.min(zoomLevel + 0.2, 3);
+            applyZoom();
+        }
+
+        function zoomOut() {
+            zoomLevel = Math.max(zoomLevel - 0.2, 0.3);
+            applyZoom();
+        }
+
+        function resetZoom() {
+            zoomLevel = 1;
+            applyZoom();
+        }
+
+        function applyZoom() {
+            document.getElementById('gridWrapper').style.transform = `scale(${zoomLevel})`;
+            document.getElementById('zoomLevel').textContent = Math.round(zoomLevel * 100) + '%';
+        }
+
+        // 更新預覽
+        function updatePreview() {
+            const { columns, rows, panelWidth, panelHeight } = gridConfig;
+            const pattern = document.getElementById('pattern').value;
+            const offset = parseInt(document.getElementById('offsetAmount').value) || 1;
+
+            // 計算面板尺寸 (等比例縮放)
+            const maxWidth = 800;
+            const maxHeight = 500;
+            const aspectRatio = panelWidth / panelHeight;
+
+            let cellWidth = Math.min(maxWidth / columns, 60);
+            let cellHeight = cellWidth / aspectRatio;
+
+            if (cellHeight * rows > maxHeight) {
+                cellHeight = maxHeight / rows;
+                cellWidth = cellHeight * aspectRatio;
+            }
+
+            const grid = document.getElementById('curtainGrid');
+            grid.style.gridTemplateColumns = `repeat(${columns}, ${cellWidth}px)`;
+            grid.style.gridTemplateRows = `repeat(${rows}, ${cellHeight}px)`;
+
+            let cells = '';
+            const matrix = [];
+
+            for (let r = 0; r < rows; r++) {
+                const rowArr = [];
+                for (let c = 0; c < columns; c++) {
+                    let typeIndex = getTypeIndex(pattern, r, c, offset, panelTypes.length);
+                    const type = panelTypes[typeIndex] || panelTypes[0] || { id: '?', color: '#808080' };
+                    rowArr.push(type.id);
+                    cells += `<div class="panel-cell" style="background:${type.color};" title="[${r},${c}] ${type.name}">${type.id}</div>`;
+                }
+                matrix.push(rowArr);
+            }
+
+            grid.innerHTML = cells;
+
+            // 更新圖例
+            const legend = document.getElementById('legend');
+            legend.innerHTML = panelTypes.map(pt => `
+                <div class="legend-item">
+                    <span class="legend-color" style="background:${pt.color};"></span>
+                    <span>${pt.id} = ${pt.name}</span>
+                </div>
+            `).join('');
+
+            // 儲存矩陣
+            window.currentMatrix = matrix;
+        }
+
+        function getTypeIndex(pattern, row, col, offset, typeCount) {
+            if (typeCount === 0) return 0;
+            switch (pattern) {
+                case 'offset':
+                    return (col + row * offset) % typeCount;
+                case 'stripe_h':
+                    return row % typeCount;
+                case 'stripe_v':
+                    return col % typeCount;
+                case 'checkerboard':
+                    return (row + col) % typeCount;
+                case 'diagonal':
+                    return (row + col) % typeCount;
+                case 'random':
+                    return Math.floor(Math.random() * typeCount);
+                default:
+                    return col % typeCount;
+            }
+        }
+
+        // 提交到伺服器
+        async function submitToServer() {
+            const result = {
+                timestamp: new Date().toISOString(),
+                elementId: serverData?.elementId || null,
+                gridConfig: gridConfig,
+                pattern: document.getElementById('pattern').value,
+                typeMapping: panelTypes.reduce((acc, pt) => {
+                    acc[pt.id] = {
+                        name: pt.name,
+                        color: pt.color,
+                        revitTypeId: pt.revitTypeId
+                    };
+                    return acc;
+                }, {}),
+                matrix: window.currentMatrix
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/api/result`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(result)
+                });
+                const data = await res.json();
+                showMessage(data.message || '已儲存！', 'success');
+            } catch (err) {
+                showMessage('儲存失敗: ' + err.message, 'error');
+            }
+        }
+
+        // 複製 JSON
+        function copyJSON() {
+            const result = {
+                elementId: serverData?.elementId,
+                typeMapping: panelTypes.reduce((acc, pt) => {
+                    acc[pt.id] = pt.revitTypeId;
+                    return acc;
+                }, {}),
+                matrix: window.currentMatrix
+            };
+            navigator.clipboard.writeText(JSON.stringify(result, null, 2));
+            showMessage('JSON 已複製到剪貼簿！', 'success');
+        }
+
+        // 顯示訊息
+        function showMessage(msg, type) {
+            const box = document.getElementById('messageBox');
+            box.textContent = msg;
+            box.className = 'message-box ' + type;
+            setTimeout(() => box.className = 'message-box', 3000);
+        }
+
+        // 啟動
+        init();
+    </script>
+</body>
+
+</html>
