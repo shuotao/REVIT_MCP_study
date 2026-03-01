@@ -23,6 +23,7 @@ namespace RevitMCP.Core
         private CancellationTokenSource _cancellationTokenSource;
 
         public event EventHandler<RevitCommandRequest> CommandReceived;
+        public bool IsRunning => _isRunning;
         public bool IsConnected => _webSocket != null && _webSocket.State == WebSocketState.Open;
 
         public SocketService(ServiceSettings settings)
@@ -47,14 +48,15 @@ namespace RevitMCP.Core
 
                 // 使用 HttpListener 來接受 WebSocket 連線
                 _httpListener = new HttpListener();
-                _httpListener.Prefixes.Add($"http://{_settings.Host}:{_settings.Port}/");
+                _httpListener.Prefixes.Add($"http://localhost:{_settings.Port}/");
                 _httpListener.Start();
 
                 Logger.Info($"WebSocket 伺服器已啟動 - 監聽: {_settings.Host}:{_settings.Port}");
-                TaskDialog.Show("MCP 服務", $"WebSocket 伺服器已啟動\n監聽: {_settings.Host}:{_settings.Port}");
 
                 // 在背景執行緒中等待連線
                 _ = Task.Run(async () => await AcceptConnectionsAsync(_cancellationTokenSource.Token));
+
+                TaskDialog.Show("MCP 服務", $"WebSocket 伺服器已啟動\n監聽: {_settings.Host}:{_settings.Port}");
             }
             catch (Exception ex)
             {
@@ -83,8 +85,8 @@ namespace RevitMCP.Core
 
                         Logger.Info("[Socket] MCP Server 已連線");
 
-                        // 開始接收訊息
-                        await ReceiveMessagesAsync(cancellationToken);
+                        // 在獨立任務中處理訊息，不要阻塞接受連線的迴圈
+                        _ = Task.Run(async () => await ReceiveMessagesAsync(wsContext.WebSocket, cancellationToken));
                     }
                     else
                     {
@@ -105,15 +107,15 @@ namespace RevitMCP.Core
         /// <summary>
         /// 接收訊息
         /// </summary>
-        private async Task ReceiveMessagesAsync(CancellationToken cancellationToken)
+        private async Task ReceiveMessagesAsync(WebSocket socket, CancellationToken cancellationToken)
         {
             var buffer = new byte[4096];
 
             try
             {
-                while (_webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+                while (socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
                 {
-                    var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+                    var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
 
                     if (result.MessageType == WebSocketMessageType.Text)
                     {
@@ -123,7 +125,7 @@ namespace RevitMCP.Core
                     }
                     else if (result.MessageType == WebSocketMessageType.Close)
                     {
-                        await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cancellationToken);
+                        await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cancellationToken);
                         Logger.Info("[Socket] MCP Server 已斷線");
                         break;
                     }
