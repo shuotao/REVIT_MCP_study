@@ -3,7 +3,7 @@
         "revit-mcp": {
             "command": "C:\\Program Files\\nodejs\\node.exe",
             "args": [
-                "C:\\Users\\User\\Desktop\\REVIT MCP\\MCP-Server\\build\\index.js"
+                "d:\\David\\BIM MCP\\REVIT_MCP_study\\MCP-Server\\build\\index.js"
             ],
             "env": {
                 "REVIT_VERSION": "2024"

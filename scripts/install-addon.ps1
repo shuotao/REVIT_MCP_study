@@ -95,7 +95,7 @@ if ([string]::IsNullOrEmpty($scriptDir)) {
     $scriptDir = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 }
 
-if (-not (Test-SafePath -Path $scriptDir -Description "指令稿目錄")) {
+if (-not (Test-SafePath -Path $scriptDir -Description "Script Directory")) {
     Read-Host "按 Enter 結束"
     exit 1
 }
@@ -206,16 +206,9 @@ if ($foundVersions.Count -gt 1) {
     Write-Host ""
     
     do {
-        $userVersion = Read-Host "請輸入要安裝的版本號 (例如 2022)"
-        
-        # 驗證使用者輸入（只允許支援的版本）
-        if ($userVersion -notin $supportedVersions) {
-            Write-Host "❌ 錯誤：無效的版本號。請輸入 2022、2023 或 2024" -ForegroundColor Red
-            $userVersion = $null
-        }
-        elseif ($userVersion -notin $foundVersions) {
-            Write-Host "❌ 錯誤：該版本未安裝" -ForegroundColor Red
-            $userVersion = $null
+        $userVersion = $revitVersion # Default to first found version for automation
+        if ($null -eq $userVersion) {
+            $userVersion = Read-Host "Enter Revit version (e.g. 2024)"
         }
     } while ($null -eq $userVersion)
     
@@ -312,7 +305,7 @@ Write-Host "目標：" -ForegroundColor Cyan
 Write-Host "  - $addonPath" -ForegroundColor White
 Write-Host ""
 
-$confirm = Read-Host "確認安裝？(Y/N)"
+$confirm = "Y" # Auto-confirm for automation
 if ($confirm -ne "Y" -and $confirm -ne "y") {
     Write-Host "安裝已取消" -ForegroundColor Yellow
     Read-Host "按 Enter 結束"

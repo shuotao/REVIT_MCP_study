@@ -103,9 +103,9 @@ namespace RevitMCP
                 _uiApp = uiApp;
                 var settings = ConfigManager.Instance.Settings;
 
-                if (_socketService != null && _socketService.IsConnected)
+                if (_socketService != null && _socketService.IsRunning)
                 {
-                    TaskDialog.Show("MCP 服務", "服務已在執行中");
+                    TaskDialog.Show("MCP 服務", "服務已在連署中，準備好要衝了嗎？");
                     return;
                 }
 

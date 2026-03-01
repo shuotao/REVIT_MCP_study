@@ -1,0 +1,10 @@
+C:\D disk\MCP\REVIT_MCP_study\MCP\bin\Release\RevitMCP.dll
+C:\D disk\MCP\REVIT_MCP_study\MCP\bin\Release\RevitMCP.pdb
+C:\D disk\MCP\REVIT_MCP_study\MCP\bin\Release\Newtonsoft.Json.dll
+C:\D disk\MCP\REVIT_MCP_study\MCP\obj\Release\RevitMCP.csproj.AssemblyReference.cache
+C:\D disk\MCP\REVIT_MCP_study\MCP\obj\Release\RevitMCP.GeneratedMSBuildEditorConfig.editorconfig
+C:\D disk\MCP\REVIT_MCP_study\MCP\obj\Release\RevitMCP.csproj.CoreCompileInputs.cache
+C:\D disk\MCP\REVIT_MCP_study\MCP\obj\Release\RevitMCP.sourcelink.json
+C:\D disk\MCP\REVIT_MCP_study\MCP\obj\Release\RevitMCP.csproj.Up2Date
+C:\D disk\MCP\REVIT_MCP_study\MCP\obj\Release\RevitMCP.dll
+C:\D disk\MCP\REVIT_MCP_study\MCP\obj\Release\RevitMCP.pdb

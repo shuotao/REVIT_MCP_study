@@ -763,6 +763,43 @@ export function registerRevitTools(): Tool[] {
                 },
             },
         },
+
+        // 29. 外牆開口檢討（第45條、第110條）
+        {
+            name: "check_exterior_wall_openings",
+            description: "依據台灣建築技術規則第45條（外牆開口距離限制）及第110條（防火間隔）檢討外牆開口。自動讀取 PropertyLine（地界線）計算距離，並以顏色標示違規項目。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    checkArticle45: {
+                        type: "boolean",
+                        description: "是否檢查第45條（開口距離限制：距境界線≥1.0m，同基地建築間≥2.0m或≥1.0m）",
+                        default: true,
+                    },
+                    checkArticle110: {
+                        type: "boolean",
+                        description: "是否檢查第110條（防火間隔：依距離要求不同防火時效）",
+                        default: true,
+                    },
+                    colorizeViolations: {
+                        type: "boolean",
+                        description: "是否在 Revit 中以顏色標示檢查結果（紅色=違規，橘色=警告，綠色=通過）",
+                        default: true,
+                    },
+                    exportReport: {
+                        type: "boolean",
+                        description: "是否匯出 JSON 報表",
+                        default: false,
+                    },
+                    reportPath: {
+                        type: "string",
+                        description: "JSON 報表輸出路徑（需啟用 exportReport）",
+                        default: "D:\\\\Reports\\\\exterior_wall_check.json",
+                    },
+                },
+                required: [],
+            },
+        },
     ];
 }
 
