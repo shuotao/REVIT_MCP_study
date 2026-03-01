@@ -2546,10 +2546,10 @@ namespace RevitMCP.Core
                                 if (openingInfo == null) continue;
 
                                 // 計算距離
-                                var boundaryResult = checker.CalculateDistanceToBoundary(openingInfo.Location, propertyLines);
+                                var boundaryResult = checker.CalculateDistanceToBoundary(openingInfo, propertyLines);
                                 var distanceToBoundary = boundaryResult.MinDistance;
                                 var distanceToBuilding = checkBuildingDistance
-                                    ? checker.CalculateDistanceToAdjacentBuildings(openingInfo.Location, wall)
+                                    ? checker.CalculateDistanceToAdjacentBuildings(openingInfo, wall)
                                     : double.MaxValue;
 
                                 // 執行檢查

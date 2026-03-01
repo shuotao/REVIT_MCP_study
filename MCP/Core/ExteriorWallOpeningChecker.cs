@@ -166,7 +166,7 @@ namespace RevitMCP.Core
         /// <summary>
         /// 計算點到邊界線的最短距離 (傳回詳細資訊)
         /// </summary>
-        public BoundaryDistanceResult CalculateDistanceToBoundary(XYZ point, List<Curve> boundaryLines)
+        public BoundaryDistanceResult CalculateDistanceToBoundary(OpeningInfo opening, List<Curve> boundaryLines)
         {
             if (boundaryLines == null || boundaryLines.Count == 0)
                 throw new InvalidOperationException("找不到基地邊界線，請確認專案中已建立 Property Line");
@@ -174,19 +174,22 @@ namespace RevitMCP.Core
             double minDistance = double.MaxValue;
             XYZ closestPoint = null;
 
+            // 計算外牆外皮點: 沿牆壁外法線偏移半個牆厚
+            XYZ point = opening.Location;
+            if (opening.HostWall != null)
+            {
+                XYZ wallNormal = opening.HostWall.Orientation; // 牆壁的外部法線向量
+                double wallThickness = opening.HostWall.WallType.Width;
+                point = point + wallNormal * (wallThickness / 2.0);
+            }
+
             foreach (var curve in boundaryLines)
             {
-                // 計算點到曲線的距離
-                // Note: Property lines are usually projected to Z=0. 
-                // We should project the test point to Z=0 for accurate XY distance measurement if site checks are 2D.
-                // Assuming Article 45 checks horizontal separation.
+                // Property lines are usually projected to Z=0. 
+                // Project the test point to Z=0 for accurate XY distance measurement.
+                XYZ testPoint = new XYZ(point.X, point.Y, 0); 
                 
-                XYZ testPoint = new XYZ(point.X, point.Y, 0); // Project to ground for consistent xy check
-                // However, curve might have Z values. Property lines usually Z=0.
-                // Helper to ensure curve is treated as flatten if needed? 
-                // For now, assume standard usage.
-                
-                IntersectionResult result = curve.Project(point); // Project point onto curve
+                IntersectionResult result = curve.Project(testPoint);
                 if (result != null)
                 {
                     double distance = result.Distance;
@@ -194,6 +197,21 @@ namespace RevitMCP.Core
                     {
                         minDistance = distance;
                         closestPoint = result.XYZPoint;
+                    }
+                }
+                else
+                {
+                    // Fallback to evaluating points if direct projection fails
+                    for (double val = 0; val <= 1; val += 0.05)
+                    {
+                        XYZ pCrv = curve.Evaluate(val, true);
+                        XYZ pCrvFlat = new XYZ(pCrv.X, pCrv.Y, 0);
+                        double dist = pCrvFlat.DistanceTo(testPoint);
+                        if (dist < minDistance)
+                        {
+                            minDistance = dist;
+                            closestPoint = pCrvFlat;
+                        }
                     }
                 }
             }
@@ -204,12 +222,22 @@ namespace RevitMCP.Core
         /// <summary>
         /// 計算到同基地內其他建築物的距離
         /// </summary>
-        public double CalculateDistanceToAdjacentBuildings(XYZ point, Wall currentWall)
+        public double CalculateDistanceToAdjacentBuildings(OpeningInfo opening, Wall currentWall)
         {
             double minDistance = double.MaxValue;
 
             // 取得所有外牆
             var allWalls = GetExteriorWalls();
+
+            // 計算外牆外皮點
+            XYZ point = opening.Location;
+            if (opening.HostWall != null)
+            {
+                XYZ wallNormal = opening.HostWall.Orientation;
+                double wallThickness = opening.HostWall.WallType.Width;
+                point = point + wallNormal * (wallThickness / 2.0);
+            }
+            XYZ testPoint = new XYZ(point.X, point.Y, 0);
 
             foreach (var wall in allWalls)
             {
@@ -221,10 +249,13 @@ namespace RevitMCP.Core
                 if (wall.Location is LocationCurve locCurve)
                 {
                     var curve = locCurve.Curve;
-                    IntersectionResult result = curve.Project(point);
+                    IntersectionResult result = curve.Project(testPoint);
                     if (result != null)
                     {
-                        double distance = result.Distance;
+                        // 扣除對方牆壁厚度的一半（因為 curve 是牆心線）
+                        double otherWallHalfThick = wall.WallType.Width / 2.0;
+                        double distance = Math.Max(0, result.Distance - otherWallHalfThick);
+                        
                         if (distance < minDistance)
                             minDistance = distance;
                     }

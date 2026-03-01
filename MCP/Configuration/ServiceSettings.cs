@@ -16,7 +16,7 @@ namespace RevitMCP.Configuration
         /// <summary>
         /// WebSocket 伺服器埠號
         /// </summary>
-        public int Port { get; set; } = 8966;
+        public int Port { get; set; } = 8964;
 
         /// <summary>
         /// 是否啟用 MCP 服務
