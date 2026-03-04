@@ -665,8 +665,8 @@ export function registerRevitTools(): Tool[] {
                             type: "object",
                             properties: {
                                 field: { type: "string", description: "Parameter name (MUST be from get_category_fields)" },
-                                operator: { 
-                                    type: "string", 
+                                operator: {
+                                    type: "string",
                                     enum: ["equals", "contains", "less_than", "greater_than", "not_equals"],
                                     description: "Comparison operator"
                                 },
@@ -798,6 +798,67 @@ export function registerRevitTools(): Tool[] {
                     },
                 },
                 required: [],
+            },
+        },
+
+        // 34. 取消牆體接合（上色前置作業）
+        {
+            name: "unjoin_wall_joins",
+            description: "取消牆體與柱子等元素的幾何接合關係。常用於元素上色前的前置作業，避免接合導致顏色無法正確顯示。會記錄取消的接合對，供後續 rejoin_wall_joins 恢復。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    wallIds: {
+                        type: "array",
+                        items: { type: "number" },
+                        description: "要取消接合的牆體 Element ID 列表（選填，若不提供則需指定 viewId）",
+                    },
+                    viewId: {
+                        type: "number",
+                        description: "視圖 ID，若未提供 wallIds 則會取消此視圖中所有牆體的接合",
+                    },
+                },
+            },
+        },
+
+        // 35. 恢復牆體接合
+        {
+            name: "rejoin_wall_joins",
+            description: "恢復先前由 unjoin_wall_joins 取消的牆體接合關係。應在上色作業完成後呼叫，以還原模型的幾何正確性。",
+            inputSchema: {
+                type: "object",
+                properties: {},
+            },
+        },
+
+        // 36. 取得房間採光資訊
+        {
+            name: "get_room_daylight_info",
+            description: "取得房間的採光資訊，包含居室面積、外牆開口（窗戶）面積、採光比例等。可依樓層篩選。用於建築技術規則居室採光檢討。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    level: {
+                        type: "string",
+                        description: "樓層名稱（選填，如 '1F'、'Level 1'），不指定則查詢所有樓層",
+                    },
+                },
+            },
+        },
+
+        // 37. 取得視圖樣版
+        {
+            name: "get_view_templates",
+            description: "取得專案中所有視圖樣版（View Templates）的完整設定，包含詳細等級、視覺樣式、比例尺、控制參數數量、隱藏品類、篩選器等。可用於視圖樣版比對與整併分析。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    includeDetails: {
+                        type: "boolean",
+                        description: "是否包含詳細設定（如隱藏品類、篩選器、裁剪設定等），預設 true",
+                        default: true,
+                    },
+                },
             },
         },
     ];

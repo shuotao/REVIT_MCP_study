@@ -209,6 +209,10 @@ namespace RevitMCP.Core
                         result = GetRoomDaylightInfo(parameters);
                         break;
 
+                    case "get_view_templates":
+                        result = GetViewTemplates(parameters);
+                        break;
+
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
                 }
@@ -2474,6 +2478,149 @@ namespace RevitMCP.Core
                 RejoinedCount = rejoinedCount,
                 TotalPairs = storedCount,
                 Message = $"已恢復 {rejoinedCount} 個接合關係"
+            };
+        }
+
+        #endregion
+
+        #region 視圖樣版查詢
+
+        /// <summary>
+        /// 取得所有視圖樣版及其設定
+        /// </summary>
+        private object GetViewTemplates(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            bool includeDetails = parameters["includeDetails"]?.Value<bool>() ?? true;
+
+            // 取得所有視圖樣版 (IsTemplate = true)
+            var viewTemplates = new FilteredElementCollector(doc)
+                .OfClass(typeof(View))
+                .Cast<View>()
+                .Where(v => v.IsTemplate)
+                .OrderBy(v => v.ViewType.ToString())
+                .ThenBy(v => v.Name)
+                .ToList();
+
+            var templateList = new List<object>();
+
+            foreach (var template in viewTemplates)
+            {
+                var templateInfo = new Dictionary<string, object>
+                {
+                    ["ElementId"] = template.Id.IntegerValue,
+                    ["Name"] = template.Name,
+                    ["ViewType"] = template.ViewType.ToString(),
+                    ["ViewFamily"] = template.ViewType.ToString()
+                };
+
+                if (includeDetails)
+                {
+                    // 取得詳細等級
+                    try
+                    {
+                        templateInfo["DetailLevel"] = template.DetailLevel.ToString();
+                    }
+                    catch { templateInfo["DetailLevel"] = "N/A"; }
+
+                    // 取得視覺樣式
+                    try
+                    {
+                        templateInfo["DisplayStyle"] = template.DisplayStyle.ToString();
+                    }
+                    catch { templateInfo["DisplayStyle"] = "N/A"; }
+
+                    // 取得比例尺
+                    try
+                    {
+                        templateInfo["Scale"] = template.Scale > 0 ? $"1:{template.Scale}" : "N/A";
+                    }
+                    catch { templateInfo["Scale"] = "N/A"; }
+
+                    // 取得視圖樣版控制的參數
+                    try
+                    {
+                        var nonControlledParams = template.GetNonControlledTemplateParameterIds();
+                        var allParams = template.GetTemplateParameterIds();
+                        templateInfo["ControlledParameterCount"] = allParams.Count - nonControlledParams.Count;
+                        templateInfo["TotalParameterCount"] = allParams.Count;
+                    }
+                    catch 
+                    { 
+                        templateInfo["ControlledParameterCount"] = "N/A";
+                        templateInfo["TotalParameterCount"] = "N/A";
+                    }
+
+                    // 取得類別可見性設定（僅列出主要隱藏的類別）
+                    try
+                    {
+                        var hiddenCategories = new List<string>();
+                        var categories = doc.Settings.Categories;
+                        foreach (Category cat in categories)
+                        {
+                            try
+                            {
+                                if (cat.CategoryType == CategoryType.Model || cat.CategoryType == CategoryType.Annotation)
+                                {
+                                    if (!template.GetCategoryHidden(cat.Id))
+                                        continue;
+                                    hiddenCategories.Add(cat.Name);
+                                }
+                            }
+                            catch { }
+                        }
+                        templateInfo["HiddenCategoryCount"] = hiddenCategories.Count;
+                        // 只列出前 10 個隱藏類別
+                        templateInfo["HiddenCategories"] = hiddenCategories.Take(10).ToList();
+                    }
+                    catch { templateInfo["HiddenCategories"] = new List<string>(); }
+
+                    // 取得視圖專屬覆寫（篩選器）
+                    try
+                    {
+                        var filterIds = template.GetFilters();
+                        var filterNames = filterIds
+                            .Select(id => doc.GetElement(id)?.Name ?? "Unknown")
+                            .ToList();
+                        templateInfo["FilterCount"] = filterIds.Count;
+                        templateInfo["Filters"] = filterNames;
+                    }
+                    catch 
+                    { 
+                        templateInfo["FilterCount"] = 0;
+                        templateInfo["Filters"] = new List<string>(); 
+                    }
+
+                    // 取得裁剪設定
+                    try
+                    {
+                        templateInfo["CropBoxActive"] = template.CropBoxActive;
+                        templateInfo["CropBoxVisible"] = template.CropBoxVisible;
+                    }
+                    catch 
+                    { 
+                        templateInfo["CropBoxActive"] = "N/A";
+                        templateInfo["CropBoxVisible"] = "N/A";
+                    }
+
+                    // 取得底層設定
+                    try
+                    {
+                        templateInfo["SupportsUnderlay"] = (template.ViewType == ViewType.FloorPlan || 
+                                                            template.ViewType == ViewType.CeilingPlan ||
+                                                            template.ViewType == ViewType.AreaPlan);
+                    }
+                    catch { templateInfo["SupportsUnderlay"] = false; }
+                }
+
+                templateList.Add(templateInfo);
+            }
+
+            return new
+            {
+                ProjectName = doc.Title,
+                Count = templateList.Count,
+                ViewTemplates = templateList
             };
         }
 
