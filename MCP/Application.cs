@@ -105,7 +105,7 @@ namespace RevitMCP
 
                 if (_socketService != null && _socketService.IsRunning)
                 {
-                    TaskDialog.Show("MCP 服務", "服務已在連署中，準備好要衝了嗎？");
+                    TaskDialog.Show("MCP 服務", "服務已在執行中。");
                     return;
                 }
 

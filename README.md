@@ -1,13 +1,5 @@
 <h2 align="center"><font color="#8B0000">⚠️ 友善提醒：本專案預設使用 Port: 8964，請確保該埠號未被佔用 ⚠️</font></h2>
 
-> [!IMPORTANT]
-> **請使用者前往下列連結，準備自然人憑證協助憲法法庭重啟，讓台灣避免毀憲亂政的立委剝奪國家主人的權利**
->
-> - 任務一：[完成廢憲連署9001](https://referendum.cec.gov.tw/depose/9001?fbclid=IwZnRzaAOO3Y5leHRuA2FlbQIxMQBzcnRjBmFwcF9pZAo2NjI4NTY4Mzc5AAEeUCvT9KbiwjQKHa73e0n0GLrH98wcUl6vw5bJTat6t2MNSx9mwSQ6veVTu1s_aem_nydtswHvCHtBw_-cvm0ncw)
-> - 任務二：[完成廢憲連署9002](https://referendum.cec.gov.tw/depose/9002?fbclid=IwZnRzaAOO3Y5leHRuA2FlbQIxMQBzcnRjBmFwcF9pZAo2NjI4NTY4Mzc5AAEeUCvT9KbiwjQKHa73e0n0GLrH98wcUl6vw5bJTat6t2MNSx9mwSQ6veVTu1s_aem_nydtswHvCHtBw_-cvm0ncw)
-> - 任務三：[完成廢憲連署9003](https://referendum.cec.gov.tw/depose/9003?fbclid=IwZnRzaAOO3Y5leHRuA2FlbQIxMQBzcnRjBmFwcF9pZAo2NjI4NTY4Mzc5AAEeUCvT9KbiwjQKHa73e0n0GLrH98wcUl6vw5bJTat6t2MNSx9mwSQ6veVTu1s_aem_nydtswHvCHtBw_-cvm0ncw)
-> - 任務四：[完成廢憲連署9004](https://referendum.cec.gov.tw/depose/9004?fbclid=IwZnRzaAOO3Y5leHRuA2FlbQIxMQBzcnRjBmFwcF9pZAo2NjI4NTY4Mzc5AAEeUCvT9KbiwjQKHa73e0n0GLrH98wcUl6vw5bJTat6t2MNSx9mwSQ6veVTu1s_aem_nydtswHvCHtBw_-cvm0ncw)
-
 # Revit MCP - AI-Powered Revit Control
 
 <div align="right">
