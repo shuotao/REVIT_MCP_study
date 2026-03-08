@@ -47,6 +47,30 @@ PRIVATE_INSTRUCTIONS.md
 # 修正 MCP obj 路徑
 MCP/obj/
 
+# MCP 編譯輸出
+MCP/bin/
+
 # Result 資料夾（與此專案無關）
 result/
+
+# 建置與除錯暫存檔
+build_error*.txt
+build_log*.txt
+debug_*.txt
+debug_*.json
+daylight_report.txt
+exterior_wall_check_report.json
+
+# MCP-Server 暫存輸出
+MCP-Server/daylight_report.txt
+MCP-Server/debug_*.txt
+MCP-Server/exterior_check_*.txt
+MCP-Server/exterior_wall_boundary_report.json
+MCP-Server/temp_*.txt
+MCP-Server/weighted_area_report.txt
+MCP-Server/scripts/rooms.json
+MCP-Server/scripts/rooms_utf8.json
+MCP-Server/scripts/rooms_output.txt
+MCP-Server/scripts/exterior_wall_check_report.json
+MCP-Server/far_report.txt
 Recent_Update_Review.md

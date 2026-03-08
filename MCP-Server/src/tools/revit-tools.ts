@@ -587,34 +587,113 @@ export function registerRevitTools(): Tool[] {
             },
         },
 
-        // 26. 通用元素查詢
+        // 26. Get active schema (Phase 1: Exploration)
         {
-            name: "query_elements",
-            description: "查詢視圖中的元素，可依照類別 (Category) 過濾。",
+            name: "get_active_schema",
+            description: "[Phase 1: Exploration] Get all categories and their element counts in the active view. ALWAYS run this first to confirm if the target category exists. (取得目前視圖中的所有品類及數量。在查詢前請先執行此工具確認目標品類是否存在。)",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    viewId: {
+                        type: "number",
+                        description: "The view Element ID (Optional, defaults to active view)",
+                    },
+                },
+            },
+        },
+
+        // 27. Get category fields (Phase 2: Alignment)
+        {
+            name: "get_category_fields",
+            description: "[Phase 2: Alignment] Get all parameter names for a specific category. MANDATORY: Run this before 'query_elements_with_filter' to identify exact localized parameter names. (取得指定品類的所有參數欄位名稱。在執行進階查詢前，務必先跑此工具確認精確名稱，嚴禁猜測。)",
             inputSchema: {
                 type: "object",
                 properties: {
                     category: {
                         type: "string",
-                        description: "元素類別 (例如 'Dimensions', 'Walls', 'Rooms', 'Windows')",
-                    },
-                    viewId: {
-                        type: "number",
-                        description: "視圖 ID (選填，若未提供則查詢目前視圖)",
-                    },
-                    maxCount: {
-                        type: "number",
-                        description: "最大回傳數量 (預設 100)",
+                        description: "The category internal name (e.g., 'Walls', 'Windows')",
                     },
                 },
                 required: ["category"],
             },
         },
 
-        // 27. 覆寫元素圖形顯示
+        // 28. Get field value distribution (Phase 2.5)
+        {
+            name: "get_field_values",
+            description: "[Optional Phase 2.5] Get the distribution of existing values (unique list or range) for a specific parameter. (取得指定參數的現有值分佈情況，協助確定過濾條件的值範圍。)",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    category: {
+                        type: "string",
+                        description: "The category internal name",
+                    },
+                    fieldName: {
+                        type: "string",
+                        description: "The parameter name (e.g., 'Fire Rating')",
+                    },
+                    maxSamples: {
+                        type: "number",
+                        description: "Max samples to analyze (Default: 500)",
+                        default: 500,
+                    },
+                },
+                required: ["category", "fieldName"],
+            },
+        },
+
+        // 29. Advanced element query (Phase 3: Retrieval)
+        {
+            name: "query_elements_with_filter",
+            description: "[Phase 3: Retrieval] Query elements with multi-filter support. NOTE: The 'field' name MUST match names from 'get_category_fields'. Units are typically in mm. (進階查詢工具，支援多重過濾。注意：filters 中的 field 必須嚴格匹配從 get_category_fields 取得的名稱。)",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    category: {
+                        type: "string",
+                        description: "The category internal name (e.g., 'Walls', 'Windows')",
+                    },
+                    viewId: {
+                        type: "number",
+                        description: "The view Element ID (Optional)",
+                    },
+                    filters: {
+                        type: "array",
+                        description: "List of filter conditions",
+                        items: {
+                            type: "object",
+                            properties: {
+                                field: { type: "string", description: "Parameter name (MUST be from get_category_fields)" },
+                                operator: {
+                                    type: "string",
+                                    enum: ["equals", "contains", "less_than", "greater_than", "not_equals"],
+                                    description: "Comparison operator"
+                                },
+                                value: { type: "string", description: "Comparison value (strings for text, numeric strings for numbers)" }
+                            },
+                            required: ["field", "operator", "value"]
+                        }
+                    },
+                    returnFields: {
+                        type: "array",
+                        description: "指定要回傳的參數欄位清單",
+                        items: { type: "string" }
+                    },
+                    maxCount: {
+                        type: "number",
+                        description: "最大回傳數量 (預設 100)",
+                        default: 100,
+                    },
+                },
+                required: ["category"],
+            },
+        },
+
+        // 30. 覆寫元素圖形顯示
         {
             name: "override_element_graphics",
-            description: "在指定視圖中覆寫元素的圖形顯示（填滿顏色、圖樣、線條顏色等）。適用於平面圖中標記不同狀態的牆體或其他元素。",
+            description: "在指定視圖中覆寫元素的圖形顯示（填滿顏色、圖樣、線條顏色等）。",
             inputSchema: {
                 type: "object",
                 properties: {
@@ -661,7 +740,7 @@ export function registerRevitTools(): Tool[] {
             },
         },
 
-        // 28. 清除元素圖形覆寫
+        // 31. 清除元素圖形覆寫
         {
             name: "clear_element_override",
             description: "清除元素在指定視圖中的圖形覆寫，恢復為預設顯示。",
@@ -684,6 +763,104 @@ export function registerRevitTools(): Tool[] {
                 },
             },
         },
+
+        // 29. 外牆開口檢討（第45條、第110條）
+        {
+            name: "check_exterior_wall_openings",
+            description: "依據台灣建築技術規則第45條（外牆開口距離限制）及第110條（防火間隔）檢討外牆開口。自動讀取 PropertyLine（地界線）計算距離，並以顏色標示違規項目。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    checkArticle45: {
+                        type: "boolean",
+                        description: "是否檢查第45條（開口距離限制：距境界線≥1.0m，同基地建築間≥2.0m或≥1.0m）",
+                        default: true,
+                    },
+                    checkArticle110: {
+                        type: "boolean",
+                        description: "是否檢查第110條（防火間隔：依距離要求不同防火時效）",
+                        default: true,
+                    },
+                    colorizeViolations: {
+                        type: "boolean",
+                        description: "是否在 Revit 中以顏色標示檢查結果（紅色=違規，橘色=警告，綠色=通過）",
+                        default: true,
+                    },
+                    exportReport: {
+                        type: "boolean",
+                        description: "是否匯出 JSON 報表",
+                        default: false,
+                    },
+                    reportPath: {
+                        type: "string",
+                        description: "JSON 報表輸出路徑（需啟用 exportReport）",
+                        default: "D:\\\\Reports\\\\exterior_wall_check.json",
+                    },
+                },
+                required: [],
+            },
+        },
+
+        // 34. 取消牆體接合（上色前置作業）
+        {
+            name: "unjoin_wall_joins",
+            description: "取消牆體與柱子等元素的幾何接合關係。常用於元素上色前的前置作業，避免接合導致顏色無法正確顯示。會記錄取消的接合對，供後續 rejoin_wall_joins 恢復。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    wallIds: {
+                        type: "array",
+                        items: { type: "number" },
+                        description: "要取消接合的牆體 Element ID 列表（選填，若不提供則需指定 viewId）",
+                    },
+                    viewId: {
+                        type: "number",
+                        description: "視圖 ID，若未提供 wallIds 則會取消此視圖中所有牆體的接合",
+                    },
+                },
+            },
+        },
+
+        // 35. 恢復牆體接合
+        {
+            name: "rejoin_wall_joins",
+            description: "恢復先前由 unjoin_wall_joins 取消的牆體接合關係。應在上色作業完成後呼叫，以還原模型的幾何正確性。",
+            inputSchema: {
+                type: "object",
+                properties: {},
+            },
+        },
+
+        // 36. 取得房間採光資訊
+        {
+            name: "get_room_daylight_info",
+            description: "取得房間的採光資訊，包含居室面積、外牆開口（窗戶）面積、採光比例等。可依樓層篩選。用於建築技術規則居室採光檢討。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    level: {
+                        type: "string",
+                        description: "樓層名稱（選填，如 '1F'、'Level 1'），不指定則查詢所有樓層",
+                    },
+                },
+            },
+        },
+
+        // 37. 取得視圖樣版
+        {
+            name: "get_view_templates",
+            description: "取得專案中所有視圖樣版（View Templates）的完整設定，包含詳細等級、視覺樣式、比例尺、控制參數數量、隱藏品類、篩選器等。可用於視圖樣版比對與整併分析。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    includeDetails: {
+                        type: "boolean",
+                        description: "是否包含詳細設定（如隱藏品類、篩選器、裁剪設定等），預設 true",
+                        default: true,
+                    },
+                },
+            },
+        },
     ];
 }
 
@@ -696,7 +873,8 @@ export async function executeRevitTool(
     client: RevitSocketClient
 ): Promise<any> {
     // 將工具名稱轉換為 Revit 命令名稱
-    const commandName = toolName;
+    // 如果是 query_elements_with_filter，映射到 C# 的 query_elements
+    const commandName = toolName === "query_elements_with_filter" ? "query_elements" : toolName;
 
     // 發送命令到 Revit
     const response = await client.sendCommand(commandName, args);
