@@ -1,5 +1,8 @@
 using System;
+using System.Diagnostics;
+using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -43,6 +46,19 @@ namespace RevitMCP.Core
 
             try
             {
+                // 啟動前檢查 Port 是否被佔用
+                string portBlocker = GetPortOccupantInfo(_settings.Port);
+                if (portBlocker != null)
+                {
+                    string msg = $"Port {_settings.Port} 已被佔用。\n\n{portBlocker}\n\n"
+                               + "建議處理方式：\n"
+                               + "1. 開啟工作管理員，結束佔用該 Port 的進程\n"
+                               + "2. 或在 config.json 中修改 port 設定";
+                    Logger.Error(msg);
+                    TaskDialog.Show("Port 衝突", msg);
+                    return;
+                }
+
                 _cancellationTokenSource = new CancellationTokenSource();
                 _isRunning = true;
 
@@ -246,6 +262,68 @@ namespace RevitMCP.Core
                 _isRunning = false;
                 Logger.Info("WebSocket 伺服器已完全停止");
             }
+        }
+
+        /// <summary>
+        /// 檢查指定 Port 是否被佔用，回傳佔用者資訊（未佔用則回傳 null）
+        /// </summary>
+        private static string GetPortOccupantInfo(int port)
+        {
+            bool isInUse = IPGlobalProperties.GetIPGlobalProperties()
+                .GetActiveTcpListeners()
+                .Any(ep => ep.Port == port);
+
+            if (!isInUse)
+                return null;
+
+            // Port 被佔用，嘗試找出是哪個進程
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "netstat",
+                    Arguments = "-ano",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using (var proc = Process.Start(psi))
+                {
+                    string output = proc.StandardOutput.ReadToEnd();
+                    proc.WaitForExit(3000);
+
+                    // 找包含目標 port 且為 LISTENING 的行
+                    var lines = output.Split('\n');
+                    foreach (string line in lines)
+                    {
+                        if (line.Contains($":{port}") && line.Contains("LISTENING"))
+                        {
+                            // 取最後一欄的 PID
+                            string trimmed = line.Trim();
+                            string[] parts = trimmed.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length > 0 && int.TryParse(parts[parts.Length - 1], out int pid))
+                            {
+                                try
+                                {
+                                    var occupant = Process.GetProcessById(pid);
+                                    return $"佔用進程: {occupant.ProcessName} (PID: {pid})";
+                                }
+                                catch
+                                {
+                                    return $"佔用進程 PID: {pid} (已無法存取)";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // netstat 失敗時，仍回報 port 被佔用
+            }
+
+            return $"Port {port} 已被不明進程佔用";
         }
     }
 }
