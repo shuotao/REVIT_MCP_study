@@ -47,16 +47,25 @@ namespace RevitMCP.Core
             try
             {
                 // 啟動前檢查 Port 是否被佔用
-                string portBlocker = GetPortOccupantInfo(_settings.Port);
-                if (portBlocker != null)
+                var (occupantPid, occupantName) = GetPortOccupant(_settings.Port);
+                if (occupantPid > 0)
                 {
-                    string msg = $"Port {_settings.Port} 已被佔用。\n\n{portBlocker}\n\n"
-                               + "建議處理方式：\n"
-                               + "1. 開啟工作管理員，結束佔用該 Port 的進程\n"
-                               + "2. 或在 config.json 中修改 port 設定";
-                    Logger.Error(msg);
-                    TaskDialog.Show("Port 衝突", msg);
-                    return;
+                    Logger.Info($"Port {_settings.Port} 被 {occupantName} (PID: {occupantPid}) 佔用，嘗試自動修復...");
+
+                    if (TryAutoKillPortOccupant(occupantPid, occupantName))
+                    {
+                        // 等待 Port 釋放
+                        Thread.Sleep(500);
+                        Logger.Info($"已自動結束 {occupantName} (PID: {occupantPid})，Port {_settings.Port} 已釋放");
+                    }
+                    else
+                    {
+                        string msg = $"Port {_settings.Port} 被 {occupantName} (PID: {occupantPid}) 佔用，且無法自動修復。\n\n"
+                                   + "請手動關閉該程式後重試。";
+                        Logger.Error(msg);
+                        TaskDialog.Show("Port 衝突", msg);
+                        return;
+                    }
                 }
 
                 _cancellationTokenSource = new CancellationTokenSource();
@@ -265,18 +274,18 @@ namespace RevitMCP.Core
         }
 
         /// <summary>
-        /// 檢查指定 Port 是否被佔用，回傳佔用者資訊（未佔用則回傳 null）
+        /// 檢查指定 Port 是否被佔用，回傳 (PID, 進程名稱)。未佔用則回傳 (0, null)。
         /// </summary>
-        private static string GetPortOccupantInfo(int port)
+        private static (int pid, string name) GetPortOccupant(int port)
         {
             bool isInUse = IPGlobalProperties.GetIPGlobalProperties()
                 .GetActiveTcpListeners()
                 .Any(ep => ep.Port == port);
 
             if (!isInUse)
-                return null;
+                return (0, null);
 
-            // Port 被佔用，嘗試找出是哪個進程
+            // Port 被佔用，透過 netstat 找出佔用者 PID
             try
             {
                 var psi = new ProcessStartInfo
@@ -293,26 +302,28 @@ namespace RevitMCP.Core
                     string output = proc.StandardOutput.ReadToEnd();
                     proc.WaitForExit(3000);
 
-                    // 找包含目標 port 且為 LISTENING 的行
                     var lines = output.Split('\n');
+                    string portPattern = $":{port} ";
                     foreach (string line in lines)
                     {
-                        if (line.Contains($":{port}") && line.Contains("LISTENING"))
+                        // 不依賴語系關鍵字，改為判斷 port 格式 + TCP 行結構
+                        if (!line.Contains(portPattern)) continue;
+
+                        string trimmed = line.Trim();
+                        string[] parts = trimmed.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        // netstat -ano 格式: Proto  Local Address  Foreign Address  State  PID
+                        // PID 固定在最後一欄
+                        if (parts.Length >= 5 && int.TryParse(parts[parts.Length - 1], out int pid) && pid > 0)
                         {
-                            // 取最後一欄的 PID
-                            string trimmed = line.Trim();
-                            string[] parts = trimmed.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                            if (parts.Length > 0 && int.TryParse(parts[parts.Length - 1], out int pid))
+                            try
                             {
-                                try
-                                {
-                                    var occupant = Process.GetProcessById(pid);
-                                    return $"佔用進程: {occupant.ProcessName} (PID: {pid})";
-                                }
-                                catch
-                                {
-                                    return $"佔用進程 PID: {pid} (已無法存取)";
-                                }
+                                var occupant = Process.GetProcessById(pid);
+                                return (pid, occupant.ProcessName);
+                            }
+                            catch
+                            {
+                                return (pid, "unknown");
                             }
                         }
                     }
@@ -320,10 +331,45 @@ namespace RevitMCP.Core
             }
             catch
             {
-                // netstat 失敗時，仍回報 port 被佔用
+                // netstat 失敗
             }
 
-            return $"Port {port} 已被不明進程佔用";
+            return (-1, "unknown");
+        }
+
+        /// <summary>
+        /// 嘗試自動結束佔用 Port 的進程。
+        /// 只會結束 node / Revit 相關的殭屍進程，不會誤殺其他應用程式。
+        /// </summary>
+        private static bool TryAutoKillPortOccupant(int pid, string processName)
+        {
+            if (pid <= 0) return false;
+
+            string lower = (processName ?? "").ToLowerInvariant();
+
+            // 安全白名單：只自動結束 MCP 相關的殭屍進程
+            bool isSafeToKill = lower.Contains("node")
+                             || lower.Contains("revitmcp");
+
+            if (!isSafeToKill)
+            {
+                Logger.Info($"進程 {processName} (PID: {pid}) 不在自動清除白名單中，跳過");
+                return false;
+            }
+
+            try
+            {
+                var proc = Process.GetProcessById(pid);
+                proc.Kill();
+                proc.WaitForExit(3000);
+                Logger.Info($"已自動結束進程: {processName} (PID: {pid})");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"無法結束進程 {processName} (PID: {pid}): {ex.Message}");
+                return false;
+            }
         }
     }
 }
