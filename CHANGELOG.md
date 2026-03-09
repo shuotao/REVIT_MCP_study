@@ -6,6 +6,48 @@
 
 ---
 
+## [1.5.1] - 2026-03-09
+
+### 🐛 Bug 修正（C# — 需重新編譯）
+
+- **`CommandExecutor.cs`**：修正 4 個問題 — null reference 風險、port 8966→8964 統一、catch 範圍過寬、重複初始化
+- **`ExteriorWallOpeningChecker.cs`**：修正外牆開口條件判斷邏輯
+- **`RevitMCP.csproj`**：改用 Nice3point.Revit.Sdk 6.1.0，統一支援 Revit 2022–2026
+
+### 🆕 新增
+
+- **`RevitCompatibility.cs`**：跨版本相容性輔助層（新增檔案）
+- **`CLAUDE.md`**：Claude Code 專用上下文指引
+- **`docs/MIGRATION_GUIDE.md`**：fork 成員升級遷移指南
+- **`教材/`**：完整公開 8 堂課教材、投影片、延伸閱讀資源
+  - 新增 `05-Skill遷移實戰篇.md`（Agent Skill 架構實作教學）
+
+### 📁 文件整理
+
+- **合併後刪除**：ANNOUNCEMENT.md → CHANGELOG.md、MCP_Server_Setup_Guide.md → README.md、ARCHITECTURE.md → README.md
+- **搬移**：QUICK_TEST.md → docs/、4 個學習筆記 → 教材/
+- **刪除**：mission.md、Domain_to_Skill_Migration_Guide.md
+- **更新**：README.md 新增導覽表、README.en.md 支援 Revit 2025/2026、DOCS_STRUCTURE.md 重寫
+
+### ⚠️ 成員需執行的動作
+
+**C# 程式碼有更新，需重新編譯 DLL：**
+
+```powershell
+cd "專案路徑/MCP"
+dotnet build -c Release.R22   # Revit 2022
+dotnet build -c Release.R23   # Revit 2023
+dotnet build -c Release.R24   # Revit 2024
+dotnet build -c Release.R25   # Revit 2025
+dotnet build -c Release.R26   # Revit 2026
+```
+
+複製 DLL → Revit Addins 資料夾 → 重啟 Revit。
+
+**MCP Server 無變動**，不需要 `npm install` 或 `npm run build`。
+
+---
+
 ## [1.5.0] - 2026-03-04
 
 ### ✨ 新功能
