@@ -61,13 +61,13 @@ export function registerRevitTools(): Tool[] {
         // 3. 查詢元素
         {
             name: "query_elements",
-            description: "查詢 Revit 專案中的元素。可依類別、族群、類型等條件篩選。",
+            description: "查詢 Revit 專案中的元素。可依類別、族群、類型、樓層等條件篩選。類別範例：Walls, Rooms, Doors, Windows, Floors, Columns",
             inputSchema: {
                 type: "object",
                 properties: {
                     category: {
                         type: "string",
-                        description: "元素類別（如：牆、門、窗等）",
+                        description: "元素類別（如：Walls, Rooms, Doors, Windows, Floors, Columns）",
                     },
                     family: {
                         type: "string",
@@ -81,7 +81,13 @@ export function registerRevitTools(): Tool[] {
                         type: "string",
                         description: "樓層名稱（選填）",
                     },
+                    maxCount: {
+                        type: "number",
+                        description: "最大回傳數量（預設 100）",
+                        default: 100,
+                    },
                 },
+                required: ["category"],
             },
         },
 

@@ -2,10 +2,10 @@
 <RevitAddIns>
   <AddIn Type="Application">
     <Name>Revit MCP Plugin</Name>
-    <!-- 請修改以下路徑為您的實際路徑 -->
-    <Assembly>C:\Users\01102088\Desktop\DEV\MCP\bin\Debug\RevitMCP.dll</Assembly>
+    <!-- 使用相對路徑：.addin 與 .dll 須放在同一個目錄 -->
+    <Assembly>RevitMCP.dll</Assembly>
     <FullClassName>RevitMCP.Application</FullClassName>
-    <ClientId>8F3A4C8C-61DC-426D-87DF-E4BAE0F80EC1</ClientId>
+    <AddInId>8F3A4C8C-61DC-426D-87DF-E4BAE0F80EC1</AddInId>
     <VendorId>RevitMCP</VendorId>
     <VendorDescription>AI-Powered Revit Control via MCP Protocol</VendorDescription>
   </AddIn>

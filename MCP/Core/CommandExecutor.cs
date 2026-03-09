@@ -1815,12 +1815,30 @@ namespace RevitMCP.Core
                 int maxCount = parameters["maxCount"]?.Value<int>() ?? 100;
                 JArray filters = parameters["filters"] as JArray;
                 JArray returnFields = parameters["returnFields"] as JArray;
-                
+
+                // 相容簡易版 query_elements 的 family / type / level 參數
+                string familyFilter = parameters["family"]?.Value<string>();
+                string typeFilter = parameters["type"]?.Value<string>();
+                string levelFilter = parameters["level"]?.Value<string>();
+
+                if (string.IsNullOrEmpty(categoryName))
+                {
+                    throw new Exception("必須提供 category 參數（例如：Walls, Rooms, Doors, Windows）");
+                }
+
                 Document doc = _uiApp.ActiveUIDocument.Document;
-                ElementId targetViewId = viewId.HasValue ? new ElementId(viewId.Value) : doc.ActiveView.Id;
                 
-                FilteredElementCollector collector = new FilteredElementCollector(doc, targetViewId);
-                
+                // 使用全文件收集器（避免限定在不適當的 View 導致結果為空）
+                FilteredElementCollector collector;
+                if (viewId.HasValue)
+                {
+                    collector = new FilteredElementCollector(doc, new ElementId(viewId.Value));
+                }
+                else
+                {
+                    collector = new FilteredElementCollector(doc);
+                }
+
                 // 1. 品類過濾
                 ElementId catId = ResolveCategoryId(doc, categoryName);
                 if (catId != ElementId.InvalidElementId)
@@ -1830,9 +1848,14 @@ namespace RevitMCP.Core
                 else
                 {
                     // 備用方案: 根據常用名稱
-                    if (categoryName.Equals("Walls", StringComparison.OrdinalIgnoreCase)) collector.OfClass(typeof(Wall));
-                    else if (categoryName.Equals("Rooms", StringComparison.OrdinalIgnoreCase)) collector.OfCategory(BuiltInCategory.OST_Rooms);
-                    else throw new Exception($"無法辨識品類: {categoryName}");
+                    string catLower = categoryName.ToLowerInvariant();
+                    if (catLower == "walls" || catLower == "牆") collector.OfClass(typeof(Wall));
+                    else if (catLower == "rooms" || catLower == "房間") collector.OfCategory(BuiltInCategory.OST_Rooms);
+                    else if (catLower == "doors" || catLower == "門") collector.OfCategory(BuiltInCategory.OST_Doors);
+                    else if (catLower == "windows" || catLower == "窗") collector.OfCategory(BuiltInCategory.OST_Windows);
+                    else if (catLower == "floors" || catLower == "樓板") collector.OfCategory(BuiltInCategory.OST_Floors);
+                    else if (catLower == "columns" || catLower == "柱") collector.OfCategory(BuiltInCategory.OST_Columns);
+                    else throw new Exception($"無法辨識品類: {categoryName}。請使用英文名稱如 Walls, Rooms, Doors, Windows, Floors, Columns");
                 }
 
                 var elements = collector.WhereElementIsNotElementType().ToElements();
@@ -1842,6 +1865,8 @@ namespace RevitMCP.Core
                 foreach (var elem in elements)
                 {
                     bool match = true;
+
+                    // 進階版 filters 過濾
                     if (filters != null)
                     {
                         foreach (var filter in filters)
@@ -1857,6 +1882,35 @@ namespace RevitMCP.Core
                             }
                         }
                     }
+
+                    // 簡易版 family 過濾
+                    if (match && !string.IsNullOrEmpty(familyFilter))
+                    {
+                        string elemFamily = elem.get_Parameter(BuiltInParameter.ELEM_FAMILY_PARAM)?.AsValueString() ?? "";
+                        if (!elemFamily.IndexOf(familyFilter, StringComparison.OrdinalIgnoreCase).Equals(0) 
+                            && !elemFamily.Contains(familyFilter))
+                            match = false;
+                    }
+
+                    // 簡易版 type 過濾
+                    if (match && !string.IsNullOrEmpty(typeFilter))
+                    {
+                        string elemType = elem.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM)?.AsValueString() ?? "";
+                        if (!elemType.IndexOf(typeFilter, StringComparison.OrdinalIgnoreCase).Equals(0)
+                            && !elemType.Contains(typeFilter))
+                            match = false;
+                    }
+
+                    // 簡易版 level 過濾
+                    if (match && !string.IsNullOrEmpty(levelFilter))
+                    {
+                        string elemLevel = elem.get_Parameter(BuiltInParameter.LEVEL_NAME)?.AsValueString() 
+                                        ?? elem.get_Parameter(BuiltInParameter.INSTANCE_SCHEDULE_ONLY_LEVEL_PARAM)?.AsValueString()
+                                        ?? "";
+                        if (!elemLevel.Contains(levelFilter))
+                            match = false;
+                    }
+
                     if (match) filteredList.Add(elem);
                     if (filteredList.Count >= maxCount) break;
                 }
@@ -1949,6 +2003,8 @@ namespace RevitMCP.Core
 
         private ElementId ResolveCategoryId(Document doc, string name)
         {
+            if (string.IsNullOrEmpty(name)) return ElementId.InvalidElementId;
+
             foreach (Category cat in doc.Settings.Categories)
             {
                 if (cat.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || 

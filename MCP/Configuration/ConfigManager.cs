@@ -57,6 +57,12 @@ namespace RevitMCP.Configuration
                 {
                     string json = File.ReadAllText(_configPath, Encoding.UTF8);
                     Settings = JsonConvert.DeserializeObject<ServiceSettings>(json) ?? new ServiceSettings();
+
+                    // 驗證並修正舊版設定檔（例如殘留的錯誤 Port）
+                    if (Settings.ValidateAndFix())
+                    {
+                        SaveSettings();
+                    }
                 }
                 else
                 {

@@ -2,9 +2,9 @@
 <RevitAddIns>
   <AddIn Type="Application">
     <Name>Revit MCP Plugin</Name>
-    <Assembly>C:\ProgramData\Autodesk\Revit\Addins\2024\RevitMCP\RevitMCP.dll</Assembly>
+    <Assembly>RevitMCP.dll</Assembly>
     <FullClassName>RevitMCP.Application</FullClassName>
-    <ClientId>090a4c8c-61dc-426d-87df-e4bae0f80ec1</ClientId>
+    <AddInId>090a4c8c-61dc-426d-87df-e4bae0f80ec1</AddInId>
     <VendorId>revit-mcp</VendorId>
     <VendorDescription>MCP Connection for Revit</VendorDescription>
   </AddIn>

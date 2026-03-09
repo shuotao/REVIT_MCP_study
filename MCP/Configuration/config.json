@@ -1,4 +1,5 @@
 {
+    "ConfigVersion": 2,
     "host": "localhost",
     "port": 8964
 }

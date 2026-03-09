@@ -1,9 +1,10 @@
 {
+  "_comment": "請將 <YOUR_PROJECT_PATH> 替換為本專案在您電腦上的實際路徑",
   "mcpServers": {
     "revit-mcp": {
       "command": "node",
       "args": [
-        "c:/Users/User/Desktop/REVIT MCP/MCP-Server/build/index.js"
+        "<YOUR_PROJECT_PATH>/MCP-Server/build/index.js"
       ],
       "env": {
         "REVIT_VERSION": "2024"

@@ -10,7 +10,23 @@ setlocal enabledelayedexpansion
 set "SCRIPT_DIR=%~dp0"
 set "ROOT_DIR=%SCRIPT_DIR%.."
 set "ADDIN_SOURCE=%ROOT_DIR%\MCP\RevitMCP.addin"
-set "DLL_SOURCE=%ROOT_DIR%\MCP\bin\Debug\RevitMCP.dll"
+
+:: 自動偵測 DLL 路徑：優先 Release，備援 Debug
+set "DLL_SOURCE="
+if exist "%ROOT_DIR%\MCP\bin\Release\RevitMCP.dll" (
+    set "DLL_SOURCE=%ROOT_DIR%\MCP\bin\Release\RevitMCP.dll"
+    echo [資訊] 使用 Release 版 DLL
+) else if exist "%ROOT_DIR%\MCP\bin\Release.2024\RevitMCP.dll" (
+    set "DLL_SOURCE=%ROOT_DIR%\MCP\bin\Release.2024\RevitMCP.dll"
+    echo [資訊] 使用 Release.2024 版 DLL
+) else if exist "%ROOT_DIR%\MCP\bin\Debug\RevitMCP.dll" (
+    set "DLL_SOURCE=%ROOT_DIR%\MCP\bin\Debug\RevitMCP.dll"
+    echo [資訊] 使用 Debug 版 DLL（建議改用 Release 版本）
+) else (
+    echo [錯誤] 找不到 RevitMCP.dll，請先執行編譯：
+    echo        cd MCP ^&^& dotnet build -c Release.R24 RevitMCP.csproj
+    goto :ERROR
+)
 
 echo [資訊] 開始安裝 Revit MCP 外掛...
 echo [資訊] 來源 Addin: %ADDIN_SOURCE%
@@ -23,14 +39,8 @@ if not exist "%ADDIN_SOURCE%" (
     goto :ERROR
 )
 
-if not exist "%DLL_SOURCE%" (
-    echo [警告] 找不到 Debug DLL 檔案: "%DLL_SOURCE%"
-    echo [提示] 請確保已在 Visual Studio 中以 Debug 模式完成編譯。
-    goto :ERROR
-)
-
-:: 定義目標 Revit 版本
-set "VERSIONS=2020 2021 2022 2023 2024 2025 2026"
+:: 定義目標 Revit 版本（只安裝到存在的 Addins 資料夾）
+set "VERSIONS=2022 2023 2024 2025 2026"
 
 :: 執行複製動作
 for %%V in (%VERSIONS%) do (
