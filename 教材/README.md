@@ -60,6 +60,17 @@
 
 ---
 
+## 📚 延伸閱讀
+
+| 資源 | 說明 |
+|:----|:----|
+| [Antigravity Skill 部署指南](./Antigravity_Skill_Setup_Guide.md) | Antigravity Skills 架構設定步驟 |
+| [Skill 範例解說](./Level1_Skill_Examples_Explained.md) | Level 1 Skill 範例逐行講解 |
+| [學習筆記](./Learning_Notes.md) | Claude Skills 研究心得與實驗紀錄 |
+| [MCP 一月小聚筆記](./%5B好學生筆記%5DMCP一月小聚.md) | 社群讀書會重點摘要 |
+
+---
+
 ## 📞 技術支援
 
 - **GitHub 專案**：[REVIT_MCP_study](https://github.com/your-repo)

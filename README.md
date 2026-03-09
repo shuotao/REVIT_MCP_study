@@ -534,11 +534,22 @@ Gemini CLI 是 Google 的命令列 AI 工具，可以在終端機直接與 Gemin
 **設定方式：編輯 `settings.json` 檔案**
 
 1. **開啟設定檔位置**
+
+   **Windows**：
    - 按 `Win + R`，輸入以下路徑，按 Enter：
      ```
      %USERPROFILE%\.gemini
      ```
-   - 找到 `settings.json` 檔案並用記事本開啟
+   - 如果資料夾不存在，手動建立 `.gemini` 資料夾
+   
+   **macOS / Linux**：
+   ```bash
+   cd ~/.gemini
+   # 如果不存在，先建立
+   mkdir -p ~/.gemini
+   ```
+   
+   - 找到 `settings.json` 檔案並用記事本開啟（如果不存在就新建一個）
 
 2. **加入 MCP Server 設定**
    
@@ -1353,6 +1364,26 @@ MIT License
 ## 🤝 貢獻
 
 歡迎提交 Issue 和 Pull Request！
+
+---
+
+## 📚 文件導覽
+
+| 文件 | 說明 |
+|:-----|:----|
+| [GEMINI.md](./GEMINI.md) | AI 助手 System Prompt：斜線指令、工作流程觸發規則、部署指南 |
+| [CLAUDE.md](./CLAUDE.md) | Claude Code 專案導覽：架構、建構指令、程式碼慣例 |
+| [CHANGELOG.md](./CHANGELOG.md) | 版本變更日誌（v1.0.0 ~ v1.5.0） |
+| [README.en.md](./README.en.md) | English version of this README |
+| **教材/** | |
+| [教材/README.md](./教材/README.md) | 教材總目錄（8 堂課 × 3 小時） |
+| [教材/05-Skill遷移實戰篇.md](./教材/05-Skill遷移實戰篇.md) | 第五堂：從 domain/ 升級至 Agent Skill 架構 |
+| **docs/** | |
+| [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | 文件目錄結構說明 |
+| [docs/tools/](./docs/tools/) | MCP 工具 API 技術文件 |
+| [docs/workflows/](./docs/workflows/) | 工作流程設計文件 |
+| **domain/** | |
+| [domain/README.md](./domain/README.md) | 領域知識目錄（AI 工作流程 SOP） |
 
 ---
 

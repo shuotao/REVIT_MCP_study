@@ -7,9 +7,9 @@
 </div>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Revit-2022-blue" alt="Revit 2022">
+  <img src="https://img.shields.io/badge/Revit-2022--2026-blue" alt="Revit 2022-2026">
   <img src="https://img.shields.io/badge/Node.js-LTS-green" alt="Node.js">
-  <img src="https://img.shields.io/badge/.NET-4.8-purple" alt=".NET 4.8">
+  <img src="https://img.shields.io/badge/.NET-4.8%20%7C%208-purple" alt=".NET 4.8 | 8">
   <img src="https://img.shields.io/badge/MCP-1.0-orange" alt="MCP Protocol">
 </p>
 
@@ -24,14 +24,17 @@ Enable AI language models to directly control Autodesk Revit via Model Context P
 > 
 > **Quick Steps:**
 > 1. **Close Revit** (otherwise DLL cannot be overwritten)
-> 2. Build:
+> 2. Build (choose your Revit version):
 >    ```powershell
 >    cd "your-project-path/MCP"
->    dotnet build -c Release
+>    dotnet build -c Release       # Revit 2022 (default)
+>    dotnet build -c Release.R24   # Revit 2024
+>    dotnet build -c Release.R25   # Revit 2025
+>    dotnet build -c Release.R26   # Revit 2026
 >    ```
 > 3. Copy DLL to Revit Addins folder:
 >    ```powershell
->    Copy-Item "bin/Release/RevitMCP.dll" "C:\ProgramData\Autodesk\Revit\Addins\2022\RevitMCP\" -Force
+>    Copy-Item "bin/Release/RevitMCP.dll" "C:\ProgramData\Autodesk\Revit\Addins\2024\RevitMCP\" -Force
 >    ```
 > 4. Restart Revit
 > 
@@ -56,8 +59,8 @@ REVIT-MCP/
 │   ├── Application.cs           # Main entry point
 │   ├── ConnectCommand.cs        # Connection command
 │   ├── RevitMCP.addin           # Add-in configuration
-│   ├── RevitMCP.csproj          # Project file (Revit 2022/2023)
-│   ├── RevitMCP.2024.csproj     # Project file (Revit 2024)
+│   ├── RevitMCP.csproj          # Unified project file (Revit 2022–2026, Nice3point SDK)
+│   ├── RevitMCP.2024.csproj     # Legacy project file (Revit 2024 only, deprecated)
 │   ├── Core/                    # Core functionality
 │   │   ├── SocketService.cs     # WebSocket service
 │   │   ├── CommandExecutor.cs   # Command executor
@@ -81,12 +84,13 @@ REVIT-MCP/
 | Item | Requirement |
 |------|------|
 | **Operating System** | Windows 10 or later |
-| **Revit** | Autodesk Revit 2022 / 2023 / 2024 |
-| **.NET** | .NET Framework 4.8 |
+| **Revit** | Autodesk Revit 2022 / 2023 / 2024 / 2025 / 2026 |
+| **.NET** | .NET Framework 4.8 (Revit 2022–2024) / .NET 8 (Revit 2025–2026) |
 | **Node.js** | LTS version (20.x or later) |
 
-> 💡 **Important Note**: This tutorial uses Revit 2022 as an example, but applies to versions 2022, 2023, and 2024.  
+> 💡 **Important Note**: This tutorial uses Revit 2022 as an example, but applies to versions 2022, 2023, 2024, 2025, and 2026.  
 > When installing, adjust the folder names according to your Revit version (see version mapping table in each step below).
+> Revit 2025/2026 uses .NET 8, please ensure you have the corresponding .NET SDK installed.
 
 ## ⚠️ First-Time Setup for Git Clone Users
 
@@ -154,7 +158,7 @@ Choose one:
 - Open Revit
 - Click "Autodesk Revit 202X" in the top left (X is your version number)
 - Then click "Help" → "About Autodesk Revit"
-- Check the version number and remember it (for example: 2022, 2023, or 2024)
+- Check the version number and remember it (for example: 2022, 2023, 2024, 2025, or 2026)
 
 #### Method A: Use Pre-Built Version (Easiest! Recommended for Beginners)
 
@@ -172,7 +176,7 @@ If you don't want to build the program yourself, you can download the files we'v
 2. **Run the installation**
    - **Method A**: Double-click the `install-addon.bat` file
      - Will automatically download files and place them in the Revit folder
-     - Automatically detects your Revit version (2022, 2023, 2024)
+     - Automatically detects your Revit version (2022, 2023, 2024, 2025, 2026)
    
    - **Method B**: Run with PowerShell (right-click and run as administrator)
      ```powershell
@@ -209,6 +213,8 @@ If you don't want to use the script, you can manually copy files:
    > - Revit 2022: `Addins\2022`
    > - Revit 2023: `Addins\2023`
    > - Revit 2024: `Addins\2024`
+   > - Revit 2025: `Addins\2025`
+   > - Revit 2026: `Addins\2026`
    > 
    > Not sure about your Revit version? Open Revit → Help → About Revit, you'll see the version number
 
@@ -231,10 +237,13 @@ If you understand code or want to learn how to build:
 
 2. **Build the program**
    - Open Command Prompt
-   - Type the following command:
+   - Type the following command (choose your Revit version):
      ```
      cd C:\Users\YourUsername\Desktop\MCP\REVIT_MCP_study\MCP
-     dotnet build -c Release
+     dotnet build -c Release       # Revit 2022 (default)
+     dotnet build -c Release.R24   # Revit 2024
+     dotnet build -c Release.R25   # Revit 2025
+     dotnet build -c Release.R26   # Revit 2026
      ```
    - Wait for the build to complete (you'll see green "Build succeeded" message)
 
@@ -249,6 +258,8 @@ If you understand code or want to learn how to build:
    > - Revit 2022: `Addins\2022`
    > - Revit 2023: `Addins\2023`
    > - Revit 2024: `Addins\2024`
+   > - Revit 2025: `Addins\2025`
+   > - Revit 2026: `Addins\2026`
 
    - Copy all `.dll` and `.addin` files from `bin\Release` folder there
 
@@ -664,6 +675,8 @@ Anthropic's official desktop application, this is the **simplest way**.
    > - Revit 2022: Change to `REVIT_VERSION: 2022`
    > - Revit 2023: Change to `REVIT_VERSION: 2023`
    > - Revit 2024: Change to `REVIT_VERSION: 2024`
+   > - Revit 2025: Change to `REVIT_VERSION: 2025`
+   > - Revit 2026: Change to `REVIT_VERSION: 2026`
 
 6. **Click "Save"** - Done!
 
