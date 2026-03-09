@@ -172,7 +172,7 @@ $addonPath = $null
 $foundVersions = @()
 
 # 只檢查支援的版本（白名單方式，更安全）
-$supportedVersions = @("2024", "2023", "2022")
+$supportedVersions = @("2026", "2025", "2024", "2023", "2022")
 
 foreach ($version in $supportedVersions) {
     $testPath = Join-Path $appDataPath "Autodesk\Revit\Addins\$version"
@@ -193,7 +193,7 @@ if ($null -eq $revitVersion) {
     Write-Host ""
     Write-Host "可能的原因：" -ForegroundColor Yellow
     Write-Host "- 您的電腦沒有安裝 Revit" -ForegroundColor Yellow
-    Write-Host "- 支援的版本：2022、2023、2024" -ForegroundColor Yellow
+    Write-Host "- 支援的版本：2022、2023、2024、2025、2026" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "檢查的路徑：$appDataPath\Autodesk\Revit\Addins\" -ForegroundColor Yellow
     Read-Host "按 Enter 結束"
@@ -269,7 +269,7 @@ else {
     Write-Host "1. 打開命令提示字元" -ForegroundColor Yellow
     Write-Host "2. cd `"$projectRoot\MCP`"" -ForegroundColor Yellow
     if ($revitVersion -eq "2024") {
-        Write-Host "3. dotnet build -c Release RevitMCP.2024.csproj" -ForegroundColor Yellow
+        Write-Host "3. dotnet build -c Release.R24 RevitMCP.csproj" -ForegroundColor Yellow
     }
     else {
         Write-Host "3. dotnet build -c Release" -ForegroundColor Yellow

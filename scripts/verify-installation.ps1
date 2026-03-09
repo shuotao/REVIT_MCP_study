@@ -27,34 +27,40 @@ else {
 # Check 2: Project Files
 Write-Host ""
 Write-Host "[Check 2] Project Files..." -ForegroundColor Cyan
-if (Test-Path "$projectRoot\MCP\RevitMCP.2024.csproj") {
-    Write-Host "  FOUND: RevitMCP.2024.csproj" -ForegroundColor Green
-}
-elseif (Test-Path "$projectRoot\MCP\RevitMCP.csproj") {
-    Write-Host "  FOUND: RevitMCP.csproj" -ForegroundColor Green
+if (Test-Path "$projectRoot\MCP\RevitMCP.csproj") {
+    Write-Host "  FOUND: RevitMCP.csproj (Unified Build - Nice3point SDK)" -ForegroundColor Green
 }
 else {
     Write-Host "  ERROR: No .csproj file found" -ForegroundColor Red
+}
+if (Test-Path "$projectRoot\MCP\RevitMCP.2024.csproj") {
+    Write-Host "  INFO: RevitMCP.2024.csproj (Legacy, deprecated)" -ForegroundColor Yellow
+}
+if (Test-Path "$projectRoot\MCP\Core\RevitCompatibility.cs") {
+    Write-Host "  FOUND: RevitCompatibility.cs (Cross-version layer)" -ForegroundColor Green
+}
+else {
+    Write-Host "  WARNING: RevitCompatibility.cs missing" -ForegroundColor Yellow
 }
 
 # Check 3: Built DLL
 Write-Host ""
 Write-Host "[Check 3] Built DLL..." -ForegroundColor Cyan
 $foundDll = $false
-if (Test-Path "$projectRoot\MCP\bin\Release.2024\RevitMCP.dll") {
-    $dll = Get-Item "$projectRoot\MCP\bin\Release.2024\RevitMCP.dll"
-    Write-Host "  FOUND: RevitMCP.dll (2024 Release)" -ForegroundColor Green
+if (Test-Path "$projectRoot\MCP\bin\Release\RevitMCP.dll") {
+    $dll = Get-Item "$projectRoot\MCP\bin\Release\RevitMCP.dll"
+    Write-Host "  FOUND: RevitMCP.dll (Unified Release)" -ForegroundColor Green
     Write-Host "    Size: $($dll.Length) bytes" -ForegroundColor Gray
     Write-Host "    Modified: $($dll.LastWriteTime)" -ForegroundColor Gray
     $foundDll = $true
 }
-elseif (Test-Path "$projectRoot\MCP\bin\Release\RevitMCP.dll") {
-    Write-Host "  FOUND: RevitMCP.dll (Release)" -ForegroundColor Green
+elseif (Test-Path "$projectRoot\MCP\bin\Release.2024\RevitMCP.dll") {
+    Write-Host "  FOUND: RevitMCP.dll (Legacy 2024 Release)" -ForegroundColor Yellow
     $foundDll = $true
 }
 else {
     Write-Host "  WARNING: DLL not built yet" -ForegroundColor Yellow
-    Write-Host "    Need to run: dotnet build -c Release" -ForegroundColor Gray
+    Write-Host "    Need to run: dotnet build -c Release.R24 RevitMCP.csproj" -ForegroundColor Gray
 }
 
 # Check 4: Install Script
@@ -78,9 +84,12 @@ Write-Host "Next Steps:" -ForegroundColor Cyan
 Write-Host ""
 
 if (-not $foundDll) {
-    Write-Host "1. Build the project:" -ForegroundColor Yellow
+    Write-Host "1. Build the project (choose your Revit version):" -ForegroundColor Yellow
     Write-Host "   cd `"$projectRoot\MCP`"" -ForegroundColor Gray
-    Write-Host "   dotnet build -c Release RevitMCP.2024.csproj" -ForegroundColor Gray
+    Write-Host "   dotnet build -c Release.R22 RevitMCP.csproj   # Revit 2022" -ForegroundColor Gray
+    Write-Host "   dotnet build -c Release.R24 RevitMCP.csproj   # Revit 2024" -ForegroundColor Gray
+    Write-Host "   dotnet build -c Release.R25 RevitMCP.csproj   # Revit 2025" -ForegroundColor Gray
+    Write-Host "   dotnet build -c Release.R26 RevitMCP.csproj   # Revit 2026" -ForegroundColor Gray
     Write-Host ""
 }
 

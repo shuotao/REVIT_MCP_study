@@ -337,11 +337,15 @@ cd REVIT_MCP
 
 #### Step 1: 確認 Revit 版本並選擇專案檔
 
-| 您的 Revit 版本 | 使用的專案檔 | 建置指令 |
+| 您的 Revit 版本 | 建構組態 | 建置指令 |
 |:---------------|:-----------|:---------|
-| Revit 2022 | `RevitMCP.csproj` | `dotnet build -c Release RevitMCP.csproj` |
-| Revit 2023 | `RevitMCP.csproj` | `dotnet build -c Release RevitMCP.csproj` |
-| Revit 2024 | `RevitMCP.2024.csproj` | `dotnet build -c Release RevitMCP.2024.csproj` |
+| Revit 2022 | `Release.R22` | `dotnet build -c Release.R22 RevitMCP.csproj` |
+| Revit 2023 | `Release.R23` | `dotnet build -c Release.R23 RevitMCP.csproj` |
+| Revit 2024 | `Release.R24` | `dotnet build -c Release.R24 RevitMCP.csproj` |
+| Revit 2025 | `Release.R25` | `dotnet build -c Release.R25 RevitMCP.csproj` |
+| Revit 2026 | `Release.R26` | `dotnet build -c Release.R26 RevitMCP.csproj` |
+
+> 所有版本均使用統一的 `RevitMCP.csproj` (基於 Nice3point.Revit.Sdk)。
 
 #### Step 2: 執行建置
 
@@ -350,7 +354,7 @@ cd REVIT_MCP
 cd C:\Users\Use\Desktop\REVIT_MCP\MCP
 
 # 執行建置（以 Revit 2024 為例）
-dotnet build -c Release RevitMCP.2024.csproj
+dotnet build -c Release.R24 RevitMCP.csproj
 ```
 
 **預期輸出**：
@@ -911,7 +915,7 @@ C:\Users\您的使用者名稱\AppData\Local\Autodesk\Revit\<版本>\Journals\
 | 操作 | 指令 |
 |:-----|:-----|
 | 開啟設定檔 | `code %USERPROFILE%\.gemini\antigravity\mcp_config.json` |
-| 重建 C# (2024) | `cd MCP && dotnet build -c Release RevitMCP.2024.csproj` |
+| 重建 C# (範例: 2024) | `cd MCP && dotnet build -c Release.R24 RevitMCP.csproj` |
 | 重建 MCP Server | `cd MCP-Server && npm run build` |
 | 檢查 MCP 清單 | Antigravity 中輸入 `/mcp` → `list` |
 | 檢查 Port 8964 | `netstat -ano \| findstr :8964` |

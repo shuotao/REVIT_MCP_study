@@ -5,6 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+// Revit 2025+ ElementId: int → long
+#if REVIT2025_OR_GREATER
+using IdType = System.Int64;
+#else
+using IdType = System.Int32;
+#endif
+
 namespace RevitMCP.Core
 {
     /// <summary>
@@ -53,8 +60,8 @@ namespace RevitMCP.Core
                 if (element is FamilyInstance fi)
                 {
                     // 篩選門窗元素
-                    if (fi.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Windows ||
-                        fi.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Doors)
+                    if (fi.Category.Id.GetIdValue() == (IdType)BuiltInCategory.OST_Windows ||
+                        fi.Category.Id.GetIdValue() == (IdType)BuiltInCategory.OST_Doors)
                     {
                         openings.Add(fi);
                     }

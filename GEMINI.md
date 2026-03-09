@@ -6,7 +6,7 @@
 
 | 路徑 | 說明 | 關鍵檔案 |
 | :--- | :--- | :--- |
-| **`MCP/`** | **C# Revit Add-in** 核心代碼 | `CommandExecutor.cs` (核心邏輯)<br>`RevitMCP.2024.csproj` |
+| **`MCP/`** | **C# Revit Add-in** 核心代碼 | `CommandExecutor.cs` (核心邏輯)<br>`RevitMCP.csproj` (統一建構) |
 | **`MCP-Server/`** | **Node.js MCP Server** 與工具腳本 | `src/tools/revit-tools.ts` (工具定義)<br>`index.ts` (伺服器入口)<br>`*.js` (執行腳本) |
 | **`domain/`** | **業務流程與核心知識** (優先閱讀) | `element-coloring-workflow.md` (上色流程)<br>`room-boundary.md` |
 | **`docs/tools/`** | **技術規格與 API 文檔** | `override_element_color_design.md`<br>`override_graphics_examples.md` |
@@ -26,8 +26,8 @@
 *   **流程文件**：`domain/room-boundary.md`
 
 ### 3. 建置與部署
-*   **C# 建置**：`dotnet build -c Release MCP/RevitMCP.2024.csproj`
-*   **部署 DLL**：使用 `scripts/install-addon.ps1` 或手動複製到 `C:\ProgramData\Autodesk\Revit\Addins\2024\RevitMCP\`
+*   **C# 建置**：`dotnet build -c Release.R24 MCP/RevitMCP.csproj` (以 Revit 2024 為例，請用 R22/R23/R25/R26 對應其他版本)
+*   **部署 DLL**：使用 `scripts/install-addon.ps1` 或手動複製到 `C:\ProgramData\Autodesk\Revit\Addins\{version}\RevitMCP\`
 
 ## ⚠️ 開發注意事項
 
@@ -114,25 +114,39 @@
 ```yaml
 Revit 2022:
   csproj: "RevitMCP.csproj"
-  build_command: "dotnet build -c Release RevitMCP.csproj"
+  build_command: "dotnet build -c Release.R22 RevitMCP.csproj"
   dll_output: "MCP\bin\Release\RevitMCP.dll"
   addins_path: "%APPDATA%\Autodesk\Revit\Addins\2022"
-  api_style: "int ElementId (無警告)"
+  api_style: "int ElementId"
   
 Revit 2023:
   csproj: "RevitMCP.csproj" 
-  build_command: "dotnet build -c Release RevitMCP.csproj"
+  build_command: "dotnet build -c Release.R23 RevitMCP.csproj"
   dll_output: "MCP\bin\Release\RevitMCP.dll"
   addins_path: "%APPDATA%\Autodesk\Revit\Addins\2023"
-  api_style: "int ElementId (無警告)"
+  api_style: "int ElementId"
   
 Revit 2024:
-  csproj: "RevitMCP.2024.csproj"
-  build_command: "dotnet build -c Release RevitMCP.2024.csproj"
-  dll_output: "MCP\bin\Release.2024\RevitMCP.dll"
+  csproj: "RevitMCP.csproj"
+  build_command: "dotnet build -c Release.R24 RevitMCP.csproj"
+  dll_output: "MCP\bin\Release\RevitMCP.dll"
   addins_path: "%APPDATA%\Autodesk\Revit\Addins\2024"
-  api_style: "long ElementId (有 56 個警告但功能正常)"
-  note: "警告是因為使用 Revit 2022 相容寫法，不影響功能"
+  api_style: "int ElementId"
+
+Revit 2025:
+  csproj: "RevitMCP.csproj"
+  build_command: "dotnet build -c Release.R25 RevitMCP.csproj"
+  dll_output: "MCP\bin\Release\RevitMCP.dll"
+  addins_path: "%APPDATA%\Autodesk\Revit\Addins\2025"
+  api_style: "long ElementId (via RevitCompatibility.cs)"
+  note: "Revit 2025 將 ElementId 從 int 改為 long，已透過相容層處理"
+
+Revit 2026:
+  csproj: "RevitMCP.csproj"
+  build_command: "dotnet build -c Release.R26 RevitMCP.csproj"
+  dll_output: "MCP\bin\Release\RevitMCP.dll"
+  addins_path: "%APPDATA%\Autodesk\Revit\Addins\2026"
+  api_style: "long ElementId (via RevitCompatibility.cs)"
 ```
 
 ##### B. AI Client 判斷
@@ -178,8 +192,7 @@ VS Code Copilot:
 ```powershell
 # 1. 建置 C# Add-in (Revit 2024)
 cd "專案路徑\MCP"
-dotnet build -c Release RevitMCP.2024.csproj
-# 預期：56 個警告（正常，不影響功能）
+dotnet build -c Release.R24 RevitMCP.csproj
 
 # 2. 執行安裝腳本
 cd ..
@@ -212,7 +225,7 @@ npm run build
 ```powershell
 # 1. 建置 C# Add-in (Revit 2022)
 cd "專案路徑\MCP"
-dotnet build -c Release RevitMCP.csproj
+dotnet build -c Release.R22 RevitMCP.csproj
 # 預期：無警告
 
 # 2. 手動部署 (如果安裝腳本不支援 2022)
@@ -236,11 +249,11 @@ npm run build
 ### 🎯 AI 助手行為準則
 
 1. **永遠先偵測環境**：不要假設使用者的版本或 client
-2. **提供版本特定的指令**：根據 Revit 版本調整 .csproj 檔名和路徑
-3. **說明警告原因**：如果是 2024，解釋 56 個警告是正常的（API 相容性）
+2. **提供版本特定的指令**：根據 Revit 版本調整建構組態 (Release.R22 ~ Release.R26)
+3. **所有版本使用統一 .csproj**：RevitMCP.csproj (基於 Nice3point.Revit.Sdk)
 4. **使用絕對路徑**：除了 VS Code 可用 `${workspaceFolder}`，其他都需要絕對路徑
 5. **驗證步驟**：提供明確的驗證命令確認安裝成功
-6. **錯誤處理**：如果使用者版本不在支援列表（2022-2024），提示需要調整 API 參照
+6. **錯誤處理**：如果使用者版本不在支援列表（2022-2026），提示需要調整
 
 ### 🔍 常見問題處理邏輯
 
@@ -254,9 +267,9 @@ npm run build
 
 問題: "找不到 RevitMCP.dll"
 判斷:
-  - 檢查使用的建置命令是否匹配版本：
-      2022/2023: RevitMCP.csproj → bin\Release\RevitMCP.dll
-      2024: RevitMCP.2024.csproj → bin\Release.2024\RevitMCP.dll
+  - 檢查是否使用了統一建構命令：
+      所有版本: dotnet build -c Release.RXX RevitMCP.csproj → bin\Release\RevitMCP.dll
+      (舊版 2024 備援: RevitMCP.2024.csproj → bin\Release.2024\RevitMCP.dll)
   
 問題: "MCP Server 連接失敗"
 判斷:
@@ -267,11 +280,15 @@ npm run build
 
 ### 📊 環境設定快速參考
 
-| Revit 版本 | .csproj | DLL 輸出路徑 | Addins 路徑 | 警告數 |
+| Revit 版本 | 建構組態 | DLL 輸出路徑 | Addins 路徑 | 備註 |
 |:----------|:--------|:------------|:-----------|:------|
-| 2022 | `RevitMCP.csproj` | `bin\Release\` | `Addins\2022` | 0 |
-| 2023 | `RevitMCP.csproj` | `bin\Release\` | `Addins\2023` | 0 |
-| 2024 | `RevitMCP.2024.csproj` | `bin\Release.2024\` | `Addins\2024` | 56 (正常) |
+| 2022 | `Release.R22` | `bin\Release\` | `Addins\2022` | .NET 4.8 |
+| 2023 | `Release.R23` | `bin\Release\` | `Addins\2023` | .NET 4.8 |
+| 2024 | `Release.R24` | `bin\Release\` | `Addins\2024` | .NET 4.8 |
+| 2025 | `Release.R25` | `bin\Release\` | `Addins\2025` | .NET 8, ElementId=long |
+| 2026 | `Release.R26` | `bin\Release\` | `Addins\2026` | .NET 8, ElementId=long |
+
+> 所有版本均使用統一的 `RevitMCP.csproj` (基於 Nice3point.Revit.Sdk)。
 
 | AI Client | 設定檔位置 | 路徑格式 | 重啟需求 |
 |:---------|:----------|:---------|:--------|
@@ -281,7 +298,7 @@ npm run build
 
 ---
 
-**最後更新**: 2026-01-02
+**最後更新**: 2026-03-09
 
 ## 🔬 智慧提煉 (Lessons Learned)
 

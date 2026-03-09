@@ -33,9 +33,14 @@
 
 ### 第一步：C# Add-in 重建 (Windows)
 1.  **關閉 Revit**（確保 DLL 檔案未被佔用）。
-2.  開啟終端機，執行編譯：
+2.  開啟終端機，根據您的 Revit 版本選擇對應的組態編譯：
     ```powershell
-    dotnet build -c Release MCP/RevitMCP.2024.csproj
+    # 選擇您的 Revit 版本對應的組態：
+    dotnet build -c Release.R22 MCP/RevitMCP.csproj   # Revit 2022
+    dotnet build -c Release.R23 MCP/RevitMCP.csproj   # Revit 2023
+    dotnet build -c Release.R24 MCP/RevitMCP.csproj   # Revit 2024
+    dotnet build -c Release.R25 MCP/RevitMCP.csproj   # Revit 2025
+    dotnet build -c Release.R26 MCP/RevitMCP.csproj   # Revit 2026
     ```
 3.  執行部署腳本：
     ```powershell

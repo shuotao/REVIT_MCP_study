@@ -172,7 +172,7 @@ $addonPath = $null
 $foundVersions = @()
 
 # 只檢查支援的版本（白名單方式，更安全）
-$supportedVersions = @("2024", "2023", "2022")
+$supportedVersions = @("2026", "2025", "2024", "2023", "2022")
 
 foreach ($version in $supportedVersions) {
     $testPath = Join-Path $appDataPath "Autodesk\Revit\Addins\$version"
@@ -193,7 +193,7 @@ if ($null -eq $revitVersion) {
     Write-Host ""
     Write-Host "可能的原因：" -ForegroundColor Yellow
     Write-Host "- 您的電腦沒有安裝 Revit" -ForegroundColor Yellow
-    Write-Host "- 支援的版本：2022、2023、2024" -ForegroundColor Yellow
+    Write-Host "- 支援的版本：2022、2023、2024、2025、2026" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "檢查的路徑：$appDataPath\Autodesk\Revit\Addins\" -ForegroundColor Yellow
     Read-Host "按 Enter 結束"
@@ -228,27 +228,38 @@ Write-Host ""
 Write-Host "正在驗證來源檔案..." -ForegroundColor Yellow
 Write-Host ""
 
-# 定義來源檔案路徑 (目錄重構後：MCP\ 單層結構)
+# 定義來源檔案路徑 (統一建構：Nice3point.Revit.Sdk)
 $sourceDllRelease = Join-Path $projectRoot "MCP\bin\Release\RevitMCP.dll"
 $sourceDllRelease2024 = Join-Path $projectRoot "MCP\bin\Release.2024\RevitMCP.dll"
 $sourceDllDebug = Join-Path $projectRoot "MCP\bin\Debug\RevitMCP.dll"
 $sourceAddin = Join-Path $projectRoot "MCP\RevitMCP.addin"
 $sourceAddin2024 = Join-Path $projectRoot "MCP\RevitMCP.2024.addin"
 
+# 版本→組態對應表
+$versionConfigMap = @{
+    "2022" = "Release.R22"
+    "2023" = "Release.R23"
+    "2024" = "Release.R24"
+    "2025" = "Release.R25"
+    "2026" = "Release.R26"
+}
+$buildConfig = $versionConfigMap[$revitVersion]
+
 # 決定使用哪個 DLL
 $sourceDll = $null
 $currentSourceAddin = $sourceAddin
 
-if ($revitVersion -eq "2024" -and (Test-Path $sourceDllRelease2024)) {
+if (Test-Path $sourceDllRelease) {
+    $sourceDll = $sourceDllRelease
+    Write-Host "✓ 找到 RevitMCP.dll (Release 版本)" -ForegroundColor Green
+}
+elseif ($revitVersion -eq "2024" -and (Test-Path $sourceDllRelease2024)) {
+    # 舊版 2024 獨立建構的備援路徑
     $sourceDll = $sourceDllRelease2024
     if (Test-Path $sourceAddin2024) {
         $currentSourceAddin = $sourceAddin2024
     }
-    Write-Host "✓ 找到 RevitMCP.dll (2024 Release 版本)" -ForegroundColor Green
-}
-elseif (Test-Path $sourceDllRelease) {
-    $sourceDll = $sourceDllRelease
-    Write-Host "✓ 找到 RevitMCP.dll (Release 版本)" -ForegroundColor Green
+    Write-Host "✓ 找到 RevitMCP.dll (2024 Legacy Release 版本)" -ForegroundColor Yellow
 }
 elseif (Test-Path $sourceDllDebug) {
     $sourceDll = $sourceDllDebug
@@ -261,12 +272,7 @@ else {
     Write-Host "請先製作程式：" -ForegroundColor Yellow
     Write-Host "1. 打開命令提示字元" -ForegroundColor Yellow
     Write-Host "2. cd `"$projectRoot\MCP`"" -ForegroundColor Yellow
-    if ($revitVersion -eq "2024") {
-        Write-Host "3. dotnet build -c Release RevitMCP.2024.csproj" -ForegroundColor Yellow
-    }
-    else {
-        Write-Host "3. dotnet build -c Release" -ForegroundColor Yellow
-    }
+    Write-Host "3. dotnet build -c $buildConfig RevitMCP.csproj" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "或者下載現成版本放到對應的 bin 資料夾" -ForegroundColor Yellow
     Read-Host "按 Enter 結束"

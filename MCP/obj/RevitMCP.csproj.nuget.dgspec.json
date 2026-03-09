@@ -1,27 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\D disk\\MCP\\REVIT_MCP_study\\MCP\\RevitMCP.csproj": {}
+    "/Users/shuotaochiang/Desktop/REVIT_MCP/REVIT_MCP_study/MCP/RevitMCP.csproj": {}
   },
   "projects": {
-    "C:\\D disk\\MCP\\REVIT_MCP_study\\MCP\\RevitMCP.csproj": {
+    "/Users/shuotaochiang/Desktop/REVIT_MCP/REVIT_MCP_study/MCP/RevitMCP.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\D disk\\MCP\\REVIT_MCP_study\\MCP\\RevitMCP.csproj",
+        "projectUniqueName": "/Users/shuotaochiang/Desktop/REVIT_MCP/REVIT_MCP_study/MCP/RevitMCP.csproj",
         "projectName": "RevitMCP",
-        "projectPath": "C:\\D disk\\MCP\\REVIT_MCP_study\\MCP\\RevitMCP.csproj",
-        "packagesPath": "C:\\Users\\david\\.nuget\\packages\\",
-        "outputPath": "C:\\D disk\\MCP\\REVIT_MCP_study\\MCP\\obj\\",
+        "projectPath": "/Users/shuotaochiang/Desktop/REVIT_MCP/REVIT_MCP_study/MCP/RevitMCP.csproj",
+        "packagesPath": "/Users/shuotaochiang/.nuget/packages/",
+        "outputPath": "/Users/shuotaochiang/Desktop/REVIT_MCP/REVIT_MCP_study/MCP/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\david\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/shuotaochiang/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net48"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -46,12 +44,18 @@
         "net48": {
           "targetAlias": "net48",
           "dependencies": {
+            "Microsoft.NETFramework.ReferenceAssemblies": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.0.3, )",
+              "autoReferenced": true
+            },
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.3, )"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.101/RuntimeIdentifierGraph.json"
         }
       }
     }

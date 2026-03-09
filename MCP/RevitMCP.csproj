@@ -1,35 +1,22 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Nice3point.Revit.Sdk/6.1.0">
+
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
     <RootNamespace>RevitMCP</RootNamespace>
     <AssemblyName>RevitMCP</AssemblyName>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWPF>true</UseWPF>
+    <DeployAddin>true</DeployAddin>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Configurations>
+      Debug.R22;Debug.R23;Debug.R24;Debug.R25;Debug.R26;
+      Release.R22;Release.R23;Release.R24;Release.R25;Release.R26
+    </Configurations>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="RevitAPI">
-      <HintPath>C:\Program Files\Autodesk\Revit 2022\RevitAPI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="RevitAPIUI">
-      <HintPath>C:\Program Files\Autodesk\Revit 2022\RevitAPIUI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Net.WebSockets" />
-    <Reference Include="System.Net.WebSockets.Client" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="WindowsBase" />
-    <Reference Include="System.Xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="$(RevitVersion).*" />
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="$(RevitVersion).*" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
 </Project>
-
-

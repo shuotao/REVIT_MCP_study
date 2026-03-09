@@ -9,9 +9,9 @@
 </div>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Revit-2022-blue" alt="Revit 2022">
+  <img src="https://img.shields.io/badge/Revit-2022--2026-blue" alt="Revit 2022-2026">
   <img src="https://img.shields.io/badge/Node.js-LTS-green" alt="Node.js">
-  <img src="https://img.shields.io/badge/.NET-4.8-purple" alt=".NET 4.8">
+  <img src="https://img.shields.io/badge/.NET-4.8%20%7C%208.0-purple" alt=".NET 4.8 | 8.0">
   <img src="https://img.shields.io/badge/MCP-1.0-orange" alt="MCP Protocol">
 </p>
 
@@ -47,11 +47,16 @@
 > 2. 執行編譯：
 >    ```powershell
 >    cd "您的專案路徑/MCP"
->    dotnet build -c Release
+>    # 根據您的 Revit 版本選擇對應的組態：
+>    dotnet build -c Release.R22   # Revit 2022
+>    dotnet build -c Release.R23   # Revit 2023
+>    dotnet build -c Release.R24   # Revit 2024
+>    dotnet build -c Release.R25   # Revit 2025
+>    dotnet build -c Release.R26   # Revit 2026
 >    ```
 > 3. 複製 DLL 到 Revit Addins 資料夾：
 >    ```powershell
->    Copy-Item "bin/Release/RevitMCP.dll" "C:\ProgramData\Autodesk\Revit\Addins\2022\RevitMCP\" -Force
+>    Copy-Item "bin/Release/RevitMCP.dll" "C:\ProgramData\Autodesk\Revit\Addins\2024\RevitMCP\" -Force
 >    ```
 > 4. 重新啟動 Revit
 > 
@@ -76,11 +81,12 @@ REVIT-MCP/
 │   ├── Application.cs           # 主程式進入點
 │   ├── ConnectCommand.cs        # 連線命令
 │   ├── RevitMCP.addin           # Add-in 配置
-│   ├── RevitMCP.csproj          # 專案檔 (Revit 2022/2023)
-│   ├── RevitMCP.2024.csproj     # 專案檔 (Revit 2024)
+│   ├── RevitMCP.csproj          # 統一專案檔 (Revit 2022–2026, Nice3point SDK)
+│   ├── RevitMCP.2024.csproj     # 過渡期專案檔 (Revit 2024 only, 已棄用)
 │   ├── Core/                    # 核心功能
 │   │   ├── SocketService.cs     # WebSocket 服務
 │   │   ├── CommandExecutor.cs   # 命令執行器
+│   │   ├── RevitCompatibility.cs # 跨版本相容層 (ElementId int→long)
 │   │   └── ExternalEventManager.cs
 │   ├── Models/                  # 資料模型
 │   └── Configuration/           # 設定管理
@@ -101,12 +107,13 @@ REVIT-MCP/
 | 項目 | 需求 |
 |------|------|
 | **作業系統** | Windows 10 或更新版本 |
-| **Revit** | Autodesk Revit 2022 / 2023 / 2024 |
-| **.NET** | .NET Framework 4.8 |
+| **Revit** | Autodesk Revit 2022 / 2023 / 2024 / 2025 / 2026 |
+| **.NET** | .NET Framework 4.8 (Revit 2022–2024) / .NET 8 (Revit 2025–2026) |
 | **Node.js** | LTS 版本 (20.x 或更新) |
 
-> 💡 **重要提醒**：此教學以 Revit 2022 為例，但適用於 2022、2023、2024 版本。  
+> 💡 **重要提醒**：此教學以 Revit 2022 為例，但適用於 2022、2023、2024、2025、2026 版本。  
 > 安裝時請根據您的 Revit 版本調整資料夾名稱（見下方各步驟的版本對照表）。
+> Revit 2025/2026 使用 .NET 8，請確保已安裝對應的 .NET SDK。
 
 ## ⚠️ 透過 Git Clone 的首次設定
 
@@ -162,11 +169,15 @@ npm run build
 # 進入 MCP 專案資料夾
 cd "您的專案路徑/MCP"
 
-# 編譯專案
-dotnet build -c Release
+# 根據您的 Revit 版本選擇對應的組態：
+dotnet build -c Release.R22   # Revit 2022
+dotnet build -c Release.R23   # Revit 2023
+dotnet build -c Release.R24   # Revit 2024
+dotnet build -c Release.R25   # Revit 2025
+dotnet build -c Release.R26   # Revit 2026
 ```
 
-> 💡 **提示**：您也可以執行 `scripts/install-addon.bat`，此腳本會自動執行編譯並複製檔案到 Revit Addins 資料夾。
+> 💡 **提示**：您也可以執行 `scripts/install-addon.ps1`，此腳本會自動偵測 Revit 版本、編譯並複製檔案到 Revit Addins 資料夾。
 
 ---
 
@@ -180,7 +191,7 @@ dotnet build -c Release
 - 開啟 Revit
 - 點擊左上角的「Autodesk Revit 202X」（X 是您的版本號）
 - 再點擊「幫助」→「關於 Autodesk Revit」
-- 查看版本號並記住它（例如：2022、2023 或 2024）
+- 查看版本號並記住它（例如：2022、2023、2024、2025 或 2026）
 
 #### 方式 A：使用自動化腳本（推薦）
 
@@ -226,8 +237,12 @@ dotnet build -c Release
    # 進入專案目錄
    cd "您的專案路徑\MCP"
    
-   # 編譯 Release 版本
-   dotnet build -c Release
+   # 根據您的 Revit 版本選擇對應的組態
+   dotnet build -c Release.R22   # Revit 2022
+   dotnet build -c Release.R23   # Revit 2023
+   dotnet build -c Release.R24   # Revit 2024
+   dotnet build -c Release.R25   # Revit 2025
+   dotnet build -c Release.R26   # Revit 2026
    ```
    
    編譯成功後，DLL 檔案會產生在 `bin\Release` 資料夾中。
@@ -242,7 +257,7 @@ dotnet build -c Release
    Copy-Item "RevitMCP.addin" "%APPDATA%\Autodesk\Revit\Addins\2022\" -Force
    ```
    
-   > 💡 **版本對照**：Revit 2022 → `Addins\2022` | Revit 2023 → `Addins\2023` | Revit 2024 → `Addins\2024`
+   > 💡 **版本對照**：Revit 2022 → `Addins\2022` | Revit 2023 → `Addins\2023` | Revit 2024 → `Addins\2024` | Revit 2025 → `Addins\2025` | Revit 2026 → `Addins\2026`
 
 4. **重新啟動 Revit**
 
