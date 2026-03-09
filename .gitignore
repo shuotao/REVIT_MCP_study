@@ -41,8 +41,8 @@ npm-debug.log*
 # Private User Guide (Excluded from Push)
 PRIVATE_INSTRUCTIONS.md
 
-# 教材（本地使用，不 push）
-教材/
+# 教材（已開放，供學生練習使用）
+# 教材/
 
 # 修正 MCP obj 路徑
 MCP/obj/
