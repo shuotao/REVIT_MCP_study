@@ -21,6 +21,26 @@
 
 ---
 
+> [!IMPORTANT]
+> ## 🌍 部署者必讀：設定全域 AI 邊界
+> 
+> 若您使用 **Google Antigravity** 或 **Gemini CLI**，為了確保 AI 進入本專案時**不會繞過**專案內的實作邊界（如 L1-L5 限制），請務必在您的全域規則中設定專案級文件的最高優先級。
+> 
+> 1. 請自行使用編輯器建立或開啟（若目錄不存在請先建立）：
+>    - Mac/Linux: `~/.gemini/GEMINI.md`
+>    - Windows: `%USERPROFILE%\.gemini\GEMINI.md`
+> 2. 複製並加入以下極簡的「全域先決條件」範本：
+> 
+> ```markdown
+> # Global Agent Rules
+> 1. Before executing any task, ALWAYS check the current workspace root for `GEMINI.md`, `CLAUDE.md`, or `.agents/rules/`.
+> 2. If present, MUST READ them first. These project-level files act as your absolute constitution. 
+> 3. Their instructions and capability boundaries STRICTLY OVERRIDE any default behaviors or global rules.
+> ```
+> *(遵循原廠邏輯：將全域規則保持極簡，純粹作為「引導 AI 尋找專案憲法」的入口，避免過多指令干擾造成幻覺。)*
+
+---
+
 > [!TIP]
 > ##  AI 協作指南 (AI Collaboration Guide)
 > 

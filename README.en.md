@@ -1,3 +1,5 @@
+<h2 align="center"><font color="#8B0000"> Friendly Reminder: This project uses Port 8964 by default. Please ensure this port is not occupied. </font></h2>
+
 # Revit MCP - AI-Powered Revit Control
 
 <div align="right">
@@ -9,7 +11,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Revit-2022--2026-blue" alt="Revit 2022-2026">
   <img src="https://img.shields.io/badge/Node.js-LTS-green" alt="Node.js">
-  <img src="https://img.shields.io/badge/.NET-4.8%20%7C%208-purple" alt=".NET 4.8 | 8">
+  <img src="https://img.shields.io/badge/.NET-4.8%20%7C%208.0-purple" alt=".NET 4.8 | 8.0">
   <img src="https://img.shields.io/badge/MCP-1.0-orange" alt="MCP Protocol">
 </p>
 
@@ -17,8 +19,46 @@ Enable AI language models to directly control Autodesk Revit via Model Context P
 
 **🎥 Demo Video: [Revit MCP - AI-Powered BIM Workflow Demonstration](https://youtu.be/YpAYF-GxrhA)**
 
+---
+
+> [!IMPORTANT]
+> ## 🌍 Deployers Must Read: Configure Global AI Boundaries
+> 
+> If you use **Google Antigravity** or **Gemini CLI**, to ensure that AI **does not bypass** the project's implementation boundaries (such as L1-L5 restrictions) when entering this project, you must set the highest priority for project-level files in your global rules.
+> 
+> 1. Please create or open the following file using your editor (create the directory first if it doesn't exist):
+>    - Mac/Linux: `~/.gemini/GEMINI.md`
+>    - Windows: `%USERPROFILE%\.gemini\GEMINI.md`
+> 2. Copy and add the following minimal "Global Prerequisite" template:
+> 
+> ```markdown
+> # Global Agent Rules
+> 1. Before executing any task, ALWAYS check the current workspace root for `GEMINI.md`, `CLAUDE.md`, or `.agents/rules/`.
+> 2. If present, MUST READ them first. These project-level files act as your absolute constitution. 
+> 3. Their instructions and capability boundaries STRICTLY OVERRIDE any default behaviors or global rules.
+> ```
+> *(Following the official logic: keep global rules minimal, serving purely as a "guide for AI to find the project constitution" entry point, avoiding excessive instructions that may cause hallucinations.)*
+
+---
+
+> [!TIP]
+> ## AI Collaboration Guide
+> 
+> **Before starting collaboration, please follow these guidelines:**
+> 
+> 1. **Human Developer**:
+>    - Please read [**GEMINI.md**](./GEMINI.md) thoroughly to understand the project's AI collaboration role definitions and behavioral guidelines.
+>    - Before executing tasks, ensure the AI understands the project structure in `GEMINI.md`.
+> 
+> 2. **AI Assistant / Agent**:
+>    - **Context Loading**: Must load [**GEMINI.md**](./GEMINI.md) at startup to obtain the project map and technical guidance.
+>    - **Workflow Compliance**: Before executing tasks, must check the `domain/` directory for defined workflows (e.g., coloring tasks).
+>    - **Safety First**: All Revit operations must be reversible, using Transaction to ensure recoverability.
+> 
+> ---
+
 > [!CAUTION]
-> ## ⚠️ After Git Pull: Rebuild Revit Add-in Required
+> ## After Git Pull: Rebuild Revit Add-in Required
 > 
 > If you ran `git pull` to update the project, and the update includes **C# code changes** (`MCP/*.cs` files), **you must rebuild and redeploy the Revit Add-in DLL**, otherwise new features won't work!
 > 
@@ -27,7 +67,9 @@ Enable AI language models to directly control Autodesk Revit via Model Context P
 > 2. Build (choose your Revit version):
 >    ```powershell
 >    cd "your-project-path/MCP"
->    dotnet build -c Release       # Revit 2022 (default)
+>    # Choose the configuration for your Revit version:
+>    dotnet build -c Release.R22   # Revit 2022
+>    dotnet build -c Release.R23   # Revit 2023
 >    dotnet build -c Release.R24   # Revit 2024
 >    dotnet build -c Release.R25   # Revit 2025
 >    dotnet build -c Release.R26   # Revit 2026
@@ -64,6 +106,7 @@ REVIT-MCP/
 │   ├── Core/                    # Core functionality
 │   │   ├── SocketService.cs     # WebSocket service
 │   │   ├── CommandExecutor.cs   # Command executor
+│   │   ├── RevitCompatibility.cs # Cross-version compatibility layer (ElementId int→long)
 │   │   └── ExternalEventManager.cs
 │   ├── Models/                  # Data models
 │   └── Configuration/           # Configuration management
@@ -140,11 +183,21 @@ Paths in configuration files need to be modified according to your environment:
 - **VS Code / Antigravity** (`.vscode/mcp.json`):
   Uses `${workspaceFolder}` variable, **no modification needed**
 
-#### 4️⃣ Get Revit Add-in
+#### 4️⃣ Build Revit Add-in
 
-Choose one:
-- **Method A (Recommended)**: Run `scripts/install-addon.bat` to auto-download and install
-- **Method B**: Build the `MCP/` project yourself (requires Visual Studio and Revit SDK)
+```powershell
+# Enter MCP project folder
+cd "your-project-path/MCP"
+
+# Choose the configuration for your Revit version:
+dotnet build -c Release.R22   # Revit 2022
+dotnet build -c Release.R23   # Revit 2023
+dotnet build -c Release.R24   # Revit 2024
+dotnet build -c Release.R25   # Revit 2025
+dotnet build -c Release.R26   # Revit 2026
+```
+
+> 💡 **Tip**: You can also run `scripts/install-addon.ps1`, which will automatically detect your Revit version, build, and copy files to the Revit Addins folder.
 
 ---
 
@@ -160,108 +213,73 @@ Choose one:
 - Then click "Help" → "About Autodesk Revit"
 - Check the version number and remember it (for example: 2022, 2023, 2024, 2025, or 2026)
 
-#### Method A: Use Pre-Built Version (Easiest! Recommended for Beginners)
-
-If you don't want to build the program yourself, you can download the files we've already prepared:
-
-##### Option 1: One-Click Install (Most Recommended!)
+#### Method A: Use Automated Script (Recommended)
 
 **The easiest way: Run the automatic installation script**
 
-1. **Download the installation script**
-   - Go to the `scripts/` folder in this project
-   - Download `install-addon.bat` (Windows automatic installer)
-   - Or download `install-addon.ps1` (PowerShell version)
+1. **Go to the scripts folder**
+   - Open File Explorer, navigate to the project's `scripts/` folder
 
-2. **Run the installation**
-   - **Method A**: Double-click the `install-addon.bat` file
-     - Will automatically download files and place them in the Revit folder
-     - Automatically detects your Revit version (2022, 2023, 2024, 2025, 2026)
+2. **Run the installation script**
+   - Right-click `install-addon.ps1`
+   - Select "Run with PowerShell"
    
-   - **Method B**: Run with PowerShell (right-click and run as administrator)
-     ```powershell
-     powershell -ExecutionPolicy Bypass -File install-addon.ps1
-     ```
+   > ⚠️ **If you encounter permission issues**:
+   > Open PowerShell as Administrator and run:
+   > ```powershell
+   > Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   > .\install-addon.ps1
+   > ```
 
-3. **Done!**
+3. **The script will automatically**
+   - Build the C# project
+   - Detect your Revit version (2022, 2023, 2024)
+   - Copy DLL and .addin files to the correct location
+
+4. **Done!**
    - When you see the "Installation successful" message, it's complete
    - Restart Revit
 
-> 💡 **Advantages of automatic installation script**:
-> - Automatically detects Revit version, no need to manually modify paths
-> - Automatically downloads the latest RevitMCP.dll and RevitMCP.addin
-> - Automatically copies to the correct folder
-> - No need to understand command line
-
-##### Option 2: Manual Installation
-
-If you don't want to use the script, you can manually copy files:
-
-1. **Download pre-built files**
-   - Go to the `Releases` page of this project
-   - Click on the latest version and download "RevitMCP.dll" and "RevitMCP.addin"
-   - Download these 2 files to your desktop
-
-2. **Put files in Revit's folder**
-   - Press `Windows Key + R`, a "Run" window will appear
-   - Copy and paste the path below, press Enter (**Note: Change 2022 to your Revit version**):
-     ```
-     %APPDATA%\Autodesk\Revit\Addins\2022
-     ```
-     
-   > 💡 **Version Mapping Table**:
-   > - Revit 2022: `Addins\2022`
-   > - Revit 2023: `Addins\2023`
-   > - Revit 2024: `Addins\2024`
-   > - Revit 2025: `Addins\2025`
-   > - Revit 2026: `Addins\2026`
-   > 
-   > Not sure about your Revit version? Open Revit → Help → About Revit, you'll see the version number
-
-   - The Revit Add-in folder will open automatically
-   - Place the 2 files you just downloaded there
-
-3. **Restart Revit**
-   - If Revit is running, close it completely
-   - Then reopen Revit
+> 💡 **Tip**: If the script fails, make sure you have .NET SDK installed and the `dotnet` command is available.
 
 #### Method B: Build the Program Yourself (For Developers)
 
 If you understand code or want to learn how to build:
 
 1. **Confirm .NET SDK is installed**
-   - Open Command Prompt (press `Win + R`, type `cmd`)
-   - Type: `dotnet --version`
-   - If you see a version number (like 7.0.0), it's installed
-   - If you see "command not found", download .NET SDK first: https://dotnet.microsoft.com/download
+   ```powershell
+   # Check .NET SDK
+   dotnet --version
+   
+   # If not installed, go to https://dotnet.microsoft.com/download
+   ```
 
-2. **Build the program**
-   - Open Command Prompt
-   - Type the following command (choose your Revit version):
-     ```
-     cd C:\Users\YourUsername\Desktop\MCP\REVIT_MCP_study\MCP
-     dotnet build -c Release       # Revit 2022 (default)
-     dotnet build -c Release.R24   # Revit 2024
-     dotnet build -c Release.R25   # Revit 2025
-     dotnet build -c Release.R26   # Revit 2026
-     ```
-   - Wait for the build to complete (you'll see green "Build succeeded" message)
+2. **Build the project**
+   ```powershell
+   # Enter project directory
+   cd "your-project-path\MCP"
+   
+   # Choose the configuration for your Revit version
+   dotnet build -c Release.R22   # Revit 2022
+   dotnet build -c Release.R23   # Revit 2023
+   dotnet build -c Release.R24   # Revit 2024
+   dotnet build -c Release.R25   # Revit 2025
+   dotnet build -c Release.R26   # Revit 2026
+   ```
+   
+   After successful build, the DLL file will be generated in the `bin\Release` folder.
 
-3. **Copy the built files to Revit's folder**
-   - After building, files will be in `bin\Release` folder
-   - Press `Windows Key + R`, type (**Note: Change 2022 to your Revit version**):
-     ```
-     %APPDATA%\Autodesk\Revit\Addins\2022
-     ```
-     
-   > 💡 **Version Mapping Table**:
-   > - Revit 2022: `Addins\2022`
-   > - Revit 2023: `Addins\2023`
-   > - Revit 2024: `Addins\2024`
-   > - Revit 2025: `Addins\2025`
-   > - Revit 2026: `Addins\2026`
-
-   - Copy all `.dll` and `.addin` files from `bin\Release` folder there
+3. **Copy files to Revit Addins folder**
+   ```powershell
+   # Open Revit Addins folder (change 2022 to your version)
+   explorer %APPDATA%\Autodesk\Revit\Addins\2022
+   
+   # Or use commands to copy
+   Copy-Item "bin\Release\RevitMCP.dll" "%APPDATA%\Autodesk\Revit\Addins\2022\" -Force
+   Copy-Item "RevitMCP.addin" "%APPDATA%\Autodesk\Revit\Addins\2022\" -Force
+   ```
+   
+   > 💡 **Version Mapping**: Revit 2022 → `Addins\2022` | Revit 2023 → `Addins\2023` | Revit 2024 → `Addins\2024` | Revit 2025 → `Addins\2025` | Revit 2026 → `Addins\2026`
 
 4. **Restart Revit**
 
@@ -538,11 +556,22 @@ Gemini CLI is Google's command-line AI tool that lets you chat directly with Gem
 **Configuration Method: Edit the `settings.json` file**
 
 1. **Open the settings file location**
+
+   **Windows**:
    - Press `Win + R`, enter the following path, press Enter:
      ```
      %USERPROFILE%\.gemini
      ```
-   - Find `settings.json` and open it with Notepad
+   - If the folder doesn't exist, manually create the `.gemini` folder
+   
+   **macOS / Linux**:
+   ```bash
+   cd ~/.gemini
+   # If it doesn't exist, create it first
+   mkdir -p ~/.gemini
+   ```
+   
+   - Find `settings.json` and open it with a text editor (create one if it doesn't exist)
 
 2. **Add MCP Server configuration**
    
@@ -675,8 +704,6 @@ Anthropic's official desktop application, this is the **simplest way**.
    > - Revit 2022: Change to `REVIT_VERSION: 2022`
    > - Revit 2023: Change to `REVIT_VERSION: 2023`
    > - Revit 2024: Change to `REVIT_VERSION: 2024`
-   > - Revit 2025: Change to `REVIT_VERSION: 2025`
-   > - Revit 2026: Change to `REVIT_VERSION: 2026`
 
 6. **Click "Save"** - Done!
 
@@ -784,24 +811,463 @@ A major feature of Antigravity is the built-in browser sub-agent that lets AI di
 
 ## 🛠️ Available MCP Tools
 
+### Basic Modeling Tools
+
 | Tool Name | Description |
 |---------|------|
 | `create_wall` | Create wall |
 | `create_floor` | Create floor |
 | `create_door` | Create door |
 | `create_window` | Create window |
+| `create_column` | Create column |
+| `create_dimension` | Create dimension annotation |
+
+### Information Query Tools
+
+| Tool Name | Description |
+|---------|------|
 | `get_project_info` | Get project information |
-| `query_elements` | Query elements |
+| `query_elements` | Query elements (supports filter conditions) |
 | `get_element_info` | Get element details |
-| `modify_element_parameter` | Modify element parameters |
-| `delete_element` | Delete element |
 | `get_all_levels` | Get all levels |
+| `get_all_grids` | Get all grid lines (with coordinates, can calculate intersections) |
+| `get_column_types` | Get column type list (with dimension info) |
+| `get_furniture_types` | Get furniture type list |
+| `get_room_info` | Get room details (center point, boundary range) |
+| `get_rooms_by_level` | Get all rooms on a level (with area statistics) |
+| `get_wall_info` | Get wall details |
+| `query_walls_by_location` | Query walls by location |
+
+### View & Navigation Tools
+
+| Tool Name | Description |
+|---------|------|
+| `get_all_views` | Get all views list |
+| `get_active_view` | Get current active view |
+| `set_active_view` | Switch active view |
+| `select_element` | Select element |
+| `zoom_to_element` | Zoom to specified element |
+| `measure_distance` | Measure distance between two points |
+
+### Element Operation Tools
+
+| Tool Name | Description |
+|---------|------|
+| `modify_element_parameter` | Modify element parameter |
+| `delete_element` | Delete element |
+| `place_furniture` | Place furniture |
+
+### Visualization Tools
+
+| Tool Name | Description |
+|---------|------|
+| `override_element_graphics` | Override element graphics (color, line style, etc.) |
+| `clear_element_override` | Clear element graphics override |
+| `unjoin_wall_joins` | Unjoin wall joins (before coloring) |
+| `rejoin_wall_joins` | Rejoin wall joins (restore after coloring) |
 
 ---
 
 ## 🚀 Advanced Feature: Integrate AI API in Revit Add-in (Gemini 2.5 Flash)
 
-*For brevity, the advanced feature section is identical to the Chinese version. Please refer to the Chinese README for the complete implementation details.*
+### Feature Description
+
+Allow Revit users to directly open a **chat window** in the Add-in to have interactive conversations with Gemini 2.5 Flash AI and control Revit. No need to launch external tools.
+
+```
+┌─────────────────────────────────────┐
+│        Revit Window                 │
+├─────────────────────────────────────┤
+│  MCP Tools                          │
+│  ┌──────────────────────────────┐  │
+│  │ MCP Service (On/Off)         │  │
+│  ├──────────────────────────────┤  │
+│  │ MCP Settings                 │  │
+│  ├──────────────────────────────┤  │
+│  │ 🆕 AI Chat Assistant (New!)  │  │
+│  └──────────────────────────────┘  │
+│                                     │
+│  ┌─────────────────────────────────┐│
+│  │ AI Chat Window (WPF Dialog)     ││
+│  ├─────────────────────────────────┤│
+│  │ You: Create a 3mx5m floor       ││
+│  │ AI: Floor created, ID: 123456   ││
+│  │                                 ││
+│  │ [Input Box] [Send Button]       ││
+│  └─────────────────────────────────┘│
+└─────────────────────────────────────┘
+```
+
+### Development Steps
+
+#### Step 1: Get Gemini API Key
+
+1. **Go to Google AI Studio**
+   - Open browser, visit https://aistudio.google.com/apikey
+
+2. **Sign in with your Google account**
+   - If you don't have one, create one
+
+3. **Click "Create API Key"**
+   - Select "Create new secret key in new project"
+   - Google will automatically create a free API Key
+
+4. **Copy the API Key**
+   - You'll see a long string, for example:
+   ```
+   AIzaSyDx...xyz123abc
+   ```
+   - **Keep this Key safe, do not share it with others!**
+
+#### Step 2: Create AI Chat Service in C#
+
+Create a new file `GeminiChatService.cs` in the `MCP/Core/` folder:
+
+```csharp
+using System;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+
+namespace RevitMCP.Core
+{
+    /// <summary>
+    /// Gemini 2.5 Flash API Integration Service
+    /// </summary>
+    public class GeminiChatService
+    {
+        private readonly string _apiKey;
+        private readonly string _apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+        private readonly HttpClient _httpClient;
+
+        public GeminiChatService(string apiKey)
+        {
+            _apiKey = apiKey ?? throw new ArgumentNullException(nameof(apiKey));
+            _httpClient = new HttpClient();
+        }
+
+        /// <summary>
+        /// Interactive conversation with Gemini AI
+        /// </summary>
+        public async Task<string> ChatAsync(string userMessage, string context = "")
+        {
+            try
+            {
+                // Build request
+                var requestBody = new
+                {
+                    contents = new[]
+                    {
+                        new
+                        {
+                            parts = new[]
+                            {
+                                new
+                                {
+                                    text = $"{context}\n\nUser question: {userMessage}"
+                                }
+                            }
+                        }
+                    },
+                    generationConfig = new
+                    {
+                        temperature = 0.7,
+                        maxOutputTokens = 1024
+                    }
+                };
+
+                var jsonContent = JsonConvert.SerializeObject(requestBody);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                // Send request to Gemini API
+                var response = await _httpClient.PostAsync(
+                    $"{_apiUrl}?key={_apiKey}",
+                    content
+                );
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Gemini API Error: {response.StatusCode}");
+                }
+
+                // Parse response
+                var responseContent = await response.Content.ReadAsStringAsync();
+                dynamic result = JsonConvert.DeserializeObject(responseContent);
+                
+                string aiResponse = result.candidates[0].content.parts[0].text;
+                return aiResponse;
+            }
+            catch (Exception ex)
+            {
+                return $"AI Service Error: {ex.Message}";
+            }
+        }
+    }
+}
+```
+
+#### Step 3: Create WPF Chat Window
+
+Create `ChatCommand.cs` in `MCP/Commands/`:
+
+```csharp
+using System;
+using Autodesk.Revit.UI;
+using RevitMCP.Core;
+
+namespace RevitMCP.Commands
+{
+    public class ChatCommand : IExternalCommand
+    {
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+            try
+            {
+                // Read API Key from settings
+                var apiKey = System.Environment.GetEnvironmentVariable("GEMINI_API_KEY");
+                
+                if (string.IsNullOrEmpty(apiKey))
+                {
+                    TaskDialog.Show("Configuration Error", 
+                        "Please set the environment variable GEMINI_API_KEY\n\n" +
+                        "In Windows:\n" +
+                        "1. Press Win + Pause\n" +
+                        "2. Advanced System Settings\n" +
+                        "3. Environment Variables\n" +
+                        "4. New: GEMINI_API_KEY = Your API Key");
+                    return Result.Failed;
+                }
+
+                // Create chat service
+                var chatService = new GeminiChatService(apiKey);
+
+                // Open chat window
+                var chatWindow = new ChatWindow(chatService, commandData.Application);
+                chatWindow.Show();
+
+                return Result.Succeeded;
+            }
+            catch (Exception ex)
+            {
+                TaskDialog.Show("Error", $"Failed to open AI Chat: {ex.Message}");
+                return Result.Failed;
+            }
+        }
+    }
+}
+```
+
+#### Step 4: Create WPF Window UI
+
+Create `ChatWindow.xaml` in `MCP/`:
+
+```xml
+<Window x:Class="RevitMCP.ChatWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Revit AI Chat Assistant"
+        Height="600"
+        Width="500"
+        Background="#F5F5F5">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Chat History -->
+        <ListBox x:Name="ChatHistory"
+                 Grid.Row="0"
+                 Margin="10"
+                 Background="White"
+                 BorderThickness="1"
+                 BorderBrush="#DDD">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border Margin="5" Padding="10" CornerRadius="5">
+                        <TextBlock Text="{Binding}"
+                                   TextWrapping="Wrap"
+                                   Foreground="#333"/>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Input Area -->
+        <Grid Grid.Row="1" Margin="10" Background="White" Height="80">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="InputBox"
+                     Grid.Column="0"
+                     VerticalAlignment="Top"
+                     Padding="10"
+                     TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     PlaceholderText="Type your question..."/>
+
+            <Button x:Name="SendButton"
+                    Grid.Column="1"
+                    Margin="5"
+                    Padding="15,10"
+                    Background="#007ACC"
+                    Foreground="White"
+                    Content="Send"
+                    Click="SendButton_Click"/>
+        </Grid>
+    </Grid>
+</Window>
+```
+
+#### Step 5: Code-Behind (ChatWindow.xaml.cs)
+
+```csharp
+using System.Collections.ObjectModel;
+using System.Windows;
+using Autodesk.Revit.UI;
+using RevitMCP.Core;
+
+namespace RevitMCP
+{
+    public partial class ChatWindow : Window
+    {
+        private readonly GeminiChatService _chatService;
+        private readonly UIApplication _uiApp;
+        private readonly ObservableCollection<string> _messages;
+
+        public ChatWindow(GeminiChatService chatService, UIApplication uiApp)
+        {
+            InitializeComponent();
+            _chatService = chatService;
+            _uiApp = uiApp;
+            _messages = new ObservableCollection<string>();
+            ChatHistory.ItemsSource = _messages;
+
+            _messages.Add(" AI Assistant is ready. Type your question to control Revit.");
+            _messages.Add(" Example: Create a 5-meter-long wall");
+        }
+
+        private async void SendButton_Click(object sender, RoutedEventArgs e)
+        {
+            string userInput = InputBox.Text.Trim();
+            if (string.IsNullOrEmpty(userInput)) return;
+
+            // Display user message
+            _messages.Add($"You: {userInput}");
+            InputBox.Clear();
+
+            // Get AI response
+            SendButton.IsEnabled = false;
+            SendButton.Content = "Processing...";
+
+            try
+            {
+                string context = $"You are a Revit BIM expert assistant. Available Revit commands include: " +
+                    "create_wall, create_floor, query_elements, get_project_info, etc. " +
+                    "Please respond concisely and explain your operations.";
+
+                string response = await _chatService.ChatAsync(userInput, context);
+                _messages.Add($" AI: {response}");
+            }
+            finally
+            {
+                SendButton.IsEnabled = true;
+                SendButton.Content = "Send";
+            }
+        }
+    }
+}
+```
+
+#### Step 6: Register New Button in Add-in
+
+Modify the `OnStartup` method in `Application.cs` to add the AI Chat button:
+
+```csharp
+public Result OnStartup(UIControlledApplication application)
+{
+    try
+    {
+        RibbonPanel panel = application.CreateRibbonPanel("MCP Tools");
+        
+        string assemblyPath = Assembly.GetExecutingAssembly().Location;
+
+        // Existing buttons...
+        
+        // 🆕 Add AI Chat button
+        PushButtonData chatButtonData = new PushButtonData(
+            "MCPChat",
+            "AI Chat\nAssistant",
+            assemblyPath,
+            "RevitMCP.Commands.ChatCommand");
+        chatButtonData.ToolTip = "Open AI Chat Assistant for interactive Revit control with Gemini 2.5 Flash";
+        PushButton chatButton = panel.AddItem(chatButtonData) as PushButton;
+
+        return Result.Succeeded;
+    }
+    catch (Exception ex)
+    {
+        TaskDialog.Show("Error", "Failed to load MCP Tools: " + ex.Message);
+        return Result.Failed;
+    }
+}
+```
+
+#### Step 7: Set Environment Variable (For End Users)
+
+1. **Press `Win + Pause` or `Win + X` → System**
+
+2. **Click "Advanced system settings"**
+
+3. **Click "Environment Variables" button**
+
+4. **Under "System variables", click "New"**
+
+5. **Fill in the following**
+   - Variable name: `GEMINI_API_KEY`
+   - Variable value: `The API Key you copied from Step 1`
+
+6. **Click "OK" and restart Revit**
+
+### Step 8: Build and Test
+
+1. **Build the C# project**
+   ```powershell
+   cd MCP
+   dotnet build -c Release
+   ```
+
+2. **Copy DLL to Revit Add-in directory**
+   ```powershell
+   $target = "$env:APPDATA\Autodesk\Revit\Addins\2022"
+   Copy-Item "bin\Release\RevitMCP.dll" $target
+   ```
+
+3. **Restart Revit**
+
+4. **Click the "AI Chat Assistant" button**
+   - You should see the chat window
+   - Start chatting with AI!
+
+### Usage Example
+
+```
+👤 User: I want to create 3 square floors on Level 2, all 5m × 5m
+
+ AI: I can help you create 3 square floors. I'll create them at these locations:
+- Floor 1: (0, 0) to (5, 5)
+- Floor 2: (6, 0) to (11, 5)  
+- Floor 3: (12, 0) to (17, 5)
+
+Creating now... Done! Created 3 floors with IDs 123456, 123457, 123458
+
+👤 User: Please change Floor 1's height to 4m
+
+ AI: I've changed Floor 1's height to 4m. Modification complete!
+```
 
 ---
 
@@ -896,4 +1362,24 @@ Welcome to submit Issues and Pull Requests!
 
 ---
 
-**Enjoy your AI-powered Revit development! 🚀**
+## 📚 Document Navigation
+
+| Document | Description |
+|:-----|:----|
+| [GEMINI.md](./GEMINI.md) | AI Assistant System Prompt: slash commands, workflow triggers, deployment guide |
+| [CLAUDE.md](./CLAUDE.md) | Claude Code project guide: architecture, build commands, code conventions |
+| [CHANGELOG.md](./CHANGELOG.md) | Version changelog (v1.0.0 ~ v1.5.0) |
+| [README.en.md](./README.en.md) | English version of this README |
+| **教材/** | |
+| [教材/README.md](./教材/README.md) | Course catalog (8 lessons × 3 hours) |
+| [教材/05-Skill遷移實戰篇.md](./教材/05-Skill遷移實戰篇.md) | Lesson 5: Migrating from domain/ to Agent Skill architecture |
+| **docs/** | |
+| [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | Document directory structure guide |
+| [docs/tools/](./docs/tools/) | MCP Tools API technical documentation |
+| [docs/workflows/](./docs/workflows/) | Workflow design documentation |
+| **domain/** | |
+| [domain/README.md](./domain/README.md) | Domain knowledge catalog (AI workflow SOPs) |
+
+---
+
+**Enjoy your AI-powered Revit development!**
