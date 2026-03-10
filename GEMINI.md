@@ -2,7 +2,7 @@
 
 此檔案旨在協助 Gemini/AI 快速理解專案結構與資源位置。
 
-## 📁 專案結構地圖
+##  專案結構地圖
 
 | 路徑 | 說明 | 關鍵檔案 |
 | :--- | :--- | :--- |
@@ -12,7 +12,7 @@
 | **`docs/tools/`** | **技術規格與 API 文檔** | `override_element_color_design.md`<br>`override_graphics_examples.md` |
 | **`scripts/`** | **輔助腳本** | `install-addon.ps1` (安裝腳本) |
 
-## 🚀 常用任務索引
+##  常用任務索引
 
 ### 1. 元素上色與視覺化
 *   **流程文件**：`domain/element-coloring-workflow.md`
@@ -29,7 +29,7 @@
 *   **C# 建置**：`dotnet build -c Release.R24 MCP/RevitMCP.csproj` (以 Revit 2024 為例，請用 R22/R23/R25/R26 對應其他版本)
 *   **部署 DLL**：使用 `scripts/install-addon.ps1` 或手動複製到 `C:\ProgramData\Autodesk\Revit\Addins\{version}\RevitMCP\`
 
-## ⚠️ 開發注意事項
+##  開發注意事項
 
 1.  **修改 C# 後**：必須關閉 Revit -> 編譯 -> 部署 -> 開啟 Revit。
 2.  **腳本路徑**：所有 Node.js 腳本預設在 `MCP-Server/` 目錄下執行。
@@ -38,7 +38,7 @@
     - **C#**：必須處理 Revit API 的 `Transaction` 和 `Exception`，確保操作可逆。
     - **Node.js**：必須處理 WebSocket 的連接錯誤與超時。
 
-## 🧠 AI 協作指令
+##  AI 協作指令
 
 此專案採用「上下文工程 (Context Engineering)」策略，區分 **高階規則 (Rules)** 與 **具體規格 (Specs)**。AI 助手必須遵循以下指令與行為模式：
 
@@ -56,12 +56,12 @@
 - **規格驅動 (SDD)**：重大變更前應先更新 `domain/` 中的 MD 文件（規格），而非直接修改程式碼。
 
 ### 📂 腳本與知識組織規範
-- **`domain/`**: 存放長期業務邏輯、法規分析策略、成功的 AI 協作經驗 (MD 格式)。
+- **`domain/`**: 存放長期業務邏輯、法規分析策略、成功的 AI 協作經驗 (MD 格式)。必須使用 **UTF-8 (without BOM)** 編碼以確保跨平台讀取不產生亂碼。
 - **`MCP-Server/src/tools/`**: 存放穩定的底層核心 MCP 工具 (TS/JS)。
 - **`MCP-Server/scripts/`**: 存放參數化、可重複調用的穩定工作流腳本。
 - **`MCP-Server/scratch/`**: 存放任務導向、一次性或除錯用的雜餘腳本。
 
-### 🔄 工作流程觸發規則
+###  工作流程觸發規則
 
 當用戶提到以下關鍵字時，AI **必須先讀取**對應的工作流程文件，然後按步驟執行：
 
@@ -76,11 +76,11 @@
 
 ---
 
-## 🤖 AI 助手智能部署指南
+##  AI 助手智能部署指南
 
 **適用於**: Claude Desktop, Gemini CLI, VS Code Copilot, Antigravity 等 AI 助手
 
-### 📋 使用者環境偵測協定
+###  使用者環境偵測協定
 
 當使用者請求協助部署此專案時，**AI 助手應該按照以下流程進行**：
 
@@ -255,7 +255,7 @@ npm run build
 5. **驗證步驟**：提供明確的驗證命令確認安裝成功
 6. **錯誤處理**：如果使用者版本不在支援列表（2022-2026），提示需要調整
 
-### 🔍 常見問題處理邏輯
+###  常見問題處理邏輯
 
 ```yaml
 問題: "建置時出現 56 個警告"

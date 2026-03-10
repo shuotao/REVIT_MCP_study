@@ -1,0 +1,13 @@
+[*.{md,txt,js,ts,cs,json}]
+charset = utf-8
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.cs]
+indent_size = 4
+
+[*.{ps1,bat}]
+end_of_line = crlf
+charset = utf-16le

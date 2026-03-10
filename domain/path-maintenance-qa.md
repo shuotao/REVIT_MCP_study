@@ -2,7 +2,7 @@
 
 > 專案目錄重構後的維護指南
 
-## 📋 背景
+##  背景
 
 2024-12-17 專案進行目錄重構：
 - **舊結構**：`MCP/MCP/` (雙層嵌套)
@@ -12,7 +12,7 @@
 
 ---
 
-## 🔍 路徑檢查清單
+##  路徑檢查清單
 
 ### 需要檢查的檔案類型
 
@@ -42,7 +42,7 @@ grep -r "cd.*MCP.*MCP" --include="*.md"
 
 ---
 
-## ⚠️ 容易遺漏的位置
+##  容易遺漏的位置
 
 ### 1. 專案結構樹狀圖
 
@@ -51,14 +51,14 @@ grep -r "cd.*MCP.*MCP" --include="*.md"
 **錯誤範例**：
 ```
 ├── MCP/                    # Revit Add-in (C#)
-│   └── MCP/                # ❌ 這是錯的！
+│   └── MCP/                #  這是錯的！
 │       ├── Application.cs
 ```
 
 **正確範例**：
 ```
 ├── MCP/                    # Revit Add-in (C#)
-│   ├── Application.cs      # ✅ 直接在 MCP/ 下
+│   ├── Application.cs      #  直接在 MCP/ 下
 │   ├── RevitMCP.csproj
 ```
 

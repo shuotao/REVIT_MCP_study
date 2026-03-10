@@ -20,7 +20,7 @@ namespace RevitMCP.Core
             Topmost = true; // Keep it on top of Revit
 
             // Main Layout
-            Grid grid = new Grid();
+            System.Windows.Controls.Grid grid = new System.Windows.Controls.Grid();
             grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
@@ -37,7 +37,7 @@ namespace RevitMCP.Core
                 TextWrapping = TextWrapping.Wrap,
                 Padding = new Thickness(5)
             };
-            Grid.SetRow(_logTextBox, 0);
+            System.Windows.Controls.Grid.SetRow(_logTextBox, 0);
             grid.Children.Add(_logTextBox);
 
             // Clear Button
@@ -48,7 +48,7 @@ namespace RevitMCP.Core
                 Margin = new Thickness(5)
             };
             clearButton.Click += (s, e) => _logTextBox.Clear();
-            Grid.SetRow(clearButton, 1);
+            System.Windows.Controls.Grid.SetRow(clearButton, 1);
             grid.Children.Add(clearButton);
 
             Content = grid;

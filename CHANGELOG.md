@@ -22,14 +22,14 @@
 - **`教材/`**：完整公開 8 堂課教材、投影片、延伸閱讀資源
   - 新增 `05-Skill遷移實戰篇.md`（Agent Skill 架構實作教學）
 
-### 📁 文件整理
+###  文件整理
 
 - **合併後刪除**：ANNOUNCEMENT.md → CHANGELOG.md、MCP_Server_Setup_Guide.md → README.md、ARCHITECTURE.md → README.md
 - **搬移**：QUICK_TEST.md → docs/、4 個學習筆記 → 教材/
 - **刪除**：mission.md、Domain_to_Skill_Migration_Guide.md
 - **更新**：README.md 新增導覽表、README.en.md 支援 Revit 2025/2026、DOCS_STRUCTURE.md 重寫
 
-### ⚠️ 成員需執行的動作
+###  成員需執行的動作
 
 **C# 程式碼有更新，需重新編譯 DLL：**
 
@@ -65,7 +65,7 @@ dotnet build -c Release.R26   # Revit 2026
 #### 功能映射優化
 - **完整對比驗證**：TypeScript 端工具定義與 C# 端指令處理已完全對應（37 個工具）
 
-### ⚠️ 重要提醒
+###  重要提醒
 
 本次更新涉及 C# 後端邏輯與 TypeScript 工具架構的大幅變動，需重新編譯部署（參考 README.md 的部署步驟）。
 
@@ -101,18 +101,18 @@ dotnet build -c Release.R26   # Revit 2026
   - 加入常見問題處理邏輯
   - 協助 AI 助手為使用者生成客製化部署指令
 
-### 📁 修改檔案
+###  修改檔案
 
 | 檔案 | 變更 |
 |------|------|
 | `scripts/install-addon-bom.ps1` | 修正 3 處路徑：DLL、.addin、Newtonsoft.Json |
 | `scripts/verify-installation.ps1` | 新增安裝驗證工具 |
 
-### ⚠️ 重要提醒
+###  重要提醒
 
 **目錄結構已統一為單層 `MCP\` 結構，所有路徑參照請確認正確：**
-- ✅ 正確：`MCP\bin\Release.2024\RevitMCP.dll`
-- ❌ 錯誤：`MCP\MCP\bin\Release.2024\RevitMCP.dll`
+-  正確：`MCP\bin\Release.2024\RevitMCP.dll`
+-  錯誤：`MCP\MCP\bin\Release.2024\RevitMCP.dll`
 
 ---
 
@@ -140,7 +140,7 @@ dotnet build -c Release.R26   # Revit 2026
 - 更新 README.md 工具清單，補齊遺漏的工具說明
 - 新增 `domain/` 資料夾，放置容積檢討開發文件
 
-### 📁 修改檔案
+###  修改檔案
 
 | 檔案 | 變更 |
 |------|------|
@@ -176,7 +176,7 @@ dotnet build -c Release.R26   # Revit 2026
 - **內容**：提醒使用者 git pull 後如有 C# 程式碼變更，需重新編譯並部署 DLL
 - **包含**：更新類型對照表（C#/TypeScript/設定檔各自的處理方式）
 
-### 📁 修改檔案
+###  修改檔案
 
 | 檔案 | 變更 |
 |------|------|
@@ -203,7 +203,7 @@ dotnet build -c Release.R26   # Revit 2026
   - 支援指定柱類型名稱
   - 座標使用公釐，內部自動轉換為 Revit 英尺單位
 
-### 📁 修改檔案
+###  修改檔案
 
 | 檔案 | 變更 |
 |------|------|
@@ -241,7 +241,7 @@ dotnet build -c Release.R26   # Revit 2026
   - `MCP-Server/build/` - 需要執行 `npm run build` 產生
   - `MCP-Server/node_modules/` - 需要執行 `npm install` 產生
   - `MCP/MCP/bin/` - 需要編譯或下載 Release
-- **新增**：在 README 中加入「⚠️ 透過 Git Clone 的首次設定」區塊
+- **新增**：在 README 中加入「 透過 Git Clone 的首次設定」區塊
 
 #### 設定檔硬編碼路徑問題
 - **問題**：`gemini_mcp_config.json` 和 `claude_desktop_config.json` 使用硬編碼的使用者路徑
