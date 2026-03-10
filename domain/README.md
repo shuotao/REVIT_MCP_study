@@ -8,14 +8,17 @@
 
 | 檔案 | 說明 | 狀態 |
 |-----|------|:----:|
-| `floor-area-review.md` | 容積檢討流程 |  |
-| `fire-rating-check.md` | 防火等級檢查流程 |  |
-| `corridor-analysis-protocol.md` | 走廊分析流程 |  |
-| `element-coloring-workflow.md` | 元素上色流程 |  |
-| `room-boundary.md` | 房間邊界計算 |  |
-| `wall-check.md` | 牆壁檢查機制 |  |
-| `path-maintenance-qa.md` | 路徑維護 QA |  |
-| `references/building-code-tw.md` | 台灣建築法規摘要 |  |
+| `floor-area-review.md` | 容積檢討流程 | v1 |
+| `fire-rating-check.md` | 防火等級檢查流程 | v1 |
+| `corridor-analysis-protocol.md` | 走廊分析流程 | v1 |
+| `element-coloring-workflow.md` | 元素上色流程 | v1 |
+| `room-boundary.md` | 房間邊界計算 | v1 |
+| `wall-check.md` | 牆壁檢查機制 | v1 |
+| `path-maintenance-qa.md` | 路徑維護 QA | v1 |
+| `tool-capability-boundary.md` | MCP 工具能力邊界定義 (L1-L5) | v1 |
+| `session-context-guard.md` | 互動式會話上下文守衛 (L1-L3) | v1 |
+| `element-query-workflow.md` | 元素查詢參數工作流程 | v1 |
+| `references/building-code-tw.md` | 台灣建築法規摘要 | v1 |
 
 ---
 

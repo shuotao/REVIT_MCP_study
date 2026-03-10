@@ -246,7 +246,7 @@ npm run build
 # 5. 重啟 Claude Desktop
 ```
 
-### 🎯 AI 助手行為準則
+### AI 助手行為準則
 
 1. **永遠先偵測環境**：不要假設使用者的版本或 client
 2. **提供版本特定的指令**：根據 Revit 版本調整建構組態 (Release.R22 ~ Release.R26)

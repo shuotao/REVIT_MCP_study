@@ -1,89 +1,88 @@
 ---
-title: MCP 撌亙?賢????歇?仿???
+title: MCP 工具能力邊界定義表
 version: "1.0"
-created: 2026-03-10
+created: 2025-03-10
 trigger_keywords:
-  - ???璅∪?
+  - 連結模型
   - linked model
-  - 蝯?
+  - 結構
   - structural
-  - ?賢?
-  - ?
+  - 邊界
+  - 能力
   - boundary
-  - ?乩???
-  - 0 蝯?
+  - 找不到元素
+  - 0 結果
 ---
 
-# MCP 撌亙?賢????歇?仿???
+# MCP 工具能力邊界定義表
 
-## ?桃?
+## 目的
 
-甇斗?隞嗉???MCP 撌亙蝟餌絞??*撌脩?**?I ?冽?唬遙??嚗???瘥?甇斗??柴?賭葉隞颱??嚗?*蝡?迫?Ｙ揣**銝血??冽?嚗蝳遣蝡?.js ?單?岫蝜???
-
----
-
-## ?皜
-
-### L1: ???璅∪???銝?亥岷
-
-| ? | 隤芣? |
-|------|------|
-| **?** | ???`query_elements`?get_element_info`?query_elements_with_filter` 蝑極?瑕??亥岷 **host document**嚗瘜忽??`RevitLinkInstance` ?亥岷???璅∪??抒??? |
-| **敶梢蝭?** | 蝯???嚗???瑽?蝷??虜??`*Structural.rvt` ???銝哨?璈閮剖???`*MEP.rvt`?*Plumbing.rvt`?*HVAC.rvt`?*Electrical.rvt` ???銝?|
-| **颲刻??寞?** | ??`query_elements({ category: 'RvtLinks' })` 瑼Ｘ?臬摮???璅∪???格?????host document ?亙 0 ?祕靘?雿??璅∪??迂?內?閰脣?憿?憒?"Structural"嚗?璆萄之?航???券????|
-| **AI 甇?Ⅱ銵** | ??冽嚗迨鞈?雿???璅∪? [?迂] 銝哨??桀? MCP 撌亙?⊥??亥岷???璅∪??抒????遣霅?(a) ??Revit 銝剜??????璅∪?瑼Ｚ?嚗? (b) ??啁? C# ?誘?舀 RevitLinkInstance ?亥岷?
-| **閫?璇辣** | ? `query_linked_elements` C# ?誘嚗蝙??`FilteredElementCollector(doc, linkInstance.GetLinkDocument()))`嚗?|
-
-### L2: QueryElements ??閬???
-
-| ? | 隤芣? |
-|------|------|
-| **?** | `query_elements` ???刻圾???舀 6 憿′蝺函Ⅳ??嚗Walls`/`Rooms`/`Doors`/`Windows`/`Floors`/`Columns`?隞?憿?鞈?`ResolveCategoryId` ??閫?? |
-| **敶梢蝭?** | ??`ResolveCategoryId` ??`doc.Settings.Categories` 銝剜銝?寥??迂嚗??湔?梢??餈?蝛粹? |
-| **颲刻??寞?** | ?嗅 `?⊥?颲刻???` ?航炊??????`get_active_schema` 蝣箄?????**InternalName**嚗敺 InternalName ?岫嚗? `StructuralFraming` ?? `Structural Framing`嚗?|
-| **AI 甇?Ⅱ銵** | ?憭?閰?1 甈∴???InternalName嚗隞 0 蝯?嚗炎?交?血銝?L1嚗??璅∪??嚗?|
-
-### L3: 閬?蝭?敶梢?亥岷蝯?
-
-| ? | 隤芣? |
-|------|------|
-| **?** | `query_elements` 撣?`viewId` ??????府閬??航???蝝?????賢??航??扯身摰?Category visibility?iew Range?hase Filter嚗??渡??榆??|
-| **颲刻??寞?** | ?????其????? `get_active_schema` 銝剝＊蝷箔???Count |
-| **AI 甇?Ⅱ銵** | ?仿?閬??游?蝝??殷?蝘駁 `viewId` ?雿輻?冽?隞嗆? |
-
-### L4: 憿?摮 ??撖虫?摮
-
-| ? | 隤芣? |
-|------|------|
-| **?** | `get_column_types` 蝑??粹???隞斗?餈?撠?銝?*撌脰??乩??航?芣蝵?*??蝢日??????其?隞?”?祕靘?|
-| **颲刻??寞?** | 憿??亥岷????撖虫??亥岷餈? 0 |
-| **AI 甇?Ⅱ銵** | ??冽嚗?獢葉頛鈭?[憿?? ?黎嚗?璅∪?銝剜?曄蔭隞颱?撖虫???閬鈭?啜憭晞?撖虫???閬閰?|
-
-### L5: Schedule/?敦銵函瘜? MCP 霈??
-
-| ? | 隤芣? |
-|------|------|
-| **?** | `get_all_views` 銝???`ViewSchedule` 憿?????瘜? MCP 撌亙霈??Revit ?敦銵函??批捆 |
-| **閫?璇辣** | ? `query_schedule_data` C# ?誘 |
+本文件定義目前 MCP 工具的**不可達**邊界，讓 AI 在收到相關請求時，**立即告知使用者**限制而非反覆嘗試，避免產生大量 .js 腳本或無效查詢。
 
 ---
 
-## 餈游??菜葫閬?
+## 分級
 
-AI ?典銵遙??敹??芣???隞乩?璅∪?嚗??血皜砍隞颱?銝??**蝡?迫銝血??梁??*嚗?
+### L1: 連結模型元素不可查詢
 
-| 璅∪? | 摰儔 | 閫貊璇辣 |
+| 項目 | 詳細說明 |
+|------|------|
+| **限制** | 目前 `query_elements`、`get_element_info`、`query_elements_with_filter` 等工具僅可查詢 **host document**，無法穿透 `RevitLinkInstance` 查詢連結模型內的元素 |
+| **典型場景** | 結構模型（如 `*Structural.rvt` 等）掛在主機模型下；MEP 模型（`*MEP.rvt`、`*Plumbing.rvt`、`*HVAC.rvt`、`*Electrical.rvt`）的元素都不可查詢 |
+| **辨識方式** | 使用 `query_elements({ category: 'RvtLinks' })` 確認有已載入連結模型存在，但在 host document 中以 0 筆結構構件、連結模型名稱包含 "Structural" 等特徵來判斷該元素屬於連結模型 |
+| **AI 應對策略** | 回覆：目前連結模型 [名稱] 內的元素超出 MCP 工具的直接查詢範圍。建議使用者 (a) 在 Revit 中直接開啟連結模型進行查詢，或 (b) 開發 C# 擴充透過 RevitLinkInstance 查詢 |
+| **未來方案** | 開發 `query_linked_elements` C# 擴充：使用 `FilteredElementCollector(doc, linkInstance.GetLinkDocument())` |
+
+### L2: QueryElements 類別解析限制
+
+| 項目 | 詳細說明 |
+|------|------|
+| **限制** | `query_elements` 的類別名稱僅支援 6 種預設英文名：`Walls`/`Rooms`/`Doors`/`Windows`/`Floors`/`Columns`，其餘類別需 `ResolveCategoryId` 動態解析 |
+| **典型場景** | 使用 `ResolveCategoryId` 在 `doc.Settings.Categories` 中以名稱比對，非預設類別可能匹配失敗 |
+| **辨識方式** | 使用者提及「不在預設清單中的類別」時，應先使用 `get_active_schema` 取得模型中所有類別的 **InternalName**（如 InternalName 為 `StructuralFraming` 而非 `Structural Framing`） |
+| **AI 應對策略** | 優先嘗試 1 次正確的 InternalName，若 0 結果，考慮是否為 L1（連結模型）問題 |
+
+### L3: 視圖範圍影響查詢結果
+
+| 項目 | 詳細說明 |
+|------|------|
+| **限制** | `query_elements` 搭配 `viewId` 時，結果受該視圖的類別可見性（Category visibility）、視圖範圍（View Range）、階段篩選（Phase Filter）等因素影響 |
+| **辨識方式** | 在不同視圖間查詢結果數量差異大時，使用 `get_active_schema` 比對各視圖的 Count |
+| **AI 應對策略** | 切換視圖或移除 `viewId` 參數以使用全模型查詢來確認正確數量 |
+
+### L4: 類型名稱 vs 實例名稱
+
+| 項目 | 詳細說明 |
+|------|------|
+| **限制** | `get_column_types` 等工具回傳的是類型資料，而非實例級別的**位置或特定屬性值**。使用者常混淆兩者導致查詢不到結果 |
+| **辨識方式** | 類型級查詢有結果，但實例級查詢卻為 0 |
+| **AI 應對策略** | 回覆：此為模型中的[類型/型別]資訊，模型中已有該類型但可能尚未放置實例。需查詢實例級資訊請使用不同查詢方式 |
+
+### L5: Schedule/報表資料不在 MCP 範圍內
+
+| 項目 | 詳細說明 |
+|------|------|
+| **限制** | `get_all_views` 可列出 `ViewSchedule` 類型的視圖，但目前 MCP 工具無法讀取 Revit 明細表/報表的內容 |
+| **未來方案** | 開發 `query_schedule_data` C# 擴充 |
+
+---
+
+## 緊急停止模式
+
+AI 在執行過程中遇到以下模式時，**必須立即停止**而非繼續嘗試：
+
+| 模式 | 觸發標準 | 範例 |
 |------|------|---------|
-| **????皜祈艘??* | ????岫 2+ ????憿?蝔望閰Ｗ?銝憿?蝝?| 憒?閰?`Structural Framing` ?岫 `StructuralFraming` ?岫 `蝯?獢` |
-| **閬???餈游?** | ????? 2+ ???岫??啣?銝憿?蝝?| 憒? Section ? 3D ? FloorPlan |
-| **?單餈凋誨餈游?** | ?箏?銝隞餃?撱箇? 2+ ??祆?獢?| 憒?`check_fields.js` ??`test_names.js` ??`deep_search.js` |
-| **蝛箇????艘??* | ??? 3+ 甈⊥閰Ｚ???0 蝯?雿匱蝥?閰?| 瘥活蝯??賣 Count: 0 雿???岫 |
+| **類別名稱窮舉式搜尋** | 同一查詢已嘗試 2+ 次不同類別名稱卻無結果 | 先試 `Structural Framing` 後試 `StructuralFraming` 後試 `結構構架` |
+| **視圖輪替式搜尋** | 同一查詢已在 2+ 個不同視圖中嘗試卻無結果 | 先試 Section 再試 3D 再試 FloorPlan |
+| **腳本輪替式搜尋** | 本質上相同的邏輯已產生 2+ 個不同檔名的腳本 | 先寫 `check_fields.js` 再寫 `test_names.js` 再寫 `deep_search.js` |
+| **零結果迴圈式搜尋** | 連續 3+ 次不同查詢都回傳 0 結果且無新資訊 | 每次查詢都是 Count: 0 且無新線索 |
 
 ---
 
-## 蝬剛風閬?
+## 維護規則
 
-- ?潛?啁?撌亙???隞?`L{N+1}` ?澆?餈賢??圈??嗆???
-- ?園??嗉◤撌亙?閫???撠府璇蝘餉?辣摨?歇閫???畾?
-- Fix & Document Hook ?拍嚗?唳迨?辣???郊 GEMINI.md 閫貊銵具LAUDE.md?HANGELOG.md
-
+- 新增工具能力後，須更新對應 `L{N}` 條目，並標記為已解決或降級
+- 每次發現新的工具邊界問題，須記錄至對應層級並更新觸發模式表
+- Fix & Document Hook 適用：每次修復邊界後須同步更新 GEMINI.md、CLAUDE.md、CHANGELOG.md
