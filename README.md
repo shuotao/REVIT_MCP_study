@@ -82,9 +82,16 @@
 > 
 > | 更新類型 | 需重新編譯 DLL？ | 需重啟 Revit？ |
 > |----------|:---------------:|:-------------:|
-> | C# 程式碼 (`MCP/*.cs`) |  是 |  是 |
-> | MCP Server (`MCP-Server/*.ts`) |  否 |  否（只需重啟 MCP Server） |
-> | 設定檔 (`*.json`, `*.addin`) |  否 |  視情況 |
+> | C# 程式碼 (`MCP/*.cs`) | ✅ 是 | ✅ 是 |
+> | MCP Server (`MCP-Server/*.ts`) | ❌ 否 | ❌ 否（只需重啟 MCP Server） |
+> | 設定檔 (`*.json`, `*.addin`) | ❌ 否 | ⚠️ 視情況 |
+>
+> 💡 **使用 Claude Code 的使用者**：本專案內建 Claude Code 技能可自動化上述步驟：
+> ```
+> /build-revit             # 選擇 Revit 版本後自動編譯
+> /build-revit --all       # 一次編譯所有版本（2022-2026）
+> /deploy-addon            # 自動部署 DLL 到正確路徑（僅 Windows）
+> ```
 
 ## 🎯 功能特色
 

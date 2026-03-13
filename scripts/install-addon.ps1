@@ -229,13 +229,13 @@ Write-Host "正在驗證來源檔案..." -ForegroundColor Yellow
 Write-Host ""
 
 # 定義來源檔案路徑 (統一建構：Nice3point.Revit.Sdk)
+# ⚠️ 本專案只使用 RevitMCP.csproj + RevitMCP.addin（統一多版本建構）
+# ⚠️ 禁止新增 RevitMCP.2024.csproj / RevitMCP.2024.addin 等版本特定檔案
 $sourceDllRelease = Join-Path $projectRoot "MCP\bin\Release\RevitMCP.dll"
-$sourceDllRelease2024 = Join-Path $projectRoot "MCP\bin\Release.2024\RevitMCP.dll"
 $sourceDllDebug = Join-Path $projectRoot "MCP\bin\Debug\RevitMCP.dll"
 $sourceAddin = Join-Path $projectRoot "MCP\RevitMCP.addin"
-$sourceAddin2024 = Join-Path $projectRoot "MCP\RevitMCP.2024.addin"
 
-# 版本→組態對應表
+# 版本→組態對應表（統一建構，所有版本使用同一個 csproj）
 $versionConfigMap = @{
     "2022" = "Release.R22"
     "2023" = "Release.R23"
@@ -247,19 +247,14 @@ $buildConfig = $versionConfigMap[$revitVersion]
 
 # 決定使用哪個 DLL
 $sourceDll = $null
-$currentSourceAddin = $sourceAddin
 
 if (Test-Path $sourceDllRelease) {
     $sourceDll = $sourceDllRelease
     Write-Host "✓ 找到 RevitMCP.dll (Release 版本)" -ForegroundColor Green
-}
-elseif ($revitVersion -eq "2024" -and (Test-Path $sourceDllRelease2024)) {
-    # 舊版 2024 獨立建構的備援路徑
-    $sourceDll = $sourceDllRelease2024
-    if (Test-Path $sourceAddin2024) {
-        $currentSourceAddin = $sourceAddin2024
-    }
-    Write-Host "✓ 找到 RevitMCP.dll (2024 Legacy Release 版本)" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "⚠️  重要提醒：請確認此 DLL 是為 Revit $revitVersion 建構的" -ForegroundColor Yellow
+    Write-Host "   正確的建構指令：dotnet build -c $buildConfig RevitMCP.csproj" -ForegroundColor Yellow
+    Write-Host "   如果不確定，建議重新建構後再部署" -ForegroundColor Yellow
 }
 elseif (Test-Path $sourceDllDebug) {
     $sourceDll = $sourceDllDebug
@@ -269,12 +264,14 @@ elseif (Test-Path $sourceDllDebug) {
 else {
     Write-Host "❌ 錯誤：找不到 RevitMCP.dll" -ForegroundColor Red
     Write-Host ""
-    Write-Host "請先製作程式：" -ForegroundColor Yellow
-    Write-Host "1. 打開命令提示字元" -ForegroundColor Yellow
-    Write-Host "2. cd `"$projectRoot\MCP`"" -ForegroundColor Yellow
-    Write-Host "3. dotnet build -c $buildConfig RevitMCP.csproj" -ForegroundColor Yellow
+    Write-Host "請先建構程式（根據您的 Revit 版本）：" -ForegroundColor Yellow
+    Write-Host "  cd `"$projectRoot\MCP`"" -ForegroundColor Yellow
+    Write-Host "  dotnet build -c $buildConfig RevitMCP.csproj" -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "或者下載現成版本放到對應的 bin 資料夾" -ForegroundColor Yellow
+    Write-Host "支援的版本：" -ForegroundColor Yellow
+    foreach ($ver in $versionConfigMap.GetEnumerator() | Sort-Object Key) {
+        Write-Host "  Revit $($ver.Key) → dotnet build -c $($ver.Value) RevitMCP.csproj" -ForegroundColor Gray
+    }
     Read-Host "按 Enter 結束"
     exit 1
 }

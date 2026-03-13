@@ -85,6 +85,13 @@ Enable AI language models to directly control Autodesk Revit via Model Context P
 > | C# Code (`MCP/*.cs`) | ✅ Yes | ✅ Yes |
 > | MCP Server (`MCP-Server/*.ts`) | ❌ No | ❌ No (just restart MCP Server) |
 > | Config Files (`*.json`, `*.addin`) | ❌ No | ⚠️ Depends |
+>
+> 💡 **Claude Code users**: This project includes built-in Claude Code skills to automate the steps above:
+> ```
+> /build-revit             # Select your Revit version and build automatically
+> /build-revit --all       # Build all versions at once (2022-2026)
+> /deploy-addon            # Auto-deploy DLL to the correct path (Windows only)
+> ```
 
 ## 🎯 Key Features
 

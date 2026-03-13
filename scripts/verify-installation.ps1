@@ -24,7 +24,7 @@ else {
     Write-Host "  PASS: Correct MCP\ single-layer structure" -ForegroundColor Green
 }
 
-# Check 2: Project Files
+# Check 2: Project Files (Unified Build Only)
 Write-Host ""
 Write-Host "[Check 2] Project Files..." -ForegroundColor Cyan
 if (Test-Path "$projectRoot\MCP\RevitMCP.csproj") {
@@ -33,14 +33,48 @@ if (Test-Path "$projectRoot\MCP\RevitMCP.csproj") {
 else {
     Write-Host "  ERROR: No .csproj file found" -ForegroundColor Red
 }
+# Warn about legacy files that should NOT exist
 if (Test-Path "$projectRoot\MCP\RevitMCP.2024.csproj") {
-    Write-Host "  INFO: RevitMCP.2024.csproj (Legacy, deprecated)" -ForegroundColor Yellow
+    Write-Host "  ERROR: RevitMCP.2024.csproj exists (LEGACY - should be deleted!)" -ForegroundColor Red
+    Write-Host "    This file causes build confusion. Delete it." -ForegroundColor Red
+}
+if (Test-Path "$projectRoot\MCP\RevitMCP.2024.addin") {
+    Write-Host "  ERROR: RevitMCP.2024.addin exists (DUPLICATE - should be deleted!)" -ForegroundColor Red
+    Write-Host "    Duplicate .addin files cause Revit to load the add-in twice." -ForegroundColor Red
 }
 if (Test-Path "$projectRoot\MCP\Core\RevitCompatibility.cs") {
     Write-Host "  FOUND: RevitCompatibility.cs (Cross-version layer)" -ForegroundColor Green
 }
 else {
     Write-Host "  WARNING: RevitCompatibility.cs missing" -ForegroundColor Yellow
+}
+
+# Check 2b: Duplicate .addin files in Revit Addins folders
+Write-Host ""
+Write-Host "[Check 2b] Duplicate .addin Check (All Installed Versions)..." -ForegroundColor Cyan
+$appDataPath = $env:APPDATA
+$supportedVersions = @("2022", "2023", "2024", "2025", "2026")
+$duplicateFound = $false
+foreach ($ver in $supportedVersions) {
+    $addinsDir = Join-Path $appDataPath "Autodesk\Revit\Addins\$ver"
+    if (Test-Path $addinsDir) {
+        $addinFiles = Get-ChildItem -Path $addinsDir -Filter "*.addin" -Recurse -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -match "RevitMCP|revit-mcp" }
+        if ($addinFiles.Count -gt 1) {
+            Write-Host "  ERROR: Revit $ver has $($addinFiles.Count) .addin files:" -ForegroundColor Red
+            foreach ($f in $addinFiles) {
+                Write-Host "    - $($f.FullName)" -ForegroundColor Red
+            }
+            Write-Host "    Keep only ONE .addin file to prevent duplicate loading." -ForegroundColor Red
+            $duplicateFound = $true
+        }
+        elseif ($addinFiles.Count -eq 1) {
+            Write-Host "  PASS: Revit $ver has 1 .addin file" -ForegroundColor Green
+        }
+    }
+}
+if (-not $duplicateFound) {
+    Write-Host "  PASS: No duplicate .addin files detected" -ForegroundColor Green
 }
 
 # Check 3: Built DLL
