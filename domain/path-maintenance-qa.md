@@ -152,13 +152,15 @@ $git = "C:\Users\01102088\AppData\Local\Programs\Git\cmd\git.exe"
 
 ## 📊 Revit 版本與建置路徑對照
 
-| Revit 版本 | .csproj 檔案 | 輸出路徑 | 警告數 |
-|:---|:---|:---|:---:|
-| 2022 | `MCP\RevitMCP.csproj` | `MCP\bin\Release\` | 0 |
-| 2023 | `MCP\RevitMCP.csproj` | `MCP\bin\Release\` | 0 |
-| 2024 | `MCP\RevitMCP.2024.csproj` | `MCP\bin\Release.2024\` | 56 |
+| Revit 版本 | .csproj 檔案 | 建構組態 | 輸出路徑 | 警告數 |
+|:---|:---|:---|:---|:---:|
+| 2022 | `MCP\RevitMCP.csproj` | `Release.R22` | `MCP\bin\Release\` | 0 |
+| 2023 | `MCP\RevitMCP.csproj` | `Release.R23` | `MCP\bin\Release\` | 0 |
+| 2024 | `MCP\RevitMCP.csproj` | `Release.R24` | `MCP\bin\Release\` | 56 |
+| 2025 | `MCP\RevitMCP.csproj` | `Release.R25` | `MCP\bin\Release\` | 0 |
+| 2026 | `MCP\RevitMCP.csproj` | `Release.R26` | `MCP\bin\Release\` | 0 |
 
-> **注意**：Revit 2024 的 56 個警告是正常的（使用 Revit 2022 相容 API），不影響功能。
+> **注意**：所有版本統一使用 `RevitMCP.csproj`（Nice3point.Revit.Sdk）。Revit 2024 的 56 個警告是正常的（使用 2022 相容 API），不影響功能。
 
 ---
 

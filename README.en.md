@@ -43,18 +43,18 @@ Enable AI language models to directly control Autodesk Revit via Model Context P
 
 > [!TIP]
 > ## AI Collaboration Guide
-> 
+>
 > **Before starting collaboration, please follow these guidelines:**
-> 
+>
 > 1. **Human Developer**:
->    - Please read [**GEMINI.md**](./GEMINI.md) thoroughly to understand the project's AI collaboration role definitions and behavioral guidelines.
->    - Before executing tasks, ensure the AI understands the project structure in `GEMINI.md`.
-> 
+>    - Please read [**CLAUDE.md**](./CLAUDE.md) thoroughly to understand the project's architecture, build commands, deployment rules, and code conventions.
+>    - `GEMINI.md` and `AGENTS.md` both redirect to `CLAUDE.md` — it is the single source of truth for this project.
+>
 > 2. **AI Assistant / Agent**:
->    - **Context Loading**: Must load [**GEMINI.md**](./GEMINI.md) at startup to obtain the project map and technical guidance.
+>    - **Context Loading**: Must load [**CLAUDE.md**](./CLAUDE.md) at startup to obtain the project map and technical guidance.
 >    - **Workflow Compliance**: Before executing tasks, must check the `domain/` directory for defined workflows (e.g., coloring tasks).
 >    - **Safety First**: All Revit operations must be reversible, using Transaction to ensure recoverability.
-> 
+>
 > ---
 
 > [!CAUTION]
@@ -109,7 +109,6 @@ REVIT-MCP/
 │   ├── ConnectCommand.cs        # Connection command
 │   ├── RevitMCP.addin           # Add-in configuration
 │   ├── RevitMCP.csproj          # Unified project file (Revit 2022–2026, Nice3point SDK)
-│   ├── RevitMCP.2024.csproj     # Legacy project file (Revit 2024 only, deprecated)
 │   ├── Core/                    # Core functionality
 │   │   ├── SocketService.cs     # WebSocket service
 │   │   ├── CommandExecutor.cs   # Command executor
@@ -1373,19 +1372,30 @@ Welcome to submit Issues and Pull Requests!
 
 | Document | Description |
 |:-----|:----|
-| [GEMINI.md](./GEMINI.md) | AI Assistant System Prompt: slash commands, workflow triggers, deployment guide |
-| [CLAUDE.md](./CLAUDE.md) | Claude Code project guide: architecture, build commands, code conventions |
-| [CHANGELOG.md](./CHANGELOG.md) | Version changelog (v1.0.0 ~ v1.5.0) |
+| **AI Rules** | |
+| [CLAUDE.md](./CLAUDE.md) | **Single source of truth**: architecture, build commands, deployment rules, code conventions |
+| [GEMINI.md](./GEMINI.md) | Redirects to CLAUDE.md (for Gemini CLI / Google AI) |
+| [AGENTS.md](./AGENTS.md) | Redirects to CLAUDE.md (for OpenAI / Copilot) |
+| **Project Docs** | |
+| [CHANGELOG.md](./CHANGELOG.md) | Version changelog (v1.0.0 ~ v1.5.1) |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | Contribution guide: how to submit workflows and lessons |
 | [README.en.md](./README.en.md) | English version of this README |
+| **domain/** | |
+| [domain/README.md](./domain/README.md) | Domain knowledge catalog (AI workflow SOPs) |
+| [domain/lessons.md](./domain/lessons.md) | Development lessons learned (maintained by `/lessons` command) |
+| **docs/** | |
+| [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | Document directory structure guide |
+| [docs/MIGRATION_GUIDE.md](./docs/MIGRATION_GUIDE.md) | Unified build migration guide (required reading for upgraders) |
+| [docs/tools/](./docs/tools/) | MCP Tools API technical documentation |
+| [docs/workflows/](./docs/workflows/) | Workflow design documentation |
+| **scripts/** | |
+| [scripts/README.md](./scripts/README.md) | Installation script documentation |
 | **教材/** | |
 | [教材/README.md](./教材/README.md) | Course catalog (8 lessons × 3 hours) |
 | [教材/05-Skill遷移實戰篇.md](./教材/05-Skill遷移實戰篇.md) | Lesson 5: Migrating from domain/ to Agent Skill architecture |
-| **docs/** | |
-| [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | Document directory structure guide |
-| [docs/tools/](./docs/tools/) | MCP Tools API technical documentation |
-| [docs/workflows/](./docs/workflows/) | Workflow design documentation |
-| **domain/** | |
-| [domain/README.md](./domain/README.md) | Domain knowledge catalog (AI workflow SOPs) |
+| **Claude Code Automation** | |
+| [.claude/skills/](./.claude/skills/) | Claude Code skills (`/build-revit`, `/deploy-addon`) |
+| [.claude/commands/](./.claude/commands/) | Slash command definitions (`/lessons`, `/domain`, `/review`) |
 
 ---
 

@@ -7,8 +7,9 @@
 | 類型 | 目錄/檔案 | 說明 |
 |:----|:---------|:----|
 | ✅ **工作流程 SOP** | `domain/*.md` | 您驗證成功的工作流程 |
-| ✅ **經驗規則** | `GEMINI.md` 末尾 | 高階規則和避坑經驗 |
+| ✅ **經驗規則** | `domain/lessons.md` | 高階規則和避坑經驗（Append-only） |
 | ❌ 程式碼 | `MCP/`、`MCP-Server/src/` | 請勿修改（由維護者管理） |
+| ❌ AI 規範文件 | `CLAUDE.md`、`GEMINI.md`、`AGENTS.md` | 請勿修改（由維護者管理） |
 
 ## 📝 貢獻步驟
 
@@ -35,7 +36,7 @@ git checkout -b add/我的新workflow
 或
 
 ```
-/lessons 我發現了一個重要規則：XXX，請記錄到 GEMINI.md
+/lessons 我發現了一個重要規則：XXX，請記錄到 domain/lessons.md
 ```
 
 ### 4. 提交變更
@@ -43,7 +44,7 @@ git checkout -b add/我的新workflow
 ```bash
 git add domain/my-new-workflow.md
 # 或
-git add GEMINI.md
+git add domain/lessons.md
 
 git commit -m "新增: XXX 工作流程"
 git push origin add/我的新workflow

@@ -43,18 +43,18 @@
 
 > [!TIP]
 > ##  AI 協作指南 (AI Collaboration Guide)
-> 
+>
 > **開始協作前，請務必遵循以下規範：**
-> 
+>
 > 1. **人類開發者 (Human Developer)**：
->    - 請詳讀 [**GEMINI.md**](./GEMINI.md)，了解本專案對 AI 協作角色的定義與行為準則。
->    - 執行任務前，請確保 AI 了解 `GEMINI.md` 中的專案結構。
-> 
+>    - 請詳讀 [**CLAUDE.md**](./CLAUDE.md)，了解本專案的架構、建構指令、部署規則與程式碼慣例。
+>    - `GEMINI.md` 和 `AGENTS.md` 皆重定向至 `CLAUDE.md`，為專案唯一規範文件。
+>
 > 2. **AI 助手 (AI Assistant / Agent)**：
->    - **Context Loading**：啟動時必須載入 [**GEMINI.md**](./GEMINI.md) 以獲取專案地圖與技術指引。
+>    - **Context Loading**：啟動時必須載入 [**CLAUDE.md**](./CLAUDE.md) 以獲取專案地圖與技術指引。
 >    - **Workflow Compliance**：執行任務前，必須檢查 `domain/` 目錄下是否有定義好的工作流程（如上色任務）。
 >    - **Safety First**：所有 Revit 操作必須是可逆的，使用 Transaction 確保可復原。
-> 
+>
 > ---
 
 > [!CAUTION]
@@ -109,7 +109,6 @@ REVIT-MCP/
 │   ├── ConnectCommand.cs        # 連線命令
 │   ├── RevitMCP.addin           # Add-in 配置
 │   ├── RevitMCP.csproj          # 統一專案檔 (Revit 2022–2026, Nice3point SDK)
-│   ├── RevitMCP.2024.csproj     # 過渡期專案檔 (Revit 2024 only, 已棄用)
 │   ├── Core/                    # 核心功能
 │   │   ├── SocketService.cs     # WebSocket 服務
 │   │   ├── CommandExecutor.cs   # 命令執行器
@@ -1398,19 +1397,30 @@ MIT License
 
 | 文件 | 說明 |
 |:-----|:----|
-| [GEMINI.md](./GEMINI.md) | AI 助手 System Prompt：斜線指令、工作流程觸發規則、部署指南 |
-| [CLAUDE.md](./CLAUDE.md) | Claude Code 專案導覽：架構、建構指令、程式碼慣例 |
-| [CHANGELOG.md](./CHANGELOG.md) | 版本變更日誌（v1.0.0 ~ v1.5.0） |
+| **AI 規範** | |
+| [CLAUDE.md](./CLAUDE.md) | **專案唯一規範文件**：架構、建構指令、部署規則、程式碼慣例 |
+| [GEMINI.md](./GEMINI.md) | 重定向至 CLAUDE.md（供 Gemini CLI / Google AI 讀取） |
+| [AGENTS.md](./AGENTS.md) | 重定向至 CLAUDE.md（供 OpenAI / Copilot 讀取） |
+| **專案文件** | |
+| [CHANGELOG.md](./CHANGELOG.md) | 版本變更日誌（v1.0.0 ~ v1.5.1） |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | 貢獻指南：如何提交工作流程與經驗規則 |
 | [README.en.md](./README.en.md) | English version of this README |
+| **domain/** | |
+| [domain/README.md](./domain/README.md) | 領域知識目錄（AI 工作流程 SOP） |
+| [domain/lessons.md](./domain/lessons.md) | 開發經驗與避坑規則（由 `/lessons` 指令維護） |
+| **docs/** | |
+| [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | 文件目錄結構說明 |
+| [docs/MIGRATION_GUIDE.md](./docs/MIGRATION_GUIDE.md) | 統一建構遷移指南（舊版升級必讀） |
+| [docs/tools/](./docs/tools/) | MCP 工具 API 技術文件 |
+| [docs/workflows/](./docs/workflows/) | 工作流程設計文件 |
+| **scripts/** | |
+| [scripts/README.md](./scripts/README.md) | 安裝腳本使用說明 |
 | **教材/** | |
 | [教材/README.md](./教材/README.md) | 教材總目錄（8 堂課 × 3 小時） |
 | [教材/05-Skill遷移實戰篇.md](./教材/05-Skill遷移實戰篇.md) | 第五堂：從 domain/ 升級至 Agent Skill 架構 |
-| **docs/** | |
-| [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | 文件目錄結構說明 |
-| [docs/tools/](./docs/tools/) | MCP 工具 API 技術文件 |
-| [docs/workflows/](./docs/workflows/) | 工作流程設計文件 |
-| **domain/** | |
-| [domain/README.md](./domain/README.md) | 領域知識目錄（AI 工作流程 SOP） |
+| **Claude Code 自動化** | |
+| [.claude/skills/](./\.claude/skills/) | Claude Code 技能（`/build-revit`、`/deploy-addon`） |
+| [.claude/commands/](./\.claude/commands/) | 斜線指令定義（`/lessons`、`/domain`、`/review`） |
 
 ---
 

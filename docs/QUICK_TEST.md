@@ -8,7 +8,7 @@
 - 警告: 0 個
 - 錯誤: 0 個
 - 時間: 00:00:00.51
-- DLL: D:\David\BIM MCP\REVIT_MCP_study\MCP\bin\Release.2024\RevitMCP.dll
+- DLL: D:\David\BIM MCP\REVIT_MCP_study\MCP\bin\Release\RevitMCP.dll
 - 大小: 126 KB
 - 時間: 2026/1/13 上午 10:25:36
 ```
@@ -27,8 +27,8 @@ cd "d:\David\BIM MCP\REVIT_MCP_study"
 
 # 或手動複製
 $target = "$env:APPDATA\Autodesk\Revit\Addins\2024\RevitMCP"
-Copy-Item "MCP\bin\Release.2024\RevitMCP.dll" $target -Force
-Copy-Item "MCP\RevitMCP.2024.addin" $target -Force
+Copy-Item "MCP\bin\Release\RevitMCP.dll" $target -Force
+Copy-Item "MCP\RevitMCP.addin" $target -Force
 ```
 
 ### 步驟 2：啟動 Revit 並準備專案
