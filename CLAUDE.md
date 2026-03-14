@@ -92,6 +92,7 @@ npm run watch    # tsc --watch (development)
 |-------|-------|-------------|
 | `/build-revit` | `/build-revit`, `--version 2024`, `--all` | Build for one or all Revit versions |
 | `/deploy-addon` | `/deploy-addon`, `--version 2024` | Deploy DLL to correct AppData path (Windows only) |
+| `/qaqc` | `/qaqc` | 全面品質驗證（5 階段：結構→參照→設定→建構→部署） |
 
 > **Cross-version compatibility:** `MCP/Core/RevitCompatibility.cs` provides `GetIdValue()` and `ToElementId()` extension methods.
 > Revit 2025+ uses `ElementId` as `long`; 2022-2024 uses `int`. Use `REVIT2025_OR_GREATER` preprocessor symbol for conditional compilation.
@@ -176,7 +177,7 @@ All output to `bin\Release\RevitMCP.dll`. Each build overwrites the previous. De
 When adding new `IExternalCommand` in `Commands/` folder:
 1. Add ribbon button in `Application.OnStartup()` — isolated, won't break existing buttons
 2. Add case in `CommandExecutor.cs` switch block — existing cases unaffected
-3. Run `scripts/verify-installation.ps1` to validate no deployment issues
+3. Run `/qaqc` (or `scripts/verify-qaqc.ps1` on Windows) to validate no deployment issues
 4. Do NOT modify singleton initialization (`ConfigManager`, `ExternalEventManager`, `Logger`)
 5. Do NOT change WebSocket port (8964) without updating all config templates
 
