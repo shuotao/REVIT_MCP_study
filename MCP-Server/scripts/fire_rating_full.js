@@ -4,7 +4,7 @@
 import WebSocket from 'ws';
 import fs from 'fs';
 
-const ws = new WebSocket('ws://localhost:8964');
+const ws = new WebSocket('ws://localhost:11111');
 const log = [];
 
 const COLOR_MAP = {
@@ -14,7 +14,7 @@ const COLOR_MAP = {
     "UNSET": { r: 200, g: 0, b: 200, t: 50 }
 };
 
-const PARAM_NAMES = ["s_CW_防火防煙性能"];
+const PARAM_NAMES = ["s_CW_?�火?��??�能"];
 
 let viewId = null;
 let walls = [];
@@ -25,9 +25,9 @@ let dist = {};
 
 function getColor(val) {
     if (!val || val === "") return COLOR_MAP.UNSET;
-    if (val.includes("2") && val.includes("小時")) return COLOR_MAP["2HR"];
-    if (val.includes("1") && val.includes("小時")) return COLOR_MAP["1HR"];
-    if (val.includes("無") || val === "0" || val === "-") return COLOR_MAP.NONE;
+    if (val.includes("2") && val.includes("小�?")) return COLOR_MAP["2HR"];
+    if (val.includes("1") && val.includes("小�?")) return COLOR_MAP["1HR"];
+    if (val.includes("??) || val === "0" || val === "-") return COLOR_MAP.NONE;
     return COLOR_MAP["1HR"]; // Has value, use yellow
 }
 
@@ -42,7 +42,7 @@ function output(msg) {
 
 ws.on('open', () => {
     output('=== Fire Rating Visualization ===');
-    output('Using parameter: s_CW_防火防煙性能');
+    output('Using parameter: s_CW_?�火?��??�能');
     send('get_active_view', {});
 });
 
@@ -67,7 +67,7 @@ ws.on('message', (data) => {
     else if (stage === 'get_info') {
         let val = "";
         if (res.Data.Parameters) {
-            const p = res.Data.Parameters.find(x => x.Name === "s_CW_防火防煙性能");
+            const p = res.Data.Parameters.find(x => x.Name === "s_CW_?�火?��??�能");
             if (p && p.Value) val = p.Value.trim();
         }
 
@@ -129,3 +129,4 @@ function finish() {
 ws.on('error', (e) => console.error('Error:', e.message));
 ws.on('close', () => process.exit(0));
 setTimeout(() => { output('Timeout'); finish(); }, 300000);
+

@@ -98,7 +98,7 @@ async function main() {
   await server.connect(transport);
 
   console.error("MCP Server Started");
-  console.error("Socket Server listening on 8964");
+  console.error("Socket Server listening on 11111");
 
   // 處理優雅退出
   const shutdown = async () => {

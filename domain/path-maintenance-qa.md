@@ -2,7 +2,7 @@
 
 > 專案目錄重構後的維護指南
 
-##  背景
+## 📋 背景
 
 2024-12-17 專案進行目錄重構：
 - **舊結構**：`MCP/MCP/` (雙層嵌套)
@@ -12,7 +12,7 @@
 
 ---
 
-##  路徑檢查清單
+## 🔍 路徑檢查清單
 
 ### 需要檢查的檔案類型
 
@@ -42,7 +42,7 @@ grep -r "cd.*MCP.*MCP" --include="*.md"
 
 ---
 
-##  容易遺漏的位置
+## ⚠️ 容易遺漏的位置
 
 ### 1. 專案結構樹狀圖
 
@@ -51,14 +51,14 @@ grep -r "cd.*MCP.*MCP" --include="*.md"
 **錯誤範例**：
 ```
 ├── MCP/                    # Revit Add-in (C#)
-│   └── MCP/                #  這是錯的！
+│   └── MCP/                # ❌ 這是錯的！
 │       ├── Application.cs
 ```
 
 **正確範例**：
 ```
 ├── MCP/                    # Revit Add-in (C#)
-│   ├── Application.cs      #  直接在 MCP/ 下
+│   ├── Application.cs      # ✅ 直接在 MCP/ 下
 │   ├── RevitMCP.csproj
 ```
 
@@ -152,15 +152,13 @@ $git = "C:\Users\01102088\AppData\Local\Programs\Git\cmd\git.exe"
 
 ## 📊 Revit 版本與建置路徑對照
 
-| Revit 版本 | .csproj 檔案 | 建構組態 | 輸出路徑 | 警告數 |
-|:---|:---|:---|:---|:---:|
-| 2022 | `MCP\RevitMCP.csproj` | `Release.R22` | `MCP\bin\Release\` | 0 |
-| 2023 | `MCP\RevitMCP.csproj` | `Release.R23` | `MCP\bin\Release\` | 0 |
-| 2024 | `MCP\RevitMCP.csproj` | `Release.R24` | `MCP\bin\Release\` | 56 |
-| 2025 | `MCP\RevitMCP.csproj` | `Release.R25` | `MCP\bin\Release\` | 0 |
-| 2026 | `MCP\RevitMCP.csproj` | `Release.R26` | `MCP\bin\Release\` | 0 |
+| Revit 版本 | .csproj 檔案 | 輸出路徑 | 警告數 |
+|:---|:---|:---|:---:|
+| 2022 | `MCP\RevitMCP.csproj` | `MCP\bin\Release\` | 0 |
+| 2023 | `MCP\RevitMCP.csproj` | `MCP\bin\Release\` | 0 |
+| 2024 | `MCP\RevitMCP.2024.csproj` | `MCP\bin\Release.2024\` | 56 |
 
-> **注意**：所有版本統一使用 `RevitMCP.csproj`（Nice3point.Revit.Sdk）。Revit 2024 的 56 個警告是正常的（使用 2022 相容 API），不影響功能。
+> **注意**：Revit 2024 的 56 個警告是正常的（使用 Revit 2022 相容 API），不影響功能。
 
 ---
 

@@ -1,10 +1,10 @@
 import { RevitSocketClient } from '../build/socket.js';
 
 async function listRoomsByLevel() {
-    const client = new RevitSocketClient('localhost', 8964);
+    const client = new RevitSocketClient('localhost', 11111);
 
     try {
-        console.log('🔌 Connecting to Revit...');
+        console.log('?? Connecting to Revit...');
         await client.connect();
 
         // 1. Get all levels first
@@ -14,11 +14,11 @@ async function listRoomsByLevel() {
         }
 
         const levels = levelsRes.data.Levels;
-        console.log(`✅ Found ${levels.length} levels. detailed Querying rooms...`);
+        console.log(`??Found ${levels.length} levels. detailed Querying rooms...`);
 
         // 2. Query rooms for each level
         for (const level of levels) {
-            console.log(`\n🏗️  Level: ${level.Name} (Elev: ${level.Elevation}mm)`);
+            console.log(`\n??�? Level: ${level.Name} (Elev: ${level.Elevation}mm)`);
 
             const roomRes = await client.sendCommand('get_rooms_by_level', {
                 level: level.Name,
@@ -29,9 +29,9 @@ async function listRoomsByLevel() {
                 const data = roomRes.data;
 
                 if (data.TotalRooms === 0) {
-                    console.log('   ℹ️  No rooms found.');
+                    console.log('   ?��?  No rooms found.');
                 } else {
-                    console.log(`   📊 Total: ${data.TotalRooms} rooms, ${data.TotalArea} m²`);
+                    console.log(`   ?? Total: ${data.TotalRooms} rooms, ${data.TotalArea} m²`);
                     console.log('   ---------------------------------------------------------');
                     console.log('   | Number | Name                | Area (m²) | Status      |');
                     console.log('   ---------------------------------------------------------');
@@ -48,15 +48,15 @@ async function listRoomsByLevel() {
                     console.log('   ---------------------------------------------------------');
                 }
             } else {
-                console.error(`   ❌ Failed to query rooms: ${roomRes.error}`);
+                console.error(`   ??Failed to query rooms: ${roomRes.error}`);
             }
         }
 
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('??Error:', error);
     } finally {
         client.disconnect();
-        console.log('\n🔌 Disconnected');
+        console.log('\n?? Disconnected');
         process.exit(0);
     }
 }
@@ -69,3 +69,4 @@ function pad(str, len) {
 }
 
 listRoomsByLevel();
+

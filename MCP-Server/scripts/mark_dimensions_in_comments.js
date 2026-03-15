@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import fs from 'fs';
 
 const REPORT_PATH = 'C:\\Users\\david\\.gemini\\antigravity\\brain\\cbe6d689-b5d7-4aac-8262-959083dd8c3b\\exterior_wall_check.json';
-const PORT = 8964;
+const PORT = 11111;
 
 function sendCommand(ws, name, args) {
     return new Promise((resolve, reject) => {
@@ -132,3 +132,4 @@ async function markDimensions() {
 }
 
 markDimensions();
+

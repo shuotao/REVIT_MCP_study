@@ -207,6 +207,18 @@ namespace RevitMCP.Core
                     case "rejoin_wall_joins":
                         result = RejoinWallJoins(parameters);
                         break;
+                        
+                    case "get_selected_elements":
+                        result = GetSelectedElements();
+                        break;
+                        
+                    case "get_connector_info":
+                        result = GetConnectorInfo(parameters);
+                        break;
+                        
+                    case "add_pipe_cap":
+                        result = AddPipeCap(parameters);
+                        break;
                     
                     case "check_exterior_wall_openings":
                         result = CheckExteriorWallOpenings(parameters);
@@ -218,6 +230,10 @@ namespace RevitMCP.Core
 
                     case "get_view_templates":
                         result = GetViewTemplates(parameters);
+                        break;
+
+                    case "create_view_schedule":
+                        result = CreateViewSchedule(parameters);
                         break;
 
                     default:
@@ -2544,7 +2560,7 @@ namespace RevitMCP.Core
             };
         }
 
-        #endregion
+#endregion
 
         #region 視圖樣版查詢
 
@@ -2687,7 +2703,7 @@ namespace RevitMCP.Core
             };
         }
 
-        #endregion
+#endregion
 
         #region 外牆開口檢討
 
@@ -2970,9 +2986,204 @@ namespace RevitMCP.Core
             view.SetElementOverrides(openingId, overrideSettings);
         }
 
-        #endregion
+#endregion
+
+        /// <summary>
+        /// 取得目前選取的元素
+        /// </summary>
+        private object GetSelectedElements()
+        {
+            UIDocument uiDoc = _uiApp.ActiveUIDocument;
+            Document doc = uiDoc.Document;
+            var selection = uiDoc.Selection.GetElementIds();
+
+            var elements = selection.Select(id => {
+                Element e = doc.GetElement(id);
+                return new {
+                    Id = e.Id.Value,
+                    Name = e.Name,
+                    Category = e.Category?.Name ?? "Unknown"
+                };
+            }).ToList();
+
+            return new {
+                Count = elements.Count,
+                Elements = elements
+            };
+        }
+
+        /// <summary>
+        /// 取得元素的接頭資訊
+        /// </summary>
+        private object GetConnectorInfo(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            long elementIdValue = parameters["elementId"]?.Value<long>() ?? 0;
+            Element element = doc.GetElement(new ElementId(elementIdValue));
+
+            if (element == null) throw new Exception("找不到元素");
+
+            ConnectorSet connectors = null;
+            if (element is MEPCurve curve) connectors = curve.ConnectorManager.Connectors;
+            else if (element is FamilyInstance fi) connectors = fi.MEPModel?.ConnectorManager?.Connectors;
+
+            if (connectors == null) return new { Message = "此元素沒有接頭資訊" };
+
+            var connectorList = new List<object>();
+            foreach (Connector conn in connectors)
+            {
+                connectorList.Add(new {
+                    ConnectorId = conn.Id,
+                    Type = conn.ConnectorType.ToString(),
+                    Origin = new { X = Math.Round(conn.Origin.X * 304.8, 2), Y = Math.Round(conn.Origin.Y * 304.8, 2), Z = Math.Round(conn.Origin.Z * 304.8, 2) },
+                    IsConnected = conn.IsConnected,
+                    Shape = conn.Shape.ToString(),
+                    Description = conn.Description
+                });
+            }
+
+            return new {
+                ElementId = element.Id.Value,
+                ElementName = element.Name,
+                ConnectorCount = connectorList.Count,
+                Connectors = connectorList
+            };
+        }
+
+        /// <summary>
+        /// 在管端安裝管帽/法蘭
+        /// </summary>
+        private object AddPipeCap(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            long pipeIdValue = parameters["pipeId"]?.Value<long>() ?? 0;
+            string familyName = parameters["familyName"]?.Value<string>();
+
+            Element pipe = doc.GetElement(new ElementId(pipeIdValue));
+            if (pipe == null) throw new Exception("找不到管件");
+
+            using (Transaction trans = new Transaction(doc, "安裝管帽"))
+            {
+                trans.Start();
+
+                // 取得法蘭類型
+                FamilySymbol symbol = new FilteredElementCollector(doc)
+                    .OfClass(typeof(FamilySymbol))
+                    .Cast<FamilySymbol>()
+                    .FirstOrDefault(s => s.Name == familyName || s.FamilyName == familyName);
+
+                if (symbol == null) throw new Exception($"找不到族群類型: {familyName}");
+                if (!symbol.IsActive) symbol.Activate();
+
+                // 尋找未連線的接頭
+                Connector openConnector = null;
+                ConnectorManager cm = (pipe as MEPCurve)?.ConnectorManager;
+                if (cm != null)
+                {
+                    foreach (Connector conn in cm.Connectors)
+                    {
+                        if (!conn.IsConnected)
+                        {
+                            openConnector = conn;
+                            break;
+                        }
+                    }
+                }
+
+                if (openConnector == null) throw new Exception("管件沒有可用的未連線接頭");
+
+                // 安裝法蘭 (使用 Lesson L-004 的推薦方法)
+                FamilyInstance instance = doc.Create.NewFamilyInstance(openConnector.Origin, symbol, Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
+
+                // 嘗試將法蘭的接頭與管件的接頭相連
+                try {
+                    ConnectorManager fiCm = instance.MEPModel?.ConnectorManager;
+                    if (fiCm != null) {
+                        foreach (Connector conn in fiCm.Connectors) {
+                            if (!conn.IsConnected && conn.Origin.DistanceTo(openConnector.Origin) < 0.1) {
+                                conn.ConnectTo(openConnector);
+                                break;
+                            }
+                        }
+                    }
+                } catch { }
+                
+                // 自動對齊尺寸
+                double diameter = 0;
+                try { diameter = openConnector.Radius * 2; } catch { }
+                if (diameter > 0)
+                {
+                    Parameter sizeParam = instance.LookupParameter("Nominal Diameter") ?? instance.LookupParameter("Size");
+                    if (sizeParam != null && !sizeParam.IsReadOnly)
+                    {
+                        sizeParam.Set(diameter);
+                    }
+                }
+
+                trans.Commit();
+
+                return new {
+                    Success = true,
+                    ElementId = instance.Id.Value,
+                    Message = $"成功在 {pipe.Name} 安裝 {symbol.Name}"
+                };
+            }
+        }
+        /// <summary>
+        /// 建立視圖明細表
+        /// </summary>
+        private object CreateViewSchedule(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            string scheduleName = parameters["name"]?.Value<string>() ?? "MCP製作的明細表";
+            string categoryName = parameters["category"]?.Value<string>();
+            var fieldNames = parameters["fields"]?.ToObject<List<string>>() ?? new List<string>();
+
+            using (Transaction trans = new Transaction(doc, "建立明細表"))
+            {
+                trans.Start();
+
+                ElementId categoryId = ElementId.InvalidElementId; // 預設為多重品類
+                if (!string.IsNullOrEmpty(categoryName))
+                {
+                    // 嘗試尋找品類
+                    foreach (Category cat in doc.Settings.Categories)
+                    {
+                        if (cat.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            categoryId = cat.Id;
+                            break;
+                        }
+                    }
+                }
+
+                // 建立明細表
+                ViewSchedule schedule = ViewSchedule.CreateSchedule(doc, categoryId);
+                try { schedule.Name = scheduleName; } catch { /* 名稱重複時 Revit 會自動處理或報錯，此處簡單忽略或附加 ID */ }
+
+                // 增加欄位
+                var schedulableFields = schedule.Definition.GetSchedulableFields();
+                foreach (string fieldName in fieldNames)
+                {
+                    var sf = schedulableFields.FirstOrDefault(f => f.GetName(doc).Equals(fieldName, StringComparison.OrdinalIgnoreCase));
+                    if (sf != null)
+                    {
+                        schedule.Definition.AddField(sf);
+                    }
+                }
+
+                trans.Commit();
+
+                return new
+                {
+                    ElementId = schedule.Id.GetIdValue(),
+                    Name = schedule.Name,
+                    FieldCount = schedule.Definition.GetFieldCount(),
+                    Message = $"成功建立明細表: {schedule.Name}"
+                };
+            }
+        }
     }
 }
-
 
 

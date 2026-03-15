@@ -1,0 +1,19 @@
+=== Fire Rating Visualization ===
+Using parameter: s_CW_防火防煙性能
+View: 平面図_01_部屋チェック図_2階
+Walls found: 40
+
+=== DISTRIBUTION ===
+  (empty): 34 walls
+  1: 3 walls
+  2: 3 walls
+
+Applied colors to 40 walls
+
+=== COLOR LEGEND ===
+  GREEN  = 2HR
+  YELLOW = 1HR or has value
+  BLUE   = No rating
+  PURPLE = Empty
+
+=== DONE ===

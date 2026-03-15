@@ -5,7 +5,7 @@
 import WebSocket from 'ws';
 import fs from 'fs';
 
-const ws = new WebSocket('ws://localhost:8964');
+const ws = new WebSocket('ws://localhost:11111');
 const log = [];
 
 const COLOR_MAP = {
@@ -15,7 +15,7 @@ const COLOR_MAP = {
     "UNSET": { r: 200, g: 0, b: 200, t: 50 }
 };
 
-const PARAM_NAME = "s_CW_防火防煙性能";
+const PARAM_NAME = "s_CW_?�火?��??�能";
 
 let viewId = null;
 let wallIds = [];
@@ -26,9 +26,9 @@ let dist = {};
 
 function getColor(val) {
     if (!val || val === "") return COLOR_MAP.UNSET;
-    if (val === "2" || (val.includes("2") && val.includes("小時"))) return COLOR_MAP["2HR"];
-    if (val === "1" || (val.includes("1") && val.includes("小時"))) return COLOR_MAP["1HR"];
-    if (val.includes("無") || val === "0") return COLOR_MAP.NONE;
+    if (val === "2" || (val.includes("2") && val.includes("小�?"))) return COLOR_MAP["2HR"];
+    if (val === "1" || (val.includes("1") && val.includes("小�?"))) return COLOR_MAP["1HR"];
+    if (val.includes("??) || val === "0") return COLOR_MAP.NONE;
     return COLOR_MAP["1HR"];
 }
 
@@ -147,3 +147,4 @@ function finish() {
 ws.on('error', (e) => console.error('Error:', e.message));
 ws.on('close', () => process.exit(0));
 setTimeout(() => { output('Timeout'); finish(); }, 300000);
+

@@ -1,6 +1,6 @@
 @echo off
 rem ============================================
-rem run_mcp_server.bat - MCP Server å•Ÿå‹•è…³æœ¬
+rem run_mcp_server.bat - MCP Server ?Ÿå??³æœ¬
 rem ============================================
 
 echo ==============================
@@ -49,7 +49,8 @@ rem Start MCP Server
 echo ==============================
 echo Step 3/3: npm start
 echo ==============================
-echo MCP Server will run on ws://localhost:8964
+echo MCP Server will run on ws://localhost:11111
 echo Press Ctrl+C to stop
 echo.
 npm start
+

@@ -21,11 +21,11 @@ export interface RevitResponse {
 export class RevitSocketClient {
     private ws: WebSocket | null = null;
     private host: string = 'localhost';
-    private port: number = 8964;
+    private port: number = 11111;
     private reconnectInterval: number = 5000; // 5 seconds
     private responseHandlers: Map<string, (response: RevitResponse) => void> = new Map();
 
-    constructor(host: string = 'localhost', port: number = 8964) {
+    constructor(host: string = 'localhost', port: number = 11111) {
         this.host = host;
         this.port = port;
     }

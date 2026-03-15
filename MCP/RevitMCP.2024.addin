@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>Revit MCP Plugin</Name>
+    <Assembly>RevitMCP\RevitMCP.dll</Assembly>
+    <FullClassName>RevitMCP.Application</FullClassName>
+    <ClientId>090a4c8c-61dc-426d-87df-e4bae0f80ec1</ClientId>
+    <VendorId>revit-mcp</VendorId>
+    <VendorDescription>MCP Connection for Revit</VendorDescription>
+  </AddIn>
+</RevitAddIns>

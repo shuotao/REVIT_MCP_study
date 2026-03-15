@@ -11,17 +11,17 @@ namespace RevitMCP.Configuration
         /// <summary>
         /// 設定檔格式版本（用於偵測舊版設定檔並自動修正）
         /// </summary>
-        public int ConfigVersion { get; set; } = 2;
+        public int ConfigVersion { get; set; } = 3;
 
         /// <summary>
         /// 目前設定檔格式版本號
         /// </summary>
-        public static int CurrentConfigVersion => 2;
+        public static int CurrentConfigVersion => 3;
 
         /// <summary>
         /// 預設 WebSocket 埠號
         /// </summary>
-        public const int DefaultPort = 8964;
+        public const int DefaultPort = 11111;
 
         /// <summary>
         /// WebSocket 伺服器主機位址

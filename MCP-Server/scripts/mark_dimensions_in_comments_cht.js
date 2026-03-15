@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import fs from 'fs';
 
 const REPORT_PATH = 'C:\\Users\\david\\.gemini\\antigravity\\brain\\cbe6d689-b5d7-4aac-8262-959083dd8c3b\\exterior_wall_check.json';
-const PORT = 8964;
+const PORT = 11111;
 
 function sendCommand(ws, name, args) {
     return new Promise((resolve, reject) => {
@@ -51,7 +51,7 @@ async function markDimensions() {
         console.log('Connected to Revit.');
         try {
             let count = 0;
-            console.log('Writing dimensions to "備註" parameter...');
+            console.log('Writing dimensions to "?�註" parameter...');
 
             // Limit for testing
             const LIMIT = 20;
@@ -72,10 +72,10 @@ async function markDimensions() {
 
                     console.log(`Marking ID: ${id} with "${comment}"`);
 
-                    // Try '備註'
+                    // Try '?�註'
                     const res = await sendCommand(ws, 'modify_element_parameter', {
                         elementId: id,
-                        parameterName: '備註',
+                        parameterName: '?�註',
                         value: comment
                     });
 
@@ -99,3 +99,4 @@ async function markDimensions() {
 }
 
 markDimensions();
+

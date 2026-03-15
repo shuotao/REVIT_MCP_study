@@ -12,13 +12,13 @@ const TARGET_WIDTH_MM = 1200;
 const TARGET_WIDTH_FEET = TARGET_WIDTH_MM * MM_TO_FEET;
 
 async function autoFixDaylight() {
-    const client = new RevitSocketClient('localhost', 8964);
+    const client = new RevitSocketClient('localhost', 11111);
 
     try {
-        console.log('🔌 Connecting to Revit...');
+        console.log('?? Connecting to Revit...');
         await client.connect();
 
-        console.log('🔍 Getting Room Info...');
+        console.log('?? Getting Room Info...');
         const res = await client.sendCommand('get_room_daylight_info', {});
         if (!res.success) throw new Error(res.error);
 
@@ -28,7 +28,7 @@ async function autoFixDaylight() {
         for (const room of rooms) {
             // 1. Check Compliance
             // Simple check logic (same as check_daylight_area.js)
-            const isSchool = ["教室", "Classroom"].some(k => room.Name.includes(k));
+            const isSchool = ["?�室", "Classroom"].some(k => room.Name.includes(k));
             const reqRatio = isSchool ? REQ_RATIO.SCHOOL : REQ_RATIO.RESIDENTIAL;
 
             let totalEffArea = 0;
@@ -37,7 +37,7 @@ async function autoFixDaylight() {
                     if (op.IsExterior) {
                         // Simplified calc for check
                         let factor = 1.0;
-                        if (op.FamilyName.includes("天窗")) factor = 3.0;
+                        if (op.FamilyName.includes("天�?")) factor = 3.0;
 
                         // Effective height logic (simplified)
                         // Assuming most windows comply with height rule for now or just using raw for quick check
@@ -58,7 +58,7 @@ async function autoFixDaylight() {
             const currentRatio = room.Area > 0 ? (totalEffArea / room.Area) : 0;
 
             if (currentRatio < reqRatio) {
-                console.log(`\n❌ Found Failing Room: ${room.Name} (ID: ${room.ElementId})`);
+                console.log(`\n??Found Failing Room: ${room.Name} (ID: ${room.ElementId})`);
                 console.log(`   Deficit: ${(reqArea - totalEffArea).toFixed(2)} m²`);
                 console.log(`   Attempting to widen windows to ${TARGET_WIDTH_MM}mm...`);
 
@@ -88,7 +88,7 @@ async function autoFixDaylight() {
                         });
 
                         if (paramRes.success) {
-                            console.log(`     ✅ Changed 'Width' to ${TARGET_WIDTH_MM}mm`);
+                            console.log(`     ??Changed 'Width' to ${TARGET_WIDTH_MM}mm`);
                             modifiedCount++;
                         } else {
                             // Try "寬度"
@@ -98,20 +98,20 @@ async function autoFixDaylight() {
                                 value: TARGET_WIDTH_FEET.toString()
                             });
                             if (paramRes2.success) {
-                                console.log(`     ✅ Changed '寬度' to ${TARGET_WIDTH_MM}mm`);
+                                console.log(`     ??Changed '寬度' to ${TARGET_WIDTH_MM}mm`);
                                 modifiedCount++;
                             } else {
-                                console.log(`     ⚠️ Failed to modify width. Parameter might be Read-Only (Type Parameter?)`);
+                                console.log(`     ?��? Failed to modify width. Parameter might be Read-Only (Type Parameter?)`);
                             }
                         }
                     } catch (err) {
-                        console.log(`     ❌ Error modifying window: ${err.message}`);
+                        console.log(`     ??Error modifying window: ${err.message}`);
                     }
                 }
             }
         }
 
-        console.log(`\n✨ Auto-fix complete. Modified ${modifiedCount} windows.`);
+        console.log(`\n??Auto-fix complete. Modified ${modifiedCount} windows.`);
         console.log(`   Please re-run 'node scripts/check_daylight_area.js' to verify.`);
 
     } catch (err) {
@@ -122,3 +122,4 @@ async function autoFixDaylight() {
 }
 
 autoFixDaylight();
+

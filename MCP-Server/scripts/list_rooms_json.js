@@ -1,7 +1,7 @@
 import { RevitSocketClient } from '../build/socket.js';
 
 async function listRoomsByLevelJson() {
-    const client = new RevitSocketClient('localhost', 8964);
+    const client = new RevitSocketClient('localhost', 11111);
 
     try {
         await client.connect();
@@ -50,3 +50,4 @@ async function listRoomsByLevelJson() {
 }
 
 listRoomsByLevelJson();
+

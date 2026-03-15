@@ -19,7 +19,7 @@ tags: [QA, 品質, 檢查, 驗證]
 
 ---
 
-##  檢查項目
+## ✅ 檢查項目
 
 ### 1. Markdown 連結檢查
 
@@ -98,21 +98,21 @@ grep -r "\.(png|jpg|gif|svg)" --include="*.md"
 
 ---
 
-##  快速檢查命令
+## 📋 快速檢查命令
 
 一行執行所有基本檢查：
 
 ```bash
 echo "=== Markdown 連結 ===" && \
-grep -roh '\./[^)]*\.md' *.md 2>/dev/null | sort -u | while read f; do [ ! -f "$f" ] && echo " 缺少: $f"; done && \
+grep -roh '\./[^)]*\.md' *.md 2>/dev/null | sort -u | while read f; do [ ! -f "$f" ] && echo "❌ 缺少: $f"; done && \
 echo "=== domain/ 引用 ===" && \
-grep -roh 'domain/[a-zA-Z0-9_/-]*\.md' . --include="*.md" 2>/dev/null | sort -u | while read f; do [ ! -f "$f" ] && echo " 缺少: $f"; done && \
+grep -roh 'domain/[a-zA-Z0-9_/-]*\.md' . --include="*.md" 2>/dev/null | sort -u | while read f; do [ ! -f "$f" ] && echo "❌ 缺少: $f"; done && \
 echo "=== 檢查完成 ==="
 ```
 
 ---
 
-##  常見問題
+## ❌ 常見問題
 
 | 問題 | 原因 | 解決方案 |
 |-----|------|---------|
@@ -122,7 +122,7 @@ echo "=== 檢查完成 ==="
 
 ---
 
-##  執行頻率
+## 🔄 執行頻率
 
 | 情境 | 頻率 |
 |-----|------|

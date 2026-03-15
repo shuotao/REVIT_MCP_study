@@ -3,7 +3,7 @@
  */
 import WebSocket from 'ws';
 
-const ws = new WebSocket('ws://localhost:8964');
+const ws = new WebSocket('ws://localhost:11111');
 
 let wallIds = [];
 let viewId = null;
@@ -42,3 +42,4 @@ ws.on('message', (data) => {
 ws.on('error', (e) => console.error('Error:', e.message));
 ws.on('close', () => process.exit(0));
 setTimeout(() => { ws.close(); }, 30000);
+

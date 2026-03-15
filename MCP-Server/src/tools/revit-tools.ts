@@ -867,6 +867,30 @@ export function registerRevitTools(): Tool[] {
                 },
             },
         },
+        // 38. 建立視圖明細表
+        {
+            name: "create_view_schedule",
+            description: "在 Revit 中建立一個新的視圖明細表（Schedule/Quantities）。可以指定名稱、品類以及要包含的欄位。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    name: {
+                        type: "string",
+                        description: "明細表名稱（如：'MCP製作的明細表'）",
+                    },
+                    category: {
+                        type: "string",
+                        description: "品類名稱（如：'Walls', 'Rooms'），若不指定則預設為多重品類",
+                    },
+                    fields: {
+                        type: "array",
+                        items: { type: "string" },
+                        description: "要包含在明細表中的欄位名稱列表（需匹配 Revit 中的參數名稱，如：'Family', 'Type', 'Area', '族群', '類型', '面積'）",
+                    },
+                },
+                required: ["name"],
+            },
+        },
     ];
 }
 

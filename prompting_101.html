@@ -1,0 +1,2436 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Workspace Gemini 提示工程指南 - Codelabs 教學</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Google Sans', 'Roboto', 'Noto Sans TC', sans-serif;
+            line-height: 1.6;
+            color: #202124;
+            background: #f8f9fa;
+        }
+        
+        .header {
+            background: #1a73e8;
+            color: white;
+            padding: 20px;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 400;
+        }
+        
+        .container {
+            display: flex;
+            margin-top: 70px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: white;
+            position: fixed;
+            height: calc(100vh - 70px);
+            overflow-y: auto;
+            border-right: 1px solid #dadce0;
+            padding: 20px;
+        }
+        
+        .sidebar h2 {
+            font-size: 14px;
+            color: #5f6368;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+        }
+        
+        .sidebar li {
+            margin-bottom: 8px;
+        }
+        
+        .sidebar a {
+            text-decoration: none;
+            color: #5f6368;
+            display: block;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .sidebar a:hover {
+            background: #e8f0fe;
+            color: #1a73e8;
+        }
+        
+        .sidebar a.active {
+            background: #e8f0fe;
+            color: #1a73e8;
+            font-weight: 500;
+        }
+        
+        .main-content {
+            margin-left: 300px;
+            padding: 40px;
+            max-width: 900px;
+            background: white;
+            min-height: calc(100vh - 70px);
+        }
+        
+        /* Hide all steps by default except the first one */
+        .step {
+            display: none;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        .step h2 {
+            font-size: 32px;
+            color: #202124;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+        
+        .step h3 {
+            font-size: 24px;
+            color: #202124;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 400;
+        }
+        
+        .step h4 {
+            font-size: 18px;
+            color: #5f6368;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .step p {
+            margin-bottom: 16px;
+            color: #3c4043;
+            font-size: 16px;
+        }
+        
+        .step ul, .step ol {
+            margin-left: 30px;
+            margin-bottom: 16px;
+        }
+        
+        .step li {
+            margin-bottom: 8px;
+            color: #3c4043;
+        }
+        
+        .prompt-box {
+            background: #f1f3f4;
+            border-left: 4px solid #1a73e8;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .prompt-label {
+            display: inline-block;
+            background: #1a73e8;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .info-box {
+            background: #e8f0fe;
+            border-left: 4px solid #4285f4;
+            padding: 16px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .info-box h4 {
+            color: #1967d2;
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .warning-box {
+            background: #fef7e0;
+            border-left: 4px solid #f9ab00;
+            padding: 16px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .success-box {
+            background: #e6f4ea;
+            border-left: 4px solid #34a853;
+            padding: 16px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .image-placeholder {
+            background: #e8eaed;
+            border: 2px dashed #dadce0;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #5f6368;
+            font-style: italic;
+        }
+        
+        .component-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            margin: 4px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .tag-persona {
+            background: #fce8e6;
+            color: #c5221f;
+        }
+        
+        .tag-task {
+            background: #e8f0fe;
+            color: #1967d2;
+        }
+        
+        .tag-context {
+            background: #e6f4ea;
+            color: #137333;
+        }
+        
+        .tag-format {
+            background: #fef7e0;
+            color: #e37400;
+        }
+        
+        .step-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #dadce0;
+        }
+        
+        .nav-button {
+            background: #1a73e8;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.2s;
+        }
+        
+        .nav-button:hover {
+            background: #1557b0;
+        }
+        
+        .nav-button.secondary {
+            background: white;
+            color: #1a73e8;
+            border: 1px solid #dadce0;
+        }
+        
+        .nav-button.secondary:hover {
+            background: #f8f9fa;
+        }
+        
+        .progress-bar {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #e8eaed;
+            z-index: 999;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #34a853;
+            width: 100%; /* 11/11 steps - COMPLETE! */
+            transition: width 0.3s;
+        }
+        
+        code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+            color: #d73027;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dadce0;
+        }
+        
+        .feature-card h4 {
+            color: #1a73e8;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
+    </div>
+    
+    <header class="header">
+        <h1>🚀 Google Workspace Gemini 提示工程指南</h1>
+    </header>
+    
+    <div class="container">
+        <nav class="sidebar">
+            <h2>課程目錄</h2>
+            <ul>
+                <li><a href="#step1" class="active">1. 簡介與 Prompting 101</a></li>
+                <li><a href="#step2">2. 行政支援</a></li>
+                <li><a href="#step3">3. 溝通傳播</a></li>
+                <li><a href="#step4">4. 客戶服務</a></li>
+                <li><a href="#step5">5. 高階主管</a></li>
+                <li><a href="#step6">6. 一線管理</a></li>
+                <li><a href="#step7">7. 人力資源</a></li>
+                <li><a href="#step8">8. 行銷</a></li>
+                <li><a href="#step9">9. 專案管理</a></li>
+                <li><a href="#step10">10. 業務銷售</a></li>
+                <li><a href="#step11">11. 進階技巧</a></li>
+            </ul>
+        </nav>
+        
+        <main class="main-content">
+            <!-- Step 1: Introduction -->
+            <section class="step" id="step1">
+                <h2>步驟 1：簡介與 Prompting 101</h2>
+                
+                <div class="info-box">
+                    <h4>💡 學習目標</h4>
+                    <p>了解 Google Workspace with Gemini 的核心價值、工具生態系統，以及撰寫有效提示詞的基礎知識。</p>
+                </div>
+                
+                <h3>為所有人打造的實用 AI</h3>
+                <p>Google Workspace with Gemini 是一款專為實際工作場景設計的 AI 助手，而非空洞的炒作工具。無論你是面臨緊迫的截止日期、推出新產品、向客戶提案，還是與全球團隊保持聯繫，我們相信科技應該為你掃清障礙，而不是製造麻煩。</p>
+                
+                <p>20 多年來，Workspace 不僅僅是一套工具集，更是團隊創造、建設和共同成長的平台。我們已為超過 1,100 萬家企業（從創新創業公司到全球企業）提供支援，協助他們轉型工作方式。如今，隨著 AI 驅動的工作時代到來，我們為客戶創造的機會與幫助他們蓬勃發展的使命只會加速前進。</p>
+                
+                <div class="success-box">
+                    <p><strong>✅ 好消息：</strong>我們的進階 AI 功能已包含在 Workspace Business 和 Enterprise 方案中，讓每家企業都能使用內建於日常應用程式中的創新工具。</p>
+                </div>
+                
+                <h3>為你打造的工具：充分發揮 Google Workspace with Gemini 的潛力</h3>
+                <p>隨著 AI 重塑我們的世界，我們的重點更加明確：讓強大的技術真正有用且易於使用。Gemini 旨在提供協助，並在你熟悉且每天使用的 Google Workspace 應用程式中內建 AI 輔助功能，包括：</p>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>📧 Gmail</h4>
+                        <p>智慧撰寫、摘要與回覆</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📄 Docs</h4>
+                        <p>AI 輔助寫作與編輯</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📊 Sheets</h4>
+                        <p>資料分析與表格生成</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📽️ Slides</h4>
+                        <p>簡報內容快速生成</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🎥 Meet</h4>
+                        <p>會議筆記與摘要</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>💬 Chat</h4>
+                        <p>團隊協作增強</p>
+                    </div>
+                </div>
+                
+                <p>此外，還有 AI 優先工具，如 <strong>NotebookLM</strong>（你的 AI 研究夥伴）、<strong>Gemini app</strong>（gemini.google.com 的企業級聊天體驗）和 <strong>Google Vids</strong>（AI 影片製作工具）。</p>
+                
+                <h3>你可以透過多種方式存取 Workspace with Gemini 的功能</h3>
+                
+                <h4>1. 獨立應用程式：安全地進行腦力激盪、研究和草擬</h4>
+                <ul>
+                    <li><strong>Gemini app</strong>：從自由形式的腦力激盪無縫過渡到高度結構化的研究報告（使用 Deep Research 功能）。透過 Canvas 功能，你可以進入一個迭代式、協作式的空間，不斷優化 Gemini 的輸出，直到滿意為止。準備好後，可將作品匯出到 Doc 與他人協作。</li>
+                    <li><strong>NotebookLM</strong>：作為你的 AI 研究和思考夥伴，以你信任的資訊為基礎。你可以上傳各種檔案和媒體來建立自訂筆記本，並獲得精確的引用。從那裡，你可以加速學習和分析，建立簡報文件、音訊概覽、學習指南、互動式心智圖等等。</li>
+                    <li><strong>Google Vids</strong>：你的 AI 驅動影片寫作、製作和編輯助手，全部整合在一起。它可以幫助你建立引人注目的影片，用於示範、公司公告、培訓等，無需任何特殊專業知識。</li>
+                </ul>
+                
+                <h4>2. 直接內嵌於 Workspace 應用程式中</h4>
+                <p>你可以在 Workspace 應用程式中與 Gemini 互動，根據你自己的檔案和文件（即使它們不是 Google Docs）建立客製化的 AI 輸出。你可以在幾秒鐘內生成個人化的電子郵件，引用你自己的 Docs 來提取相關背景資訊，生成基於你自己的簡報或報告資訊的 Slides 等等。</p>
+                
+                <div class="warning-box">
+                    <h4>🔒 資料隱私與安全</h4>
+                    <p>25 年來，Google 一直致力於打造實用、安全的產品，讓使用者能夠選擇和控制自己的資料。這是我們的基石原則。你的資料屬於你，不屬於 Google。你的資料保留在你的 Workspace 環境中。你的隱私受到保護。你的內容永遠不會用於定向廣告，也不會用於訓練或改進 Gemini 或任何其他生成式 AI 模型，也不會被人工審查。</p>
+                </div>
+                
+                <h3>開始使用提示詞撰寫</h3>
+                <p>了解什麼是有效的提示詞，並學習即時撰寫提示詞，可以在使用 AI 時提升你的生產力和創造力。Gemini 可以幫助你：</p>
+                
+                <ul>
+                    <li>✨ 更有影響力地溝通</li>
+                    <li>🎨 實現你的創意願景</li>
+                    <li>📊 將複雜資訊轉化為清晰見解</li>
+                    <li>📚 加速學習和技能發展</li>
+                    <li>💼 讓每次會議都更有生產力和影響力</li>
+                    <li>🔍 輕鬆研究不熟悉的主題</li>
+                    <li>⚡ 簡化你的日常任務和工作流程</li>
+                </ul>
+                
+                <h3>Prompting 101：四個核心元素</h3>
+                <p>撰寫基本而有效的提示詞時，需要考慮四個主要領域：</p>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <span class="component-tag tag-persona">Persona 角色</span>
+                        <p>定義你的身份或 AI 應扮演的角色</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="component-tag tag-task">Task 任務</span>
+                        <p>明確說明你想要完成什麼</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="component-tag tag-context">Context 背景</span>
+                        <p>提供相關的背景資訊</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="component-tag tag-format">Format 格式</span>
+                        <p>指定輸出的格式</p>
+                    </div>
+                </div>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">範例提示詞</span><br><br>
+                    你是<span class="component-tag tag-persona">一位 [產業] 的專案經理</span>。<span class="component-tag tag-task">草擬一份執行摘要電子郵件</span>給<span class="component-tag tag-context">[角色]，基於 [相關專案文件的詳細資訊]</span>。<span class="component-tag tag-format">僅限使用條列式重點</span>。
+                </div>
+                
+                <div class="info-box">
+                    <h4>💡 提示</h4>
+                    <p>你不需要在每個提示詞中都使用全部四個元素，但使用其中幾個會有幫助！請務必在任務中包含動詞或指令；這是提示詞中最重要的部分。</p>
+                </div>
+                
+                <h3>六個快速入門技巧</h3>
+                
+                <ol>
+                    <li><strong>使用自然語言</strong>：如同與他人對話一樣書寫。用完整的句子表達完整的想法。</li>
+                    <li><strong>具體且迭代</strong>：告訴 Gemini 你需要它做什麼（摘要、撰寫、改變語氣、建立）。使用指示（引導模型應該做什麼或產生什麼的語言）和約束（對回應的一組限制或界限；它限制了模型應該避免什麼）來幫助引導輸出。</li>
+                    <li><strong>簡潔並避免複雜性</strong>：以簡短但具體的語言陳述你的請求。避免使用專業術語。</li>
+                    <li><strong>讓它成為對話</strong>：如果結果不符合你的期望，或者你認為還有改進空間，請微調你的提示詞。使用後續提示詞和迭代式的審查和優化過程來產生更好的結果。</li>
+                    <li><strong>使用你的文件</strong>：使用 Google Drive 中你自己檔案的資訊來個人化 Gemini 的輸出。</li>
+                    <li><strong>讓 Gemini 成為你的提示助手</strong>：使用 Gemini 根據情境建議的動作和提示詞。例如，在 Gmail 中開啟側邊面板，並選擇其中一個建議的下一步，例如：「顯示更長的摘要」或「有哪些行動項目？」</li>
+                </ol>
+                
+                <div class="warning-box">
+                    <h4>⚠️ 重要提醒</h4>
+                    <p>提示詞撰寫是我們都可以學習的技能。你不需要成為提示工程師才能使用生成式 AI。但是，如果第一次沒有得到你想要的結果，你可能需要嘗試幾種不同的方法來調整你的提示詞。</p>
+                    <p><br>生成式 AI 及其所有可能性都令人興奮，但它仍然是新技術。儘管我們的模型每天都在進步，但提示詞有時可能會產生不可預測的回應。在將 Gemini 的輸出付諸行動之前，請審查它以確保清晰、相關和準確。當然，請記住最重要的一點：<strong>生成式 AI 旨在協助人類，但最終輸出是你的</strong>。</p>
+                </div>
+                
+                <div class="step-navigation">
+                    <div></div>
+                    <a href="#step2" class="nav-button">下一步：行政支援 →</a>
+                </div>
+            </section>
+            
+            <!-- Step 2: Administrative Support -->
+            <section class="step" id="step2">
+                <h2>步驟 2：行政支援</h2>
+                
+                <div class="info-box">
+                    <h4>💡 學習目標</h4>
+                    <p>學習如何使用 Gemini 協助行政專業人員提高組織效率、管理多個收件匣、規劃商務旅行以及準備會議議程。</p>
+                </div>
+                
+                <h3>職位概述</h3>
+                <p>作為行政支援專業人員，你負責讓團隊保持在正軌上。你需要保持組織性和高效率——即使在壓力下——同時處理許多優先任務。</p>
+                
+                <p>本節為你提供簡單的方法，將提示詞整合到你的日常任務中。</p>
+                
+                <h3>入門指南</h3>
+                <p>首先，請查看第 2 頁的一般提示詞撰寫技巧和本指南開頭的 Prompting 101 章節。</p>
+                
+                <p>以下每個提示詞都附有場景說明，作為你如何與 Google Workspace with Gemini 協作的靈感來源。提示詞迭代範例展示了你如何撰寫後續提示詞，以在初始生成的回應基礎上進行擴展。</p>
+                
+                <h3>提示詞迭代範例：規劃議程（異地會議、會議等）</h3>
+                
+                <div class="info-box">
+                    <h4>📋 使用場景</h4>
+                    <p>你正在規劃一場為期三天的異地會議。為了建立議程，你與 Gemini app 進行腦力激盪。</p>
+                </div>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">初始提示詞</span><br><br>
+                    <span class="component-tag tag-persona">我是團隊總監的行政主管</span>。<span class="component-tag tag-context">我們新組建的團隊現在包括內容行銷人員、數位行銷人員和產品行銷人員。我們將首次在華盛頓特區舉行為期三天的異地會議</span>。<span class="component-tag tag-task">為每天規劃活動，包括團隊凝聚活動和更深入的策略工作時間</span>。<span class="component-tag tag-format">為我建立一個範例議程</span>。(Gemini app)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page7_img1.jpeg" alt="Gemini app 生成的議程範例" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>這是規劃的有用起點。你需要為團隊凝聚活動生成具體的想法。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">迭代提示詞 #1</span><br><br>
+                    建議三種不同的破冰活動，鼓勵人們了解隊友的偏好工作風格、優勢和目標。確保破冰想法引人入勝，並且可以由 25 人的團隊在 30 分鐘或更短時間內完成。(Gemini app)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page8_img1.jpeg" alt="Gemini app 生成的破冰活動建議" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>你對議程作為起點感到滿意。現在你想將 Gemini 的回應重新格式化為表格。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">迭代提示詞 #2</span><br><br>
+                    以表格格式組織此議程。為每天包含你建議的破冰活動之一。(Gemini app)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page8_img2.jpeg" alt="表格格式的議程" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page9_img1.jpeg" alt="表格格式議程的詳細內容" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>你選擇「匯出到 Docs」。你開啟新建立的 Doc。現在，你想使用 Google Drive 中的現有檔案引入策略會議的詳細摘要，以提供將討論內容的更多背景資訊。你在 Docs 中提示 Gemini，並透過輸入 <code>@檔案名稱</code> 來標記相關檔案。</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">在 Docs 中的提示詞</span><br><br>
+                    使用 @[2024 H2 Team Vision] 為此議程第 1 天的開場白生成摘要。(Gemini in Docs)
+                </div>
+                
+                <h3>實際應用範例</h3>
+                
+                <h4>行政主管與行政業務夥伴</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：管理多個電子郵件收件匣</h4>
+                    <p>度假回來後，你有很多未讀、未分類的電子郵件。你在 Gmail 側邊面板中提示 Gemini。</p>
+                </div>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    摘要來自 [經理] 上週的電子郵件。(Gemini in Gmail)
+                </div>
+                
+                <p>Gemini 會返回每封郵件的簡短摘要。要直接存取郵件，你可以點擊「來源」並查看將你帶到特定電子郵件的卡片。你選擇最重要的一個。郵件串展開後，你發現交換了許多訊息。你在 Gmail 中提示 Gemini：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    摘要此電子郵件串並列出所有行動項目和截止日期。(Gemini in Gmail)
+                </div>
+                
+                <p>你需要回覆一個問題，你認為最好由 Drive 中的文件來回答。你在 Gmail 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    生成對此電子郵件的回覆，並使用 @[檔案名稱] 來描述 [計劃] 如何補充 [同事姓名] 訊息中概述的工作流程。(Gemini in Gmail)
+                </div>
+                
+                <p>Gemini in Gmail 返回一封建議的電子郵件，直接從你自己的 Doc 中提取內容。閱讀後，你選擇側邊面板中的「複製」圖示，並將其直接貼到你的訊息中。</p>
+                
+                <h4>使用案例：規劃商務旅行</h4>
+                
+                <p>你的經理即將出城參加會議。你負責預訂旅行安排並建立個人化行程。你需要研究用餐地點。你與 Gemini app 進行腦力激盪。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是一名行政助理。我需要為在 [日期] 期間在 [地點] 的兩天商務旅行建立行程。我的經理住在 [飯店]。建議距離飯店步行 10 分鐘內的早餐和晚餐的不同選擇，並找到一個娛樂選項，例如電影院、當地藝術展或熱門旅遊景點。為我放入表格中。(Gemini app)
+                </div>
+                
+                <p>你繼續對話，直到對行程感到滿意。在預訂之前，你想與經理分享草稿。你選擇「分享與匯出」並選擇「在 Gmail 中草擬」。建立草擬的電子郵件後，你對訊息進行最後的修改並發送。</p>
+                
+                <h4>追蹤旅行和娛樂預算</h4>
+                
+                <p>你想建立一個試算表來追蹤所有產生的旅行費用。你開啟一個新的 Google Sheet，並在 Sheets 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    為商務旅行建立預算追蹤器。它應該包括以下欄位：日期、費用類型（餐飲、娛樂、交通）、供應商名稱和描述。(Gemini in Sheets)
+                </div>
+                
+                <p>Gemini 返回一個追蹤器，現在你可以準備輸入資料了。</p>
+                
+                <h4>使用案例：高階主管會議和簡報準備</h4>
+                
+                <p>你正在為臨時小組討論準備一位高階主管。你將活動簡介、最近相關的新聞剪輯以及高階主管關於該主題的過去演講要點上傳到 NotebookLM。</p>
+                
+                <p>只需按一下，你就可以快速生成簡明的簡報文件，幫助高階主管準備並保持主題一致。高階主管現在可以在小組討論之前，透過觀看使用「影片概覽」功能的回顧影片或生成並閱讀簡報文件來了解最新資訊。(NotebookLM)</p>
+                
+                <h4>使用案例：錯過的會議筆記</h4>
+                
+                <p>由於時間衝突，你錯過了跨職能同步會議。你開啟 Gemini in Meet 生成的會議摘要，你透過電子郵件收到了該摘要。開啟 Doc 後，你將其上傳到 NotebookLM 或 Gemini app，並選擇「音訊概覽」以存取 podcast 風格的引人入勝的摘要，幫助你快速了解情況。(NotebookLM)</p>
+                
+                <div class="step-navigation">
+                    <a href="#step1" class="nav-button secondary">← 上一步：簡介</a>
+                    <a href="#step3" class="nav-button">下一步：溝通傳播 →</a>
+                </div>
+            </section>
+            
+            <!-- Step 3: Communications -->
+            <section class="step" id="step3">
+                <h2>步驟 3：溝通傳播</h2>
+                
+                <div class="info-box">
+                    <h4>💡 學習目標</h4>
+                    <p>了解溝通專業人員如何使用 Gemini 建立新聞稿、準備分析師簡報、起草內部溝通以及建立模擬訪談問題。</p>
+                </div>
+                
+                <h3>職位概述</h3>
+                <p>作為溝通專業人員，你負責確保你的業務被大眾充分理解。你必須跟上趨勢，與許多利益相關者進行清晰有效的溝通，並建立引人注目的敘事。</p>
+                
+                <p>本節為你提供簡單的方法，將提示詞整合到你的日常任務中。</p>
+                
+                <h3>入門指南</h3>
+                <p>首先，請查看第 2 頁的一般提示詞撰寫技巧和本指南開頭的 Prompting 101 章節。</p>
+                
+                <p>以下每個提示詞都附有場景說明，作為你如何與 Google Workspace with Gemini 協作的靈感來源。提示詞迭代範例展示了你如何撰寫後續提示詞，以在初始生成的回應基礎上進行擴展。</p>
+                
+                <h3>提示詞迭代範例：建立新聞稿</h3>
+                
+                <div class="info-box">
+                    <h4>📋 使用場景</h4>
+                    <p>你負責個人護理行業一家公司的公共關係。你工作的公司剛剛收購了一個較小的品牌，你需要起草新聞稿。你已經完成了與公司 CEO、CFO 和被收購公司 CEO 的訪談。你已將所有最重要的引述儲存在一個 Doc 中。你還有一個 Doc，其中包含有關被收購品牌、其願景、如何開始以及統計資料的所有資訊。</p>
+                </div>
+                
+                <p>你開啟一個新的 Doc，在 Docs 側邊面板中提示 Gemini，並透過輸入 <code>@檔案名稱</code> 來引用相關檔案。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">初始提示詞</span><br><br>
+                    <span class="component-tag tag-persona">我是公關經理</span>。<span class="component-tag tag-task">我需要建立一份帶有吸引人標題的新聞稿</span>。<span class="component-tag tag-format">包括來自 <span class="component-tag tag-context">@[VIP Quotes Acquisition]</span> 的引述</span>。(Gemini in Docs)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page13_img1.jpeg" alt="Gemini in Docs 生成的新聞稿" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>現在你有了新聞稿的起點，但你想包含更多關於被收購品牌及其創始人的詳細資訊。這些資訊儲存在你的 Drive 中的另一個檔案中。在新聞稿 Doc 中，你在 Docs 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">迭代提示詞</span><br><br>
+                    使用 @[Biography and Mission Statement] 添加更多關於被收購公司、其使命以及如何開始的資訊。(Gemini in Docs)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page13_img3.jpeg" alt="Gemini in Docs 添加的公司資訊" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>生成的段落是一個很好的起點，所以你選擇「插入」將它們添加到你的草稿中，然後開始對新聞稿進行編輯。</p>
+                
+                <h3>實際應用範例</h3>
+                
+                <h4>分析師與公共關係</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：準備分析師或新聞簡報</h4>
+                    <p>你需要建立一份簡報，為新產品發布的即將到來的分析師和媒體會議準備發言人。</p>
+                </div>
+                
+                <p>你開啟一個新的 Doc，並在會自動出現的「使用 Gemini 撰寫」框中提示。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    為即將到來的 @[Product Launch] 媒體和分析師簡報建立簡報範本以準備發言人。包括摘要、關鍵訊息和支援資料的空間。(Gemini in Docs)
+                </div>
+                
+                <p>這為你提供了一個起點，可以從你的檔案中提取更多資訊。你在 Docs 側邊面板中提示 Gemini，並透過輸入 <code>@檔案名稱</code> 來標記相關檔案。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    使用 @[Product Launch - Notes] 以三個主要重點起草產品發布的摘要。(Gemini in Docs)
+                </div>
+                
+                <p>你點擊「插入」，然後重複這個過程來填寫簡報文件的其餘部分。接下來,你需要建立一個媒體和分析師聯絡人的試算表。你開啟一個新的 Google Sheet，並在 Sheets 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    從 @[Analyst and Journalist Contact Notes] 組織我的媒體和分析師聯絡人，用於新產品簡報。我需要追蹤他們的姓名、聯絡類型（分析師或記者）、關注領域、他們工作的媒體、代理機構或公司的名稱，以及一個我可以指示他們出席此簡報的優先順序（低、中、高）的地方。(Gemini in Sheets)
+                </div>
+                
+                <p>Gemini in Sheets 返回一個試算表，你可以逐一指示每個聯絡人的優先順序。</p>
+                
+                <p>接下來，你想建立一個在簡報期間使用的投影片。你開啟一個新的 Google Slide，並在 Slides 側邊面板中提示 Gemini。你透過在提示詞中輸入 <code>@檔案名稱</code> 來標記相關檔案。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    從 @[Product Launch - Notes] 建立一張描述 [產品] 是什麼的投影片。確保它簡短且易於被廣大受眾理解。(Gemini in Slides)
+                </div>
+                
+                <p>Gemini 返回一張投影片。你可以使用此方法繼續建立簡報，生成更多投影片。</p>
+                
+                <div class="info-box">
+                    <h4>💎 使用 Gems 升級</h4>
+                    <p>起草簡報文件後，你可以使用 Gem 來壓力測試你的演講要點。在側邊面板中建立一個 Gem，設計為扮演特定角色，例如「懷疑的科技記者」或「C 級高階主管」。你可以要求你的 Gem 審查你的簡報文件並生成具有挑戰性的問題，或識別訊息中的弱點，幫助你為發言人準備任何場景。</p>
+                </div>
+                
+                <h4>建立模擬訪談問題以準備發言人</h4>
+                
+                <p>現在，你需要為公司發言人準備簡報後的訪談。要生成模擬訪談問題清單，你決定與 Gemini app 聊天。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是 [公司名稱] 的 [PR/AR] 經理。我們剛剛推出了 [產品] 並舉行了一次簡報，我們討論了 [關鍵訊息]。我正在為 [發言人和角色/職稱] 準備訪談。生成模擬訪談問題清單以幫助 [發言人] 準備。包括簡單和困難問題的混合，有些詢問 [產品] 的基礎知識，有些詢問 [產品] 的長期願景。(Gemini app)
+                </div>
+                
+                <p>Gemini 返回一個可以幫助你準備公司發言人的問題清單。你透過繼續與 Gemini 對話來優化建議的問題。然後你選擇「分享與匯出」並「匯出到 Docs」。你開啟新建立的 Doc，在 Docs 側邊面板中提示 Gemini，並透過輸入 <code>@檔案名稱</code> 來標記相關檔案。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    使用 @[Product Launch Notes] 為這些問題撰寫建議的答案。就像你是 [公司] 的 [發言人職稱] 一樣撰寫演講要點。(Gemini in Docs)
+                </div>
+                
+                <p>Gemini in Docs 返回建議的演講要點，你選擇「插入」將它們添加到你的草稿中。現在你已準備好繼續調整你發言人的訪談準備。</p>
+                
+                <h4>溝通經理</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：起草內部溝通</h4>
+                    <p>你的公司重新設計了其內部網路，使其更加用戶友好。你負責發布的內部溝通。</p>
+                </div>
+                
+                <p>你想要幫助起草這則訊息。你開啟一個新的 Google Doc，並在「使用 Gemini 撰寫」框中提示。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我需要起草一份全公司備忘錄，揭曉我們重新啟動的內部網路。[新頁面] 解決了 [我們從員工那裡聽到的常見回饋]，旨在創造更加用戶友好的體驗。使用 @[Intranet Launch Plan Notes] 起草一份樂觀的備忘錄，宣布 [新網站]。(Gemini in Docs)
+                </div>
+                
+                <p>Gemini in Docs 返回一份草擬的備忘錄。你可以優化和編輯文字，使其完全符合你的需求。</p>
+                
+                <p>你還想在公告中加入一段簡短的影片。你開啟 Vids 並選擇「規劃你的影片故事」。然後你要求 Gemini 根據發布計劃筆記建立一個關於重新設計的內部網路的樂觀公告影片。選擇風格後，Vids 會建立一個包含建議場景、媒體、旁白和音樂的初稿影片，你可以進一步自訂。(Gemini in Vids)</p>
+                
+                <div class="step-navigation">
+                    <a href="#step2" class="nav-button secondary">← 上一步：行政支援</a>
+                    <a href="#step4" class="nav-button">下一步：客戶服務 →</a>
+                </div>
+            </section>
+            
+            <!-- Step 4: Customer Service -->
+            <section class="step" id="step4">
+                <h2>步驟 4：客戶服務</h2>
+                
+                <div class="info-box">
+                    <h4>💡 學習目標</h4>
+                    <p>學習如何使用 Gemini 協助客戶服務專業人員起草溝通內容、回應複雜問題、標準化溝通框架，以及改善客戶體驗。</p>
+                </div>
+                
+                <h3>職位概述</h3>
+                <p>作為客戶服務專業人員，你致力於提供輕鬆高效、始終令人愉悅的服務，並由主動、樂於助人的團隊提供支援。本節為你提供簡單的方法，將提示詞整合到你的日常任務中。</p>
+                
+                <h3>入門指南</h3>
+                <p>首先，請查看第 2 頁的一般提示詞撰寫技巧和本指南開頭的 Prompting 101 章節。</p>
+                
+                <p>以下每個提示詞都附有場景說明，作為你如何與 Google Workspace with Gemini 協作的靈感來源。提示詞迭代範例展示了你如何撰寫後續提示詞，以在初始生成的回應基礎上進行擴展。</p>
+                
+                <h3>提示詞迭代範例：起草客戶溝通</h3>
+                
+                <div class="info-box">
+                    <h4>📋 使用場景</h4>
+                    <p>你是一名客戶服務代表，負責直接回應客戶的詢問和疑慮。你剛剛收到一封來自收到損壞商品的客戶的電子郵件。</p>
+                </div>
+                
+                <p>你開啟一個新的 Google Doc，點擊「幫我撰寫」來提示 Gemini in Docs。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">初始提示詞</span><br><br>
+                    <span class="component-tag tag-task">幫我起草一封有同理心的電子郵件回覆</span>。<span class="component-tag tag-persona">我是客戶服務代表</span>，<span class="component-tag tag-task">我需要回覆客戶投訴</span>。<span class="component-tag tag-context">客戶訂購的一副耳機到貨時已損壞。他們已經透過電子郵件聯絡我們，並提供了損壞的照片。我已提供更換，但他們要求加急配送選項，而這通常不包含在他們的訂單中</span>。<span class="component-tag tag-format">包括一段承認他們挫折感的段落和三個可能解決方案的條列項目</span>。(Gemini in Docs)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page18_img1.jpeg" alt="Gemini in Docs 生成的同理心電子郵件" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>你喜歡 Gemini in Docs 建立的電子郵件，所以你選擇「插入」。但你想腦力激盪在不提供加急配送的情況下解決問題的方法。你透過選擇「幫我撰寫」來提示。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">迭代提示詞</span><br><br>
+                    建議 10 個替代加急配送的選項，以解決客戶對收到損壞包裹的挫折感。(Gemini in Docs)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page18_img4.jpeg" alt="Gemini in Docs 生成的 10 個替代方案" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>這 10 個建議很有幫助。你點擊「插入」將文字添加到你的草稿中。</p>
+                
+                <h3>實際應用範例</h3>
+                
+                <h4>客戶服務經理或代表</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：使用常見問題文件回應複雜的客戶問題</h4>
+                    <p>客戶提出了一個多部分、複雜的問題。你需要找到並使用分散在多個文件中的資訊才能準確回應。</p>
+                </div>
+                
+                <p>你在 Drive 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    摘要關於 [產品名稱] 的資訊，包括產品的特定 [退貨政策]、[成分] 和 [認證]。(Gemini in Drive)
+                </div>
+                
+                <p>Gemini 返回摘要和相關檔案的連結，你可以直接從側邊面板點擊進入。你閱讀資訊後返回電子郵件以生成對客戶的回應。你開啟訊息並在 Gmail 側邊面板中提示 Gemini，並透過輸入 <code>@檔案名稱</code> 來標記相關檔案。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    根據 @[Customer FAQ Document] 生成對客戶關於我們的 [退貨政策] 和 [產品認證] 問題的回應。使用有幫助且專業的語氣。(Gemini in Gmail)
+                </div>
+                
+                <h4>使用案例：標準化溝通框架</h4>
+                
+                <p>你是客戶服務團隊經理，你希望確保團隊以一致且有幫助的品牌聲音進行溝通。你可以首先建立一個自訂的「客戶溝通 Gem」，作為團隊的專業寫作助手，而不是起草一次性範本。你可以使用針對不同場景（道歉、訂單確認、感謝信）的指示來建立此 Gem，並以公司的官方溝通指南為基礎，以確保所有輸出都符合品牌形象。</p>
+                
+                <p>你還需要建立可擴展的資源來標準化團隊的溝通。你開啟一個新的 Google Doc。你透過在 Docs 側邊面板中提示 Gemini 來進行腦力激盪，利用新的 Gem。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    為三種不同類型的客戶溝通起草範本。為道歉電子郵件、訂單確認訊息和對忠誠客戶的感謝信建立範本。將每個範本限制在一個段落內，並使用友好的語氣。(Gemini in Docs)
+                </div>
+                
+                <p>建議的範本為你開始編輯和個人化提供了起點，與你公司的品牌和政策保持一致。現在你想概述團隊的溝通最佳實踐以用於新人培訓。你開啟一個新的 Doc，在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    起草一份可用於培訓新團隊成員的客戶溝通最佳實踐清單。概述三個部分，包括如何處理滿意的客戶詢問、中立的客戶詢問和不滿意的客戶詢問。(Gemini in Docs)
+                </div>
+                
+                <p>你還想為團隊提供標準化語言，他們可以在與客戶電話互動時使用。你提示 Gemini app：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是一名 [客戶服務經理]。我正在嘗試建立團隊在與客戶電話互動時可以使用的標準化語言。為零售店的客戶服務代表生成常見的通話開場白、問候語和結束語範本。這些範本應允許使用客戶詳細資訊進行個人化。目標是確保一致性和專業性，同時允許根據特定客戶資訊進行區分。(Gemini app)
+                </div>
+                
+                <h4>使用案例：改善客戶服務</h4>
+                
+                <p>你注意到客戶投訴有所增加。你需要跨部門協作來解決經常性問題。你在 Gmail 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    起草一封電子郵件給我的同事，提議召開一次會議來討論客戶體驗改善計劃。要求行銷、銷售和產品利益相關者在下週會面，以明確了解角色和責任。(Gemini in Gmail)
+                </div>
+                
+                <p>你編輯電子郵件並發送給同事。現在你想建立一個試算表，可以用來追蹤這個跨部門計劃的進度。你開啟一個 Google Sheet，並在 Sheets 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    建立一個表格來追蹤不同客戶體驗改善策略的進度和影響，使用相關指標，包括支援票數量和優先順序（高、中、低）。(Gemini in Sheets)
+                </div>
+                
+                <h4>客戶支援專員</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：分析客戶回饋</h4>
+                    <p>你有一個追蹤客戶回饋的試算表。你想分析它並腦力激盪趨勢的潛在原因。</p>
+                </div>
+                
+                <p>你與 Gemini app 聊天。你上傳檔案並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是客戶支援專員。使用附加的試算表，在 [時間段] 內按 [類別] 識別我們 [客戶回饋] 中的趨勢和模式。識別 [客戶外展] 顯著增加的領域，並調查潛在原因。(The Gemini app)
+                </div>
+                
+                <h4>使用案例：啟用客戶自助服務</h4>
+                
+                <p>客戶回饋一直表示你的退貨政策指南不清楚。你開啟一個說明退貨、退款和商店信用政策的 Doc。你透過選擇「幫我撰寫」在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    摘要此內容以撰寫清晰簡潔的產品退貨政策，並按順序概述客戶需要採取的 5 個步驟。(Gemini Docs)
+                </div>
+                
+                <p>你喜歡這些步驟的簡單性。你對退款政策和商店信用政策重複此過程。現在，你想使用新簡化的內容為客戶建立部落格文章。使用你的 Google Doc 和新撰寫的指南，你在 Google Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    將此內容轉換為一篇簡短的部落格，標題為「在沒有代理協助的情況下解決常見問題」。為我們的退貨政策、退款政策和商店信用政策設置單獨的部分。(Gemini in Docs)
+                </div>
+                
+                <p>你還想建立一個影片放在網站上。你開啟 Vids，選擇「規劃你的影片故事」，並要求它根據退貨政策文件建立一個教育影片，向客戶展示如何解決常見問題。Vids 生成一個可編輯的影片，包含建議的場景、媒體、腳本、AI 旁白等。(Gemini in Vids)</p>
+                
+                <p>現在你想建立一個電子郵件範本，團隊可以在收到有關這三個領域的客戶問題時使用。你開啟一個新的 Google Doc，並使用「幫我撰寫」在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    為客戶起草一個電子郵件範本，強調自助服務資源，引用 [支援問題] 的 [部落格連結]。感謝客戶的業務，並向他們保證我們致力於滿足他們的需求。(Gemini in Docs)
+                </div>
+                
+                <h4>使用案例：進行客戶心聲研究</h4>
+                
+                <p>你想向一位不滿意的客戶發送電子郵件，嘗試糾正問題。你開啟一封包含客戶投訴的電子郵件。你透過選擇「幫我撰寫」在 Gmail 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    要求在 [日期] 的 [時間] 與這位提供負面回饋的客戶進行後續對話，以了解他們的疑慮並提供解決方案。包括範例解決方案。(Gemini in Gmail)
+                </div>
+                
+                <p>草擬的回應是一個很好的開始，但你想優化語言。你使用「優化」和「詳細說明」在 Gmail 中提示 Gemini 進行迭代。接下來，你想建立一個簡短的調查，可以在每次後續客戶通話後發送。你開啟一個新的 Google Doc，在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    為剛剛與代理通過電話的客戶建立五個不同的問題。問題應評估通話的有效性、客戶的疑慮是否得到解決，以及他們是否會向他人推薦我們的業務。(Gemini in Docs)
+                </div>
+                
+                <div class="step-navigation">
+                    <a href="#step3" class="nav-button secondary">← 上一步：溝通傳播</a>
+                    <a href="#step5" class="nav-button">下一步：高階主管 →</a>
+                </div>
+            </section>
+            
+            <!-- Step 5: Executives -->
+            <section class="step" id="step5">
+                <h2>步驟 5：高階主管</h2>
+                
+                <div class="info-box">
+                    <h4>💡 學習目標</h4>
+                    <p>學習高階主管如何使用 Gemini 提高個人生產力、進行市場研究、快速溝通以及做出明智的戰略決策。</p>
+                </div>
+                
+                <h3>職位概述</h3>
+                <p>作為高階主管，你的時間極為有限。你做出的每一個決定都可能影響成長、創新和業務軌跡。了解市場並做出明智的戰略決策至關重要，在移動中完成緊急任務也同樣重要。</p>
+                
+                <p>本節為你提供簡單的方法，將提示詞整合到你的日常任務中。</p>
+                
+                <h3>入門指南</h3>
+                <p>首先，請查看第 2 頁的一般提示詞撰寫技巧和本指南開頭的 Prompting 101 章節。</p>
+                
+                <h3>提示詞迭代範例：在移動中溝通</h3>
+                
+                <div class="info-box">
+                    <h4>📋 使用場景</h4>
+                    <p>你是一位即將登上長途飛行的高階主管，剛收到下次董事會議的邀請和議程。你有一些意見，並希望提議在議程中增加幾個主題。</p>
+                </div>
+                
+                <p>你開啟 Gmail，並在 Gmail 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">初始提示詞</span><br><br>
+                    <span class="component-tag tag-task">草擬一封電子郵件確認我將出席董事會議。詢問我們是否可以調整議程</span>，<span class="component-tag tag-context">為 [緊急主題] 提供 15 分鐘時間</span>。(Gemini in Gmail)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page24_img3.jpeg" alt="Gemini in Gmail 生成的確認郵件" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>電子郵件看起來不錯，但你想確保語氣盡可能正式。你選擇「優化」和「正式化」。</p>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page24_img1.jpeg" alt="Gemini in Gmail 郵件修改" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>你閱讀電子郵件並選擇「插入」。在發送之前，你進行輕微編輯，感謝團隊在你旅行時讓你保持在正軌上。</p>
+                
+                <h3>實際應用範例</h3>
+                
+                <h4>執行長 (CEO)</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：提高個人生產力和時間管理</h4>
+                    <p>你有重要的電子郵件串，其中有許多回覆。你需要快速趕上進度。</p>
+                </div>
+                
+                <p>你在 Gmail 中開啟訊息，並閱讀 Gemini in Gmail 側邊面板自動生成的摘要。要回覆，你在 Gmail 側邊面板中提示 Gemini，並透過輸入 <code>@檔案名稱</code> 來標記相關檔案。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    生成對 [人員] 關於 [主題] 的回應。使用 @[Project A Status Report] 包括有關 [交付成果] 和 [時間表] 的詳細資訊。(Gemini in Gmail)
+                </div>
+                
+                <h4>在幾秒鐘內建立簡報大綱</h4>
+                
+                <p>你的團隊將為你整理一份簡報，你想提供一個大綱讓他們開始。你想使用 The Gemini app 生成大綱。你選擇麥克風圖示並使用語音提示。你說：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">語音提示詞</span><br><br>
+                    我是 CEO，在 [活動] 上向 [受眾] 做簡報，我想為我的團隊建立一個詳細的大綱以便開始。我想包括幾個重要主題，包括 [關注領域] 以及我們公司如何透過 [公司計劃] 進行創新。我設想在簡報結束時有時間進行客戶問答。包括我們可以向 [產業] 產業的客戶詢問的建議問題，了解他們如何使用我們的 [產品] 來實現 [業務成果]。(The Gemini app)
+                </div>
+                
+                <h4>使用案例：每日音訊簡報</h4>
+                
+                <p>每天早上，你將當天最重要的內部報告、競爭對手新聞文章和你的日程表上傳到 NotebookLM。你使用「音訊概覽」功能生成簡短的音訊簡報。</p>
+                
+                <p>你在通勤時聆聽這個個人化的簡報，到達辦公室時能更好地應對這一天的挑戰。(NotebookLM)</p>
+                
+                <h4>使用案例：深入了解主題</h4>
+                
+                <p>在即將到來的通話之前，你需要了解快速變化的產業趨勢。為此，你開啟 Gemini app。你要求 Gemini 研究該產業的最新進展，包括主要參與者和市場預測。</p>
+                
+                <p>你提示並選擇「Deep Research」。Gemini 搜尋數十個網站，對發現進行推理，然後在幾分鐘內撰寫關於該主題的全面報告。</p>
+                
+                <p>然後，你在 Gemini app 中建立報告的「音訊概覽」，並在通話前聆聽摘要。(Gemini app)</p>
+                
+                <h4>營運長 (COO)</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：準備具有挑戰性的員工溝通</h4>
+                    <p>你正在與整個公司舉辦季度市政廳會議。你想撰寫鼓舞人心的開場白。</p>
+                </div>
+                
+                <p>你開啟一個新的 Doc，在 Docs 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    為剛完成充滿挑戰的季度的員工撰寫兩段鼓舞人心的段落。承認 [困難] 並強調即將到來的季度的 [積極方面]。使用激勵、樂觀的語氣，並培養團結和協作的感覺。(Gemini in Docs)
+                </div>
+                
+                <p>你想腦力激盪並練習如何有同理心地回應可能的棘手問題。你前往 The Gemini app 並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是一家中型公司的 COO。我正在與整個公司舉辦季度市政廳會議。我想腦力激盪並練習如何回應可能的棘手問題。幫我撰寫員工可能在即將到來的市政廳會議上詢問的關於 [公司公告 URL] 的具有挑戰性的問題。為每個問題生成潛在的答案，使用自信但堅定的語氣。回應應承認疑慮，並讓員工知道我們正在努力為整個公司做到最好。(The Gemini app)
+                </div>
+                
+                <h4>使用案例：簡化移動中的回覆</h4>
+                
+                <p>你的計劃發生了變化，你無法參加會議。你需要向團隊提供幾個關鍵項目的答案。你開啟 Gmail 並使用語音指令在 Gmail 中提示 Gemini。你說：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">語音提示詞</span><br><br>
+                    草擬一封電子郵件給 [專案負責人]，讓他們知道我因緊急事項無法參加會議。要求他們做詳細筆記，並確保團隊就 [關鍵主題] 做出決定，此外還要將事後報告的所有權分配給 [同事]。(Gemini in Gmail)
+                </div>
+                
+                <h4>行銷長 (CMO)</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：進行市場研究和活動規劃</h4>
+                    <p>你正在開始年度規劃。你想對目標受眾進行研究。</p>
+                </div>
+                
+                <p>你與 The Gemini app 聊天。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是一位行銷主管，正在為明年的 [發布] 進行分析。為我的新 [產品] 系列定義我的目標受眾 [受眾]。包括興趣、相關行銷管道以及推動他們考慮和購買行為的主要趨勢。(The Gemini app)
+                </div>
+                
+                <p>接下來，你透過選擇「分享與匯出」和「匯出到 Docs」將你的發現匯出到 Doc。現在，你想透過輸入 <code>@檔案名稱</code> 從你自己的檔案中提取相關資料。你在 Docs 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    根據 @[Product Requirements Document] 中的功能，為我的 [目標受眾] 腦力激盪價值主張。包括來自 @[Campaign Performance] 的活動學習部分。(Gemini in Docs)
+                </div>
+                
+                <h4>使用案例：腦力激盪內容和思想領導力</h4>
+                
+                <p>你完成了與社群媒體團隊負責人的會議。你在 Doc 中記下了關於什麼能引起受眾共鳴、熱門主題、目標受眾資料以及有效提高品牌互動的關鍵字的筆記。你想使用這些見解來腦力激盪潛在的思想領導力作品。你在 Docs 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    根據熱門主題、目標受眾分析和品牌關鍵字，為 [公司] 生成四個相關且引人入勝的思想領導力部落格文章創意清單。(Gemini in Docs)
+                </div>
+                
+                <p>在同一次對話中，團隊討論了推出新的品牌活動。你知道你的客戶重視你可靠且獨特的服務，而你的公司在為客戶交付方面有著悠久的歷史。你需要幫助開始新活動標語的創意。你開啟一個新的 Google Doc 並選擇「幫我撰寫」。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    為 [公司] 生成三個新標語選項，強調可靠性、創新以及長期受歡迎的歷史。(Gemini in Docs)
+                </div>
+                
+                <h4>使用案例：進行競爭分析</h4>
+                
+                <p>你的團隊正在考慮擴展到新的業務線。為了研究，你前往 The Gemini app，選擇「Deep Research」，並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是 CMO，正在進行競爭分析。我的公司正在考慮擴展到 [新業務線]。生成 [產業] 產業中前五名競爭對手的清單，並包括他們的定價、優勢、劣勢和目標受眾。(The Gemini app)
+                </div>
+                
+                <p>在深入研究並聆聽你一鍵建立的「音訊概覽」後，你決定建立一個五年策略，看看這對公司來說會是什麼樣子。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    好的，我將嘗試說服我的 CEO 我們應該擴展到 [業務線]。為北美市場的 [產業] 產業起草一份簡明的、未來五年的競爭策略大綱，包含潛在目標、策略和戰術。(The Gemini app)
+                </div>
+                
+                <h4>技術長 (CTO)</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：摘要新興技術趨勢</h4>
+                    <p>你需要了解新興技術趨勢，因為格局正在快速變化。</p>
+                </div>
+                
+                <p>你開啟 The Gemini app，並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是 [產業] 中 [公司] 的 CTO。我想了解新興技術趨勢。摘要對 [產業] 具有最大潛在影響的前五項新興技術。對於每項技術，列出其潛在好處和挑戰，並建議它在未來兩到三年內如何影響 [公司]。(The Gemini app)
+                </div>
+                
+                <p>你想深入了解特定主題，所以你繼續對話並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    建議 [我的公司] 可以採取主動步驟以在 [特定領域] 保持領先地位的三個領域。(The Gemini app)
+                </div>
+                
+                <h4>資訊長 (CIO)</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：向非技術受眾傳達技術主題</h4>
+                    <p>你正在透過採用生成式 AI 解決方案來推動公司的數位化轉型。你需要向 CEO 和其他領導層展示。</p>
+                </div>
+                
+                <p>你想幫助向非技術受眾傳達技術主題。你與 The Gemini app 聊天。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是 [公司] 的 CIO，我正在努力 [採用生成式 AI 解決方案]。我需要向非技術受眾（CEO 和董事會）解釋生成式 AI 的技術概念。幫我撰寫演講要點，讓我能夠傳達什麼是生成式 AI、它如何幫助我們進行數位化轉型，以及為什麼它對我們作為公司的成長很重要。包括有關它如何可能將我們的技術人才重新聚焦於更具戰略性的工作、幫助提高我們員工的生產力，以及幫助我們更好地服務全球員工和客戶的詳細資訊。(The Gemini app)
+                </div>
+                
+                <p>Gemini 提供了討論該主題的建議方式。你繼續腦力激盪，然後透過點擊「分享與匯出」和「匯出到 Docs」匯出你的對話。然後，要建立簡報，你開啟一個新的 Google Slide，在 Slides 側邊面板中提示 Gemini，並透過輸入 <code>@檔案名稱</code> 來標記相關檔案。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我需要建立一個簡報來向非技術受眾解釋技術主題。使用 @[Gen AI Explanation Notes] 生成 [介紹投影片]，[描述什麼是生成式 AI]。(Gemini in Slides)
+                </div>
+                
+                <h4>人力資源長 (CHRO)</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：評估員工滿意度</h4>
+                    <p>你想起草一份匿名調查，讓人們能夠公開、誠實地評估他們的感受。</p>
+                </div>
+                
+                <p>要起草問題，你開啟一個新的 Google Doc，在 Docs 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    起草一份匿名員工滿意度調查，其中包含涉及工作量、工作與生活平衡、薪酬和職業成長機會等關鍵領域的問題和答案選項。確保問題清晰、簡潔，並避免引導性答案。(Gemini in Docs)
+                </div>
+                
+                <p>你收到了來自 15 位高階主管的回饋，並在 Doc 中收集了所有匿名結果。你想建立一個摘要，可以在下次通話中使用。你在 Docs 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    摘要員工回饋的結果以識別關鍵主題。(Gemini in Docs)
+                </div>
+                
+                <div class="step-navigation">
+                    <a href="#step4" class="nav-button secondary">← 上一步：客戶服務</a>
+                    <a href="#step6" class="nav-button">下一步：一線管理 →</a>
+                </div>
+            </section>
+            
+            <!-- Step 6: Frontline Management -->
+            <section class="step" id="step6">
+                <h2>步驟 6：一線管理</h2>
+                
+                <div class="info-box">
+                    <h4>💡 學習目標</h4>
+                    <p>了解一線工作者經理如何使用 Gemini 快速找到準確資訊、改善團隊協作、簡化任務管理以及管理庫存和審計。</p>
+                </div>
+                
+                <h3>職位概述</h3>
+                <p>作為一線工作者經理，你的團隊工作對組織來說是不可或缺的——你的團隊可能不主要在電腦上完成一天的工作，但溝通和協作仍然是關鍵。</p>
+                
+                <p>本節為你提供簡單的方法，將提示詞整合到你的日常任務中。</p>
+                
+                <h3>入門指南</h3>
+                <p>首先，請查看第 2 頁的一般提示詞撰寫技巧和本指南開頭的 Prompting 101 章節。</p>
+                
+                <h3>提示詞迭代範例：快速找到準確資訊</h3>
+                
+                <div class="info-box">
+                    <h4>📋 使用場景</h4>
+                    <p>一位客戶剛剛向你詢問有關正在進行的促銷活動的問題。你可以使用幫助來導航你可以存取的眾多檔案，以便快速找到正確的資訊。</p>
+                </div>
+                
+                <p>你在 Drive 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">初始提示詞</span><br><br>
+                    <span class="component-tag tag-task">找到詳細說明</span> <span class="component-tag tag-context">[公司名稱] 的 [節日] 促銷詳情的文件</span>。(Gemini in Drive)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page33_img1.jpeg" alt="Gemini in Drive 返回的建議檔案" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>Gemini in Drive 返回建議的相關檔案。從側邊面板，你可以直接摘要檔案，或者可以點擊進入特定文件。你開啟一個建議的 Doc 以幫助回答問題。你在 Docs 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">迭代提示詞</span><br><br>
+                    客戶在此促銷期間可以在 [產品類型] 上節省多少？(Gemini in Docs)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page34_img1.jpeg" alt="Gemini in Docs 返回的答案" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page34_img2.jpeg" alt="Gemini 詳細的促銷折扣回應" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>Gemini 返回回應，幫助你及時回答客戶的問題。</p>
+                
+                <h3>實際應用範例</h3>
+                
+                <h4>零售店員</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：透過輕鬆找到和分享資訊來改善團隊協作</h4>
+                    <p>你的商店最近更新了其退貨和換貨政策。要找到資訊，你在 Drive 側邊面板中提示 Gemini。</p>
+                </div>
+                
+                <p>你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    找到討論我們新退貨和換貨政策的文件。(Gemini in Drive)
+                </div>
+                
+                <p>Gemini 返回與新政策相關的建議檔案。你直接點擊進入相關檔案。現在，你想發送一封電子郵件摘要文件，供同事將來參考。你開啟電子郵件並在 Gmail 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    給我的新同事撰寫一封電子郵件，摘要 @[Updated Return and Exchange Policy H2 2024]。(Gemini in Gmail)
+                </div>
+                
+                <p>你選擇「插入」並在發送之前進一步個人化訊息。</p>
+                
+                <h4>使用案例：簡化任務管理</h4>
+                
+                <p>你有一份開店和關店職責清單，必須根據你工作的班次來執行。你想保持組織性，所以你使用新人培訓 Doc 中列出的職責建立一個追蹤器。你開啟一個新的 Google Sheet，在 Sheets 側邊面板中提示 Gemini，並透過輸入 <code>@檔案名稱</code> 來標記相關檔案。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是一名零售經理，我需要為我的開店和關店職責建立一個檢查清單。使用 @[Onboarding New Hire Information] 中的 [開店和關店職責] 建立一個包含欄位的範本。(Gemini in Sheets)
+                </div>
+                
+                <p>Gemini 為你建立一個試算表追蹤器，列出你的開店和關店職責。在你一天的工作中，你將不同的任務標記為完成。你必須提前離開你的班次，但你首先需要向團隊其他成員傳達仍需要完成的工作。你開啟 Gmail，在 Gmail 側邊面板中提示 Gemini，並標記你剛建立的試算表。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    給團隊撰寫一封電子郵件，告訴他們從 @[Opening and Closing Duties Tracker] 上午班次還需要完成什麼。(Gemini in Gmail)
+                </div>
+                
+                <h4>倉庫工作人員</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：管理庫存</h4>
+                    <p>客戶想下大宗訂單。你需要檢查商店的庫存，看看你是否有足夠的庫存來完成訂單。</p>
+                </div>
+                
+                <p>你開啟追蹤此資訊的庫存試算表，並在 Sheets 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我們的庫存中還剩下多少 [產品] 的 [單位]？(Gemini in Sheets)
+                </div>
+                
+                <h4>使用案例：管理審計</h4>
+                
+                <p>你的倉庫正在進行庫存審計，你負責驗證庫存追蹤器產品總計與審計期間計數的數量之間不一致的任何數字。你在 Sheets 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    建立一個公式來幫助我計算兩列之間的差異。哪些項目的 [總計數] 與 [現有數量] 之間存在差異？(Gemini in Sheets)
+                </div>
+                
+                <p>你驗證 Gemini 的回應，只有少數項目的計數與庫存追蹤器的總計不一致。你需要給主管寫一條訊息，告訴他們你正在調查問題。你開啟 Gmail，在 Gmail 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是一名管理審計的倉庫工作人員。給我的主管寫一條訊息，讓他們知道我正在調查計數不正確的產品。(Gemini in Gmail)
+                </div>
+                
+                <p>草擬的電子郵件看起來很好，所以你在審查後點擊發送。</p>
+                
+                <h4>現場技術人員</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：存取技術手冊</h4>
+                    <p>你正在維修一台複雜的機器，遇到了一個不熟悉的錯誤代碼。</p>
+                </div>
+                
+                <p>你開啟 NotebookLM 並導航到你團隊的技術手冊筆記本，該筆記本已預先載入你公司的技術文件。你搜尋代碼中的錯誤以識別疑難排解步驟。NotebookLM 提供精確的引用，讓你可以看到資訊的來源。(NotebookLM)</p>
+                
+                <h4>使用案例：建立維修摘要</h4>
+                
+                <p>完成維修後，你需要記錄工作。你在行動裝置上開啟 Docs，並使用語音轉文字來描述問題和解決方案。你要求 Gemini in Docs 幫助將筆記正式化為簡明的維修摘要，包括問題、解決方案和使用的零件。(Gemini in Docs)</p>
+                
+                <div class="step-navigation">
+                    <a href="#step5" class="nav-button secondary">← 上一步：高階主管</a>
+                    <a href="#step7" class="nav-button">下一步：人力資源 →</a>
+                </div>
+            </section>
+            
+            <!-- Step 7: Human Resources -->
+            <section class="step" id="step7">
+                <h2>步驟 7：人力資源</h2>
+                
+                <div class="info-box">
+                    <h4>💡 學習目標</h4>
+                    <p>學習 HR 專業人員如何使用 Gemini 歡迎新員工、管理招募流程、進行員工調查、建立學習發展計劃以及改善員工體驗。</p>
+                </div>
+                
+                <h3>職位概述</h3>
+                <p>作為 HR 專業人員，你是組織的支柱，處理大量機密和敏感資訊。你塑造公司文化、尋找和培養人才，並確保積極的員工體驗。這些都不是小事。</p>
+                
+                <p>本節為你提供簡單的方法，將提示詞整合到你的日常任務中。</p>
+                
+                <h3>入門指南</h3>
+                <p>首先，請查看第 2 頁的一般提示詞撰寫技巧和本指南開頭的 Prompting 101 章節。</p>
+                
+                <h3>提示詞迭代範例：歡迎新員工</h3>
+                
+                <div class="info-box">
+                    <h4>📋 使用場景</h4>
+                    <p>你是一位 HR 經理，正在準備簡報腳本。你有一個充滿筆記、條列項目和你想涵蓋的主題的 Google Doc。</p>
+                </div>
+                
+                <p>你首先開啟包含筆記的 Google Doc，並在 Docs 中提示 Gemini。</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">初始提示詞</span><br><br>
+                    <span class="component-tag tag-persona">我是 HR 經理</span>，<span class="component-tag tag-task">我正在為新員工的簡報開發腳本。我需要建立關於我們公司對員工發展和福祉承諾的新人培訓簡報腳本</span>。<span class="component-tag tag-format">幫我起草演講要點</span>，<span class="component-tag tag-context">展示為什麼員工指導和發展是我們公司的核心價值，使用 @[Mission Statement and Core Values]</span>。(Gemini in Docs)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page39_img1.jpeg" alt="Gemini in Docs 生成的演講要點" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>你選擇「插入」。現在，你想添加更有針對性的演講要點。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">迭代提示詞</span><br><br>
+                    為簡報腳本的新部分添加四個演講要點，解釋我們如何支援員工的發展。使用 @[Learning and Development Paths] 提及我們的培訓和認證計劃以及指導機會，並撰寫一個強有力的結束聲明，說明我們期望每個人都為建立一個尊重和歡迎的工作場所做出貢獻。使用專業的語氣。(Gemini in Docs)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page39_img2.jpeg" alt="Gemini in Docs 添加的演講要點" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>你添加更多詳細資訊，然後準備建立將伴隨你演講要點的 Google Slides 草稿。</p>
+                
+                <p>為了補充你的投影片，你決定建立一個可以廣泛與所有新員工分享的影片。你開啟 Vids 並選擇「規劃你的影片故事」。你根據使命宣言和核心價值文件開始為加入組織的新員工建立歡迎影片。(Gemini in Vids)</p>
+                
+                <h3>實際應用範例</h3>
+                
+                <h4>招募人員</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：報告招募指標</h4>
+                    <p>業務正在成長，你正在進行大規模招募。你想看到招募工作進展的整體情況。</p>
+                </div>
+                
+                <p>你開啟 Google Sheet，在 Sheets 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    幫我建立一個公式來計算按 [部門] 劃分的 [招聘] 總數。(Gemini in Sheets)
+                </div>
+                
+                <p>你透過提示額外的問題繼續對話。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我們在哪個月招聘了最多的人？(Gemini in Sheets)
+                </div>
+                
+                <p>你繼續提問，直到你覺得準備好撰寫報告。</p>
+                
+                <h4>使用案例：管理招募流程</h4>
+                
+                <p>你想腦力激盪公司可以更好地管理招募流程的潛在方法。你開啟團隊的 Google Doc，其中包含招募策略。你在 Docs 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    建立一份我們的招募人員可以用來改善現有招募流程和識別潛在求職者的策略清單。(Gemini in Docs)
+                </div>
+                
+                <p>在為領導層建立關於團隊如何改善現有招募流程的簡短建議後，團隊收到了內容行銷經理職位空缺的指導。你開啟一個新的 Doc，在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我正在行銷團隊開設新的職位。為內容行銷經理撰寫引人注目的職位描述。突出顯示關鍵職責 [插入] 和要求，包括 B2B 和 B2C 內容建立、至少五年經驗以及寫作範例作品集。(Gemini in Docs)
+                </div>
+                
+                <div class="info-box">
+                    <h4>💎 使用 Gems 升級</h4>
+                    <p>要為所有未來職位簡化此流程，請建立「職位描述撰寫者」Gem。你可以使用公司首選的格式、品牌語氣和核心價值來訓練它。這確保每個職位描述都是高品質的、符合品牌的，並為你的招募團隊節省寶貴的時間，幫助你在招募過程中更快地行動。</p>
+                </div>
+                
+                <h4>使用案例：管理面試流程</h4>
+                
+                <p>你想為電話篩選面試準備問題。你決定使用 The Gemini app 進行準備。你上傳相關檔案並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是招募人員，我正在準備候選人面試。使用我上傳的檔案中的職位描述，撰寫一份包含 20 個開放式面試問題的清單，我可以用來篩選候選人。(The Gemini app)
+                </div>
+                
+                <p>你將這些問題保存到中央儲存庫，確保所有面試官都在提出相關的高品質問題。當你需要為特定職位找到相關問題時，你可以簡單地在 Drive 側邊面板中詢問 Gemini。(Gemini in Drive)</p>
+                
+                <h4>使用案例：與候選人溝通</h4>
+                
+                <p>團隊已做出招募決定。你開啟包含每位候選人筆記的 Google Doc。你透過選擇「幫我撰寫」在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我正在給剛完成面試流程的求職者撰寫電子郵件。為 [選定的候選人] 建立 [職位] 的錄用信範本，並要求安排通話討論福利、薪酬和開始日期。(Gemini in Docs)
+                </div>
+                
+                <p>現在，你想生成個人化、有同理心的電子郵件文案，發送給不會收到錄用通知的求職者。你透過選擇「幫我撰寫」在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我正在給完成面試流程但未被選中的求職者撰寫電子郵件。幫我為 [候選人] 撰寫 [職位] 的拒絕信。使用有同理心的語氣。(Gemini in Docs)
+                </div>
+                
+                <h4>HR 經理</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：進行員工參與和滿意度調查</h4>
+                    <p>你負責建立一份將發送給所有員工的調查。你想腦力激盪要問的問題的創意。</p>
+                </div>
+                
+                <p>你造訪 The Gemini app 並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是 [公司] 負責進行全企業調查的 HR 經理，以評估員工參與度和滿意度。生成一份我可以用來建立調查的問題清單。(The Gemini app)
+                </div>
+                
+                <p>你的公司已完成年度員工參與和滿意度調查。現在，你想在分析資料之前清理資料。你前往 The Gemini app，上傳相關檔案，並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    幫我清理員工調查試算表。具體來說，用「Anonymous」填充姓名欄中的任何空白值，如果地區欄顯示 Headquarters，則將其替換為 HQ。最後，刪除滿意度欄為空白的任何行。請為我生成一個包含已清理資料的新檔案。(The Gemini app)
+                </div>
+                
+                <h4>使用案例：建立個人化的學習和發展計劃</h4>
+                
+                <p>你將公司的所有學習資源儲存在 Google Drive 中。對於每位新員工，你想建立量身定制的學習和發展計劃。為此，你在 Drive 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    為需要學習 [主題] 的新員工建立個人化的學習和發展計劃。按天組織並建議相關檔案。(Gemini in Drive)
+                </div>
+                
+                <h4>使用案例：新人培訓員工</h4>
+                
+                <p>招募人員剛剛填補了公司的兩個空缺職位。現在，你負責確保候選人有順利的新人培訓體驗。你需要幫助為新員工建構資訊，所以你開啟一個 Google Sheet，在 Sheets 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    建立一個表格，概述新員工第一週的時程表，包括關鍵會議、培訓課程和介紹。為每項活動提供關鍵聯絡人和優先順序（低、中、高）的欄位。(Gemini in Sheets)
+                </div>
+                
+                <p>Gemini in Sheets 返回一個格式化的 Google Sheet，你現在可以填寫關鍵聯絡人、會議和活動。條件格式化使你可以輕鬆透過顏色編碼的視覺提示按優先順序對任務進行排序。接下來，你需要建立團隊凝聚的方法。你開啟一個新的 Google Doc，在 Docs 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    設計一個團隊凝聚活動，例如辦公室尋寶遊戲，讓團隊成員在團隊會議期間一起工作。(Gemini in Docs)
+                </div>
+                
+                <p>Gemini in Docs 提供建議，幫助你腦力激盪關於尋寶遊戲的想法。你調整輸出並獲得團隊負責人的批准。現在，你需要與新員工溝通他們第一天將與團隊見面的事宜。你開啟 Gmail，透過選擇「幫我撰寫」在 Gmail 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    給 [團隊] 的新員工起草一封電子郵件，讓他們與團隊其他成員見面，並解釋會議的團隊建設目的。(Gemini in Gmail)
+                </div>
+                
+                <p>你還可以使用 Vids 根據可用材料在 AI 的幫助下建立培訓和歡迎影片。(Vids)</p>
+                
+                <h4>使用案例：傳達關鍵發現並起草後續調查</h4>
+                
+                <p>現在你已完成新員工的新人培訓，你需要專注於確保領導層輕鬆理解最新的公司研究資料。你致力於為所有員工建立一個歡迎的環境，讓他們可以發展自己的技能。你開啟包含最終報告的 Google Doc。你透過選擇「幫我撰寫」在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    給高階領導層起草一封電子郵件，摘要我們 [報告] 的關鍵發現。包括一個簡短的介紹段落，並以條列項目列出最重要的發現。(Gemini in Docs)
+                </div>
+                
+                <p>Gemini in Docs 返回帶有條列項目的摘要。你編輯它，然後用它給領導團隊發送電子郵件。</p>
+                
+                <p>作為後續行動，你想了解公司政策的變更如何影響員工體驗。你在 Docs 中開啟 Gemini 開始起草調查。你選擇「幫我撰寫」並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    起草一份匿名員工調查，其中包含問題和答案選項，以監控公司在 [主題] 方面的進展。(Gemini in Docs)
+                </div>
+                
+                <div class="step-navigation">
+                    <a href="#step6" class="nav-button secondary">← 上一步：一線管理</a>
+                    <a href="#step8" class="nav-button">下一步：行銷 →</a>
+                </div>
+            </section>
+            
+            <!-- Step 8: Marketing (was previously next) -->
+            <section class="step" id="step8">
+                <h2>步驟 8：行銷</h2>
+                
+                <div class="info-box">
+                    <h4>💡 學習目標</h4>
+                    <p>學習行銷專業人員如何使用 Gemini 開發視覺識別、進行市場研究、建立內容、優化廣告文案以及創建行銷活動。</p>
+                </div>
+                
+                <h3>職位概述</h3>
+                <p>作為行銷專業人員，你是迷人活動、品牌體驗、潛在客戶開發等背後的創意力量。你了解資料驅動洞察、引人注目的訊息傳遞以及與受眾更深層次聯繫的力量。</p>
+                
+                <p>本節為你提供簡單的方法，將提示詞整合到你的日常任務中。有關首席行銷官 (CMO) 使用案例，請造訪本指南的高階主管章節。</p>
+                
+                <h3>入門指南</h3>
+                <p>首先，請查看第 2 頁的一般提示詞撰寫技巧和本指南開頭的 Prompting 101 章節。</p>
+                
+                <h3>提示詞迭代範例：開發視覺識別</h3>
+                
+                <div class="info-box">
+                    <h4>📋 使用場景</h4>
+                    <p>你擁有自己的諮詢業務，經常被聘為客戶的品牌經理。你幫助各行各業的企業。你的客戶準備推出一家咖啡店和電玩遊戲咖啡館，你需要透過開發視覺識別來啟動創意過程。</p>
+                </div>
+                
+                <p>你想進行構思並向團隊其他成員提供早期想法。你決定與 The Gemini app 聊天。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">初始提示詞</span><br><br>
+                    <span class="component-tag tag-task">為我的新業務（咖啡店結合電玩遊戲咖啡館）生成創意且引人注目的標誌創意</span>。<span class="component-tag tag-format">考慮以下因素生成標誌</span>：<br><br>
+                    <span class="component-tag tag-context">雙重概念：標誌需要清楚地傳達咖啡和遊戲業務的兩個方面，而不要太雜亂。<br><br>
+                    目標受眾：吸引廣泛的遊戲玩家（休閒和愛好者），以及尋找獨特聚會場所的咖啡愛好者。<br><br>
+                    風格選項：我對這些方法持開放態度——讓我們在這三種風格中分別獲得幾個範例進行比較：<br>
+                    • 現代且有趣：大膽的顏色、有趣的圖形、也許是像素藝術美學<br>
+                    • 復古酷：想想經典街機風格——厚重的字體、霓虹燈色彩靈感<br>
+                    • 時尚且簡約：簡潔的線條、幾何形狀、對兩個主題更微妙的點頭</span>。(The Gemini app)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page45_img1.jpeg" alt="Gemini app 生成的標誌創意" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>你喜歡復古酷選項。你繼續對話並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">迭代提示詞 #1</span><br><br>
+                    我喜歡復古酷選項。你能提供相同風格的另外三個嗎？(The Gemini app)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page45_img2.jpeg" alt="更多復古風格標誌" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>現在你對標誌的外觀有了概念，你想腦力激盪名稱。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">迭代提示詞 #2</span><br><br>
+                    撰寫一個標語和 10 個潛在的業務名稱來配合這些標誌。(The Gemini app)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page45_img3.jpeg" alt="業務名稱和標語建議" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <h3>實際應用範例</h3>
+                
+                <h4>品牌經理</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：開發品牌策略</h4>
+                    <p>你正在更新公司的品牌架構和訊息傳遞框架。要開始，你造訪 The Gemini app 並輸入：</p>
+                </div>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是 [公司] 的品牌經理。考慮到其多樣化的產品和服務組合，幫我為 [公司] 定義清晰有效的品牌架構。<br><br>
+                    為了提供額外的背景資訊，這是我們當前的品牌組合：[列出所有現有品牌、產品和服務]。這是我們公司的使命和願景：[提供公司使命和願景的簡要概述]。這些是我們的目標受眾：[描述目標受眾]。我們期望的品牌定位是 [解釋公司希望在市場中如何被感知]。(The Gemini app)
+                </div>
+                
+                <h4>使用案例：腦力激盪品牌合作夥伴關係</h4>
+                
+                <p>你正在進行新的品牌活動。你想識別可以作為社群擴大計劃一部分合作的影響者或互補品牌。你造訪 The Gemini app 並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是 [公司] 的 [品牌經理]，正在推出專注於 [主題] 的新活動。識別 [公司] 可以合作的潛在影響者類型和互補品牌，以在社群媒體管道上擴大 [活動]。目標是接觸廣泛的 [受眾] 受眾，同時建立信譽並推動參與。(The Gemini app)
+                </div>
+                
+                <h4>使用案例：進行市場研究並識別趨勢</h4>
+                
+                <p>你所在產業的格局正在快速變化，你需要進行市場研究以更好地識別和理解新興趨勢。你前往 The Gemini app，並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我需要對 [產業] 產業進行市場研究以識別新趨勢。使用 [URLs] 來發現新興趨勢和不斷變化的消費者偏好。(The Gemini app)
+                </div>
+                
+                <p>完成研究後，你和團隊有新的訊息傳遞想要進行 A/B 測試。你想使用 The Gemini app 生成廣告文案的多個變體。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我需要對新訊息傳遞進行 A/B 測試。這是我們的訊息傳遞：[訊息傳遞]。生成三個不同的廣告文案變體。(The Gemini app)
+                </div>
+                
+                <h4>行銷專員</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：分析社群媒體趨勢和其他資料以縮短上市時間</h4>
+                    <p>你想分析不同的資料來源並整理發現，以幫助縮短上市時間。</p>
+                </div>
+                
+                <p>你開啟 The Gemini app 並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是 [公司] 的 [行銷專員]。我們正在制定 [產品類型] 的 [上市] 計劃。幫我研究圍繞 [主題] 的社群媒體趨勢。具體說明熱門關鍵字、頂級影響者聲音以及熱門內容中的常見主題。(The Gemini app)
+                </div>
+                
+                <p>你透過選擇 Gemini 回應下方的「Double-check response」選項來驗證 Gemini 的回應。</p>
+                
+                <p>現在，你想審查你委託的報告，該報告調查了來自不同產業的客戶。你繼續與 Gemini 對話。你上傳相關檔案並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    分析此 [報告] 中的發現。我特別感興趣的是關於 [主題] 的任何常見主題，這些主題將幫助我更好地為 [目標受眾] 定位 [產品] 的 [行銷材料]。(The Gemini app)
+                </div>
+                
+                <h4>使用案例：執行受眾研究並開發角色</h4>
+                
+                <p>隨著團隊更新網頁文案、推銷簡報和其他行銷資產，你需要更新受眾研究和角色開發。你使用 The Gemini app 進行腦力激盪和研究。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是 [公司] 專注於 [領域] 的行銷專員。我需要進行深入的受眾研究，以便為 [角色] 開發有說服力的行銷材料。首先，幫我生成 [目標受眾] 的全面概況。包括核心人口統計和心理統計、他們經常造訪的線上平台、[產品] 可以解決的關鍵痛點，以及與他們產生共鳴的語言和訊息傳遞。(The Gemini app)
+                </div>
+                
+                <h4>數位行銷經理</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：建立和優化搜尋引擎行銷 (SEM) 的文案</h4>
+                    <p>你想建立一個強大的關鍵字和長尾關鍵字及片語清單，以發現 SEM 定位的新機會。</p>
+                </div>
+                
+                <p>你前往 The Gemini app 並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是 [公司] 的數位行銷經理。我正在為 [產品] 進行 SEM 廣告。這是我的種子關鍵字：[列出關鍵字]。幫我生成額外的關鍵字和長尾關鍵字及片語清單，以幫助我最大化廣告效果。(The Gemini app)
+                </div>
+                
+                <p>完成腦力激盪關鍵字清單後，你想生成幾個廣告文案變體。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    對於我的 SEM 活動，使用這些關鍵字作為靈感，為 [產品] 生成多個廣告文案變體，具有不同的標題、描述和行動呼籲。在文案中使用 [語氣] 語氣。(The Gemini app)
+                </div>
+                
+                <p>你想根據不同的受眾進一步優化文字，所以你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    做同樣的事情，但為 [受眾] 撰寫新選項，將語氣調整為 [語氣]，並將文案重點放在突出 [產品] 的 [功能] 上。(The Gemini app)
+                </div>
+                
+                <div class="info-box">
+                    <h4>💎 使用 Gems 升級</h4>
+                    <p>要使此過程更有效率，請建立「SEM 廣告文案生成器」Gem。你可以使用關於期望的廣告結構、語氣和關鍵績效指標的指示來建立 Gem。這使你可以快速為不同的活動和 A/B 測試生成變體，而無需每次都重寫核心提示詞，幫助你專注於創意協作。</p>
+                </div>
+                
+                <h4>內容行銷經理</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：為部落格生成靈感</h4>
+                    <p>你為旅遊公司的部落格管道擔任內容行銷經理。你需要為新部落格文章啟動腦力激盪過程。</p>
+                </div>
+                
+                <p>你決定透過與 The Gemini app 協作來收集創意。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    建議對熱愛旅行和旅遊業的人有興趣的部落格文章主題。這是我希望你關注的內容：<br>
+                    • 使主題獨特。有很多旅遊部落格——讓我們想出能夠脫穎而出的新穎角度。<br>
+                    • 保持主題相關。在腦力激盪時，利用旅遊業當前的趨勢或最近的挑戰/創新。<br><br>
+                    我希望每個主題包括：<br>
+                    • 目標受眾：此主題特別吸引誰？<br>
+                    • 內容大綱：部落格文章將討論的主要想法的幾個條列項目。<br>
+                    • 行動呼籲：建議一種在文章結尾吸引讀者的方式。(The Gemini app)
+                </div>
+                
+                <p>你喜歡你能夠建立的初始創意。你還需要專注於生成創意圖像來配合部落格中的文案。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    建立一張飛機在日出時飛越雲層、山脈和河流的圖像，我可以在行銷活動中使用它來推廣我的旅遊公司。(The Gemini app)
+                </div>
+                
+                <h4>使用案例：建立社群媒體貼文</h4>
+                
+                <p>你專注於建立針對社群媒體管道優化的內容。你需要收集針對不同受眾的內容創意。你開啟一個新的 Google Doc，透過選擇「幫我撰寫」在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    撰寫三篇關於 [產品/服務/主題] 的引人入勝的社群媒體貼文，吸引 [目標受眾]。將每篇社群媒體貼文限制在兩句話內，並包含造訪 [我們的網站] 的行動呼籲。(Gemini in Docs)
+                </div>
+                
+                <div class="info-box">
+                    <h4>💎 使用 Gems 升級</h4>
+                    <p>如果建立社群媒體貼文是你角色的常規部分，你可以建立自訂的「社群媒體文案撰寫者」Gem。你可以指示 Gem 關於你品牌的特定語氣和風格，為其提供關鍵主題標籤和目標受眾資訊，甚至提供品牌指南文件。這可以節省你重複提示的時間，並確保所有貼文的品牌一致性。</p>
+                </div>
+                
+                <div class="step-navigation">
+                    <a href="#step7" class="nav-button secondary">← 上一步：人力資源</a>
+                    <a href="#step9" class="nav-button">下一步：專案管理 →</a>
+                </div>
+            </section>
+            
+            <!-- Step 9: Project Management -->
+            <section class="step" id="step9">
+                <h2>步驟 9：專案管理</h2>
+                
+                <div class="info-box">
+                    <h4>💡 學習目標</h4>
+                    <p>學習專案經理如何使用 Gemini 管理會議紀錄、報告專案狀態、建立專案回顧、開發問題追蹤器以及建立工作倒推時程表。</p>
+                </div>
+                
+                <h3>職位概述</h3>
+                <p>作為複雜且不斷演變的專案的指揮者，你的使命是導航時間表、協調團隊，並確保你的計劃提供預期的影響。</p>
+                
+                <p>本節為你提供簡單的方法，將提示詞整合到你的日常任務中。</p>
+                
+                <h3>入門指南</h3>
+                <p>首先，請查看第 2 頁的一般提示詞撰寫技巧和本指南開頭的 Prompting 101 章節。</p>
+                
+                <h3>提示詞迭代範例：生成使用者驗收測試</h3>
+                
+                <div class="info-box">
+                    <h4>📋 使用場景</h4>
+                    <p>你的團隊完成了新網站的註冊表單，現在你需要生成使用者驗收測試 (UATs)。</p>
+                </div>
+                
+                <p>要開始，你造訪 The Gemini app 並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">初始提示詞</span><br><br>
+                    <span class="component-tag tag-format">建立一個表格</span>，<span class="component-tag tag-task">包含 10 個使用者驗收測試 (UAT)</span>，<span class="component-tag tag-context">用於網站註冊表單</span>。(The Gemini app)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page55_img1.jpeg" alt="Gemini app 生成的 UAT 表格" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>你認為結果是一個有用的起點，所以你在起草電子郵件給正在執行 UATs 的同事之前，將結果複製到 Google Sheet。你想解釋他們接下來需要做什麼。你繼續與 The Gemini app 對話。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">迭代提示詞</span><br><br>
+                    給正在執行此 UAT 的 [我的同事] 起草一封電子郵件，並解釋他們接下來需要做什麼。(The Gemini app)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page56_img1.jpeg" alt="Gemini app 生成的電子郵件草稿" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page56_img4.jpeg" alt="UAT 電子郵件草稿詳細內容" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>草擬的電子郵件提供了一個有用的起點，所以你將結果匯出到 Gmail，並在將訊息發送給同事之前直接進行編輯。</p>
+                
+                <h3>實際應用範例</h3>
+                
+                <h4>專案經理</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：會議紀錄和筆記管理</h4>
+                    <p>在專案指導委員會會議期間，你使用 Gemini in Meet 的「為我做筆記」功能。</p>
+                </div>
+                
+                <p>你錯過了一些要點，但透過要求 Meet 側邊面板中的 Gemini 幫助你趕上進度，你很快就趕上了。(Gemini in Meet)</p>
+                
+                <p>通話結束後，你開啟生成的筆記，並要求 Docs 側邊面板中的 Gemini 起草一封回顧電子郵件發送給其他與會者。(Gemini in Docs)</p>
+                
+                <h4>使用案例：報告專案狀態</h4>
+                
+                <p>你剛與所有專案利益相關者進行了一次冗長的通話，現在你想摘要討論的內容並跟進分配的行動項目。在包含會議逐字稿的 Google Doc 中，你在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    在簡短的段落中摘要此通話逐字稿。在條列項目中，根據 [通話逐字稿] 突出顯示行動項目、做出的決定以及每個項目的負責人。(Gemini in Docs)
+                </div>
+                
+                <p>你需要根據上次通話的活動更新你的經理。你想範本化專案狀態更新的交付方式。你開啟一個新的 Google Doc，透過選擇「幫我撰寫」在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    起草一個專案狀態更新電子郵件範本發送給我的經理。包括本週關鍵成就摘要、面臨的任何挑戰以及下週前三大優先事項的部分。(Gemini in Docs)
+                </div>
+                
+                <p>團隊剛提前整整一週達到了關鍵里程碑。這是一個具有挑戰性的專案，所以你想召集大家一起慶祝。你開啟 Gmail，透過選擇「幫我撰寫」在 Gmail 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    撰寫一份團隊午餐邀請函，以慶祝專案取得的進展，並包括 [日期、時間和地點]。感謝他們所有的辛勤工作，並承認這是一個具有挑戰性的專案。(Gemini in Gmail)
+                </div>
+                
+                <h4>使用案例：建立專案回顧</h4>
+                
+                <p>你剛完成專案，你的高階領導團隊需要一份專案回顧。要啟動收集回饋的過程，你開啟一個 Google Doc，直接在「使用 Gemini 撰寫」框中提示。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我需要撰寫一份報告，詳細說明 [專案] 的成功、失敗和經驗教訓。起草一份包含 20 個問題的清單，以指導跨團隊流程調查。包括問題以發現什麼有效、什麼無效、特定流程故障、技術問題、溝通差距或專案成功或失敗的任何其他潛在促成因素。(Gemini in Docs)
+                </div>
+                
+                <p>這些問題為你提供了一個很好的起點。你在與團隊分享以獲取他們的意見之前對它們進行編輯。在收集了每個人的回饋後，你想要幫助建構報告。你透過選擇「幫我撰寫」在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    在兩段中摘要此文件。包括有關專案目標、主要貢獻者、專案成果以及任何關鍵成功或失敗的高層級資訊。(Gemini in Docs)
+                </div>
+                
+                <p>考慮使用 Vids 以及你的專案回顧 Doc 建立一個影片回顧，突出顯示專案的關鍵要點。</p>
+                
+                <h4>使用案例：開發問題追蹤器和相關溝通</h4>
+                
+                <p>你需要建立一個專案問題追蹤器，以追蹤風險並及時解決它們。你想快速建立一個範本，所以你開啟一個新的 Google Sheet，在 Sheets 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    建立一個試算表來追蹤專案問題，包括描述、狀態、指定負責人和解決的行動項目。(Gemini in Sheets)
+                </div>
+                
+                <p>在專案完全啟動之前，你想擁有標準化的溝通範本可供使用。例如，你想要一封可在出現問題時使用的電子郵件。你開啟一個新的 Google Doc，並提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    起草一個電子郵件範本，以在出現問題時宣布，並包括原因、解決方案和解決時間表。(Gemini in Docs)
+                </div>
+                
+                <p>你喜歡 Gemini in Docs 建立的範本，並且你想建立一個額外的、稍微不同的電子郵件範本。在同一個 Google Doc 中，你透過選擇「幫我撰寫」在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    起草一個電子郵件範本給利益相關者，以升級關鍵專案問題，概述影響和建議的解決方案。(Gemini in Docs)
+                </div>
+                
+                <h4>技術專案經理</h4>
+                
+                <div class="success-box">
+                    <h4>✅ 使用案例：建立工作倒推時程表</h4>
+                    <p>你是軟體發布的技術專案經理。你已經記錄了專案的範圍。現在，你想開始建立工作流追蹤器和工作倒推時程表。</p>
+                </div>
+                
+                <p>你前往 The Gemini app 並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是 [公司] 的 [技術專案經理]，負責監督 [專案和簡要專案描述]。專案具有以下範圍：[範圍]。我們的專案目標是：[專案目標]。我們的專案交付成果是：[專案交付成果]。我們的預算是 [預算]，我們的交付日期是 [交付日期]。幫我建立一個工作倒推時程表，讓團隊保持在正軌上。包括關鍵里程碑和演示的日期。(The Gemini app)
+                </div>
+                
+                <div class="step-navigation">
+                    <a href="#step8" class="nav-button secondary">← 上一步：行銷</a>
+                    <a href="#step10" class="nav-button">下一步：業務銷售 →</a>
+                </div>
+            </section>
+            
+            <!-- Step 10: Sales -->
+            <section class="step" id="step10">
+                <h2>步驟 10：業務銷售</h2>
+                
+                <div class="info-box">
+                    <h4>💡 學習目標</h4>
+                    <p>學習業務人員如何使用 Gemini 進行客戶研究、管理銷售週期、發送提案、準備客戶電話、培訓團隊、培養關係以及個人化客戶外展。</p>
+                </div>
+                
+                <h3>職位概述</h3>
+                <p>深入了解你的客戶是成功的關鍵。你負責維護關鍵關係、解讀購買訊號、量身定制解決方案、推動業務營收等。</p>
+                
+                <p>本節為你提供簡單的方法，將提示詞整合到你的日常任務中。</p>
+                
+                <h3>入門指南</h3>
+                <p>首先，請查看第 2 頁的一般提示詞撰寫技巧和本指南開頭的 Prompting 101 章節。</p>
+                
+                <h3>提示詞迭代範例：進行客戶研究</h3>
+                
+                <div class="info-box">
+                    <h4>📋 使用場景</h4>
+                    <p>你是客戶經理，剛被分配到一個新客戶。你需要一個研究助手。</p>
+                </div>
+                
+                <p>你需要認識客戶的關鍵聯絡人，開始在團隊之間建立信任，但首先你想發送一封介紹郵件。你開啟 Gmail 並選擇「幫我撰寫」來提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">初始提示詞</span><br><br>
+                    <span class="component-tag tag-task">撰寫一封電子郵件給 [姓名]</span>，<span class="component-tag tag-context">[公司] 的新任 [職位]</span>。<span class="component-tag tag-task">祝賀他們獲得新職位。介紹我作為他們在 [公司名稱] 的聯絡窗口。邀請他們下週共進午餐</span>，<span class="component-tag tag-format">並詢問他們是否偏好星期一或星期二</span>。(Gemini in Gmail)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page61_img2.jpeg" alt="Gemini in Gmail 起草的郵件" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>這提供了一個有用的起點，但你想嘗試獲得更好的回應。你點擊「精煉」並選擇「正式化」。</p>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page61_img1.jpeg" alt="Gemini in Gmail 精煉後的郵件建議" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>你對郵件感到滿意，所以點擊「插入」。你最後閱讀一次訊息，直接進行最後的輕微編輯，然後發送訊息。現在，你想了解更多關於客戶及其市場定位的資訊。</p>
+                
+                <p>為了研究，你造訪 The Gemini app 並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">迭代提示詞 1</span><br><br>
+                    我是負責新客戶 [客戶名稱] 的客戶經理。我需要進行初步研究。[客戶] 的市場策略是什麼？(The Gemini app)
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page62_img1.jpeg" alt="Gemini app 提供市場策略資訊" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <p>Gemini 為你提供了有用的資訊，幫助你開始研究。你首先專注於新聞公告來繼續研究。你收集了一份 URL 清單，並將它們貼到與 The Gemini app 的對話中。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">迭代提示詞 2</span><br><br>
+                    [URLs] 總結這些文章。提供關鍵見解並說明這些公告為何重要。(The Gemini app)
+                </div>
+                
+                <p>現在你對公告內容、新聞的重要性以及額外見解有了清晰的摘要。</p>
+                
+                <p>接下來，你想更深入了解將成為你主要聯絡人的高階主管。你找到一個以該高階主管為主角的錄製訪談。你將 YouTube URL 貼到與 The Gemini app 的對話中並輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">迭代提示詞 3</span><br><br>
+                    [YouTube URL] 總結這個訪談並告訴我更多關於 [高階主管姓名] 的資訊。[高階主管] 關心什麼？(The Gemini app)
+                </div>
+                
+                <p>你透過額外的提問繼續對話，以建立對關鍵聯絡人和客戶的熟悉度。你提示：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">迭代提示詞 4</span><br><br>
+                    告訴我 [公司] 如何幫助 [客戶公司] 實現他們的目標。(The Gemini app)
+                </div>
+                
+                <p>完成對話後，你將結果匯出到 Google Doc。你開啟 Google Doc 並在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">迭代提示詞 5</span><br><br>
+                    為 [客戶] 建立一封電子郵件草稿，解釋為什麼 [你的公司] 是幫助他們實現市場目標的完美合作夥伴。(Gemini in Docs)
+                </div>
+                
+                <h3>實際應用範例</h3>
+                
+                <h4>客戶成功經理</h4>
+                
+                <div class="success-box">
+                    <h4>✅ NEW 使用案例：映射客戶旅程</h4>
+                    <p>這是你第一次新人培訓新客戶，你意識到可以從建立客製化資產中受益。</p>
+                </div>
+                
+                <p>你開啟新的 Doc 並在「使用 Gemini 撰寫」框中提示，透過輸入 @檔案名稱來標記相關檔案。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    為 [客戶] 建立個人化的新人培訓材料。使用 @[標準新人培訓文件] 和 @[新客戶遷移筆記] 來個人化資產。包括常見問題的部分。(Gemini in Docs)
+                </div>
+                
+                <h4>銷售經理</h4>
+                
+                <div class="success-box">
+                    <h4>✅ NEW 使用案例：在外出時從手機存取資訊和工具</h4>
+                    <p>你正在使用手機遠端工作。從行動應用程式中，你在 Gmail 中開啟一個討論串並選擇 Gemini 晶片來總結此電子郵件。</p>
+                </div>
+                
+                <p>Gemini 快速為你提供來回討論的摘要，讓你可以專注於最重要的要點。(Gemini in Gmail)</p>
+                
+                <p>現在，你想生成一個回應，確認最新進展。你在 Gmail 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    撰寫對此電子郵件的回應，讓 [他們] 知道我已收到訊息，並將在 [星期五] 之前採取 [行動]。(Gemini in Gmail)
+                </div>
+                
+                <h4>使用案例：發展客戶關係</h4>
+                
+                <p>你的年度會議即將到來，你最重要的潛在客戶將會出席。你想親自邀請他們參加歡樂時光。你開啟 Gmail 並選擇「幫我撰寫」來提示 Gemini in Gmail。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    撰寫一封電子郵件，邀請對 [焦點領域] 感興趣的人參加我們在 [日期、時間] 於 [貿易展活動] 舉行的歡樂時光。包括我們專注於 [焦點領域]。(Gemini in Gmail)
+                </div>
+                
+                <p>為了增添特殊感，你想以影片格式向重要客戶發送客製化的影片邀請。你開啟 Vids，選擇「規劃你的影片故事」，並要求它根據你現有的行銷文件建立影片，邀請客戶參加即將到來的會議。(Vids)</p>
+                
+                <p>建立影片初稿後，你可以提示進一步客製化你的邀請，添加專為客戶行業製作的影片片段。</p>
+                
+                <p>現在活動結束了，你想跟進來歡樂時光的客戶。你開啟 Gmail 並選擇「幫我撰寫」來提示 Gemini in Gmail。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    起草一封電子郵件，感謝客戶在 [日期、時間、地點] 參加歡樂時光的時間。以邀請在未來幾週繼續對話作為結尾。使用友好的語氣。(Gemini in Gmail)
+                </div>
+                
+                <p>你想與參加會議研討會的客戶確認，因為他們的早期回饋很重要。你在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    起草 10 個問題，我可以用來調查客戶對我們 [產品/服務] 的最近體驗。包括評估 [產品] 有多有用、他們喜歡什麼，以及他們認為可以改進什麼的問題。(Gemini in Docs)
+                </div>
+                
+                <h4>使用案例：支援銷售團隊</h4>
+                
+                <p>你需要聯絡東南地區的所有團隊負責人，提供關於如何主動聯絡客戶處理持續問題的即時指導。你開啟 Gmail 並選擇「幫我撰寫」來提示 Gemini in Gmail。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    起草一封電子郵件給所有東南地區銷售負責人。通知他們 [問題]。建議他們與團隊溝通，聯絡客戶並提供未來訂單 20% 折扣作為道歉。(Gemini in Gmail)
+                </div>
+                
+                <p>現在，你需要發送郵件給所有地區團隊成員。你開啟 Gmail 並選擇「幫我撰寫」來提示 Gemini in Gmail。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    起草一封電子郵件給地區銷售代表，關於下週需要召開的關於 [問題] 的緊急會議。詢問他們在星期一或星期二的可用時間。(Gemini in Gmail)
+                </div>
+                
+                <h4>使用案例：指導和訓練銷售團隊</h4>
+                
+                <p>你從許多團隊成員那裡聽說他們想要更多學習機會。你正在組織一個半天的學習計劃來支援這個請求。你需要建立時程表，所以你開啟新的 Google Doc 並選擇「幫我撰寫」來提示 Gemini in Docs。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    為銷售團隊建立關於我們最新技術 [產品] 的半天教育課程議程。包括產品開發團隊簡報的時間並包括午餐時間。(Gemini in Docs)
+                </div>
+                
+                <p>接下來，你可以使用詳細議程或其他規劃文件來使用 Vids 建立快速培訓影片，這樣團隊可以在方便的時候觀看。(Vids)</p>
+                
+                <p>作為團隊會議的後續行動，你想突出顯示可用的不同學習機會。你開啟 Google Sheets 並在 Sheets 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    建立一個追蹤銷售人員線上課程的試算表。包括課程主題、價格、時長和優先級別的欄位。(Gemini in Sheets)
+                </div>
+                
+                <h4>使用案例：研究潛在客戶</h4>
+                
+                <p>在重要推銷之前，你使用 Gemini app 中的 Deep Research 功能建立關於相關主題的綜合報告。你上傳報告和其他可用資訊——例如最新的財報電話會議、網站 URL、新聞文章等——關於潛在客戶到 NotebookLM。然後，銷售經理只需點擊一下即可建立簡報文件。(Gemini app 和 NotebookLM)</p>
+                
+                <h4>客戶經理和客戶主管</h4>
+                
+                <div class="success-box">
+                    <h4>✅ NEW 使用案例：透過客製化銷售材料改善協作和執行</h4>
+                    <p>你即將與客戶進行重要會議。從 Google Meet 中，你開啟轉錄並選擇「使用 Gemini 做筆記」來啟動 Gemini in Meet。</p>
+                </div>
+                
+                <p>轉錄提供了所說內容的未編輯 Doc。「使用 Gemini 做筆記」檔案將生成摘要會議、討論的重要主題和行動項目的筆記。現在，你可以完全參與客戶對話。(Gemini in Meet)</p>
+                
+                <p>通話後，你想向客戶發送摘要訊息。你開啟新訊息並在 Gmail 側邊面板中提示 Gemini，透過輸入 @檔案名稱來標記相關檔案。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    撰寫一封訊息給 [客戶]，感謝他們在上次 [會議] 的時間。提供會議的快速摘要並確認討論的任何痛點。使用 @[客戶會議 Gemini 筆記] 要求額外時間討論我們的 [解決方案]。(Gemini in Gmail)
+                </div>
+                
+                <p>為了準備下次會議，你想使用轉錄和現有的銷售材料來生成客製化資產，展示你公司的產品如何解決通話中提到的客戶痛點。為此，你開啟新的 Doc 並在 Docs 側邊面板中提示 Gemini，透過輸入 @檔案名稱來標記相關檔案。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我是 [客戶經理]，我剛完成與 [客戶] 的通話。我想總結 [客戶] 在上次會議中提到的 [痛點]。提供來自 @[客戶通話轉錄] 的直接引用清單，其中 [客戶] 討論他們試圖解決的問題。(Gemini in Docs)
+                </div>
+                
+                <p>你閱讀痛點摘要並看到它們捕捉了討論的內容。你從側邊面板點擊「插入」。然後，你想使用現有檔案為他們的每個痛點生成客製化回應。你再次在 Docs 側邊面板中提示 Gemini 並標記相關檔案。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我需要建立令人信服的理由，說明 [客戶] 為什麼應該採用 [產品] 來解決 [他們的痛點]。撰寫來自 [公司] 的 [產品] 如何幫助他們實現 [業務目標] 的具體理由，使用 @[產品銷售套件完整資產]。(Gemini in Docs)
+                </div>
+                
+                <p>然後你可以使用 Vids 和你建立的 Doc 來錄製包含回應和後續步驟的引人入勝的影片。(Vids)</p>
+                
+                <h4>使用案例：建立客戶關係</h4>
+                
+                <p>你剛與客戶進行了一次很棒的通話，現在你想使用在 Google Docs 中從會議記錄的筆記來起草一封電子郵件給客戶。在包含筆記的 Google Doc 中，你選擇「幫我撰寫」來提示 Gemini in Docs。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    在初步對話後，撰寫一封個人化的後續電子郵件給 [客戶]。總結我們討論的關鍵要點並解決任何未解決的問題。(Gemini in Docs)
+                </div>
+                
+                <p>客戶剛採用了公司的其中一項服務產品，你需要確保他們在新人培訓過程中感到受支援。你想確保每週檢查進展情況，但你想探索郵件可能的樣子。你開啟新的 Google Doc 並選擇「幫我撰寫」來提示 Gemini in Docs。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    起草四個電子郵件範本，在客戶購買我們的新 [服務] 後每週與他們確認。使用一個價值主張（成本、易用性、安全性、可用性和客製化）作為每封郵件的主題，並在每封訊息中包括 [行動呼籲]。(Gemini in Docs)
+                </div>
+                
+                <h4>使用案例：準備新客戶電話</h4>
+                
+                <p>你即將與潛在客戶通話。這對你來說是一個全新的使用案例，你需要幫助準備通話。你造訪 The Gemini app，然後輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    為我起草一個客製化腳本，在與潛在客戶的銷售電話中遵循。通話將透過視訊通話進行，預計持續 30 分鐘。確保在腳本中添加以下內容：[公司產品/解決方案] 如何幫助解決潛在客戶的痛點、[公司] 的交付系統如何保證無縫且及時的交付、有競爭力的價格和批量折扣表，以及 [客戶行業] 行業中客戶參考的空間。(The Gemini app)
+                </div>
+                
+                <p>現在你已完成初步研究，你將發現匯出到新的 Google Doc。你開啟 Google Doc 並繼續工作。現在，你想建立量身定制的推銷。使用包含所有研究筆記的 Google Doc，你選擇「幫我撰寫」來提示 Gemini in Docs。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    為 [產品名稱] 生成電梯簡報，並包括關鍵優勢、競爭差異化點，以及 [產品名稱] 解決的痛點。(Gemini in Docs)
+                </div>
+                
+                <p>你對電梯簡報和簡短談話要點有了很好的開始。你想用它來進一步預測客戶電話可能如何進行。你回到 The Gemini app 繼續準備會議。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    我即將與潛在客戶通話。[使用案例] 對我來說是新的使用案例，我需要幫助準備通話。列出 [客戶] 在銷售電話期間可能對我提出的最可能異議，並提供如何回應的建議。我在 [插入行業] 工作，我正在嘗試銷售 [產品]。還提供關於如何處理異議的想法並建議回應方式。(The Gemini app)
+                </div>
+                
+                <div class="info-box">
+                    <h4>💎 使用 Gems 升級</h4>
+                    <p>要標準化你的通話準備流程，請在 Gemini app 中建立「Sales Call Prep」Gem。你可以使用公司的銷售方法論、成功的發現問題和常見異議來個人化此 Gem。透過將其建立在表現最佳的銷售材料基礎上，你可以建立一個強大且可重複使用的助手，確保你為任何客戶對話做好準備。</p>
+                </div>
+                
+                <h4>業務發展經理</h4>
+                
+                <div class="success-box">
+                    <h4>✅ NEW 使用案例：培養關係、個人化外展和思想領導力</h4>
+                    <p>你希望與最近遇到的潛在客戶建立更深層的關係。你想起草一個可以為多個聯絡人客製化的範本。</p>
+                </div>
+                
+                <p>你開啟新的 Google Doc，並在 Docs 中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    起草一個外展電子郵件範本給行業影響者。表達我們在 [活動] 建立聯繫的感激之情，並提出協作機會，例如 [機會]。(Gemini in Docs)
+                </div>
+                
+                <p>在與潛在客戶進行成功通話後，你想跟進來自創辦人的思想領導內容，他們可能會覺得有趣。你開啟包含部落格文章的 Google Doc，並選擇「幫我撰寫」來提示 Gemini in Docs。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    以條列項目總結此部落格內容，並生成三個後續問題的想法，我可以詢問客戶對他們的想法。(Gemini in Docs)
+                </div>
+                
+                <h4>使用案例：生成個人化的客戶感謝材料</h4>
+                
+                <p>你想親自感謝客戶並確認。你開啟 Gmail 並選擇「幫我撰寫」來提示 Gemini in Gmail。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    為 [客戶] 生成個人化電子郵件，慶祝他們與 [公司] 合作一個月週年。感謝他們成為客戶。詢問他們是否有任何問題。包括關於 [其他產品] 的資訊。(Gemini in Gmail)
+                </div>
+                
+                <p>你還想向這些客戶發送禮物以感謝他們。你開啟 Google Sheet 並在 Sheets 側邊面板中提示 Gemini。你輸入：</p>
+                
+                <div class="prompt-box">
+                    <span class="prompt-label">提示詞</span><br><br>
+                    給我一份可以發送給新客戶的禮品清單，價格低於 200 美元並且可以郵寄到辦公室。(Gemini in Sheets)
+                </div>
+                
+                <div class="step-navigation">
+                    <a href="#step9" class="nav-button secondary">← 上一步：專案管理</a>
+                    <a href="#step11" class="nav-button">下一步：進階技巧 →</a>
+                </div>
+            </section>
+            
+            <!-- Step 11: Leveling Up -->
+            <section class="step" id="step11">
+                <h2>步驟 11：提升你的提示詞撰寫技巧</h2>
+                
+                <div class="info-box">
+                    <h4>🎯 學習目標</h4>
+                    <p>掌握六大進階提示詞技巧，了解 AI 使用的重要注意事項，並獲得持續學習的資源。</p>
+                </div>
+                
+                <h3>關於本指南</h3>
+                <p>本指南旨在作為靈感來源，而 Google Workspace with Gemini 的可能性幾乎是無窮無盡的。透過以下技巧來培養你的提示詞撰寫技能。</p>
+                
+                <h3>六大進階技巧</h3>
+                
+                <div class="success-box" style="border-left: 4px solid #ea4335;">
+                    <h4>✂️ 技巧 1：分段處理（Break it up）</h4>
+                    <p><strong>說明：</strong>如果你希望 Gemini 執行幾個相關任務，請將它們分解為單獨的提示詞。</p>
+                    <p><strong>範例：</strong>與其要求「分析這份報告並建立簡報和摘要郵件」，不如分三步：先分析報告，再建立簡報，最後起草郵件。</p>
+                </div>
+                
+                <div class="success-box" style="border-left: 4px solid #4285f4;">
+                    <h4>📏 技巧 2：給予限制（Give constraints）</h4>
+                    <p><strong>說明：</strong>要生成特定結果，請在提示詞中包含詳細資訊，例如字數限制或你想生成的選項數量。</p>
+                    <p><strong>範例：</strong>「生成 5 個標題選項，每個不超過 60 個字元」或「將摘要限制在 200 字以內」。</p>
+                </div>
+                
+                <div class="success-box" style="border-left: 4px solid #fbbc04;">
+                    <h4>🎭 技巧 3：分配角色（Assign a role）</h4>
+                    <p><strong>說明：</strong>要鼓勵創造力，請分配一個角色。你可以透過以下語言開始提示詞：「你是領先廣告公司的創意部門主管……」</p>
+                    <p><strong>範例：</strong>「你是經驗豐富的資料科學家，請用簡單的術語解釋這個概念」。</p>
+                </div>
+                
+                <div class="success-box" style="border-left: 4px solid #34a853;">
+                    <h4>💬 技巧 4：尋求回饋（Ask for feedback）</h4>
+                    <p><strong>說明：</strong>在與 The Gemini app 的對話中，告訴它你正在給它一個專案，包括所有相關詳細資訊，然後描述你想要的輸出。透過以下問題繼續對話：「你有什麼問題可以幫助你提供最佳輸出？」</p>
+                    <p><strong>範例：</strong>讓 AI 詢問澄清問題可以產生更精確、更相關的結果。</p>
+                </div>
+                
+                <div class="success-box" style="border-left: 4px solid #9334e6;">
+                    <h4>🎵 技巧 5：考慮語氣（Consider tone）</h4>
+                    <p><strong>說明：</strong>調整提示詞以適應你的目標受眾。要求輸出具有特定語氣，例如正式、非正式、技術、創意或隨意。</p>
+                    <p><strong>範例：</strong>「使用友好且平易近人的語氣」或「採用專業且技術性的風格」。</p>
+                </div>
+                
+                <div class="success-box" style="border-left: 4px solid #ea8600;">
+                    <h4>🔄 技巧 6：換個說法（Say it another way）</h4>
+                    <p><strong>說明：</strong>如果結果不符合你的期望或你認為有改進空間，請微調提示詞。反覆審查和精煉的過程通常會產生更好的結果。</p>
+                    <p><strong>範例：</strong>嘗試不同的措辭、添加更多背景資訊，或調整你要求的格式。</p>
+                </div>
+                
+                <div class="image-container" style="margin: 20px 0; text-align: center;">
+                    <img src="images/page70_img1.jpeg" alt="六大技巧視覺化圖表" style="max-width: 100%; height: auto; border: 1px solid #dadce0; border-radius: 8px;">
+                </div>
+                
+                <h3>⚠️ 重要提醒</h3>
+                
+                <div class="warning-box" style="background: #fef7e0; border-left: 4px solid #f9ab00; padding: 20px; margin: 20px 0; border-radius: 8px;">
+                    <h4 style="color: #e37400; margin-top: 0;">使用生成式 AI 時請謹記</h4>
+                    <p style="margin-bottom: 15px;">生成式 AI 及其所有可能性令人興奮，但它仍然是新技術。即使我們的模型每天都在改進，提示詞有時也可能產生不可預測的回應。</p>
+                    <p style="margin-bottom: 15px;"><strong>在將 Workspace with Gemini 的輸出付諸行動之前，請審查它以確保清晰度、相關性和準確性。</strong></p>
+                    <p style="margin-bottom: 0;"><strong>最重要的是：生成式 AI 旨在幫助人類，但最終輸出由你負責。</strong></p>
+                </div>
+                
+                <p style="font-style: italic; color: #5f6368; margin: 30px 0;">本指南中的範例提示詞僅供說明之用。</p>
+                
+                <h3>📚 保持更新</h3>
+                
+                <div style="background: #f8f9fa; padding: 30px; border-radius: 8px; margin: 30px 0;">
+                    <h4 style="margin-top: 0;">探索更多資源</h4>
+                    <p style="margin-bottom: 15px;">繼續你的 Google Workspace with Gemini 學習之旅：</p>
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li style="margin-bottom: 10px;">🌐 <a href="https://workspace.google.com" target="_blank" style="color: #1a73e8; text-decoration: none;">workspace.google.com</a> - 產品資訊與最新功能</li>
+                        <li style="margin-bottom: 10px;">📝 <a href="https://workspace.google.com/blog" target="_blank" style="color: #1a73e8; text-decoration: none;">workspace.google.com/blog</a> - 最新消息、提示與最佳實踐</li>
+                    </ul>
+                </div>
+                
+                <h3>🎉 恭喜完成！</h3>
+                
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; border-radius: 12px; text-align: center; margin: 40px 0;">
+                    <h2 style="margin-top: 0; font-size: 2.5em;">🎊 Happy Prompting! 🎊</h2>
+                    <p style="font-size: 1.2em; margin: 20px 0;">你已完成 Google Workspace with Gemini 提示詞指南的所有 11 個章節！</p>
+                    <p style="font-size: 1.1em; margin: 20px 0;">現在你已掌握：</p>
+                    <ul style="list-style: none; padding: 0; font-size: 1.1em;">
+                        <li>✅ Prompting 101 基礎知識</li>
+                        <li>✅ 11 種職位角色的實際應用</li>
+                        <li>✅ 50+ 個真實使用案例</li>
+                        <li>✅ 進階提示詞撰寫技巧</li>
+                    </ul>
+                    <p style="font-size: 1.3em; margin-top: 30px; font-weight: bold;">開始將這些技能應用到你的日常工作中吧！</p>
+                </div>
+                
+                <div class="step-navigation">
+                    <a href="#step10" class="nav-button secondary">← 上一步：業務銷售</a>
+                    <a href="#step1" class="nav-button">🔄 重新開始課程</a>
+                </div>
+            </section>
+            
+            <div style="margin-top: 60px; padding: 40px; background: #f8f9fa; border-radius: 8px; text-align: center;">
+                <h3 style="color: #34a853; margin-bottom: 20px;">✅ 課程已完成！</h3>
+                <p style="color: #3c4043; margin-bottom: 30px;">你已完成所有 11 個步驟。恭喜完成 Google Workspace with Gemini 提示詞工程完整教學！</p>
+                <div style="background: white; padding: 20px; border-radius: 8px; display: inline-block;">
+                    <p style="margin-bottom: 10px; font-weight: 500; color: #34a853; font-size: 1.2em;">進度：100% (11/11) 🎉</p>
+                    <div style="width: 300px; height: 8px; background: #e8eaed; border-radius: 4px; overflow: hidden;">
+                        <div style="width: 100%; height: 100%; background: #34a853;"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href.includes('未完成')) {
+                    e.preventDefault();
+                    return;
+                }
+                e.preventDefault();
+                const target = document.querySelector(href);
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    
+                    // Update active state
+                    document.querySelectorAll('.sidebar a').forEach(link => {
+                        link.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                }
+            });
+        });
+        
+        // Update active navigation on scroll
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('.step');
+            const navLinks = document.querySelectorAll('.sidebar a');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= (sectionTop - 200)) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+    
+    <script>
+        // Codelabs 章節切換功能
+        let currentStep = 1;
+        const totalSteps = 11;
+        
+        function showStep(stepNumber) {
+            // 隱藏所有章節
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            // 顯示指定章節
+            const targetStep = document.getElementById('step' + stepNumber);
+            if (targetStep) {
+                targetStep.classList.add('active');
+                currentStep = stepNumber;
+                
+                // 更新進度條
+                updateProgressBar();
+                
+                // 更新側邊欄 active 狀態
+                updateSidebarActive();
+                
+                // 滾動到頂部
+                window.scrollTo(0, 0);
+            }
+        }
+        
+        function updateProgressBar() {
+            const progressFill = document.querySelector('.progress-fill');
+            const percentage = (currentStep / totalSteps) * 100;
+            progressFill.style.width = percentage + '%';
+        }
+        
+        function updateSidebarActive() {
+            document.querySelectorAll('.sidebar a').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            const activeLink = document.querySelector('.sidebar a[href="#step' + currentStep + '"]');
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+        }
+        
+        // 初始化：顯示第一個章節
+        window.addEventListener('DOMContentLoaded', function() {
+            showStep(1);
+            
+            // 覆蓋側邊欄導航點擊行為
+            document.querySelectorAll('.sidebar a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const href = this.getAttribute('href');
+                    if (href && href.startsWith('#step')) {
+                        const stepNumber = parseInt(href.replace('#step', ''));
+                        if (!isNaN(stepNumber)) {
+                            showStep(stepNumber);
+                        }
+                    }
+                }, true);  // 使用 capture 階段確保優先執行
+            });
+            
+            // 導航按鈕點擊
+            document.querySelectorAll('.nav-button').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const href = this.getAttribute('href');
+                    
+                    if (href && href.startsWith('#step')) {
+                        const stepNumber = parseInt(href.replace('#step', ''));
+                        if (!isNaN(stepNumber)) {
+                            showStep(stepNumber);
+                        }
+                    }
+                }, true);
+            });
+            
+            // 鍵盤導航
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowRight' && currentStep < totalSteps) {
+                    showStep(currentStep + 1);
+                } else if (e.key === 'ArrowLeft' && currentStep > 1) {
+                    showStep(currentStep - 1);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

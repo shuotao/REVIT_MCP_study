@@ -8,7 +8,7 @@ import { RevitSocketClient } from '../build/socket.js';
 import path from 'path';
 
 async function testExteriorWallOpeningCheck() {
-    const client = new RevitSocketClient('localhost', 8964);
+    const client = new RevitSocketClient('localhost', 11111);
 
     try {
         console.log('Connecting to Revit MCP Server...');
@@ -98,3 +98,4 @@ async function testExteriorWallOpeningCheck() {
 }
 
 testExteriorWallOpeningCheck().catch(console.error);
+

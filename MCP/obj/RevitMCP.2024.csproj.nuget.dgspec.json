@@ -1,31 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\h3019\\Documents\\vscode_projects\\REVIT_MCP_study\\MCP\\RevitMCP.2024.csproj": {}
+    "H:\\0_REVIT MCP\\REVIT_MCP_study-main\\MCP\\RevitMCP.2024.csproj": {}
   },
   "projects": {
-    "C:\\Users\\h3019\\Documents\\vscode_projects\\REVIT_MCP_study\\MCP\\RevitMCP.2024.csproj": {
+    "H:\\0_REVIT MCP\\REVIT_MCP_study-main\\MCP\\RevitMCP.2024.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\h3019\\Documents\\vscode_projects\\REVIT_MCP_study\\MCP\\RevitMCP.2024.csproj",
+        "projectUniqueName": "H:\\0_REVIT MCP\\REVIT_MCP_study-main\\MCP\\RevitMCP.2024.csproj",
         "projectName": "RevitMCP",
-        "projectPath": "C:\\Users\\h3019\\Documents\\vscode_projects\\REVIT_MCP_study\\MCP\\RevitMCP.2024.csproj",
-        "packagesPath": "C:\\Users\\h3019\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\h3019\\Documents\\vscode_projects\\REVIT_MCP_study\\MCP\\obj\\",
+        "projectPath": "H:\\0_REVIT MCP\\REVIT_MCP_study-main\\MCP\\RevitMCP.2024.csproj",
+        "packagesPath": "C:\\Users\\jerry\\.nuget\\packages\\",
+        "outputPath": "H:\\0_REVIT MCP\\REVIT_MCP_study-main\\MCP\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\h3019\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\jerry\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net48"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -44,18 +38,24 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "10.0.100"
       },
       "frameworks": {
         "net48": {
           "targetAlias": "net48",
           "dependencies": {
+            "Microsoft.NETFramework.ReferenceAssemblies": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.0.3, )",
+              "autoReferenced": true
+            },
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.3, )"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.200\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102\\RuntimeIdentifierGraph.json"
         }
       }
     }

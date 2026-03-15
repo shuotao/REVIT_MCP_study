@@ -2,19 +2,19 @@ import { RevitSocketClient } from '../build/socket.js';
 
 async function listLevels() {
     // Correct usage: host, port
-    const client = new RevitSocketClient('localhost', 8964);
+    const client = new RevitSocketClient('localhost', 11111);
 
     try {
-        console.log('🔌 Connecting to Revit MCP Server...');
+        console.log('?? Connecting to Revit MCP Server...');
         await client.connect();
-        console.log('✅ Connected successfully');
+        console.log('??Connected successfully');
 
-        console.log('\n📋 Querying Levels...');
+        console.log('\n?? Querying Levels...');
         const result = await client.sendCommand('get_all_levels', {});
 
         if (result.success) {
             const data = result.data;
-            console.log(`\n✅ Found ${data.Count} Levels:\n`);
+            console.log(`\n??Found ${data.Count} Levels:\n`);
 
             // Format output as a nice table
             console.log('--------------------------------------------------');
@@ -30,14 +30,14 @@ async function listLevels() {
             });
             console.log('--------------------------------------------------');
         } else {
-            console.error('❌ Error querying levels:', result.error);
+            console.error('??Error querying levels:', result.error);
         }
 
     } catch (error) {
-        console.error('❌ Execution failed:', error);
+        console.error('??Execution failed:', error);
     } finally {
         client.disconnect();
-        console.log('\n🔌 Disconnected');
+        console.log('\n?? Disconnected');
     }
 }
 
@@ -46,3 +46,4 @@ function pad(str, len) {
 }
 
 listLevels();
+
