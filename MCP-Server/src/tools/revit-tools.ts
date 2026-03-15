@@ -861,6 +861,293 @@ export function registerRevitTools(): Tool[] {
                 },
             },
         },
+
+        // ========== 帷幕牆工具 ==========
+
+        // 38. 取得帷幕牆資訊
+        {
+            name: "get_curtain_wall_info",
+            description: "取得目前選取的帷幕牆詳細資訊，包含 Grid 排列（列數、行數）、面板尺寸、面板類型分佈等。使用前請先在 Revit 中選取一個帷幕牆。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    elementId: {
+                        type: "number",
+                        description: "帷幕牆的 Element ID（選填，若不指定則使用目前選取的元素）",
+                    },
+                },
+            },
+        },
+
+        // 39. 取得帷幕牆面板類型
+        {
+            name: "get_curtain_panel_types",
+            description: "取得專案中所有可用的帷幕牆面板類型，包含類型名稱、族群、材料等資訊。用於選擇要套用的面板類型。",
+            inputSchema: {
+                type: "object",
+                properties: {},
+            },
+        },
+
+        // 40. 建立帷幕牆面板類型
+        {
+            name: "create_curtain_panel_type",
+            description: "建立新的帷幕牆面板類型，可指定顏色。用於實現自訂面板排列模式。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    typeName: {
+                        type: "string",
+                        description: "新類型的名稱",
+                    },
+                    color: {
+                        type: "string",
+                        description: "面板顏色（HEX 格式，如 '#5C4033'）",
+                    },
+                    baseTypeId: {
+                        type: "number",
+                        description: "基礎類型 ID（選填，用於複製現有類型的設定）",
+                    },
+                },
+                required: ["typeName", "color"],
+            },
+        },
+
+        // 41. 套用帷幕牆面板排列模式
+        {
+            name: "apply_panel_pattern",
+            description: "將指定的面板排列模式套用到帷幕牆。需要提供類型映射表（字母對應類型 ID）和排列矩陣。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    elementId: {
+                        type: "number",
+                        description: "帷幕牆的 Element ID",
+                    },
+                    typeMapping: {
+                        type: "object",
+                        description: "類型映射表，鍵為矩陣中的字母（如 'A', 'B'），值為對應的面板類型 ID",
+                    },
+                    matrix: {
+                        type: "array",
+                        description: "面板排列矩陣，每行是一個字串陣列，由上到下、由左到右",
+                        items: {
+                            type: "array",
+                            items: { type: "string" },
+                        },
+                    },
+                },
+                required: ["elementId", "typeMapping", "matrix"],
+            },
+        },
+
+        // ========== 立面面板工具 ==========
+
+        // 42. 建立單片立面面板
+        {
+            name: "create_facade_panel",
+            description: "在指定牆面前方建立一片立面面板（DirectShape）。支援 5 種幾何類型：curved_panel（弧形面板）、beveled_opening（斜切凹窗框）、angled_panel（傾斜平板）、rounded_opening（圓角開口）、flat_panel（平面面板）。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    wallId: {
+                        type: "number",
+                        description: "參考牆的 Element ID（選填，若不指定則使用目前選取的牆）",
+                    },
+                    geometryType: {
+                        type: "string",
+                        enum: ["curved_panel", "beveled_opening", "angled_panel", "rounded_opening", "flat_panel"],
+                        description: "幾何類型：curved_panel=弧形面板, beveled_opening=斜切凹窗框, angled_panel=傾斜平板, rounded_opening=圓角開口, flat_panel=平面面板。預設 curved_panel",
+                    },
+                    positionAlongWall: {
+                        type: "number",
+                        description: "面板中心沿牆方向的位置（mm，從牆起點算起）",
+                    },
+                    positionZ: {
+                        type: "number",
+                        description: "面板底部的 Z 高度（mm）",
+                    },
+                    width: {
+                        type: "number",
+                        description: "面板/外框寬度（mm），預設 800",
+                    },
+                    height: {
+                        type: "number",
+                        description: "面板/外框高度（mm），預設 3400",
+                    },
+                    depth: {
+                        type: "number",
+                        description: "深度（mm）：弧形面板的弧深 / 開口類型的凹入深度，預設 150",
+                    },
+                    thickness: {
+                        type: "number",
+                        description: "板厚（mm），預設 30",
+                    },
+                    offset: {
+                        type: "number",
+                        description: "距牆面的偏移量（mm），預設 200",
+                    },
+                    color: {
+                        type: "string",
+                        description: "顏色（HEX 格式，如 '#B85C3A'）",
+                    },
+                    name: {
+                        type: "string",
+                        description: "面板名稱標識",
+                    },
+                    // curved_panel 專用
+                    curveType: {
+                        type: "string",
+                        enum: ["concave", "convex"],
+                        description: "[curved_panel] 曲線類型：concave 凹面 / convex 凸面",
+                    },
+                    // angled_panel 專用
+                    tiltAngle: {
+                        type: "number",
+                        description: "[angled_panel] 傾斜角度（度），預設 15",
+                    },
+                    tiltAxis: {
+                        type: "string",
+                        enum: ["horizontal", "vertical"],
+                        description: "[angled_panel] 傾斜軸：horizontal 前後傾 / vertical 左右傾",
+                    },
+                    // beveled_opening 專用
+                    bevelDirection: {
+                        type: "string",
+                        enum: ["center", "up", "down", "left", "right"],
+                        description: "[beveled_opening] 斜切方向：center 均勻 / up 上深 / down 下深 / left 左深 / right 右深",
+                    },
+                    bevelDepth: {
+                        type: "number",
+                        description: "[beveled_opening] 斜切凹陷深度（mm），預設 300。控制從外框到開口底部的斜面深度",
+                    },
+                    openingWidth: {
+                        type: "number",
+                        description: "[beveled_opening/rounded_opening] 內開口寬度（mm）",
+                    },
+                    openingHeight: {
+                        type: "number",
+                        description: "[beveled_opening/rounded_opening] 內開口高度（mm）",
+                    },
+                    // rounded_opening 專用
+                    cornerRadius: {
+                        type: "number",
+                        description: "[rounded_opening] 圓角半徑（mm），預設 100",
+                    },
+                    openingShape: {
+                        type: "string",
+                        enum: ["rounded_rect", "arch", "stadium", "rect"],
+                        description: "[rounded_opening] 開口形狀：rounded_rect 圓角矩形 / arch 圓拱 / stadium 跑道形 / rect 直角",
+                    },
+                },
+            },
+        },
+
+        // 43. 批次建立整面立面
+        {
+            name: "create_facade_from_analysis",
+            description: "根據 AI 分析結果或預覽工具設定，一次建立整面弧形立面。在指定牆面前方批次建立多片 DirectShape 弧形面板，支援多種面板類型和排列模式。建議先使用立面預覽工具（http://localhost:10002）確認效果後再套用。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    wallId: {
+                        type: "number",
+                        description: "目標牆的 Element ID（選填，若不指定則使用目前選取的牆）",
+                    },
+                    facadeLayers: {
+                        type: "object",
+                        description: "立面層級定義",
+                        properties: {
+                            outer: {
+                                type: "object",
+                                description: "外層弧形面板定義",
+                                properties: {
+                                    offset: {
+                                        type: "number",
+                                        description: "距牆面偏移量（mm），預設 200",
+                                    },
+                                    panelTypes: {
+                                        type: "array",
+                                        description: "面板類型定義陣列",
+                                        items: {
+                                            type: "object",
+                                            properties: {
+                                                id: {
+                                                    type: "string",
+                                                    description: "類型代號（如 'A', 'B'），用於 pattern 矩陣對應",
+                                                },
+                                                name: {
+                                                    type: "string",
+                                                    description: "類型名稱（如 'FP_Concave_800_150_Terracotta'）",
+                                                },
+                                                width: {
+                                                    type: "number",
+                                                    description: "面板寬度（mm）",
+                                                },
+                                                height: {
+                                                    type: "number",
+                                                    description: "面板高度（mm）",
+                                                },
+                                                depth: {
+                                                    type: "number",
+                                                    description: "弧形深度（mm）",
+                                                },
+                                                thickness: {
+                                                    type: "number",
+                                                    description: "板厚（mm）",
+                                                },
+                                                curveType: {
+                                                    type: "string",
+                                                    enum: ["concave", "convex"],
+                                                    description: "[curved_panel] 曲線類型",
+                                                },
+                                                color: {
+                                                    type: "string",
+                                                    description: "顏色（HEX 格式）",
+                                                },
+                                                geometryType: {
+                                                    type: "string",
+                                                    enum: ["curved_panel", "beveled_opening", "angled_panel", "rounded_opening", "flat_panel"],
+                                                    description: "幾何類型，預設 curved_panel",
+                                                },
+                                                tiltAngle: { type: "number", description: "[angled_panel] 傾斜角度" },
+                                                tiltAxis: { type: "string", description: "[angled_panel] 傾斜軸" },
+                                                bevelDirection: { type: "string", description: "[beveled_opening] 斜切方向" },
+                                                openingWidth: { type: "number", description: "[opening] 開口寬度(mm)" },
+                                                openingHeight: { type: "number", description: "[opening] 開口高度(mm)" },
+                                                cornerRadius: { type: "number", description: "[rounded_opening] 圓角半徑(mm)" },
+                                                openingShape: { type: "string", description: "[rounded_opening] 開口形狀" },
+                                            },
+                                            required: ["id", "width", "color"],
+                                        },
+                                    },
+                                    pattern: {
+                                        type: "array",
+                                        description: "排列矩陣，每個元素為一個字串代表一層（如 'ABABAB'），由上到下排列",
+                                        items: { type: "string" },
+                                    },
+                                    gap: {
+                                        type: "number",
+                                        description: "面板間水平間距（mm），預設 20",
+                                    },
+                                    horizontalBandHeight: {
+                                        type: "number",
+                                        description: "層間水平分隔帶高度（mm），0 表示不建立分隔帶",
+                                    },
+                                    floorHeight: {
+                                        type: "number",
+                                        description: "每層高度（mm），預設 3600",
+                                    },
+                                },
+                                required: ["panelTypes", "pattern"],
+                            },
+                        },
+                        required: ["outer"],
+                    },
+                },
+                required: ["facadeLayers"],
+            },
+        },
     ];
 }
 
