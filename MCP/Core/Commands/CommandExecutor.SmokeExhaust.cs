@@ -1188,12 +1188,13 @@ namespace RevitMCP.Core
             // 建立 BoundingBoxXYZ 作為剖面範圍
             BoundingBoxXYZ sectionBox = new BoundingBoxXYZ();
 
-            // Transform：X 沿牆方向，Y 向上，Z 向視圖方向（面對牆面）
+            // 建立右手座標系 Transform（Revit API 要求 BasisX × BasisY = BasisZ）
+            double offsetFeet = offset * MM_TO_FEET;
             Transform transform = Transform.Identity;
-            transform.Origin = midPoint - viewDir * (offset * MM_TO_FEET);
+            transform.Origin = midPoint;
             transform.BasisX = wallDir;
             transform.BasisY = XYZ.BasisZ;
-            transform.BasisZ = -viewDir; // 看向牆面
+            transform.BasisZ = wallDir.CrossProduct(XYZ.BasisZ); // 右手系：垂直於牆面
 
             sectionBox.Transform = transform;
 
@@ -1201,11 +1202,9 @@ namespace RevitMCP.Core
             double halfLength = wallLength / 2.0 + 2.0; // 左右多 2 英尺
             double topMargin = 2.0; // 頂部多 2 英尺
             double bottomMargin = 1.0; // 底部多 1 英尺
-            double depthNear = 0;
-            double depthFar = (offset * MM_TO_FEET) + wall.Width + 2.0;
 
-            sectionBox.Min = new XYZ(-halfLength, -bottomMargin, depthNear);
-            sectionBox.Max = new XYZ(halfLength, wallHeight + topMargin, depthFar);
+            sectionBox.Min = new XYZ(-halfLength, -bottomMargin, -offsetFeet);
+            sectionBox.Max = new XYZ(halfLength, wallHeight + topMargin, wall.Width + 2.0);
 
             IdType viewIdResult;
             using (Transaction trans = new Transaction(doc, "建立排煙檢討剖面"))
