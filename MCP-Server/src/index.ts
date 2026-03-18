@@ -97,8 +97,9 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
+  const configuredPort = process.env.REVIT_MCP_PORT || "8964";
   console.error("MCP Server Started");
-  console.error("Socket Server listening on 8964");
+  console.error(`Socket Server listening on ${configuredPort}`);
 
   // 處理優雅退出
   const shutdown = async () => {

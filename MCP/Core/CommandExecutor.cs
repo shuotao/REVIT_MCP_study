@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
+using Autodesk.Revit.DB.Mechanical;
+using Autodesk.Revit.DB.Plumbing;
 using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
 using RevitMCP.Models;
@@ -218,6 +220,22 @@ namespace RevitMCP.Core
 
                     case "get_view_templates":
                         result = GetViewTemplates(parameters);
+                        break;
+
+                    case "create_view_schedule":
+                        result = CreateViewSchedule(parameters);
+                        break;
+
+                    case "get_selected_elements":
+                        result = GetSelectedElements();
+                        break;
+
+                    case "get_connector_info":
+                        result = GetConnectorInfo(parameters);
+                        break;
+
+                    case "add_pipe_cap":
+                        result = AddPipeCap(parameters);
                         break;
 
                     default:
@@ -2968,6 +2986,233 @@ namespace RevitMCP.Core
             overrideSettings.SetCutLineColor(color);
 
             view.SetElementOverrides(openingId, overrideSettings);
+        }
+
+        #endregion
+
+        #region 明細表建立
+
+        /// <summary>
+        /// 建立視圖明細表（ViewSchedule）
+        /// </summary>
+        private object CreateViewSchedule(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            string scheduleName = parameters["name"]?.Value<string>() ?? "MCP製作的明細表";
+            string categoryName = parameters["category"]?.Value<string>();
+            var fieldNames = parameters["fields"]?.ToObject<List<string>>() ?? new List<string>();
+
+            using (Transaction trans = new Transaction(doc, "建立明細表"))
+            {
+                trans.Start();
+
+                ElementId categoryId = ElementId.InvalidElementId;
+                if (!string.IsNullOrEmpty(categoryName))
+                {
+                    foreach (Category cat in doc.Settings.Categories)
+                    {
+                        if (cat.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            categoryId = cat.Id;
+                            break;
+                        }
+                    }
+                }
+
+                ViewSchedule schedule = ViewSchedule.CreateSchedule(doc, categoryId);
+                schedule.Name = scheduleName;
+
+                var schedulableFields = schedule.Definition.GetSchedulableFields();
+                var addedFields = new List<string>();
+                var missingFields = new List<string>();
+
+                foreach (string fieldName in fieldNames)
+                {
+                    var sf = schedulableFields.FirstOrDefault(f =>
+                        f.GetName(doc).Equals(fieldName, StringComparison.OrdinalIgnoreCase));
+                    if (sf != null)
+                    {
+                        schedule.Definition.AddField(sf);
+                        addedFields.Add(fieldName);
+                    }
+                    else
+                    {
+                        missingFields.Add(fieldName);
+                    }
+                }
+
+                trans.Commit();
+
+                return new
+                {
+                    ElementId = schedule.Id.GetIdValue(),
+                    Name = schedule.Name,
+                    FieldCount = schedule.Definition.GetFieldCount(),
+                    AddedFields = addedFields,
+                    MissingFields = missingFields,
+                    Message = $"成功建立明細表: {schedule.Name}"
+                };
+            }
+        }
+
+        #endregion
+
+        #region MEP 工具
+
+        /// <summary>
+        /// 取得目前選取的元素
+        /// </summary>
+        private object GetSelectedElements()
+        {
+            UIDocument uiDoc = _uiApp.ActiveUIDocument;
+            Document doc = uiDoc.Document;
+            var selection = uiDoc.Selection.GetElementIds();
+
+            var elements = selection.Select(id =>
+            {
+                Element e = doc.GetElement(id);
+                return new
+                {
+                    Id = e.Id.GetIdValue(),
+                    Name = e.Name,
+                    Category = e.Category?.Name ?? "Unknown"
+                };
+            }).ToList();
+
+            return new
+            {
+                Count = elements.Count,
+                Elements = elements
+            };
+        }
+
+        /// <summary>
+        /// 取得元素的 Connector（接頭）資訊
+        /// </summary>
+        private object GetConnectorInfo(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            IdType elementIdValue = parameters["elementId"]?.Value<IdType>() ?? 0;
+            Element element = doc.GetElement(new ElementId(elementIdValue));
+
+            if (element == null) throw new Exception("找不到元素");
+
+            ConnectorSet connectors = null;
+            if (element is MEPCurve curve)
+                connectors = curve.ConnectorManager.Connectors;
+            else if (element is FamilyInstance fi)
+                connectors = fi.MEPModel?.ConnectorManager?.Connectors;
+
+            if (connectors == null)
+                return new { Message = "此元素沒有接頭資訊" };
+
+            var connectorList = new List<object>();
+            foreach (Connector conn in connectors)
+            {
+                connectorList.Add(new
+                {
+                    ConnectorId = conn.Id,
+                    Type = conn.ConnectorType.ToString(),
+                    Origin = new
+                    {
+                        X = Math.Round(conn.Origin.X * 304.8, 2),
+                        Y = Math.Round(conn.Origin.Y * 304.8, 2),
+                        Z = Math.Round(conn.Origin.Z * 304.8, 2)
+                    },
+                    IsConnected = conn.IsConnected,
+                    Shape = conn.Shape.ToString(),
+                    Description = conn.Description
+                });
+            }
+
+            return new
+            {
+                ElementId = element.Id.GetIdValue(),
+                ElementName = element.Name,
+                ConnectorCount = connectorList.Count,
+                Connectors = connectorList
+            };
+        }
+
+        /// <summary>
+        /// 在管端安裝管帽/法蘭
+        /// </summary>
+        private object AddPipeCap(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            IdType pipeIdValue = parameters["pipeId"]?.Value<IdType>() ?? 0;
+            string familyName = parameters["familyName"]?.Value<string>();
+
+            Element pipe = doc.GetElement(new ElementId(pipeIdValue));
+            if (pipe == null) throw new Exception("找不到管件");
+
+            using (Transaction trans = new Transaction(doc, "安裝管帽"))
+            {
+                trans.Start();
+
+                FamilySymbol symbol = new FilteredElementCollector(doc)
+                    .OfClass(typeof(FamilySymbol))
+                    .Cast<FamilySymbol>()
+                    .FirstOrDefault(s => s.Name == familyName || s.FamilyName == familyName);
+
+                if (symbol == null) throw new Exception($"找不到族群類型: {familyName}");
+                if (!symbol.IsActive) symbol.Activate();
+
+                Connector openConnector = null;
+                ConnectorManager cm = (pipe as MEPCurve)?.ConnectorManager;
+                if (cm != null)
+                {
+                    foreach (Connector conn in cm.Connectors)
+                    {
+                        if (!conn.IsConnected)
+                        {
+                            openConnector = conn;
+                            break;
+                        }
+                    }
+                }
+
+                if (openConnector == null) throw new Exception("管件沒有可用的未連線接頭");
+
+                FamilyInstance instance = doc.Create.NewFamilyInstance(
+                    openConnector.Origin, symbol,
+                    Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
+
+                // 嘗試連接法蘭接頭與管件接頭
+                ConnectorManager fiCm = instance.MEPModel?.ConnectorManager;
+                if (fiCm != null)
+                {
+                    foreach (Connector conn in fiCm.Connectors)
+                    {
+                        if (!conn.IsConnected && conn.Origin.DistanceTo(openConnector.Origin) < 0.1)
+                        {
+                            conn.ConnectTo(openConnector);
+                            break;
+                        }
+                    }
+                }
+
+                // 自動對齊管徑
+                double diameter = openConnector.Radius * 2;
+                if (diameter > 0)
+                {
+                    Parameter sizeParam = instance.LookupParameter("Nominal Diameter")
+                                       ?? instance.LookupParameter("Size");
+                    if (sizeParam != null && !sizeParam.IsReadOnly)
+                    {
+                        sizeParam.Set(diameter);
+                    }
+                }
+
+                trans.Commit();
+
+                return new
+                {
+                    Success = true,
+                    ElementId = instance.Id.GetIdValue(),
+                    Message = $"成功在 {pipe.Name} 安裝 {symbol.Name}"
+                };
+            }
         }
 
         #endregion

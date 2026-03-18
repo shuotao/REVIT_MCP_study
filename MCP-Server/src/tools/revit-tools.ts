@@ -867,6 +867,73 @@ export function registerRevitTools(): Tool[] {
                 },
             },
         },
+        // 38. 建立視圖明細表
+        {
+            name: "create_view_schedule",
+            description: "在 Revit 中建立一個新的視圖明細表（Schedule/Quantities）。可以指定名稱、品類以及要包含的欄位。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    name: {
+                        type: "string",
+                        description: "明細表名稱（如：'MCP製作的明細表'）",
+                    },
+                    category: {
+                        type: "string",
+                        description: "品類名稱（如：'Walls', 'Rooms', 'Pipes'），若不指定則預設為多重品類",
+                    },
+                    fields: {
+                        type: "array",
+                        items: { type: "string" },
+                        description: "要包含在明細表中的欄位名稱列表（需匹配 Revit 中的參數名稱，如：'Family', 'Type', 'Area', '族群', '類型', '面積'）",
+                    },
+                },
+                required: ["name"],
+            },
+        },
+        // 39. 取得目前選取的元素
+        {
+            name: "get_selected_elements",
+            description: "取得使用者目前在 Revit 中選取的所有元素的基本資訊（ID、名稱、品類）。",
+            inputSchema: {
+                type: "object",
+                properties: {},
+            },
+        },
+        // 40. 取得元素接頭（Connector）資訊
+        {
+            name: "get_connector_info",
+            description: "取得 MEP 元素（管、風管、線管等）的接頭（Connector）資訊，包含座標、連接狀態、形狀等。用於分析管線連接情況。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    elementId: {
+                        type: "number",
+                        description: "要查詢的 MEP 元素 ID",
+                    },
+                },
+                required: ["elementId"],
+            },
+        },
+        // 41. 在管端安裝管帽/法蘭
+        {
+            name: "add_pipe_cap",
+            description: "在管件的未連線端安裝管帽或法蘭。自動尋找開放的接頭並連接。",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    pipeId: {
+                        type: "number",
+                        description: "管件的元素 ID",
+                    },
+                    familyName: {
+                        type: "string",
+                        description: "要安裝的管帽/法蘭族群名稱",
+                    },
+                },
+                required: ["pipeId", "familyName"],
+            },
+        },
     ];
 }
 
