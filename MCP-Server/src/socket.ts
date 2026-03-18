@@ -18,16 +18,31 @@ export interface RevitResponse {
     requestId?: string;
 }
 
+// 預設 port 為 8964，可透過環境變數 REVIT_MCP_PORT 覆寫
+const DEFAULT_PORT = 8964;
+
+function getConfiguredPort(): number {
+    const envPort = process.env.REVIT_MCP_PORT;
+    if (envPort) {
+        const parsed = parseInt(envPort, 10);
+        if (!isNaN(parsed) && parsed >= 1024 && parsed <= 65535) {
+            return parsed;
+        }
+        console.error(`[Socket] Invalid REVIT_MCP_PORT="${envPort}", using default ${DEFAULT_PORT}`);
+    }
+    return DEFAULT_PORT;
+}
+
 export class RevitSocketClient {
     private ws: WebSocket | null = null;
     private host: string = 'localhost';
-    private port: number = 8964;
+    private port: number = DEFAULT_PORT;
     private reconnectInterval: number = 5000; // 5 seconds
     private responseHandlers: Map<string, (response: RevitResponse) => void> = new Map();
 
-    constructor(host: string = 'localhost', port: number = 8964) {
+    constructor(host: string = 'localhost', port?: number) {
         this.host = host;
-        this.port = port;
+        this.port = port ?? getConfiguredPort();
     }
 
     /**
