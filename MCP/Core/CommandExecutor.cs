@@ -21,7 +21,7 @@ namespace RevitMCP.Core
     /// <summary>
     /// 命令執行器 - 執行各種 Revit 操作
     /// </summary>
-    public class CommandExecutor
+    public partial class CommandExecutor
     {
         private readonly UIApplication _uiApp;
 
@@ -236,6 +236,49 @@ namespace RevitMCP.Core
 
                     case "add_pipe_cap":
                         result = AddPipeCap(parameters);
+                        break;
+
+                    // === 帷幕牆模組 (PR#11) ===
+                    case "get_curtain_wall_info":
+                        result = GetCurtainWallInfo(parameters);
+                        break;
+                    case "get_curtain_panel_types":
+                        result = GetCurtainPanelTypes(parameters);
+                        break;
+                    case "create_curtain_panel_type":
+                        result = CreateCurtainPanelType(parameters);
+                        break;
+                    case "apply_panel_pattern":
+                        result = ApplyPanelPattern(parameters);
+                        break;
+                    case "create_facade_panel":
+                        result = CreateFacadePanel(parameters);
+                        break;
+                    case "create_facade_from_analysis":
+                        result = CreateFacadeFromAnalysis(parameters);
+                        break;
+
+                    // === 排煙窗模組 (PR#12) ===
+                    case "check_smoke_exhaust_windows":
+                        result = CheckSmokeExhaustWindows(parameters);
+                        break;
+                    case "check_floor_effective_openings":
+                        result = CheckFloorEffectiveOpenings(parameters);
+                        break;
+                    case "create_section_view":
+                        result = CreateSectionView(parameters);
+                        break;
+                    case "create_detail_lines":
+                        result = CreateDetailLines(parameters);
+                        break;
+                    case "create_filled_region":
+                        result = CreateFilledRegion(parameters);
+                        break;
+                    case "create_text_note":
+                        result = CreateTextNote(parameters);
+                        break;
+                    case "export_smoke_review_excel":
+                        result = ExportSmokeReviewExcel(parameters);
                         break;
 
                     default:
