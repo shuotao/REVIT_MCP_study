@@ -238,6 +238,39 @@
   .copyable-path:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
   .copyable-path::after { content: '📋'; font-size: 11px; }
 
+  /* ===== COMMAND OVERVIEW (1-4) ===== */
+  .cmd-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin: 16px 0;
+  }
+  .cmd-card {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px; padding: 14px 16px;
+    transition: all 0.2s;
+  }
+  .cmd-card:hover { border-color: rgba(255,255,255,0.2); }
+  .cmd-card code {
+    font-family: 'SF Mono','Fira Code','Consolas',monospace;
+    font-size: 14px; font-weight: 600; color: #60a5fa;
+    white-space: nowrap;
+  }
+  .cmd-card-desc {
+    font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.5;
+  }
+  .cmd-card-link {
+    margin-left: auto; flex-shrink: 0;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    cursor: pointer; transition: all 0.3s;
+    display: inline-block;
+  }
+  .cmd-card-link:hover {
+    background: #fff; transform: scale(1.5);
+    box-shadow: 0 0 6px rgba(255,255,255,0.4);
+  }
+
   /* ===== COMMAND TIP ===== */
   .cmd-tip {
     margin: 20px 0; padding: 16px 20px;
@@ -458,6 +491,54 @@
       <div class="slide-title">三次迭代的演進</div>
       <p class="slide-summary">從 25 個工具到 55 個，從零 Skill 到 11 個，從只支援 Revit 2024 到 2022-2026 全版本。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-1-3')">展開演進對照</button>
+    </div>
+  </div>
+</section>
+
+<!-- 1-4 -->
+<section class="slide" id="slide-1-4" data-section="1">
+  <div class="slide-inner">
+    <div class="slide-content" style="max-width:100%;flex:1">
+      <div class="slide-number">1-4</div>
+      <div class="slide-title">斜線指令總覽</div>
+      <p class="slide-summary">7 個斜線指令，覆蓋從知識記錄到品質驗證的完整開發週期。點擊白色圓點跳到實作說明。</p>
+      <div class="cmd-grid">
+        <div class="cmd-card">
+          <code>/domain</code>
+          <span class="cmd-card-desc">成功流程 → SOP 文件</span>
+          <a class="cmd-card-link" title="跳到 3-4 Domain" onclick="closeDrawer();document.getElementById('slide-3-4').scrollIntoView({behavior:'smooth'})"></a>
+        </div>
+        <div class="cmd-card">
+          <code>/lessons</code>
+          <span class="cmd-card-desc">踩坑經驗 → 高階規則</span>
+          <a class="cmd-card-link" title="跳到 5-3 提交流程" onclick="closeDrawer();document.getElementById('slide-5-3').scrollIntoView({behavior:'smooth'})"></a>
+        </div>
+        <div class="cmd-card">
+          <code>/dev-guide</code>
+          <span class="cmd-card-desc">開發前準備指引</span>
+          <a class="cmd-card-link" title="跳到 6-1 進行中" onclick="closeDrawer();document.getElementById('slide-6-1').scrollIntoView({behavior:'smooth'})"></a>
+        </div>
+        <div class="cmd-card">
+          <code>/qaqc</code>
+          <span class="cmd-card-desc">五階段品質驗證</span>
+          <a class="cmd-card-link" title="跳到 4-3 錯誤排除" onclick="closeDrawer();document.getElementById('slide-4-3').scrollIntoView({behavior:'smooth'})"></a>
+        </div>
+        <div class="cmd-card">
+          <code>/build-revit</code>
+          <span class="cmd-card-desc">一鍵編譯（2022-2026）</span>
+          <a class="cmd-card-link" title="跳到 4-2 Build" onclick="closeDrawer();document.getElementById('slide-4-2').scrollIntoView({behavior:'smooth'})"></a>
+        </div>
+        <div class="cmd-card">
+          <code>/deploy-addon</code>
+          <span class="cmd-card-desc">部署 DLL 到 Revit</span>
+          <a class="cmd-card-link" title="跳到 4-2 Build" onclick="closeDrawer();document.getElementById('slide-4-2').scrollIntoView({behavior:'smooth'})"></a>
+        </div>
+        <div class="cmd-card">
+          <code>/review</code>
+          <span class="cmd-card-desc">審查 CLAUDE.md 品質</span>
+          <a class="cmd-card-link" title="跳到 3-3 CLAUDE.md" onclick="closeDrawer();document.getElementById('slide-3-3').scrollIntoView({behavior:'smooth'})"></a>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -1450,6 +1531,7 @@ const slides = [
   {id:'slide-1-1', section:1, isStart:true},
   {id:'slide-1-2', section:1},
   {id:'slide-1-3', section:1},
+  {id:'slide-1-4', section:1},
   {id:'slide-2-1', section:2, isStart:true},
   {id:'slide-2-2', section:2},
   {id:'slide-2-3', section:2},
