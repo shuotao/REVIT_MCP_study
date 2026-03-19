@@ -238,6 +238,27 @@
   .copyable-path:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
   .copyable-path::after { content: '📋'; font-size: 11px; }
 
+  /* ===== COMMAND TIP ===== */
+  .cmd-tip {
+    margin: 20px 0; padding: 16px 20px;
+    background: rgba(96,165,250,0.06);
+    border-left: 3px solid rgba(96,165,250,0.4);
+    border-radius: 0 8px 8px 0;
+  }
+  .cmd-tip-title {
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(96,165,250,0.7); margin-bottom: 8px; font-weight: 600;
+  }
+  .cmd-tip code {
+    background: rgba(96,165,250,0.12); color: #60a5fa;
+    padding: 2px 8px; border-radius: 4px; font-size: 14px;
+    font-weight: 600; font-family: 'SF Mono','Fira Code','Consolas',monospace;
+  }
+  .cmd-tip p {
+    font-size: 13px; color: rgba(255,255,255,0.55); margin: 6px 0 0 0;
+    line-height: 1.6;
+  }
+
   /* ===== WHY PAGE ===== */
   .why-page {
     min-height: 100vh; display: flex; flex-direction: column;
@@ -1130,6 +1151,13 @@ description: "Execute fire safety compliance checks.
 ├── qa-checklist.md               ← QA 驗證
 └── ... 共 23 個</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
   <p><strong>最重要的是第 4 點——明確寫出工具名稱。</strong>AI 就不會自己亂寫 API 呼叫，而是使用預建工具。</p>
+
+  <div class="cmd-tip">
+    <div class="cmd-tip-title">斜線指令快捷</div>
+    <code>/domain</code> — 把剛才成功的工作流程自動轉成 Domain SOP 文件<br>
+    <code>/lessons</code> — 把踩到的坑記錄為高階規則，追加到 lessons.md
+    <p>情境：你剛用 AI 完成了一個法規檢討流程，覺得步驟很好用？立刻打 <code>/domain</code> 就能把它固化成 SOP，下次再做就不用從頭來。遇到一個坑？打 <code>/lessons</code> 記下來，團隊所有人都不會再踩。</p>
+  </div>
 </div>
 
 <!-- Drawer 3-5 -->
@@ -1209,6 +1237,13 @@ Copy-Item "bin\Release\RevitMCP.dll" `
   "$env:APPDATA\Autodesk\Revit\Addins\2024\RevitMCP\" -Force</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
   <p>或用自動腳本：</p>
   <pre><code>..\scripts\install-addon.ps1</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+
+  <div class="cmd-tip">
+    <div class="cmd-tip-title">斜線指令快捷</div>
+    <code>/build-revit</code> — 在 Claude Code 中直接編譯，支援 <code>--version 2024</code> 或 <code>--all</code><br>
+    <code>/deploy-addon</code> — 自動部署 DLL 到正確的 Addins 路徑（Windows only）
+    <p>情境：每次改完 C# 程式碼後，用這兩個指令一鍵完成 Build + 部署，不用記指令。</p>
+  </div>
 </div>
 
 <!-- Drawer 4-3 -->
@@ -1242,6 +1277,12 @@ Remove-Item "$env:APPDATA\Autodesk\Revit\Addins\2024\RevitMCP.2024.addin"</code>
   <pre><code>node --version  # 需要 v18+
 npm --version   # 需要 v8+</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
   <p>下載：<a href="https://nodejs.org" target="_blank" style="color:#60a5fa">https://nodejs.org</a>（LTS 版本）</p>
+
+  <div class="cmd-tip">
+    <div class="cmd-tip-title">斜線指令快捷</div>
+    <code>/qaqc</code> — 一鍵執行五階段品質驗證（檔案結構→交叉參照→建構設定→Build→部署）
+    <p>情境：不確定自己的環境有沒有問題？跑一次 <code>/qaqc</code> 就能全面體檢，每個 FAIL 項目都會附上修復步驟。</p>
+  </div>
 </div>
 
 <!-- Drawer 5-1 -->
@@ -1309,6 +1350,12 @@ description: "停車場淨空檢討：檢查車位尺寸、車道寬度。
 4. 逐一檢查尺寸是否合規
 5. 上色標示結果</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
   <p><strong>就這兩個檔案。</strong>你不需要寫任何程式碼。</p>
+
+  <div class="cmd-tip">
+    <div class="cmd-tip-title">其實你可以更快</div>
+    <code>/domain</code> — 你不一定要手寫 Domain 文件。如果你剛在 AI 對話中完成了一個工作流程，直接打 <code>/domain</code>，AI 會自動從對話中萃取步驟、工具清單，幫你生成標準格式的 SOP 文件。
+    <p>情境：你跟 AI 說「幫我檢查停車場車位淨空」，AI 幫你做完了，結果很滿意。這時候打 <code>/domain</code>，它就會把剛才的流程自動變成 <code>domain/parking-clearance-check.md</code>。</p>
+  </div>
 </div>
 
 <!-- Drawer 5-3 -->
@@ -1348,6 +1395,12 @@ git push origin add/parking-check
 
   <h3>不會 Git？</h3>
   <p>沒關係！把寫好的檔案傳給 maintainer（Email / Line / GitHub Issue 貼內容）。<strong>重點是你的知識，不是 Git 操作。</strong></p>
+
+  <div class="cmd-tip">
+    <div class="cmd-tip-title">提交前記得</div>
+    <code>/lessons</code> — 開發過程中踩到坑？提交 PR 前先用 <code>/lessons</code> 記錄下來，讓後面的人不用再踩。
+    <p>情境：你在寫 Domain 時發現「Revit 的某個參數名稱在中文版和英文版不一樣」——這就是一條 lesson，值得記下來。</p>
+  </div>
 </div>
 
 <!-- Drawer 6-1 -->
@@ -1356,12 +1409,18 @@ git push origin add/parking-check
   <h2>目前進行中</h2>
   <table>
     <tr><th>項目</th><th>負責</th><th>狀態</th></tr>
-    <tr><td>Issue #16：帷幕牆+排煙窗 C# 實作</td><td>Alex</td><td>⚠️ 進行中</td></tr>
-    <tr><td>明細表 Skill 升級</td><td>maintainer</td><td>規劃中</td></tr>
+    <tr><td>Issue #16：帷幕牆+排煙窗 C# 實作</td><td>Alex</td><td>✅ 已完成</td></tr>
+    <tr><td>Issue #18：lessons.md 觸發機制</td><td>maintainer</td><td>✅ 已完成（/dev-guide）</td></tr>
+    <tr><td>Domain → Skill 全面升級</td><td>maintainer</td><td>✅ 已完成（17 個 Skill）</td></tr>
     <tr><td>CONTRIBUTING.md 更新</td><td>maintainer</td><td>規劃中</td></tr>
-    <tr><td>GEMINI.md 觸發表同步</td><td>maintainer</td><td>規劃中</td></tr>
   </table>
-  <p>追蹤連結：<a href="https://github.com/shuotao/REVIT_MCP_study/issues/16" target="_blank" style="color:#60a5fa">Issue #16</a></p>
+  <p>追蹤連結：<a href="https://github.com/shuotao/REVIT_MCP_study/issues" target="_blank" style="color:#60a5fa">GitHub Issues</a></p>
+
+  <div class="cmd-tip">
+    <div class="cmd-tip-title">給開發者的指令</div>
+    <code>/dev-guide</code> — 開發新工具前的完整準備指引：讀取踩坑經驗、確認工具能力邊界、跨版本相容規則、架構規則
+    <p>情境：你想幫專案加一個新的法規檢討工具？先打 <code>/dev-guide</code>，它會帶你完成所有開發前的準備工作，確保你不會重蹈前人的覆轍。完成後用 <code>/qaqc</code> 做品質驗證。</p>
+  </div>
 </div>
 
 <!-- Drawer 6-2 -->
