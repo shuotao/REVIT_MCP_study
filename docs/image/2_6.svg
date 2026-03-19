@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <rect width="800" height="800" fill="#000"/>
+  <text x="400" y="80" fill="rgba(255,255,255,0.4)" font-family="Helvetica Neue,sans-serif" font-size="14" letter-spacing="6" text-anchor="middle">PROGRESSIVE DISCLOSURE</text>
+
+  <!-- Level 1: Metadata (narrowest) -->
+  <rect x="260" y="150" width="280" height="70" rx="6" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+  <text x="400" y="175" fill="#fff" font-family="Helvetica Neue,sans-serif" font-size="16" font-weight="700" text-anchor="middle">L1: METADATA</text>
+  <text x="400" y="200" fill="rgba(255,255,255,0.4)" font-family="Helvetica Neue,sans-serif" font-size="13" text-anchor="middle">name + description only</text>
+  <text x="620" y="190" fill="rgba(255,255,255,0.5)" font-family="Helvetica Neue,sans-serif" font-size="20" font-weight="700">~100</text>
+  <text x="620" y="208" fill="rgba(255,255,255,0.3)" font-family="Helvetica Neue,sans-serif" font-size="11">tokens/skill</text>
+  <text x="180" y="192" fill="rgba(255,255,255,0.35)" font-family="Helvetica Neue,sans-serif" font-size="12" text-anchor="end">ALWAYS</text>
+
+  <!-- Arrow down + trigger icon -->
+  <line x1="400" y1="220" x2="400" y2="280" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="420" y="258" fill="rgba(255,255,255,0.5)" font-family="Helvetica Neue,sans-serif" font-size="18">⚡</text>
+  <text x="448" y="258" fill="rgba(255,255,255,0.35)" font-family="Helvetica Neue,sans-serif" font-size="11">trigger</text>
+
+  <!-- Level 2: Instructions (medium) -->
+  <rect x="190" y="290" width="420" height="70" rx="6" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+  <text x="400" y="315" fill="#fff" font-family="Helvetica Neue,sans-serif" font-size="16" font-weight="700" text-anchor="middle">L2: INSTRUCTIONS</text>
+  <text x="400" y="340" fill="rgba(255,255,255,0.4)" font-family="Helvetica Neue,sans-serif" font-size="13" text-anchor="middle">full SKILL.md body</text>
+  <text x="680" y="325" fill="rgba(255,255,255,0.5)" font-family="Helvetica Neue,sans-serif" font-size="20" font-weight="700">&lt; 5K</text>
+  <text x="680" y="343" fill="rgba(255,255,255,0.3)" font-family="Helvetica Neue,sans-serif" font-size="11">tokens</text>
+  <text x="120" y="327" fill="rgba(255,255,255,0.35)" font-family="Helvetica Neue,sans-serif" font-size="12" text-anchor="end">ON TRIGGER</text>
+
+  <!-- Arrow down + search icon -->
+  <line x1="400" y1="360" x2="400" y2="420" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="420" y="398" fill="rgba(255,255,255,0.5)" font-family="Helvetica Neue,sans-serif" font-size="18">🔍</text>
+  <text x="448" y="398" fill="rgba(255,255,255,0.35)" font-family="Helvetica Neue,sans-serif" font-size="11">on demand</text>
+
+  <!-- Level 3: Resources (widest) -->
+  <rect x="110" y="430" width="580" height="70" rx="6" fill="none" stroke="#fff" stroke-width="2.5"/>
+  <text x="400" y="455" fill="#fff" font-family="Helvetica Neue,sans-serif" font-size="16" font-weight="700" text-anchor="middle">L3: RESOURCES</text>
+  <text x="400" y="480" fill="rgba(255,255,255,0.4)" font-family="Helvetica Neue,sans-serif" font-size="13" text-anchor="middle">scripts / references / domain files</text>
+  <text x="760" y="462" fill="rgba(255,255,255,0.5)" font-family="Helvetica Neue,sans-serif" font-size="20" font-weight="700">∞</text>
+  <text x="760" y="480" fill="rgba(255,255,255,0.3)" font-family="Helvetica Neue,sans-serif" font-size="11">unlimited</text>
+  <text x="40" y="465" fill="rgba(255,255,255,0.35)" font-family="Helvetica Neue,sans-serif" font-size="12" text-anchor="end">AS NEEDED</text>
+
+  <!-- Key insight box -->
+  <rect x="160" y="560" width="480" height="80" rx="8" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <text x="400" y="590" fill="rgba(255,255,255,0.6)" font-family="Helvetica Neue,sans-serif" font-size="14" text-anchor="middle">Only relevant content occupies</text>
+  <text x="400" y="615" fill="#fff" font-family="Helvetica Neue,sans-serif" font-size="18" font-weight="700" text-anchor="middle">the context window at any given time.</text>
+
+  <!-- Citation -->
+  <text x="400" y="720" fill="rgba(255,255,255,0.25)" font-family="Helvetica Neue,sans-serif" font-size="11" text-anchor="middle">— Anthropic, Agent Skills Overview (platform.claude.com)</text>
+</svg>

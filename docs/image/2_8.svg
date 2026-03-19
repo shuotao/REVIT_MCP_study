@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <rect width="800" height="800" fill="#000"/>
+
+  <!-- Three problems at top -->
+  <circle cx="200" cy="100" r="30" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+  <text x="200" y="106" fill="rgba(255,255,255,0.5)" font-family="Helvetica Neue,sans-serif" font-size="12" text-anchor="middle">Bloat</text>
+  <circle cx="400" cy="100" r="30" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+  <text x="400" y="106" fill="rgba(255,255,255,0.5)" font-family="Helvetica Neue,sans-serif" font-size="12" text-anchor="middle">Drift</text>
+  <circle cx="600" cy="100" r="30" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+  <text x="600" y="106" fill="rgba(255,255,255,0.5)" font-family="Helvetica Neue,sans-serif" font-size="12" text-anchor="middle">Conflict</text>
+
+  <!-- Lines converging -->
+  <line x1="200" y1="130" x2="400" y2="230" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+  <line x1="400" y1="130" x2="400" y2="230" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+  <line x1="600" y1="130" x2="400" y2="230" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+
+  <!-- Switchboard -->
+  <rect x="180" y="250" width="440" height="280" rx="12" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+
+  <!-- Switch 1: fire-safety ON -->
+  <text x="230" y="310" fill="#fff" font-family="Helvetica Neue,sans-serif" font-size="15">fire-safety</text>
+  <rect x="460" y="293" width="80" height="28" rx="14" fill="rgba(255,255,255,0.2)" stroke="#fff" stroke-width="1.5"/>
+  <circle cx="522" cy="307" r="10" fill="#fff"/>
+  <text x="565" y="313" fill="#60c080" font-family="Helvetica Neue,sans-serif" font-size="13" font-weight="700">ON</text>
+
+  <!-- Switch 2: parking OFF -->
+  <text x="230" y="375" fill="rgba(255,255,255,0.3)" font-family="Helvetica Neue,sans-serif" font-size="15">parking</text>
+  <rect x="460" y="358" width="80" height="28" rx="14" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+  <circle cx="478" cy="372" r="10" fill="rgba(255,255,255,0.2)"/>
+  <text x="565" y="378" fill="rgba(255,255,255,0.25)" font-family="Helvetica Neue,sans-serif" font-size="13">OFF</text>
+
+  <!-- Switch 3: smoke OFF -->
+  <text x="230" y="440" fill="rgba(255,255,255,0.3)" font-family="Helvetica Neue,sans-serif" font-size="15">smoke-exhaust</text>
+  <rect x="460" y="423" width="80" height="28" rx="14" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+  <circle cx="478" cy="437" r="10" fill="rgba(255,255,255,0.2)"/>
+  <text x="565" y="443" fill="rgba(255,255,255,0.25)" font-family="Helvetica Neue,sans-serif" font-size="13">OFF</text>
+
+  <!-- Switch 4: element-query OFF -->
+  <text x="230" y="505" fill="rgba(255,255,255,0.3)" font-family="Helvetica Neue,sans-serif" font-size="15">element-query</text>
+  <rect x="460" y="488" width="80" height="28" rx="14" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+  <circle cx="478" cy="502" r="10" fill="rgba(255,255,255,0.2)"/>
+  <text x="565" y="508" fill="rgba(255,255,255,0.25)" font-family="Helvetica Neue,sans-serif" font-size="13">OFF</text>
+
+  <!-- Main title -->
+  <text x="400" y="610" fill="#fff" font-family="Helvetica Neue,sans-serif" font-size="32" font-weight="800" text-anchor="middle">ON-DEMAND</text>
+  <text x="400" y="650" fill="#fff" font-family="Helvetica Neue,sans-serif" font-size="32" font-weight="800" text-anchor="middle">ORCHESTRATION</text>
+
+  <!-- Subtitle -->
+  <text x="400" y="710" fill="rgba(255,255,255,0.4)" font-family="Helvetica Neue,sans-serif" font-size="16" text-anchor="middle">不是減少工具，是讓編排按需載入</text>
+  <text x="400" y="740" fill="rgba(255,255,255,0.25)" font-family="Helvetica Neue,sans-serif" font-size="13" text-anchor="middle" font-style="italic">Not fewer tools — orchestration loaded on demand</text>
+</svg>
