@@ -93,6 +93,28 @@ Enable AI language models to directly control Autodesk Revit via Model Context P
 > /deploy-addon            # Auto-deploy DLL to the correct path (Windows only)
 > ```
 
+## One-Click Setup (Recommended for Beginners)
+
+**No programming knowledge required!** Just three steps:
+
+1. `git clone` this project ([Don't know how?](#%EF%B8%8F-first-time-setup-for-git-clone-users))
+2. Find **`setup.bat`** in the `scripts` folder
+3. **Double-click to run** — no administrator privileges needed
+
+The script will automatically complete all installation steps:
+- Check and install Node.js and .NET SDK
+- Build MCP Server
+- Let you select Revit versions (multi-select with arrow keys and spacebar)
+- Build and deploy Revit Add-in
+- Auto-configure AI clients (Claude Desktop, Gemini CLI, VS Code)
+
+> **AI Agent mode**: If you're operating via an AI assistant, use non-interactive mode:
+> ```powershell
+> powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -NonInteractive -RevitVersions "2024,2025"
+> ```
+
+---
+
 ## 🎯 Key Features
 
 - **Direct AI Control of Revit** - Operate Revit through natural language commands

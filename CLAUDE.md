@@ -74,6 +74,7 @@ npm run watch    # tsc --watch (development)
 | `MCP-Server/src/index.ts` | MCP Server entry (StdioServerTransport) |
 | `MCP-Server/src/socket.ts` | RevitSocketClient — WebSocket client to Revit |
 | `MCP-Server/src/tools/` | Tool definitions (58 tools, 分 8 個模組) |
+| `scripts/setup.ps1` | One-click setup for new users (prereqs, build, deploy, AI config) |
 
 ## Code Conventions
 
@@ -215,6 +216,8 @@ When adding new `IExternalCommand` in `Commands/` folder:
 - `MCP-Server/scripts/` — Stable, reusable workflow scripts (e.g., `fire_rating_full.js`)
 - `MCP-Server/scratch/` — Temporary debug/one-off scripts
 - `scripts/` — Installation & deployment PowerShell scripts
+- `scripts/setup.ps1` — One-click full setup (prerequisites + build + deploy + AI config)
+- `scripts/setup.bat` — Double-click wrapper for setup.ps1 (bypasses ExecutionPolicy)
 
 ## CODEOWNERS
 

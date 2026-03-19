@@ -93,6 +93,28 @@
 > /deploy-addon            # 自動部署 DLL 到正確路徑（僅 Windows）
 > ```
 
+## 一鍵安裝（推薦新手使用）
+
+**完全不需要任何程式知識！** 只要三步：
+
+1. `git clone` 本專案（[不會 clone？看這裡](#-透過-git-clone-的首次設定)）
+2. 在 `scripts` 資料夾中找到 **`setup.bat`**
+3. **雙擊執行** — 不需要管理員權限
+
+腳本會自動完成所有安裝步驟：
+- 檢查並安裝 Node.js 和 .NET SDK
+- 編譯 MCP Server
+- 讓您選擇 Revit 版本（支援多選，用方向鍵和空白鍵操作）
+- 編譯並部署 Revit Add-in
+- 自動設定 AI 客戶端（Claude Desktop、Gemini CLI、VS Code）
+
+> **AI Agent 模式**：如果您透過 AI 助手操作，可使用非互動模式：
+> ```powershell
+> powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -NonInteractive -RevitVersions "2024,2025"
+> ```
+
+---
+
 ## 🎯 功能特色
 
 - **AI 直接控制 Revit** - 透過自然語言指令操作 Revit

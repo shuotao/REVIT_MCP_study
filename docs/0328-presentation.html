@@ -525,6 +525,107 @@
     .step-number { flex: 0 0 40px; height: 40px; font-size: 16px; }
   }
 
+  /* ===== DEPLOY GUIDE PAGE ===== */
+  .deploy-guide {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 60px 80px; scroll-snap-align: start; scroll-snap-stop: always;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .deploy-guide-header {
+    text-align: center; margin-bottom: 36px;
+  }
+  .deploy-guide-header h2 {
+    font-size: 36px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px;
+  }
+  .deploy-guide-header p {
+    font-size: 16px; color: rgba(255,255,255,0.4); line-height: 1.7; max-width: 600px; margin: 0 auto;
+  }
+  .deploy-flow {
+    display: flex; flex-direction: column; gap: 0;
+    max-width: 860px; width: 100%; position: relative;
+  }
+  .deploy-flow::before {
+    content: ''; position: absolute; left: 28px; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(to bottom, rgba(96,165,250,0.4), rgba(74,222,128,0.4));
+  }
+  .deploy-card {
+    display: flex; gap: 24px; align-items: flex-start;
+    padding: 20px 0; position: relative;
+  }
+  .deploy-icon {
+    flex: 0 0 56px; height: 56px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; z-index: 1;
+    background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.15);
+    transition: all 0.3s;
+  }
+  .deploy-card:hover .deploy-icon {
+    border-color: rgba(96,165,250,0.6);
+    background: rgba(96,165,250,0.1);
+  }
+  .deploy-icon.done {
+    background: rgba(74,222,128,0.12); border-color: rgba(74,222,128,0.4);
+  }
+  .deploy-body { flex: 1; }
+  .deploy-body h3 {
+    font-size: 20px; font-weight: 700; margin-bottom: 8px; color: #fff;
+  }
+  .deploy-body .deploy-desc {
+    font-size: 15px; color: rgba(255,255,255,0.55); line-height: 1.7; margin: 0 0 10px 0;
+  }
+  .deploy-body .deploy-visual {
+    margin: 12px 0; padding: 16px 20px;
+    background: #111; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; font-size: 14px; color: #e0e0e0; line-height: 1.7;
+  }
+  .deploy-body .deploy-visual code {
+    font-family: 'SF Mono','Fira Code','Consolas',monospace;
+    background: rgba(96,165,250,0.12); color: #60a5fa;
+    padding: 2px 8px; border-radius: 4px;
+  }
+  .deploy-body .deploy-note {
+    font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 8px; line-height: 1.6;
+  }
+  .deploy-or {
+    display: flex; align-items: center; gap: 16px;
+    margin: 8px 0; color: rgba(255,255,255,0.3); font-size: 13px;
+  }
+  .deploy-or::before, .deploy-or::after {
+    content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1);
+  }
+  .deploy-oneliner {
+    display: block; margin: 12px 0; padding: 14px 20px;
+    background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.25);
+    border-radius: 8px; font-family: 'SF Mono','Fira Code','Consolas',monospace;
+    font-size: 15px; color: #60a5fa; line-height: 1.6; text-align: center;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .deploy-oneliner:hover {
+    background: rgba(96,165,250,0.15); border-color: rgba(96,165,250,0.5);
+  }
+  .deploy-btn-cover {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4);
+    color: #fca5a5; padding: 10px 24px; border-radius: 100px;
+    cursor: pointer; font-size: 15px; font-weight: 600;
+    transition: all 0.3s ease; font-family: inherit;
+    text-decoration: none; margin-top: 8px;
+    animation: deployBtnPulse 2.5s ease-in-out infinite;
+  }
+  .deploy-btn-cover:hover {
+    background: rgba(239,68,68,0.25); border-color: rgba(239,68,68,0.7);
+    color: #fff; transform: scale(1.05);
+  }
+  @keyframes deployBtnPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+    50% { box-shadow: 0 0 16px 4px rgba(239,68,68,0.2); }
+  }
+  @media (max-width: 900px) {
+    .deploy-guide { padding: 40px 24px; }
+    .deploy-flow::before { left: 24px; }
+  }
+
   /* ===== ENDING PAGE ===== */
   .ending-page {
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
@@ -638,6 +739,10 @@
       <div class="cover-meta-value"><a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" class="github-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:-2px;margin-right:6px"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub Repo</a></div>
     </div>
   </div>
+  <a href="#slide-deploy-guide" class="deploy-btn-cover" onclick="event.preventDefault();document.getElementById('slide-deploy-guide').scrollIntoView({behavior:'smooth'})">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    我還沒部署，請點我
+  </a>
   <div class="cover-qr">
     <a href="https://forms.gle/6XzMa6tAEW6VhyWe8" target="_blank">
       <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://forms.gle/6XzMa6tAEW6VhyWe8&bgcolor=000000&color=ffffff&format=svg" alt="報名 QR Code" width="120" height="120">
@@ -1980,6 +2085,139 @@ git push origin add/parking-check
   <p>排煙窗已有 Excel，計劃擴展到防火時效、採光、QA 檢核 → 直接拿去送審。</p>
 </div>
 
+<!-- ===== DEPLOY GUIDE (First-Timer) ===== -->
+<section class="deploy-guide" id="slide-deploy-guide">
+  <div class="deploy-guide-header">
+    <h2>第一次部署？跟著做就好</h2>
+    <p>不需要懂程式、不需要懂 Git。<br>從零開始，把 Revit MCP 裝到你的電腦上。</p>
+  </div>
+
+  <div class="deploy-flow">
+
+    <!-- Step 1: Clone -->
+    <div class="deploy-card">
+      <div class="deploy-icon">1</div>
+      <div class="deploy-body">
+        <h3>用 Git Clone 把專案複製到你的電腦</h3>
+        <p class="deploy-desc">
+          Clone 是 Git 的「複製」功能。用 clone 而不是下載 ZIP，<br>
+          以後專案更新時才能用 <code>git pull</code> 一鍵同步最新版。
+        </p>
+        <div class="deploy-visual">
+          <strong>基本版（推薦新手）：</strong><br>
+          1. 點開 <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" style="color:#60a5fa">github.com/shuotao/REVIT_MCP_study</a><br>
+          2. 點綠色的 <span style="color:#4ade80;font-weight:700">&lt;&gt; Code</span> 按鈕<br>
+          3. 複製 HTTPS 網址<br>
+          4. 開啟終端機（按 <code>Win + X</code> → 選「終端」或「PowerShell」）<br>
+          5. 輸入：
+        </div>
+        <div class="deploy-oneliner" onclick="navigator.clipboard.writeText('git clone https://github.com/shuotao/REVIT_MCP_study.git');this.textContent='已複製！';setTimeout(()=>{this.textContent='git clone https://github.com/shuotao/REVIT_MCP_study.git'},1500)">
+          git clone https://github.com/shuotao/REVIT_MCP_study.git
+        </div>
+        <p class="deploy-note">
+          <strong style="color:rgba(255,255,255,0.5);">沒有 Git？</strong>
+          前往 <a href="https://git-scm.com/download/win" target="_blank" style="color:#60a5fa">git-scm.com</a> 下載安裝，一路按 Next 即可。<br><br>
+          <strong style="color:rgba(255,255,255,0.5);">進階版（想貢獻程式碼）：</strong>
+          先在 GitHub 頁面右上角按 <strong style="color:#fff">Fork</strong>，再 clone 你自己的 fork。<br>
+          這樣未來可以提交 Pull Request 回饋給專案。
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 2: One-click setup -->
+    <div class="deploy-card">
+      <div class="deploy-icon" style="border-color:rgba(96,165,250,0.5);background:rgba(96,165,250,0.1);font-size:20px;">2</div>
+      <div class="deploy-body">
+        <h3>雙擊 setup.bat 開始自動安裝</h3>
+        <p class="deploy-desc">
+          打開剛才解壓縮的資料夾，找到 <code>scripts</code> 資料夾，裡面有一個 <code style="color:#60a5fa;font-weight:700">setup.bat</code>。<br>
+          <strong style="color:#fff">雙擊它。</strong> 就這樣。不需要管理員權限。
+        </p>
+        <div class="deploy-visual">
+          <strong>它會自動幫你：</strong><br>
+          &bull; 檢查電腦有沒有 Node.js → 沒有就自動安裝<br>
+          &bull; 檢查電腦有沒有 .NET SDK → 沒有就自動安裝<br>
+          &bull; 編譯 MCP Server（AI 跟 Revit 之間的翻譯官）<br>
+          &bull; 讓你選 Revit 版本 → 自動編譯 + 部署<br>
+          &bull; 自動設定 AI 客戶端（Claude Desktop / Gemini CLI / VS Code）
+        </div>
+        <p class="deploy-note">
+          畫面會出現一個黑色視窗，跑完大約 3-5 分鐘。<br>
+          選 Revit 版本時：<strong style="color:#fff">上下方向鍵</strong> 移動、<strong style="color:#fff">空白鍵</strong> 勾選/取消、<strong style="color:#fff">Enter</strong> 確認。
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 2 alternative: AI agent -->
+    <div class="deploy-or">或者讓 AI 幫你跑</div>
+
+    <div class="deploy-card">
+      <div class="deploy-icon" style="font-size:16px;">AI</div>
+      <div class="deploy-body">
+        <h3>用任何 AI 工具執行一行指令</h3>
+        <p class="deploy-desc">
+          如果你已經有 VS Code / Gemini CLI / Claude Code 等 AI 工具，<br>
+          直接貼上這行指令，AI 會幫你完成所有步驟：
+        </p>
+        <div class="deploy-oneliner" onclick="navigator.clipboard.writeText('powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -NonInteractive -RevitVersions &quot;2024&quot;');this.textContent='已複製！';setTimeout(()=>{this.textContent='powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -NonInteractive -RevitVersions \"2024\"'},1500)">
+          powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -NonInteractive -RevitVersions "2024"
+        </div>
+        <p class="deploy-note">
+          點擊上方指令即可複製。把 <code>2024</code> 改成你的 Revit 版本（2022/2023/2024/2025/2026）。<br>
+          多版本用逗號：<code>"2024,2025"</code>
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 3: Open Revit -->
+    <div class="deploy-card">
+      <div class="deploy-icon">3</div>
+      <div class="deploy-body">
+        <h3>打開 Revit，啟動 MCP 服務</h3>
+        <p class="deploy-desc">
+          安裝完成後，關閉 Revit（如果有開的話），重新打開。
+        </p>
+        <div class="deploy-visual">
+          1. 開啟 Revit → 載入任意專案<br>
+          2. 上方功能列找到 <strong style="color:#fff">MCP Tools</strong> 面板<br>
+          3. 點擊 <strong style="color:#4ade80">MCP 服務 (開/關)</strong> 按鈕<br>
+          4. 看到「WebSocket 伺服器已啟動」就成功了
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Talk to AI -->
+    <div class="deploy-card">
+      <div class="deploy-icon done" style="font-size:20px;">&#10003;</div>
+      <div class="deploy-body">
+        <h3>開始用自然語言控制 Revit</h3>
+        <p class="deploy-desc">
+          打開你的 AI 工具，直接用中文跟它說你要做什麼。
+        </p>
+        <div class="deploy-visual">
+          <span style="color:rgba(255,255,255,0.4)">你：</span><span style="color:#fff">幫我查 3 樓所有房間的面積</span><br>
+          <span style="color:rgba(255,255,255,0.4)">AI：</span><span style="color:#4ade80">已查詢完成，3F 共 12 間房間，總面積 486.3 m&sup2;...</span><br><br>
+          <span style="color:rgba(255,255,255,0.4)">你：</span><span style="color:#fff">把面積小於 20 平方的房間標紅色</span><br>
+          <span style="color:rgba(255,255,255,0.4)">AI：</span><span style="color:#4ade80">已將 3 間房間標記為紅色...</span>
+        </div>
+        <p class="deploy-note">
+          支援的 AI 工具：Claude Desktop / Gemini CLI / VS Code Copilot / Google Antigravity<br>
+          setup.bat 已經幫你設定好了，直接開啟就能用。
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="text-align:center;margin-top:32px;">
+    <p style="font-size:14px;color:rgba(255,255,255,0.3);margin-bottom:8px;">遇到問題？</p>
+    <p style="font-size:13px;color:rgba(255,255,255,0.25);line-height:1.8;">
+      重新跑一次 <code style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;color:#e0e0e0;">setup.bat</code> — 已完成的步驟會自動跳過<br>
+      或到 <a href="https://github.com/shuotao/REVIT_MCP_study/issues" target="_blank" style="color:#60a5fa">GitHub Issues</a> 回報
+    </p>
+  </div>
+</section>
+
 <!-- ===== ENDING PAGE ===== -->
 <section class="ending-page" id="slide-ending" data-section="6">
   <div class="ending-inner">
@@ -2018,6 +2256,7 @@ const sections = [
   { id: 'slide-4-1', label: '部署更新' },
   { id: 'slide-5-1', label: '貢獻者指引' },
   { id: 'slide-6-1', label: '未來方向' },
+  { id: 'slide-deploy-guide', label: '第一次部署' },
 ];
 
 // Map every slide id → section index
@@ -2025,6 +2264,7 @@ const slideToSection = {};
 slideToSection['slide-cover'] = 0;
 slideToSection['slide-why'] = 1;
 slideToSection['slide-setup'] = 2;
+slideToSection['slide-deploy-guide'] = 9;
 document.querySelectorAll('[data-section]').forEach(el => {
   const sec = parseInt(el.dataset.section);
   slideToSection[el.id] = sec + 2; // offset by 2 (cover, why, setup)
@@ -2053,7 +2293,7 @@ const observer = new IntersectionObserver(entries => {
     }
   });
 }, { threshold: 0.4 });
-document.querySelectorAll('.slide, .cover, .why-page, .setup-page, .ending-page').forEach(el => {
+document.querySelectorAll('.slide, .cover, .why-page, .setup-page, .deploy-guide, .ending-page').forEach(el => {
   if (el.id) observer.observe(el);
 });
 
