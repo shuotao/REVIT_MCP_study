@@ -233,6 +233,58 @@
   .copyable-path:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
   .copyable-path::after { content: '📋'; font-size: 11px; }
 
+  /* ===== WHY PAGE ===== */
+  .why-page {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 80px; scroll-snap-align: start; scroll-snap-stop: always;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .why-title {
+    font-size: 36px; font-weight: 800; letter-spacing: -1px;
+    margin-bottom: 8px; text-align: center;
+  }
+  .why-subtitle {
+    font-size: 16px; color: rgba(255,255,255,0.4); text-align: center;
+    margin-bottom: 48px; max-width: 600px; line-height: 1.7;
+  }
+  .domain-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 20px; max-width: 960px; width: 100%;
+  }
+  .domain-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 28px 20px; text-align: center;
+    cursor: pointer; transition: all 0.3s ease;
+  }
+  .domain-card:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.25);
+    transform: translateY(-4px);
+  }
+  .domain-card-icon {
+    font-size: 32px; margin-bottom: 14px; display: block;
+    filter: grayscale(0.3);
+  }
+  .domain-card-label {
+    font-size: 15px; font-weight: 600; margin-bottom: 6px;
+  }
+  .domain-card-sub {
+    font-size: 12px; color: rgba(255,255,255,0.35);
+    line-height: 1.5;
+  }
+  .why-footer {
+    margin-top: 48px; text-align: center;
+    font-size: 14px; color: rgba(255,255,255,0.25);
+    max-width: 500px; line-height: 1.7;
+  }
+  .why-footer strong { color: rgba(255,255,255,0.6); }
+  @media (max-width: 900px) {
+    .why-page { padding: 40px 24px; }
+    .domain-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  }
+
   /* ===== SECTION DIVIDER ===== */
   .section-divider {
     padding: 40px 80px; text-align: center;
@@ -289,6 +341,57 @@
     <div class="cover-qr-label">掃碼報名</div>
   </div>
   <div class="cover-scroll-hint">↓ SCROLL</div>
+</section>
+
+<!-- ===== WHY PAGE ===== -->
+<section class="why-page" id="slide-why">
+  <div class="why-title">為什麼你需要參加</div>
+  <p class="why-subtitle">這不是一堂 AI 應用課程。<br>這是一套已上線、已驗證的建築專業知識系統——<br>我們把設計作業中的步驟與流程，變成 AI 可以執行的標準按鈕。</p>
+
+  <div class="domain-grid">
+    <div class="domain-card" onclick="openDrawer('drawer-why-fire')">
+      <span class="domain-card-icon">🔥</span>
+      <div class="domain-card-label">防火安全</div>
+      <div class="domain-card-sub">防火時效 · 走廊寬度 · 外牆開口<br>3 個 Domain · 6 個工具</div>
+    </div>
+    <div class="domain-card" onclick="openDrawer('drawer-why-smoke')">
+      <span class="domain-card-icon">🌫️</span>
+      <div class="domain-card-label">排煙檢討</div>
+      <div class="domain-card-sub">排煙窗有效面積 · 無開口樓層<br>1 個 Domain · 7 個工具</div>
+    </div>
+    <div class="domain-card" onclick="openDrawer('drawer-why-compliance')">
+      <span class="domain-card-icon">📐</span>
+      <div class="domain-card-label">法規檢討</div>
+      <div class="domain-card-sub">採光比 · 容積率 · 停車位數量<br>4 個 Domain · 5 個工具</div>
+    </div>
+    <div class="domain-card" onclick="openDrawer('drawer-why-facade')">
+      <span class="domain-card-icon">🏛️</span>
+      <div class="domain-card-label">立面設計</div>
+      <div class="domain-card-sub">帷幕牆排列 · 立面面板生成<br>2 個 Domain · 6 個工具</div>
+    </div>
+    <div class="domain-card" onclick="openDrawer('drawer-why-dimension')">
+      <span class="domain-card-icon">📏</span>
+      <div class="domain-card-label">標註放樣</div>
+      <div class="domain-card-sub">自動標註 · 詳圖同步 · 視圖裁剪<br>3 個 Domain · 4 個工具</div>
+    </div>
+    <div class="domain-card" onclick="openDrawer('drawer-why-query')">
+      <span class="domain-card-icon">🔍</span>
+      <div class="domain-card-label">資料查核</div>
+      <div class="domain-card-sub">三階段查詢 · 元素上色 · 牆壁方向<br>3 個 Domain · 8 個工具</div>
+    </div>
+    <div class="domain-card" onclick="openDrawer('drawer-why-schedule')">
+      <span class="domain-card-icon">📊</span>
+      <div class="domain-card-label">數量管理</div>
+      <div class="domain-card-sub">明細表建立 · Excel 匯出 · 圖紙管理<br>2 個 Domain · 3 個工具</div>
+    </div>
+    <div class="domain-card" onclick="openDrawer('drawer-why-qa')">
+      <span class="domain-card-icon">✅</span>
+      <div class="domain-card-label">系統性檢討</div>
+      <div class="domain-card-sub">QA 五階段 · MEP 接頭 · 管帽安裝<br>2 個 Domain · 5 個工具</div>
+    </div>
+  </div>
+
+  <div class="why-footer">以上 8 大系統、<strong>20 個 Domain</strong>、<strong>44 個工具</strong>已上線驗證。<br>你的專業領域，就是第 9 個、第 10 個按鈕。</div>
 </section>
 
 <!-- ===== SECTION 1: 回顧與複習 ===== -->
@@ -571,6 +674,175 @@
 
 <!-- ===== DRAWER PANELS ===== -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- ===== WHY PAGE DRAWERS ===== -->
+<div class="drawer" id="drawer-why-fire">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>🔥 防火安全系統</h2>
+  <p>Skill：<strong>fire-safety-check</strong></p>
+  <h3>涵蓋 Domain</h3>
+  <ul>
+    <li><code>fire-rating-check.md</code> — 防火時效視覺化（1hr/2hr/3hr 上色）</li>
+    <li><code>corridor-analysis-protocol.md</code> — 走廊淨寬檢討 + 逃生路徑</li>
+    <li><code>exterior-wall-opening-check.md</code> — 第 45 條外牆開口距離 + 第 110 條防火間隔</li>
+  </ul>
+  <h3>呼叫的 MCP 工具</h3>
+  <table>
+    <tr><th>工具</th><th>用途</th></tr>
+    <tr><td><code>query_elements_with_filter</code></td><td>依防火時效參數篩選牆體</td></tr>
+    <tr><td><code>get_category_fields</code></td><td>取得防火時效參數名稱</td></tr>
+    <tr><td><code>get_field_values</code></td><td>列出所有時效等級</td></tr>
+    <tr><td><code>override_element_graphics</code></td><td>依等級上色（紅/黃/綠）</td></tr>
+    <tr><td><code>check_exterior_wall_openings</code></td><td>自動計算開口與地界線距離</td></tr>
+    <tr><td><code>clear_element_override</code></td><td>清除舊上色</td></tr>
+  </table>
+</div>
+
+<div class="drawer" id="drawer-why-smoke">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>🌫️ 排煙檢討系統</h2>
+  <p>Skill：<strong>smoke-exhaust</strong></p>
+  <h3>涵蓋 Domain</h3>
+  <ul>
+    <li><code>smoke-exhaust-review.md</code> — 建技規§101① + 消防§188：天花板下 80cm 有效帶、開啟方式折減、無窗居室判定</li>
+  </ul>
+  <h3>呼叫的 MCP 工具</h3>
+  <table>
+    <tr><th>工具</th><th>用途</th></tr>
+    <tr><td><code>check_smoke_exhaust_windows</code></td><td>有效面積檢核 + 自動上色四方位</td></tr>
+    <tr><td><code>check_floor_effective_openings</code></td><td>無開口樓層判定（消防§4）</td></tr>
+    <tr><td><code>create_section_view</code></td><td>建立檢討剖面</td></tr>
+    <tr><td><code>create_detail_lines</code></td><td>天花板線 / 有效帶線</td></tr>
+    <tr><td><code>create_filled_region</code></td><td>有效帶色塊</td></tr>
+    <tr><td><code>create_text_note</code></td><td>統計摘要標註</td></tr>
+    <tr><td><code>export_smoke_review_excel</code></td><td>四工作表 Excel 報告</td></tr>
+  </table>
+</div>
+
+<div class="drawer" id="drawer-why-compliance">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>📐 法規檢討系統</h2>
+  <p>Skill：<strong>building-compliance</strong> + <strong>parking-check</strong></p>
+  <h3>涵蓋 Domain</h3>
+  <ul>
+    <li><code>daylight-area-check.md</code> — 居室採光比檢討（§41）</li>
+    <li><code>floor-area-review.md</code> — 容積率 / 樓地板面積計算</li>
+    <li><code>parking-clearance-check.md</code> — 車位淨空 > 210cm</li>
+    <li><code>parking-space-review.md</code> — 八類停車位數量統計</li>
+  </ul>
+  <h3>呼叫的 MCP 工具</h3>
+  <table>
+    <tr><th>工具</th><th>用途</th></tr>
+    <tr><td><code>get_room_daylight_info</code></td><td>採光面積 / 居室面積比</td></tr>
+    <tr><td><code>get_rooms_by_level</code></td><td>取得樓層房間清單</td></tr>
+    <tr><td><code>query_elements_with_filter</code></td><td>篩選停車位族群</td></tr>
+    <tr><td><code>override_element_graphics</code></td><td>標示不合規項目</td></tr>
+    <tr><td><code>get_field_values</code></td><td>停車位類型分佈統計</td></tr>
+  </table>
+</div>
+
+<div class="drawer" id="drawer-why-facade">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>🏛️ 立面設計系統</h2>
+  <p>Skill：<strong>curtain-wall</strong> + <strong>facade-generation</strong></p>
+  <h3>涵蓋 Domain</h3>
+  <ul>
+    <li><code>curtain-wall-pattern.md</code> — 帷幕牆面板排列模式</li>
+    <li><code>facade-generation.md</code> — 五種幾何立面面板生成</li>
+  </ul>
+  <h3>呼叫的 MCP 工具</h3>
+  <table>
+    <tr><th>工具</th><th>用途</th></tr>
+    <tr><td><code>get_curtain_wall_info</code></td><td>取得 Grid 結構與面板分佈</td></tr>
+    <tr><td><code>get_curtain_panel_types</code></td><td>列出可用面板類型</td></tr>
+    <tr><td><code>create_curtain_panel_type</code></td><td>建立自訂面板（HEX 色彩）</td></tr>
+    <tr><td><code>apply_panel_pattern</code></td><td>矩陣排列套用</td></tr>
+    <tr><td><code>create_facade_panel</code></td><td>單片 DirectShape 面板</td></tr>
+    <tr><td><code>create_facade_from_analysis</code></td><td>批次整面立面</td></tr>
+  </table>
+</div>
+
+<div class="drawer" id="drawer-why-dimension">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>📏 標註放樣系統</h2>
+  <p>Skill：<strong>auto-dimension</strong> + <strong>detail-component-sync</strong> + <strong>dependent-view-crop</strong></p>
+  <h3>涵蓋 Domain</h3>
+  <ul>
+    <li><code>auto-dimension-workflow.md</code> — 走廊尺寸自動標註</li>
+    <li><code>detail-component-sync.md</code> — 詳圖編號同步（v1.0→v3.5 演進）</li>
+    <li><code>dependent-view-crop-workflow.md</code> — 從屬視圖依網格裁剪批次建立</li>
+  </ul>
+  <h3>呼叫的 MCP 工具</h3>
+  <table>
+    <tr><th>工具</th><th>用途</th></tr>
+    <tr><td><code>create_dimension</code></td><td>建立尺寸標註</td></tr>
+    <tr><td><code>query_walls_by_location</code></td><td>牆體位置查詢（標註定位）</td></tr>
+    <tr><td><code>get_all_grids</code></td><td>網格線座標（裁剪邊界）</td></tr>
+    <tr><td><code>get_all_views</code></td><td>視圖清單（母視圖選擇）</td></tr>
+  </table>
+</div>
+
+<div class="drawer" id="drawer-why-query">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>🔍 資料查核系統</h2>
+  <p>Skill：<strong>element-query</strong> + <strong>element-coloring</strong> + <strong>wall-orientation-check</strong></p>
+  <h3>涵蓋 Domain</h3>
+  <ul>
+    <li><code>element-query-workflow.md</code> — 三階段查詢協議（Explore → Align → Retrieve）</li>
+    <li><code>element-coloring-workflow.md</code> — 依參數值上色標記</li>
+    <li><code>wall-check.md</code> — 牆壁內外方向檢測</li>
+  </ul>
+  <h3>呼叫的 MCP 工具</h3>
+  <table>
+    <tr><th>工具</th><th>用途</th></tr>
+    <tr><td><code>get_active_schema</code></td><td>Phase 1：探索品類</td></tr>
+    <tr><td><code>get_category_fields</code></td><td>Phase 2：對齊參數名稱</td></tr>
+    <tr><td><code>get_field_values</code></td><td>Phase 2.5：值分佈</td></tr>
+    <tr><td><code>query_elements_with_filter</code></td><td>Phase 3：多條件篩選</td></tr>
+    <tr><td><code>override_element_graphics</code></td><td>結果視覺化上色</td></tr>
+    <tr><td><code>clear_element_override</code></td><td>清除舊覆寫</td></tr>
+    <tr><td><code>unjoin_wall_joins</code></td><td>上色前取消接合</td></tr>
+    <tr><td><code>rejoin_wall_joins</code></td><td>上色後恢復接合</td></tr>
+  </table>
+</div>
+
+<div class="drawer" id="drawer-why-schedule">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>📊 數量管理系統</h2>
+  <p>Skill：<strong>sheet-management</strong>（明細表部分規劃中）</p>
+  <h3>涵蓋 Domain</h3>
+  <ul>
+    <li><code>sheet-viewport-management.md</code> — 圖紙編號、Viewport 管理</li>
+    <li>明細表建立（已有工具，Skill 升級中）</li>
+  </ul>
+  <h3>呼叫的 MCP 工具</h3>
+  <table>
+    <tr><th>工具</th><th>用途</th></tr>
+    <tr><td><code>create_view_schedule</code></td><td>建立明細表（指定品類 + 欄位）</td></tr>
+    <tr><td><code>export_smoke_review_excel</code></td><td>Excel 多工作表匯出（排煙範例）</td></tr>
+    <tr><td><code>get_all_views</code></td><td>視圖 / 圖紙清單管理</td></tr>
+  </table>
+</div>
+
+<div class="drawer" id="drawer-why-qa">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>✅ 系統性檢討</h2>
+  <p>Skill：<strong>qa-review</strong>（MEP 工具已上線）</p>
+  <h3>涵蓋 Domain</h3>
+  <ul>
+    <li><code>qa-checklist.md</code> — 五階段品質驗證（結構→參照→設定→建構→部署）</li>
+    <li>MEP 管線接頭檢查（已有工具）</li>
+  </ul>
+  <h3>呼叫的 MCP 工具</h3>
+  <table>
+    <tr><th>工具</th><th>用途</th></tr>
+    <tr><td><code>get_selected_elements</code></td><td>取得選取元素資訊</td></tr>
+    <tr><td><code>get_connector_info</code></td><td>MEP 接頭座標 / 連接狀態</td></tr>
+    <tr><td><code>add_pipe_cap</code></td><td>管端安裝管帽 / 法蘭</td></tr>
+    <tr><td><code>get_element_info</code></td><td>元素詳細參數檢查</td></tr>
+    <tr><td><code>get_project_info</code></td><td>專案基本資訊驗證</td></tr>
+  </table>
+</div>
 
 <!-- Drawer 1-1 -->
 <div class="drawer" id="drawer-1-1">
@@ -1110,6 +1382,7 @@ git push origin add/parking-check
 // === Slide data ===
 const slides = [
   {id:'slide-cover', section:0, isStart:true},
+  {id:'slide-why', section:0, isStart:false},
   {id:'slide-1-1', section:1, isStart:true},
   {id:'slide-1-2', section:1},
   {id:'slide-1-3', section:1},
