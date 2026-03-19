@@ -111,8 +111,13 @@
   }
   .cover-qr img:hover { transform: scale(1.05); }
   .cover-qr-label {
-    font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
-    color: rgba(255,255,255,0.3);
+    font-size: 20px; letter-spacing: 2px; font-weight: 700;
+    color: rgba(255,255,255,0.85);
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+  @keyframes pulseGlow {
+    0%, 100% { color: rgba(255,255,255,0.85); text-shadow: none; }
+    50% { color: #fff; text-shadow: 0 0 12px rgba(255,255,255,0.5); }
   }
   @keyframes pulse {
     0%, 100% { opacity: 0.2; transform: translateX(-50%) translateY(0); }
@@ -505,7 +510,7 @@
     <a href="https://forms.gle/6XzMa6tAEW6VhyWe8" target="_blank">
       <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://forms.gle/6XzMa6tAEW6VhyWe8&bgcolor=000000&color=ffffff&format=svg" alt="報名 QR Code" width="120" height="120">
     </a>
-    <div class="cover-qr-label">掃碼報名</div>
+    <div class="cover-qr-label">我超想報名，點我或掃描 QR Code</div>
   </div>
   <div class="cover-scroll-hint">↓ SCROLL</div>
 </section>
