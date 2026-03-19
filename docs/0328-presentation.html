@@ -251,6 +251,10 @@
     transition: all 0.2s;
   }
   .cmd-card:hover { border-color: rgba(255,255,255,0.2); }
+  .cmd-card-top {
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; width: 100%;
+  }
   .cmd-card code {
     font-family: 'SF Mono','Fira Code','Consolas',monospace;
     font-size: 14px; font-weight: 600; color: #60a5fa;
@@ -258,6 +262,23 @@
   }
   .cmd-card-desc {
     font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.5;
+  }
+  .cmd-card-detail {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.35s ease, padding 0.35s ease;
+    padding: 0 0 0 0;
+  }
+  .cmd-card.expanded .cmd-card-detail {
+    max-height: 200px; padding: 10px 0 0 0;
+  }
+  .cmd-card-detail p {
+    font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.7;
+    margin: 0;
+  }
+  .cmd-card-detail .cmd-who {
+    display: inline-block; font-size: 11px; letter-spacing: 1px;
+    color: rgba(96,165,250,0.7); background: rgba(96,165,250,0.1);
+    padding: 2px 8px; border-radius: 100px; margin-bottom: 6px;
   }
   .cmd-card-link {
     margin-left: auto; flex-shrink: 0;
@@ -503,40 +524,82 @@
       <div class="slide-title">斜線指令總覽</div>
       <p class="slide-summary">7 個斜線指令，覆蓋從知識記錄到品質驗證的完整開發週期。點擊白色圓點跳到實作說明。</p>
       <div class="cmd-grid">
-        <div class="cmd-card">
-          <code>/domain</code>
-          <span class="cmd-card-desc">成功流程 → SOP 文件</span>
-          <a class="cmd-card-link" title="跳到 3-4 Domain" onclick="closeDrawer();document.getElementById('slide-3-4').scrollIntoView({behavior:'smooth'})"></a>
+        <div class="cmd-card" onclick="this.classList.toggle('expanded')">
+          <div class="cmd-card-top">
+            <code>/domain</code>
+            <span class="cmd-card-desc">成功流程 → SOP 文件</span>
+            <a class="cmd-card-link" title="跳到 3-4 實作" onclick="event.stopPropagation();document.getElementById('slide-3-4').scrollIntoView({behavior:'smooth'})"></a>
+          </div>
+          <div class="cmd-card-detail">
+            <span class="cmd-who">所有人</span>
+            <p>你剛用 AI 完成了一個法規檢討，結果很滿意。打 <code>/domain</code>，AI 會自動從對話中萃取步驟、工具清單，幫你生成標準格式的 SOP。下次再做就不用從頭來。</p>
+          </div>
         </div>
-        <div class="cmd-card">
-          <code>/lessons</code>
-          <span class="cmd-card-desc">踩坑經驗 → 高階規則</span>
-          <a class="cmd-card-link" title="跳到 5-3 提交流程" onclick="closeDrawer();document.getElementById('slide-5-3').scrollIntoView({behavior:'smooth'})"></a>
+        <div class="cmd-card" onclick="this.classList.toggle('expanded')">
+          <div class="cmd-card-top">
+            <code>/lessons</code>
+            <span class="cmd-card-desc">踩坑經驗 → 高階規則</span>
+            <a class="cmd-card-link" title="跳到 5-3 實作" onclick="event.stopPropagation();document.getElementById('slide-5-3').scrollIntoView({behavior:'smooth'})"></a>
+          </div>
+          <div class="cmd-card-detail">
+            <span class="cmd-who">所有人</span>
+            <p>遇到一個坑（例如「中文版 Revit 參數名稱跟英文版不一樣」）？打 <code>/lessons</code> 記下來，追加到 lessons.md。團隊所有人都不會再踩同一個坑。</p>
+          </div>
         </div>
-        <div class="cmd-card">
-          <code>/dev-guide</code>
-          <span class="cmd-card-desc">開發前準備指引</span>
-          <a class="cmd-card-link" title="跳到 6-1 進行中" onclick="closeDrawer();document.getElementById('slide-6-1').scrollIntoView({behavior:'smooth'})"></a>
+        <div class="cmd-card" onclick="this.classList.toggle('expanded')">
+          <div class="cmd-card-top">
+            <code>/dev-guide</code>
+            <span class="cmd-card-desc">開發前準備指引</span>
+            <a class="cmd-card-link" title="跳到 6-1 實作" onclick="event.stopPropagation();document.getElementById('slide-6-1').scrollIntoView({behavior:'smooth'})"></a>
+          </div>
+          <div class="cmd-card-detail">
+            <span class="cmd-who">開發者</span>
+            <p>要寫新的 MCP 工具？先打 <code>/dev-guide</code>。它會帶你讀踩坑經驗、確認工具能力邊界、跨版本相容規則，確保你不重蹈覆轍。</p>
+          </div>
         </div>
-        <div class="cmd-card">
-          <code>/qaqc</code>
-          <span class="cmd-card-desc">五階段品質驗證</span>
-          <a class="cmd-card-link" title="跳到 4-3 錯誤排除" onclick="closeDrawer();document.getElementById('slide-4-3').scrollIntoView({behavior:'smooth'})"></a>
+        <div class="cmd-card" onclick="this.classList.toggle('expanded')">
+          <div class="cmd-card-top">
+            <code>/qaqc</code>
+            <span class="cmd-card-desc">五階段品質驗證</span>
+            <a class="cmd-card-link" title="跳到 4-3 實作" onclick="event.stopPropagation();document.getElementById('slide-4-3').scrollIntoView({behavior:'smooth'})"></a>
+          </div>
+          <div class="cmd-card-detail">
+            <span class="cmd-who">開發者</span>
+            <p>不確定環境有沒有問題？打 <code>/qaqc</code> 做全面體檢：檔案結構→交叉參照→建構設定→Build→部署，每個 FAIL 附修復步驟。</p>
+          </div>
         </div>
-        <div class="cmd-card">
-          <code>/build-revit</code>
-          <span class="cmd-card-desc">一鍵編譯（2022-2026）</span>
-          <a class="cmd-card-link" title="跳到 4-2 Build" onclick="closeDrawer();document.getElementById('slide-4-2').scrollIntoView({behavior:'smooth'})"></a>
+        <div class="cmd-card" onclick="this.classList.toggle('expanded')">
+          <div class="cmd-card-top">
+            <code>/build-revit</code>
+            <span class="cmd-card-desc">一鍵編譯（2022-2026）</span>
+            <a class="cmd-card-link" title="跳到 4-2 實作" onclick="event.stopPropagation();document.getElementById('slide-4-2').scrollIntoView({behavior:'smooth'})"></a>
+          </div>
+          <div class="cmd-card-detail">
+            <span class="cmd-who">開發者（Windows）</span>
+            <p>改完 C# 程式碼後，不用記 dotnet build 指令。打 <code>/build-revit --version 2024</code> 或 <code>--all</code> 一鍵搞定。</p>
+          </div>
         </div>
-        <div class="cmd-card">
-          <code>/deploy-addon</code>
-          <span class="cmd-card-desc">部署 DLL 到 Revit</span>
-          <a class="cmd-card-link" title="跳到 4-2 Build" onclick="closeDrawer();document.getElementById('slide-4-2').scrollIntoView({behavior:'smooth'})"></a>
+        <div class="cmd-card" onclick="this.classList.toggle('expanded')">
+          <div class="cmd-card-top">
+            <code>/deploy-addon</code>
+            <span class="cmd-card-desc">部署 DLL 到 Revit</span>
+            <a class="cmd-card-link" title="跳到 4-2 實作" onclick="event.stopPropagation();document.getElementById('slide-4-2').scrollIntoView({behavior:'smooth'})"></a>
+          </div>
+          <div class="cmd-card-detail">
+            <span class="cmd-who">開發者（Windows）</span>
+            <p>Build 完之後，打 <code>/deploy-addon</code> 自動複製 DLL 到正確的 Revit Addins 路徑。不用手動找 AppData 資料夾。</p>
+          </div>
         </div>
-        <div class="cmd-card">
-          <code>/review</code>
-          <span class="cmd-card-desc">審查 CLAUDE.md 品質</span>
-          <a class="cmd-card-link" title="跳到 3-3 CLAUDE.md" onclick="closeDrawer();document.getElementById('slide-3-3').scrollIntoView({behavior:'smooth'})"></a>
+        <div class="cmd-card" onclick="this.classList.toggle('expanded')">
+          <div class="cmd-card-top">
+            <code>/review</code>
+            <span class="cmd-card-desc">審查 CLAUDE.md 品質</span>
+            <a class="cmd-card-link" title="跳到 3-3 實作" onclick="event.stopPropagation();document.getElementById('slide-3-3').scrollIntoView({behavior:'smooth'})"></a>
+          </div>
+          <div class="cmd-card-detail">
+            <span class="cmd-who">Maintainer</span>
+            <p>CLAUDE.md 越寫越長？打 <code>/review</code> 檢查檔案大小、內容是否過時、有沒有重複的觸發規則。維護 AI 行為指引的品質。</p>
+          </div>
         </div>
       </div>
     </div>
