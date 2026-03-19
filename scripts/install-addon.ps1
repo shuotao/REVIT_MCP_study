@@ -276,9 +276,9 @@ else {
     exit 1
 }
 
-if (-not (Test-Path $currentSourceAddin)) {
+if (-not (Test-Path $sourceAddin)) {
     Write-Host "❌ 錯誤：找不到 addin 檔案" -ForegroundColor Red
-    Write-Host "路徑：$currentSourceAddin" -ForegroundColor Yellow
+    Write-Host "路徑：$sourceAddin" -ForegroundColor Yellow
     Read-Host "按 Enter 結束"
     exit 1
 }
@@ -289,7 +289,7 @@ Write-Host ""
 # 顯示檔案雜湊值（供進階使用者驗證）
 Write-Host "檔案驗證資訊 (SHA256)：" -ForegroundColor Cyan
 $dllHash = Get-FileHashInfo -FilePath $sourceDll
-$addinHash = Get-FileHashInfo -FilePath $currentSourceAddin
+$addinHash = Get-FileHashInfo -FilePath $sourceAddin
 Write-Host "  DLL:   $dllHash" -ForegroundColor Gray
 Write-Host "  ADDIN: $addinHash" -ForegroundColor Gray
 Write-Host ""
@@ -302,7 +302,7 @@ Write-Host "即將複製以下檔案：" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "來源：" -ForegroundColor Cyan
 Write-Host "  - $sourceDll" -ForegroundColor White
-Write-Host "  - $currentSourceAddin" -ForegroundColor White
+Write-Host "  - $sourceAddin" -ForegroundColor White
 Write-Host ""
 Write-Host "目標：" -ForegroundColor Cyan
 Write-Host "  - $addonPath" -ForegroundColor White
@@ -357,8 +357,8 @@ catch {
 
 # 複製 ADDIN
 try {
-    Copy-Item -Path $currentSourceAddin -Destination (Join-Path $addonPath "RevitMCP.addin") -Force -ErrorAction Stop
-    Write-Host "✓ 已複製 $(Split-Path $currentSourceAddin -Leaf)" -ForegroundColor Green
+    Copy-Item -Path $sourceAddin -Destination (Join-Path $addonPath "RevitMCP.addin") -Force -ErrorAction Stop
+    Write-Host "✓ 已複製 $(Split-Path $sourceAddin -Leaf)" -ForegroundColor Green
 }
 catch {
     Write-Host "❌ 錯誤：無法複製 RevitMCP.addin" -ForegroundColor Red
