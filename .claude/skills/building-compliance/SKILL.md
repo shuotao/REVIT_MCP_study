@@ -1,51 +1,51 @@
 ---
 name: building-compliance
-description: "Execute building code compliance reviews: daylight area, floor area ratio (FAR), and parking space checks. TRIGGER when: user mentions daylight, natural lighting, floor area, FAR, building coverage, parking, parking clearance, parking space review, or regulatory compliance review. Tools: get_room_daylight_info, query_elements_with_filter, get_rooms_by_level."
+description: "建築法規檢討：居室採光比（第 41 條）、容積率與樓地板面積計算、停車位尺寸與數量檢核。觸發條件：使用者提到採光、daylight、容積率、FAR、樓地板面積、建蔽率、停車、parking、法規檢討、送審、regulatory。工具：get_room_daylight_info、query_elements_with_filter、get_rooms_by_level。"
 ---
 
-# Building Code Compliance Review
+# 建築法規檢討
 
-## Sub-Workflows
+## 子工作流程
 
-### 1. Daylight Area Check (Article 41)
+### 1. 居室採光檢討（第 41 條）
 
-Verify room natural lighting compliance per Taiwan Building Technical Regulations:
-1. `get_room_daylight_info` → returns window areas and room floor areas
-2. Calculate: effective daylight area ÷ floor area ≥ required ratio
-3. Flag non-compliant rooms
-4. Visualize results with color overrides
+依建築技術規則檢核居室自然採光是否合規：
+1. `get_room_daylight_info` → 回傳窗戶面積與居室面積
+2. 計算：有效採光面積 ÷ 居室面積 ≥ 法定比例
+3. 標示不合規的房間
+4. 以顏色覆寫視覺化結果
 
-**Key rules:**
-- Residential rooms: daylight area ≥ 1/8 of floor area
-- Only count windows facing outdoors (not interior windows)
-- Measure from window sill to ceiling for effective opening
+**關鍵規則：**
+- 住宅居室：採光面積 ≥ 居室面積的 1/8
+- 只計算面向戶外的窗戶（不含室內窗）
+- 有效開口從窗台到天花板量測
 
-### 2. Floor Area Review (FAR Check)
+### 2. 容積率檢討
 
-Review floor area ratio compliance:
-1. `get_rooms_by_level` → collect all rooms per floor
-2. Calculate gross/net floor areas per level
-3. Compare against allowed FAR from zoning
-4. Generate compliance summary
+檢核樓地板面積與容積率是否合規：
+1. `get_rooms_by_level` → 逐層收集所有房間
+2. 計算每層的總/淨樓地板面積
+3. 與都市計畫允許容積率比對
+4. 產出檢討摘要
 
-**Calculation notes:**
-- Exclude: mechanical rooms, stairs, elevators (per regulations)
-- Include: balconies at 50% if enclosed
-- Underground floors: different calculation rules
+**計算注意：**
+- 免計項目：機械室、樓梯、電梯（依法規排除）
+- 陽台：封閉式以 50% 計入
+- 地下層：適用不同計算規則
 
-### 3. Parking Space Review
+### 3. 停車位檢討
 
-Verify parking dimensions and clearance:
-1. Query parking-related elements
-2. Check standard dimensions (2.5m × 5.5m minimum for standard)
-3. Check clearance around columns and walls
-4. Verify accessible parking requirements
+驗證停車位尺寸與淨空：
+1. 查詢停車相關元素
+2. 檢查標準尺寸（小型車最小 2.5m × 5.5m）
+3. 檢查柱邊與牆邊淨空
+4. 確認無障礙車位是否符合規定
 
-**Standards:**
-- Standard: 2500mm × 5500mm
-- Accessible: 3500mm × 5500mm
-- Aisle width: 5500mm (two-way)
+**尺寸標準：**
+- 標準車位：2500mm × 5500mm
+- 無障礙車位：3500mm × 5500mm
+- 車道寬度：雙向 5500mm
 
-## Reference
+## 參考
 
-See `domain/daylight-area-check.md`, `domain/floor-area-review.md`, `domain/parking-space-review.md`, `domain/parking-clearance-check.md` for full details.
+詳見 `domain/daylight-area-check.md`、`domain/floor-area-review.md`、`domain/parking-space-review.md`、`domain/parking-clearance-check.md`。
