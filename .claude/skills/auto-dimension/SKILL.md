@@ -5,6 +5,9 @@ description: "Automatically create dimensions in Revit using Ray-Casting or Boun
 
 # Auto Dimension Workflow
 
+## Lessons Reference
+- **L-002**：標註必須匹配正確的視圖 ID，嚴禁在 3D 視圖建立平面標註。位置線用 BoundingBox 中心 `(max+min)/2`。詳見 `domain/lessons.md`。
+
 Automatically annotate room/space dimensions in Revit using two methods:
 
 ## Method Selection

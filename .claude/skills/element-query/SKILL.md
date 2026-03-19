@@ -5,6 +5,9 @@ description: "Query, filter, and visualize Revit elements with the 3-phase workf
 
 # Element Query & Visualization
 
+## Lessons Reference
+- **L-001**：查詢房間時必須多語言容錯（走廊/Corridor/廊道/通道/廊下）。詳見 `domain/lessons.md`。
+
 ## 3-Phase Query Protocol (MANDATORY)
 
 ### Phase 1: Exploration
