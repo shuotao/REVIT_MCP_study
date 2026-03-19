@@ -1089,8 +1089,8 @@
     <div class="slide-image"><img src="image/2_3.png" alt="2-3 Collision"></div>
     <div class="slide-content">
       <div class="slide-number">2-3</div>
-      <div class="slide-title">多人貢獻，同一個檔案</div>
-      <p class="slide-summary">三個人各自加功能，卻都改 CommandExecutor.cs 的第 242 行——合併衝突無可避免。</p>
+      <div class="slide-title">多人貢獻，同一扇門</div>
+      <p class="slide-summary">每加一個新功能，都要改同兩個檔案。三個人同時加功能？三個人擠同一扇門——撞在一起是必然的。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-2-3')">展開衝突案例</button>
     </div>
   </div>
@@ -1697,13 +1697,36 @@ npm run build</code><button class="copy-btn" onclick="copyCode(this)">複製</bu
 <div class="drawer" id="drawer-2-3">
   <button class="drawer-close" onclick="closeDrawer()">✕</button>
   <h2>多人貢獻的衝突問題</h2>
+
+  <h3>為什麼加一個功能要改兩個地方？</h3>
+  <p>延續廚房的比喻——每加一道新菜，你必須同時做兩件事：</p>
+  <table>
+    <tr><th></th><th>角色</th><th>比喻</th><th>實際檔案</th></tr>
+    <tr>
+      <td><strong>第一件</strong></td>
+      <td>在菜單上加一道菜</td>
+      <td>告訴 AI「有這個工具、要傳什麼參數」</td>
+      <td style="color:rgba(255,255,255,0.4)">revit-tools.ts（MCP Server 端）</td>
+    </tr>
+    <tr>
+      <td><strong>第二件</strong></td>
+      <td>教廚師怎麼做這道菜</td>
+      <td>寫 Revit 操作的實際程式碼</td>
+      <td style="color:rgba(255,255,255,0.4)">CommandExecutor.cs（Revit 端）</td>
+    </tr>
+  </table>
+  <p>少了任一邊都不行：只加菜單 → AI 點了菜但廚房不會做；只教廚師 → 菜會做但菜單上沒有，AI 永遠不會點。</p>
+
   <h3>真實案例</h3>
-  <p>Alex 同時開發帷幕牆和排煙窗，兩個功能都要改同兩個檔案：</p>
-  <pre><code>MCP/Core/CommandExecutor.cs      ← 3000+ 行
-MCP-Server/src/tools/revit-tools.ts ← 900+ 行</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
-  <p>結果：PR#11 和 PR#12 都插在第 242 行後面 → 合併衝突。PR 還夾帶了 194 個不相關檔案（bin/obj/scratch/slides）。</p>
+  <p>Alex 同時開發帷幕牆和排煙窗，兩個功能都要改這兩個檔案。結果：</p>
+  <ul>
+    <li>PR#11 和 PR#12 都在「廚師手冊」的同一頁插入新內容 → <strong>合併衝突</strong></li>
+    <li>PR 還不小心夾帶了 194 個不相關檔案</li>
+  </ul>
+
   <h3>根本原因</h3>
-  <p><strong>所有功能擠在同兩個檔案裡。</strong>不管加什麼功能，都改同一個地方。</p>
+  <p><strong>所有功能都擠在同兩個檔案裡。</strong>不管加什麼新菜，都在同一本菜單、同一本手冊裡加。三個人同時加？三個人搶同一支筆寫同一頁。</p>
+  <p style="color:rgba(255,255,255,0.4);margin-top:12px;">（這個「菜單 + 廚師」的架構會在 <strong>3-1 三層架構</strong>裡完整展開——到時你會看到完整的資料流。）</p>
 </div>
 
 <!-- Drawer 2-4 (merged: MCP≠Skill + Kitchen/Recipe) -->
@@ -1852,6 +1875,18 @@ MCP-Server/src/tools/revit-tools.ts ← 900+ 行</code><button class="copy-btn" 
   </table>
   <h3>關鍵差異：不是三層「結構」，是三層「載入時機」</h3>
   <p>三層架構的價值不在於把東西分成三個資料夾（Domain 從第一天就是獨立的），而是<strong>每層有不同的載入時機</strong>——Skill metadata 常駐，Skill body 觸發時載入，Domain 被引用時載入。這就是 2-5 講的「漸進式揭露」在架構上的實現。</p>
+
+  <h3>回到 2-3 的問題：為什麼兩個檔案？</h3>
+  <p>還記得 2-3 講的「加一道菜要改兩個地方」嗎？現在你可以看到它們在架構裡的位置了：</p>
+  <pre><code>AI Client（你）
+  ↓ 自然語言
+MCP Server ← revit-tools.ts 住在這裡（菜單）
+  ↓ WebSocket
+Revit Add-in ← CommandExecutor.cs 住在這裡（廚師）
+  ↓ Transaction
+Revit 模型</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <p>所以「菜單」和「廚師」其實是架構裡<strong>不同層</strong>的東西——一個在 MCP Server（Node.js），一個在 Revit Add-in（C#）。它們透過 WebSocket 通訊。加一個新工具，兩邊都要加對應的程式碼。</p>
+  <p>而 <strong>Skill 和 Domain 完全不涉及這兩個檔案</strong>——它們是純 Markdown，定義「怎麼用」而不是「怎麼做」。所以老師們貢獻 Domain 知識時，完全不用碰程式碼。</p>
 </div>
 
 <!-- Drawer 3-2 -->
