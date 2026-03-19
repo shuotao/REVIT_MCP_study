@@ -524,7 +524,7 @@
       <div class="slide-title">斜線指令總覽</div>
       <p class="slide-summary">7 個斜線指令，覆蓋從知識記錄到品質驗證的完整開發週期。點擊白色圓點跳到實作說明。</p>
       <div class="cmd-grid">
-        <div class="cmd-card" onclick="this.classList.toggle('expanded')">
+        <div class="cmd-card" onclick="toggleCmd(this)">
           <div class="cmd-card-top">
             <code>/domain</code>
             <span class="cmd-card-desc">成功流程 → SOP 文件</span>
@@ -535,7 +535,7 @@
             <p>你花了很多時間跟 AI 討論一個應用情境，經過無數次錯誤和修正的迭代，終於找到正確的流程。你期待這份知識能在下一次被精準使用、避開所有雷區。請在完成後使用 <code>/domain</code>，它會把這次的成功經驗固化成 SOP，讓你和團隊永遠不用重來。</p>
           </div>
         </div>
-        <div class="cmd-card" onclick="this.classList.toggle('expanded')">
+        <div class="cmd-card" onclick="toggleCmd(this)">
           <div class="cmd-card-top">
             <code>/lessons</code>
             <span class="cmd-card-desc">踩坑經驗 → 高階規則</span>
@@ -546,7 +546,7 @@
             <p>你踩了一個坑，花了兩小時才發現「中文版 Revit 的參數名稱跟英文版不一樣」。你不希望下一個人再浪費兩小時。打 <code>/lessons</code>，把這條經驗寫進共用知識庫，從此所有人都會被提醒。</p>
           </div>
         </div>
-        <div class="cmd-card" onclick="this.classList.toggle('expanded')">
+        <div class="cmd-card" onclick="toggleCmd(this)">
           <div class="cmd-card-top">
             <code>/dev-guide</code>
             <span class="cmd-card-desc">開發前準備指引</span>
@@ -557,7 +557,7 @@
             <p>你正準備動手寫一個新工具，但你不確定前人踩過哪些坑、架構規則是什麼、跨版本要注意什麼。打 <code>/dev-guide</code>，它會在你寫第一行程式碼之前，把所有該知道的事情攤在你面前。</p>
           </div>
         </div>
-        <div class="cmd-card" onclick="this.classList.toggle('expanded')">
+        <div class="cmd-card" onclick="toggleCmd(this)">
           <div class="cmd-card-top">
             <code>/qaqc</code>
             <span class="cmd-card-desc">五階段品質驗證</span>
@@ -568,7 +568,7 @@
             <p>你改了一些東西，但不確定有沒有弄壞別的地方。打 <code>/qaqc</code>，它會像體檢一樣掃描整個專案——五個階段、二十幾項檢查，每個問題都附修復步驟。安心交付。</p>
           </div>
         </div>
-        <div class="cmd-card" onclick="this.classList.toggle('expanded')">
+        <div class="cmd-card" onclick="toggleCmd(this)">
           <div class="cmd-card-top">
             <code>/build-revit</code>
             <span class="cmd-card-desc">一鍵編譯（2022-2026）</span>
@@ -579,7 +579,7 @@
             <p>你改完了 C# 程式碼，但每次都要查 dotnet build 後面該接什麼版本號。打 <code>/build-revit</code>，它會問你要哪個版本，或者 <code>--all</code> 一次全編。不用再記指令。</p>
           </div>
         </div>
-        <div class="cmd-card" onclick="this.classList.toggle('expanded')">
+        <div class="cmd-card" onclick="toggleCmd(this)">
           <div class="cmd-card-top">
             <code>/deploy-addon</code>
             <span class="cmd-card-desc">部署 DLL 到 Revit</span>
@@ -590,7 +590,7 @@
             <p>Build 完了，但你總是忘記 DLL 要複製到哪個隱藏資料夾。打 <code>/deploy-addon</code>，它知道正確的路徑，一秒部署完成。再也不用翻 AppData。</p>
           </div>
         </div>
-        <div class="cmd-card" onclick="this.classList.toggle('expanded')">
+        <div class="cmd-card" onclick="toggleCmd(this)">
           <div class="cmd-card-top">
             <code>/review</code>
             <span class="cmd-card-desc">審查 CLAUDE.md 品質</span>
@@ -1653,6 +1653,13 @@ function closeDrawer() {
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+// === Accordion: expand one, collapse others ===
+function toggleCmd(card) {
+  const isOpen = card.classList.contains('expanded');
+  card.closest('.cmd-grid').querySelectorAll('.cmd-card').forEach(c => c.classList.remove('expanded'));
+  if (!isOpen) card.classList.add('expanded');
+}
 
 // === Hash navigation: jump to slide on load ===
 window.addEventListener('load', () => {
