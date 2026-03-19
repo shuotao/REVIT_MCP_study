@@ -371,6 +371,63 @@
     font-size: 12px; color: rgba(255,255,255,0.35);
     line-height: 1.5;
   }
+  /* Issue badge on domain cards */
+  .domain-card { position: relative; }
+  .issue-badge {
+    position: absolute; top: -6px; right: -6px;
+    background: #ef4444; color: #fff;
+    width: 22px; height: 22px; border-radius: 50%;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(239,68,68,0.5);
+    animation: badgePulse 2s ease-in-out infinite;
+  }
+  @keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  /* Issue section in drawers */
+  .drawer-issue-section {
+    margin-top: 32px; padding-top: 24px;
+    border-top: 1px solid rgba(239,68,68,0.2);
+  }
+  .drawer-issue-section h3 {
+    color: #ef4444 !important; font-size: 16px !important;
+    margin-bottom: 12px !important;
+  }
+  .issue-item {
+    background: rgba(239,68,68,0.06);
+    border: 1px solid rgba(239,68,68,0.15);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;
+  }
+  .issue-item p { margin: 0 0 8px 0; font-size: 14px; }
+  .issue-link-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(239,68,68,0.12); color: #ef4444;
+    border: 1px solid rgba(239,68,68,0.25); border-radius: 6px;
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+    text-decoration: none; transition: all 0.2s; font-family: inherit;
+  }
+  .issue-link-btn:hover {
+    background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.4);
+  }
+  .issue-assignee {
+    display: inline-block; font-size: 12px; font-weight: 600;
+    color: #60a5fa; background: rgba(96,165,250,0.1);
+    padding: 2px 8px; border-radius: 100px; margin-left: 6px;
+  }
+  .fix-item {
+    background: rgba(74,222,128,0.06);
+    border: 1px solid rgba(74,222,128,0.15);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;
+  }
+  .fix-item p { margin: 0 0 8px 0; font-size: 14px; }
+  .fix-tag {
+    display: inline-block; font-size: 11px; letter-spacing: 1px;
+    color: rgba(74,222,128,0.8); background: rgba(74,222,128,0.1);
+    padding: 2px 8px; border-radius: 100px;
+  }
+
   .why-footer {
     margin-top: 48px; text-align: center;
     font-size: 14px; color: rgba(255,255,255,0.25);
@@ -391,6 +448,81 @@
   .section-divider h2 {
     font-size: 14px; letter-spacing: 4px; text-transform: uppercase;
     color: rgba(255,255,255,0.3); font-weight: 400;
+  }
+
+  /* ===== SETUP PAGE ===== */
+  .setup-page {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 60px 80px; scroll-snap-align: start; scroll-snap-stop: always;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .setup-header {
+    text-align: center; margin-bottom: 40px;
+  }
+  .setup-header h2 {
+    font-size: 36px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px;
+  }
+  .setup-header p {
+    font-size: 16px; color: rgba(255,255,255,0.4); line-height: 1.7;
+  }
+  .setup-steps {
+    display: flex; flex-direction: column; gap: 0;
+    max-width: 800px; width: 100%; position: relative;
+  }
+  .setup-steps::before {
+    content: ''; position: absolute; left: 24px; top: 0; bottom: 0;
+    width: 2px; background: rgba(255,255,255,0.08);
+  }
+  .setup-step {
+    display: flex; gap: 20px; align-items: flex-start;
+    padding: 16px 0; position: relative;
+  }
+  .step-number {
+    flex: 0 0 48px; height: 48px; border-radius: 50%;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.7);
+    z-index: 1;
+  }
+  .step-number.highlight {
+    background: rgba(96,165,250,0.15); border-color: rgba(96,165,250,0.4);
+    color: #60a5fa;
+  }
+  .step-body { flex: 1; }
+  .step-body h3 {
+    font-size: 18px; font-weight: 700; margin-bottom: 6px; color: #fff;
+  }
+  .step-body p {
+    font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.7; margin: 0;
+  }
+  .step-body code {
+    font-family: 'SF Mono','Fira Code','Consolas',monospace;
+    font-size: 13px; background: rgba(255,255,255,0.06);
+    padding: 2px 8px; border-radius: 4px; color: #e0e0e0;
+  }
+  .step-body .step-cmd {
+    display: block; margin-top: 8px; padding: 10px 14px;
+    background: #111; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px; font-family: 'SF Mono','Fira Code','Consolas',monospace;
+    font-size: 13px; color: #e0e0e0; line-height: 1.6;
+  }
+  .step-emoji { font-size: 20px; margin-right: 4px; }
+  .step-tag {
+    display: inline-block; font-size: 11px; letter-spacing: 1px;
+    padding: 2px 8px; border-radius: 100px; margin-left: 8px;
+    vertical-align: middle;
+  }
+  .step-tag.once {
+    color: rgba(74,222,128,0.8); background: rgba(74,222,128,0.1);
+  }
+  .step-tag.every {
+    color: rgba(251,191,36,0.8); background: rgba(251,191,36,0.1);
+  }
+  @media (max-width: 900px) {
+    .setup-page { padding: 40px 24px; }
+    .setup-steps::before { left: 20px; }
+    .step-number { flex: 0 0 40px; height: 40px; font-size: 16px; }
   }
 
   /* ===== ENDING PAGE ===== */
@@ -522,16 +654,19 @@
 
   <div class="domain-grid">
     <div class="domain-card" onclick="openDrawer('drawer-why-fire')">
+      <span class="issue-badge">1</span>
       <span class="domain-card-icon">🔥</span>
       <div class="domain-card-label">防火安全</div>
       <div class="domain-card-sub">防火時效 · 走廊寬度 · 外牆開口<br>3 個 Domain · 6 個工具</div>
     </div>
     <div class="domain-card" onclick="openDrawer('drawer-why-smoke')">
+      <span class="issue-badge">1</span>
       <span class="domain-card-icon">🌫️</span>
       <div class="domain-card-label">排煙檢討</div>
       <div class="domain-card-sub">排煙窗有效面積 · 無開口樓層<br>1 個 Domain · 7 個工具</div>
     </div>
     <div class="domain-card" onclick="openDrawer('drawer-why-compliance')">
+      <span class="issue-badge">2</span>
       <span class="domain-card-icon">📐</span>
       <div class="domain-card-label">法規檢討</div>
       <div class="domain-card-sub">採光比 · 容積率 · 停車位數量<br>4 個 Domain · 5 個工具</div>
@@ -564,6 +699,107 @@
   </div>
 
   <div class="why-footer">以上 8 大系統、<strong>20 個 Domain</strong>、<strong>44 個工具</strong>已上線驗證。<br>你的專業領域，就是第 9 個、第 10 個按鈕。</div>
+</section>
+
+<!-- ===== SETUP PAGE ===== -->
+<section class="setup-page" id="slide-setup">
+  <div class="setup-header">
+    <h2>讓我們先把系統更新</h2>
+    <p>在開始複習之前，先確保你的環境是最新的。<br>
+    以下 8 步驟，從同步原始碼到開啟 AI 對話，一次完成。</p>
+  </div>
+
+  <div class="setup-steps">
+    <div class="setup-step">
+      <div class="step-number">1</div>
+      <div class="step-body">
+        <h3><span class="step-emoji">🔍</span>確認上游最新版本</h3>
+        <p>到上游原始 repo 確認是否有新的 commit。</p>
+        <span class="step-cmd">打開 <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" style="color:#60a5fa">github.com/shuotao/REVIT_MCP_study</a> 確認最新狀態</span>
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="step-number">2</div>
+      <div class="step-body">
+        <h3><span class="step-emoji">🔄</span>Sync Fork<span class="step-tag once">首次需設定 upstream</span></h3>
+        <p>在你自己的 fork 頁面按 <strong style="color:#fff">Sync fork</strong> 按鈕，或用指令同步：</p>
+        <code class="step-cmd">git fetch upstream && git merge upstream/main</code>
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="step-number">3</div>
+      <div class="step-body">
+        <h3><span class="step-emoji">⬇️</span>Pull 到本機</h3>
+        <p>把同步後的最新內容拉到你的電腦。</p>
+        <code class="step-cmd">git pull</code>
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="step-number">4</div>
+      <div class="step-body">
+        <h3><span class="step-emoji">📦</span>編譯 MCP Server<span class="step-tag every">每次更新都要做</span></h3>
+        <p>重新安裝套件並編譯 TypeScript → JavaScript。</p>
+        <code class="step-cmd">cd MCP-Server && npm install && npm run build</code>
+        <p style="margin-top:8px;font-size:12px;color:rgba(255,255,255,0.35);">
+          這是終端機指令，在 VS Code Terminal / PowerShell / Git Bash 都可以執行。<br>
+          Gemini CLI 是對話介面，請另開終端機或叫 Gemini 幫你執行。
+        </p>
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="step-number highlight">5</div>
+      <div class="step-body">
+        <h3><span class="step-emoji">⚙️</span>檢查 MCP Server 設定檔路徑<span class="step-tag once">路徑沒變可跳過</span></h3>
+        <p>確認 <code>args</code> 裡的路徑指向你實際的 <code>build/index.js</code> 位置。<br>
+        <strong style="color:#f87171;">路徑錯誤是最常見的連線失敗原因。</strong></p>
+        <table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:13px;">
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+            <td style="padding:6px 0;color:rgba(255,255,255,0.5);">Claude Desktop</td>
+            <td style="padding:6px 0;"><code>%APPDATA%\Claude\claude_desktop_config.json</code></td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+            <td style="padding:6px 0;color:rgba(255,255,255,0.5);">Gemini CLI</td>
+            <td style="padding:6px 0;"><code>%USERPROFILE%\.gemini\settings.json</code></td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:rgba(255,255,255,0.5);">VS Code Copilot</td>
+            <td style="padding:6px 0;"><code>.vscode/mcp.json</code>（專案根目錄）</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="step-number">6</div>
+      <div class="step-body">
+        <h3><span class="step-emoji">🔨</span>編譯 Revit Add-in</h3>
+        <p>使用 Skill 一鍵編譯，支援 Revit 2022-2026。</p>
+        <code class="step-cmd">/build-revit --all</code>
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="step-number">7</div>
+      <div class="step-body">
+        <h3><span class="step-emoji">📂</span>部署 DLL 到 Revit</h3>
+        <p>把編譯好的 DLL 複製到 Revit Add-ins 資料夾。</p>
+        <code class="step-cmd">/deploy-addon --version 2024</code>
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="step-number" style="background:rgba(74,222,128,0.12);border-color:rgba(74,222,128,0.3);color:#4ade80;">✓</div>
+      <div class="step-body">
+        <h3><span class="step-emoji">🚀</span>開始使用</h3>
+        <p>打開 Revit → 點擊 Add-in 面板的 <strong style="color:#fff">RevitMCP</strong> 按鈕（啟動 WebSocket port 8964）<br>
+        → 回到 AI Client 用自然語言下指令，例如「幫我查 3 樓所有房間」。</p>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- ===== SECTION 1: 回顧與複習 ===== -->
@@ -958,6 +1194,16 @@
     <tr><td><code>check_exterior_wall_openings</code></td><td>自動計算開口與地界線距離</td></tr>
     <tr><td><code>clear_element_override</code></td><td>清除舊上色</td></tr>
   </table>
+
+  <div class="drawer-issue-section">
+    <h3>法規複查待確認</h3>
+    <div class="issue-item">
+      <p><strong>§45 漏列第四、五款</strong>：排氣口距境界線 ≥ 2m（第四款）、窗臺高度 H-2/D-3/F-3 ≥ 1.1m / 十層以上 ≥ 1.2m（第五款），目前 domain 文件未涵蓋。</p>
+      <p><strong>§110 漏列第五款</strong>：避難通路淨寬 ≥ 1.5m、外牆 1hr 防火 + 0.5hr 阻熱。</p>
+      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/20" target="_blank">Issue #20</a>
+      <span class="issue-assignee">請 @davidhsu68-dvstudio 當場確認</span>
+    </div>
+  </div>
 </div>
 
 <div class="drawer" id="drawer-why-smoke">
@@ -979,6 +1225,16 @@
     <tr><td><code>create_text_note</code></td><td>統計摘要標註</td></tr>
     <tr><td><code>export_smoke_review_excel</code></td><td>四工作表 Excel 報告</td></tr>
   </table>
+
+  <div class="drawer-issue-section">
+    <h3>法規複查待確認</h3>
+    <div class="issue-item">
+      <p><strong>§101 漏列排風量規定</strong>：排風機排風量不得小於每分鐘 120 立方公尺。</p>
+      <p><strong>§101 漏列中央監控規定</strong>：建築物高度 > 30m 或地下層面積 > 1000m²，排煙控制應設置於中央管理室。</p>
+      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/19" target="_blank">Issue #19</a>
+      <span class="issue-assignee">請 @7alexhuang-ux 當場確認</span>
+    </div>
+  </div>
 </div>
 
 <div class="drawer" id="drawer-why-compliance">
@@ -1001,6 +1257,37 @@
     <tr><td><code>override_element_graphics</code></td><td>標示不合規項目</td></tr>
     <tr><td><code>get_field_values</code></td><td>停車位類型分佈統計</td></tr>
   </table>
+
+  <div class="drawer-issue-section">
+    <h3>法規複查待確認</h3>
+    <div class="issue-item">
+      <p><strong>§41 天窗 3 倍、遮蔽 70% 規則出處待確認</strong>：目前 <code>daylight-area-check.md</code> 列出天窗有效面積按 3 倍計算、陽台遮蔽 > 2m 按 70% 計算，但第 41 條原文僅規定採光比例和 75cm 排除。這兩條規則可能來自施行細則或地方規範，需確認出處。</p>
+      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/20" target="_blank">Issue #20</a>
+      <span class="issue-assignee">請 @davidhsu68-dvstudio 當場確認</span>
+    </div>
+    <div class="issue-item">
+      <p><strong>停車位條號引用錯誤</strong>：車位尺寸 2.5m × 5.5m 應引用 <strong>§60</strong>（非 §60-1）、車道寬度應引用 <strong>§61</strong>、樓層淨高 ≥ 2.1m 應引用 <strong>§62</strong>。§60-1 實際內容為通道淨寬 ≥ 75cm。</p>
+      <p>無障礙車位 3.5m × 5.5m 可能出自《建築物無障礙設施設計規範》而非建技規，需確認。</p>
+      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/21" target="_blank">Issue #21</a>
+      <span class="issue-assignee">請 @h30190 當場確認</span>
+    </div>
+  </div>
+
+  <div class="drawer-issue-section" style="border-top-color: rgba(74,222,128,0.2);">
+    <h3 style="color: #4ade80 !important;">可直接修正（已查證正確條文）</h3>
+    <div class="fix-item">
+      <p><strong>§60-1 → §60</strong>：<code>docs/0328的課程討論.md</code> 車位尺寸引用修正 <span class="fix-tag">已查證</span></p>
+    </div>
+    <div class="fix-item">
+      <p><strong>§60-1 → §61</strong>：車道寬度（單 ≥ 3.5m、雙 ≥ 5.5m）引用修正 <span class="fix-tag">已查證</span></p>
+    </div>
+    <div class="fix-item">
+      <p><strong>parking-clearance-check.md 補 §62</strong>：淨高 > 210cm 正確，但缺條號 <span class="fix-tag">已查證</span></p>
+    </div>
+    <div class="fix-item">
+      <p>以上 3 項法規來源明確，上完課後統一修改。雖無 Issue 但建議比對 <a href="https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=D0070115" target="_blank" style="color:#4ade80;">官方條文</a> 再次確認。</p>
+    </div>
+  </div>
 </div>
 
 <div class="drawer" id="drawer-why-facade">
@@ -1135,10 +1422,10 @@ Revit 執行操作 → 結果回傳 → AI 用自然語言告訴你</code><butto
   <h2>三個元件的安裝路徑</h2>
   <h3>1. MCP Server（Node.js）</h3>
   <p>就是你 clone 下來的專案裡面的 MCP-Server 資料夾：</p>
-  <pre><code>C:\Project\REVIT_MCP_study\MCP-Server\
+  <pre><code>&lt;你 clone 的位置&gt;\REVIT_MCP_study\MCP-Server\
   ├── src\         ← TypeScript 原始碼
   ├── build\       ← 編譯後的 JS（AI Client 指向這裡）
-  └── package.json</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  └── package.json</code></pre>
   <p>編譯指令：</p>
   <pre><code>cd MCP-Server
 npm install
@@ -1164,11 +1451,16 @@ npm run build</code><button class="copy-btn" onclick="copyCode(this)">複製</bu
   "mcpServers": {
     "revit-mcp": {
       "command": "node",
-      "args": ["C:/Project/REVIT_MCP_study/MCP-Server/build/index.js"]
+      "args": ["<你的完整路徑>/REVIT_MCP_study/MCP-Server/build/index.js"]
     }
   }
 }</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
-  <p><strong>注意：</strong>路徑用正斜線 <code>/</code>，不要用反斜線 <code>\</code>。</p>
+  <p><strong>⚠️ 請把 <code>&lt;你的完整路徑&gt;</code> 換成你實際 clone 的位置，例如：</strong></p>
+  <ul>
+    <li>Windows：<code>C:/Users/你的名字/Desktop/REVIT_MCP_study/MCP-Server/build/index.js</code></li>
+    <li>Mac：<code>/Users/你的名字/Desktop/REVIT_MCP_study/MCP-Server/build/index.js</code></li>
+  </ul>
+  <p>路徑用正斜線 <code>/</code>，不要用反斜線 <code>\</code>。路徑錯誤是最常見的連線失敗原因。</p>
 </div>
 
 <!-- Drawer 1-3 -->
@@ -1426,7 +1718,7 @@ description: "消防安全檢討：防火時效視覺化、走廊防火分析、
   "mcpServers": {
     "revit-mcp": {
       "command": "node",
-      "args": ["C:/Project/REVIT_MCP_study/MCP-Server/build/index.js"],
+      "args": ["<你的完整路徑>/REVIT_MCP_study/MCP-Server/build/index.js"],
       "env": {
         "MCP_PROFILE": "architect"
       }
@@ -1441,7 +1733,7 @@ description: "消防安全檢討：防火時效視覺化、走廊防火分析、
   <button class="drawer-close" onclick="closeDrawer()">✕</button>
   <h2>同步最新版</h2>
   <h3>Step 1：設定 upstream（只做一次）</h3>
-  <pre><code>cd C:\Project\REVIT_MCP_study
+  <pre><code>cd &lt;你 clone 的位置&gt;\REVIT_MCP_study
 git remote -v
 git remote add upstream https://github.com/shuotao/REVIT_MCP_study.git</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
 
@@ -1611,7 +1903,7 @@ description: "停車場檢討：停車位淨空高度檢查與數量分類統計
   <h2>提交流程</h2>
   <h3>Git 操作步驟</h3>
   <pre><code># 1. 確保最新版
-cd C:\Project\REVIT_MCP_study
+cd &lt;你 clone 的位置&gt;\REVIT_MCP_study
 git fetch upstream && git checkout main && git rebase upstream/main
 
 # 2. 建立工作分支
@@ -1719,6 +2011,7 @@ git push origin add/parking-check
 const sections = [
   { id: 'slide-cover', label: '封面' },
   { id: 'slide-why', label: '為什麼你需要參加' },
+  { id: 'slide-setup', label: '系統更新' },
   { id: 'slide-1-1', label: '回顧與複習' },
   { id: 'slide-2-1', label: '問題與挑戰' },
   { id: 'slide-3-1', label: 'Architecture V2' },
@@ -1731,9 +2024,10 @@ const sections = [
 const slideToSection = {};
 slideToSection['slide-cover'] = 0;
 slideToSection['slide-why'] = 1;
+slideToSection['slide-setup'] = 2;
 document.querySelectorAll('[data-section]').forEach(el => {
   const sec = parseInt(el.dataset.section);
-  slideToSection[el.id] = sec + 1; // section 1→idx 2, section 2→idx 3, etc.
+  slideToSection[el.id] = sec + 2; // offset by 2 (cover, why, setup)
 });
 
 // Build nav dots (only 8)
@@ -1759,7 +2053,7 @@ const observer = new IntersectionObserver(entries => {
     }
   });
 }, { threshold: 0.4 });
-document.querySelectorAll('.slide, .cover, .why-page, .ending-page').forEach(el => {
+document.querySelectorAll('.slide, .cover, .why-page, .setup-page, .ending-page').forEach(el => {
   if (el.id) observer.observe(el);
 });
 
