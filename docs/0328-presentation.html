@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>0328 Revit MCP 讀書會</title>
+<meta property="og:title" content="MCP 功能開發三月小聚">
+<meta property="og:description" content="從工具堆砌到模組化架構 — 8 大專業系統、20 個 Domain、44 個工具已上線驗證。你的專業就是下一個按鈕。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://shuotao.github.io/REVIT_MCP_study/docs/0328-presentation.html">
+<meta name="twitter:card" content="summary">
 <style>
   /* ===== RESET & BASE ===== */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1444,6 +1449,17 @@ function closeDrawer() {
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+// === Hash navigation: jump to slide on load ===
+window.addEventListener('load', () => {
+  const hash = window.location.hash;
+  if (hash) {
+    const target = document.querySelector(hash);
+    if (target) {
+      setTimeout(() => target.scrollIntoView({ behavior: 'instant' }), 100);
+    }
+  }
+});
 
 // === Copy code ===
 function copyCode(btn) {
