@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>0328 Revit MCP 讀書會</title>
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
+  body {
+    background: #000; color: #fff;
+    font-family: 'Helvetica Neue', 'Inter', 'Noto Sans TC', sans-serif;
+    line-height: 1.6; overflow-x: hidden;
+  }
+  ::selection { background: #fff; color: #000; }
+
+  /* ===== NAV DOTS (right side) ===== */
+  .nav-dots {
+    position: fixed; right: 24px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px; z-index: 100;
+  }
+  .nav-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.25); border: none; cursor: pointer;
+    transition: all 0.3s ease; padding: 0;
+  }
+  .nav-dot:hover { background: rgba(255,255,255,0.6); transform: scale(1.4); }
+  .nav-dot.active { background: #fff; transform: scale(1.3); }
+  .nav-dot.section-start {
+    width: 12px; height: 12px; background: rgba(255,255,255,0.5);
+  }
+  .nav-dot.section-start.active { background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.6); }
+
+  /* ===== SLIDE ===== */
+  .slide, .cover {
+    min-height: 100vh; display: flex; align-items: center;
+    padding: 60px 80px 60px 80px; position: relative;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  /* ===== COVER ===== */
+  .cover {
+    justify-content: center; text-align: center;
+    flex-direction: column; gap: 0;
+    padding: 0 80px;
+  }
+  .cover-eyebrow {
+    font-size: 13px; letter-spacing: 6px; text-transform: uppercase;
+    color: rgba(255,255,255,0.35); margin-bottom: 32px;
+  }
+  .cover-title {
+    font-size: 56px; font-weight: 800; line-height: 1.15;
+    letter-spacing: -1.5px; margin-bottom: 16px;
+  }
+  .cover-subtitle {
+    font-size: 20px; color: rgba(255,255,255,0.5);
+    font-weight: 300; margin-bottom: 48px; line-height: 1.6;
+  }
+  .cover-meta {
+    display: flex; gap: 40px; justify-content: center;
+    flex-wrap: wrap;
+  }
+  .cover-meta-item {
+    text-align: center;
+  }
+  .cover-meta-label {
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3); margin-bottom: 6px;
+  }
+  .cover-meta-value {
+    font-size: 16px; color: rgba(255,255,255,0.8);
+  }
+  .cover-meta-value a {
+    color: #60a5fa; text-decoration: none;
+    border-bottom: 1px solid rgba(96,165,250,0.3);
+    transition: border-color 0.3s;
+  }
+  .cover-meta-value a:hover { border-color: #60a5fa; }
+  .cover-scroll-hint {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    font-size: 12px; color: rgba(255,255,255,0.2);
+    letter-spacing: 2px; animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.2; transform: translateX(-50%) translateY(0); }
+    50% { opacity: 0.5; transform: translateX(-50%) translateY(6px); }
+  }
+  .slide-inner {
+    display: flex; align-items: center; gap: 60px;
+    max-width: 1400px; width: 100%; margin: 0 auto;
+  }
+
+  /* Left: Image */
+  .slide-image {
+    flex: 0 0 45%; max-width: 45%;
+  }
+  .slide-image img {
+    width: 100%; height: auto; display: block;
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 4px;
+  }
+
+  /* Right: Content */
+  .slide-content {
+    flex: 1; min-width: 0;
+  }
+  .slide-number {
+    font-size: 13px; color: rgba(255,255,255,0.3);
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .slide-title {
+    font-size: 32px; font-weight: 700; line-height: 1.2; margin-bottom: 16px;
+    letter-spacing: -0.5px;
+  }
+  .slide-summary {
+    font-size: 18px; color: rgba(255,255,255,0.7); line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  /* Drawer trigger */
+  .drawer-trigger {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: none; border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6); padding: 8px 20px; border-radius: 100px;
+    cursor: pointer; font-size: 14px; transition: all 0.3s ease;
+    font-family: inherit;
+  }
+  .drawer-trigger:hover {
+    border-color: #fff; color: #fff;
+  }
+  .drawer-trigger::after { content: '→'; transition: transform 0.3s; }
+  .drawer-trigger:hover::after { transform: translateX(4px); }
+
+  /* ===== DRAWER ===== */
+  .drawer-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 200; opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: 66.666%; max-width: 900px;
+    background: #0a0a0a; border-left: 1px solid rgba(255,255,255,0.1);
+    z-index: 201; transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow-y: auto; padding: 48px 48px 48px 48px;
+  }
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-close {
+    position: sticky; top: 0; float: right;
+    background: none; border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; width: 36px; height: 36px; border-radius: 50%;
+    cursor: pointer; font-size: 18px; display: flex;
+    align-items: center; justify-content: center; z-index: 10;
+    transition: border-color 0.3s;
+  }
+  .drawer-close:hover { border-color: #fff; }
+
+  .drawer h2 {
+    font-size: 24px; font-weight: 700; margin: 0 0 8px 0;
+    padding-right: 50px;
+  }
+  .drawer h3 {
+    font-size: 18px; font-weight: 600; margin: 32px 0 12px 0;
+    color: #fff;
+  }
+  .drawer p, .drawer li {
+    font-size: 15px; color: rgba(255,255,255,0.75); line-height: 1.8;
+    margin-bottom: 12px;
+  }
+  .drawer ul, .drawer ol {
+    padding-left: 20px; margin-bottom: 16px;
+  }
+  .drawer li { margin-bottom: 6px; }
+  .drawer strong { color: #fff; }
+  .drawer table {
+    width: 100%; border-collapse: collapse; margin: 16px 0;
+    font-size: 14px;
+  }
+  .drawer th, .drawer td {
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 10px 14px; text-align: left;
+  }
+  .drawer th { background: rgba(255,255,255,0.06); color: #fff; font-weight: 600; }
+  .drawer td { color: rgba(255,255,255,0.7); }
+
+  /* Code blocks */
+  .drawer pre {
+    background: #111; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px; padding: 16px 20px; margin: 12px 0 20px;
+    overflow-x: auto; position: relative;
+  }
+  .drawer code {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px; color: #e0e0e0; line-height: 1.7;
+  }
+  .copy-btn {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.5);
+    padding: 4px 10px; border-radius: 4px; cursor: pointer;
+    font-size: 12px; font-family: inherit; transition: all 0.2s;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+  .copy-btn.copied { color: #4ade80; }
+
+  /* Copyable links */
+  .copyable-path {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.06); padding: 4px 12px;
+    border-radius: 4px; font-family: monospace; font-size: 13px;
+    color: rgba(255,255,255,0.6); cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: all 0.2s;
+  }
+  .copyable-path:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
+  .copyable-path::after { content: '📋'; font-size: 11px; }
+
+  /* ===== SECTION DIVIDER ===== */
+  .section-divider {
+    padding: 40px 80px; text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    scroll-snap-align: none;
+  }
+  .section-divider h2 {
+    font-size: 14px; letter-spacing: 4px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3); font-weight: 400;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .slide { padding: 40px 24px; }
+    .slide-inner { flex-direction: column; gap: 24px; }
+    .slide-image { flex: none; max-width: 100%; }
+    .drawer { width: 90%; padding: 32px 24px; }
+    .nav-dots { right: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== NAV DOTS ===== -->
+<nav class="nav-dots" id="navDots"></nav>
+
+<!-- ===== COVER ===== -->
+<section class="cover" id="slide-cover">
+  <div class="cover-eyebrow">Revit MCP Study Group</div>
+  <h1 class="cover-title">MCP 功能開發<br>三月小聚</h1>
+  <p class="cover-subtitle">從工具堆砌到模組化架構<br>Skill / Domain / Tools 三層協作系統</p>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Date</div>
+      <div class="cover-meta-value">2026.03.28 (Sat)</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Format</div>
+      <div class="cover-meta-value">Hybrid — Zoom + 小樹屋</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Duration</div>
+      <div class="cover-meta-value">90 min</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Open Source</div>
+      <div class="cover-meta-value"><a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" class="github-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:-2px;margin-right:6px"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub Repo</a></div>
+    </div>
+  </div>
+  <div class="cover-scroll-hint">↓ SCROLL</div>
+</section>
+
+<!-- ===== SECTION 1: 回顧與複習 ===== -->
+<div class="section-divider"><h2>Section 1 — 回顧與複習</h2></div>
+
+<!-- 1-1 -->
+<section class="slide" id="slide-1-1" data-section="1">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/1_1.png" alt="1-1 MCP Architecture"></div>
+    <div class="slide-content">
+      <div class="slide-number">1-1</div>
+      <div class="slide-title">MCP 是什麼</div>
+      <p class="slide-summary">AI 長出了手——透過 MCP 協議，語言模型可以直接操作 Revit，而不只是聊天。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-1-1')">展開詳細說明</button>
+    </div>
+  </div>
+</section>
+
+<!-- 1-2 -->
+<section class="slide" id="slide-1-2" data-section="1">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/1_2.png" alt="1-2 Three Components"></div>
+    <div class="slide-content">
+      <div class="slide-number">1-2</div>
+      <div class="slide-title">三個元件裝在哪裡</div>
+      <p class="slide-summary">MCP Server、Revit Add-in、AI Client 設定檔——三個東西的路徑搞錯是最常見的部署問題。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-1-2')">展開路徑與設定</button>
+    </div>
+  </div>
+</section>
+
+<!-- 1-3 -->
+<section class="slide" id="slide-1-3" data-section="1">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/1_3.png" alt="1-3 Evolution"></div>
+    <div class="slide-content">
+      <div class="slide-number">1-3</div>
+      <div class="slide-title">三次迭代的演進</div>
+      <p class="slide-summary">從 25 個工具到 55 個，從零 Skill 到 11 個，從只支援 Revit 2024 到 2022-2026 全版本。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-1-3')">展開演進對照</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION 2: 我們遇到了什麼問題 ===== -->
+<div class="section-divider"><h2>Section 2 — 我們遇到了什麼問題</h2></div>
+
+<!-- 2-1 -->
+<section class="slide" id="slide-2-1" data-section="2">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/2_1.png" alt="2-1 Inverse"></div>
+    <div class="slide-content">
+      <div class="slide-number">2-1</div>
+      <div class="slide-title">工具越多，AI 越笨</div>
+      <p class="slide-summary">55 個工具定義 = 每輪對話 16,500 tokens 的固定成本。工具越多，AI 選錯的機率越高。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-2-1')">展開數據分析</button>
+    </div>
+  </div>
+</section>
+
+<!-- 2-2 -->
+<section class="slide" id="slide-2-2" data-section="2">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/2_2.png" alt="2-2 With vs Without"></div>
+    <div class="slide-content">
+      <div class="slide-number">2-2</div>
+      <div class="slide-title">規範寫了，但 AI 不讀</div>
+      <p class="slide-summary">沒有 Domain 引導的 AI 會漏掉「天花板下 80cm 有效帶」這種法規關鍵，產出比不檢查還危險的結果。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-2-2')">展開案例對比</button>
+    </div>
+  </div>
+</section>
+
+<!-- 2-3 -->
+<section class="slide" id="slide-2-3" data-section="2">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/2_3.png" alt="2-3 Collision"></div>
+    <div class="slide-content">
+      <div class="slide-number">2-3</div>
+      <div class="slide-title">多人貢獻，同一個檔案</div>
+      <p class="slide-summary">三個人各自加功能，卻都改 CommandExecutor.cs 的第 242 行——合併衝突無可避免。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-2-3')">展開衝突案例</button>
+    </div>
+  </div>
+</section>
+
+<!-- 2-4 -->
+<section class="slide" id="slide-2-4" data-section="2">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/2_4.png" alt="2-4 Convergence"></div>
+    <div class="slide-content">
+      <div class="slide-number">2-4</div>
+      <div class="slide-title">三個問題，一個答案</div>
+      <p class="slide-summary">Context 肥大、Domain 幻覺、PR 衝突——全部指向同一個解法：模組化。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-2-4')">展開總結</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION 3: Architecture V2 ===== -->
+<div class="section-divider"><h2>Section 3 — Architecture V2</h2></div>
+
+<!-- 3-1 -->
+<section class="slide" id="slide-3-1" data-section="3">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/3_1.png" alt="3-1 Three Layers"></div>
+    <div class="slide-content">
+      <div class="slide-number">3-1</div>
+      <div class="slide-title">三層模組架構</div>
+      <p class="slide-summary">Skill 觸發（50 tokens）→ Domain 引導（1500 tokens）→ Tools 執行（2000 tokens）。從 35K 降到 5K。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-3-1')">展開架構解說</button>
+    </div>
+  </div>
+</section>
+
+<!-- 3-2 -->
+<section class="slide" id="slide-3-2" data-section="3">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/3_2.png" alt="3-2 Skill Trigger"></div>
+    <div class="slide-content">
+      <div class="slide-number">3-2</div>
+      <div class="slide-title">Skill：觸發層</div>
+      <p class="slide-summary">一個 Markdown 檔案，用關鍵字把使用者的問題路由到正確的 Domain 工作流程。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-3-2')">展開 Skill 結構與路徑</button>
+    </div>
+  </div>
+</section>
+
+<!-- 3-3 -->
+<section class="slide" id="slide-3-3" data-section="3">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/3_3.png" alt="3-3 Claude vs Gemini"></div>
+    <div class="slide-content">
+      <div class="slide-number">3-3</div>
+      <div class="slide-title">CLAUDE.md vs GEMINI.md</div>
+      <p class="slide-summary">不同 AI Client 的觸發方式不同，但 Domain 和 Tools 是共用的——不同入口，同一目的地。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-3-3')">展開 Client 差異對照</button>
+    </div>
+  </div>
+</section>
+
+<!-- 3-4 -->
+<section class="slide" id="slide-3-4" data-section="3">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/3_4.png" alt="3-4 Domain Recipe"></div>
+    <div class="slide-content">
+      <div class="slide-number">3-4</div>
+      <div class="slide-title">Domain：知識層</div>
+      <p class="slide-summary">你的專業知識 SOP——法規依據、判定步驟、要呼叫哪些工具，全部寫在一份 Markdown 裡。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-3-4')">展開 Domain 結構</button>
+    </div>
+  </div>
+</section>
+
+<!-- 3-5 -->
+<section class="slide" id="slide-3-5" data-section="3">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/3_5.png" alt="3-5 Profile Filter"></div>
+    <div class="slide-content">
+      <div class="slide-number">3-5</div>
+      <div class="slide-title">Profile：角色篩選</div>
+      <p class="slide-summary">設定一行 MCP_PROFILE，結構工程師只看 20 個工具，不再被 55 個不相關的工具淹沒。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-3-5')">展開 Profile 設定</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION 4: 部署更新 ===== -->
+<div class="section-divider"><h2>Section 4 — 部署更新 + 錯誤排除</h2></div>
+
+<!-- 4-1 -->
+<section class="slide" id="slide-4-1" data-section="4">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/4_1.png" alt="4-1 Sync"></div>
+    <div class="slide-content">
+      <div class="slide-number">4-1</div>
+      <div class="slide-title">同步最新版</div>
+      <p class="slide-summary">四個指令把你的 Fork 更新到最新的 Architecture V2。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-4-1')">展開同步步驟</button>
+    </div>
+  </div>
+</section>
+
+<!-- 4-2 -->
+<section class="slide" id="slide-4-2" data-section="4">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/4_2.png" alt="4-2 Build"></div>
+    <div class="slide-content">
+      <div class="slide-number">4-2</div>
+      <div class="slide-title">重新 Build</div>
+      <p class="slide-summary">兩個 Build 指令——npm run build（MCP Server）+ dotnet build（Revit Add-in）。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-4-2')">展開 Build 步驟</button>
+    </div>
+  </div>
+</section>
+
+<!-- 4-3 -->
+<section class="slide" id="slide-4-3" data-section="4">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/4_3.png" alt="4-3 Troubleshoot"></div>
+    <div class="slide-content">
+      <div class="slide-number">4-3</div>
+      <div class="slide-title">常見錯誤排除</div>
+      <p class="slide-summary">五個最常見的問題和解法——從 Addin 重複載入到 Port 連線失敗。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-4-3')">展開除錯指南</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION 5: 貢獻者指引 ===== -->
+<div class="section-divider"><h2>Section 5 — 貢獻者實作指引</h2></div>
+
+<!-- 5-1 -->
+<section class="slide" id="slide-5-1" data-section="5">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/5_1.png" alt="5-1 Pyramid"></div>
+    <div class="slide-content">
+      <div class="slide-number">5-1</div>
+      <div class="slide-title">三種貢獻層級</div>
+      <p class="slide-summary">不會寫程式也能貢獻——Level 1 只需要 Markdown，而且是最有價值的貢獻。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-5-1')">展開層級說明</button>
+    </div>
+  </div>
+</section>
+
+<!-- 5-2 -->
+<section class="slide" id="slide-5-2" data-section="5">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/5_2.png" alt="5-2 Level 1 Demo"></div>
+    <div class="slide-content">
+      <div class="slide-number">5-2</div>
+      <div class="slide-title">Level 1 示範：停車場檢討</div>
+      <p class="slide-summary">把你腦中的法規知識寫成 Domain 文件 + Skill 觸發定義，AI 就能按你的標準來做。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-5-2')">展開完整範例</button>
+    </div>
+  </div>
+</section>
+
+<!-- 5-3 -->
+<section class="slide" id="slide-5-3" data-section="5">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/5_3.png" alt="5-3 Submit Pipeline"></div>
+    <div class="slide-content">
+      <div class="slide-number">5-3</div>
+      <div class="slide-title">提交流程</div>
+      <p class="slide-summary">Fork → Branch → 只 add 你的檔案 → Commit → PR。千萬不要 git add 全部。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-5-3')">展開 Git 操作步驟</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION 6: 未來方向 ===== -->
+<div class="section-divider"><h2>Section 6 — 未來方向</h2></div>
+
+<!-- 6-1 -->
+<section class="slide" id="slide-6-1" data-section="6">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/6_1.png" alt="6-1 Status"></div>
+    <div class="slide-content">
+      <div class="slide-number">6-1</div>
+      <div class="slide-title">目前進行中</div>
+      <p class="slide-summary">Issue #16：13 個工具的 TypeScript 端已完成，C# 端由 Alex 進行跨版本修正中。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-6-1')">展開進度表</button>
+    </div>
+  </div>
+</section>
+
+<!-- 6-2 -->
+<section class="slide" id="slide-6-2" data-section="6">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/6_2.png" alt="6-2 Future"></div>
+    <div class="slide-content">
+      <div class="slide-number">6-2</div>
+      <div class="slide-title">未來方向</div>
+      <p class="slide-summary">更多法規模組、自動偵測專案類型、Excel/PDF 送審報告匯出。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-6-2')">展開規劃</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DRAWER PANELS ===== -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- Drawer 1-1 -->
+<div class="drawer" id="drawer-1-1">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>MCP 是什麼</h2>
+  <h3>完整架構流程</h3>
+  <pre><code>你（使用者）
+  ↓ 自然語言，例如「幫我查 3 樓所有房間」
+AI Client（Claude Desktop / Gemini CLI / VS Code Copilot）
+  ↓ MCP Protocol (stdio)
+MCP Server（Node.js，跑在你的電腦上）
+  ↓ WebSocket (port 8964)
+Revit Add-in（C# 外掛）
+  ↓ Revit API
+Revit 執行操作 → 結果回傳 → AI 用自然語言告訴你</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <h3>三個要裝的東西</h3>
+  <ol>
+    <li><strong>AI Client</strong> — 你跟 AI 講話的介面（Claude Desktop、Gemini CLI、VS Code 都可以）</li>
+    <li><strong>MCP Server</strong> — 翻譯官，把 AI 的請求轉成 Revit 聽得懂的格式</li>
+    <li><strong>Revit Add-in</strong> — 裝在 Revit 裡面的外掛，實際執行操作</li>
+  </ol>
+  <p><strong>重要：三個東西都跑在你自己的電腦上，模型不會上傳到雲端。</strong></p>
+</div>
+
+<!-- Drawer 1-2 -->
+<div class="drawer" id="drawer-1-2">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>三個元件的安裝路徑</h2>
+  <h3>1. MCP Server（Node.js）</h3>
+  <p>就是你 clone 下來的專案裡面的 MCP-Server 資料夾：</p>
+  <pre><code>C:\Project\REVIT_MCP_study\MCP-Server\
+  ├── src\         ← TypeScript 原始碼
+  ├── build\       ← 編譯後的 JS（AI Client 指向這裡）
+  └── package.json</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <p>編譯指令：</p>
+  <pre><code>cd MCP-Server
+npm install
+npm run build</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+
+  <h3>2. Revit Add-in（C# DLL）</h3>
+  <p>部署到 Revit 的 Addins 資料夾（<strong>AppData 是隱藏資料夾</strong>，在檔案總管輸入 <span class="copyable-path" onclick="copyText('%APPDATA%')">%APPDATA%</span>）：</p>
+  <pre><code>C:\Users\你的名字\AppData\Roaming\Autodesk\Revit\Addins\2024\
+  ├── RevitMCP.addin          ← 告訴 Revit 有這個外掛
+  └── RevitMCP\
+      └── RevitMCP.dll        ← 外掛本體</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <p><strong>⚠️ 只能有一個 .addin 檔案。</strong>如果看到 <code>RevitMCP.2024.addin</code> 要刪掉，否則 Revit 載入兩次。</p>
+
+  <h3>3. AI Client 設定檔</h3>
+  <table>
+    <tr><th>AI Client</th><th>設定檔位置</th><th>備註</th></tr>
+    <tr><td>Claude Desktop</td><td><span class="copyable-path" onclick="copyText('%APPDATA%\\Claude\\claude_desktop_config.json')">%APPDATA%\Claude\claude_desktop_config.json</span></td><td>改完重開 Claude</td></tr>
+    <tr><td>Gemini CLI</td><td><span class="copyable-path" onclick="copyText('%USERPROFILE%\\.gemini\\settings.json')">%USERPROFILE%\.gemini\settings.json</span></td><td>不用重開</td></tr>
+    <tr><td>VS Code Copilot</td><td><span class="copyable-path" onclick="copyText('.vscode/mcp.json')">.vscode/mcp.json</span></td><td>放在專案根目錄</td></tr>
+  </table>
+  <p>設定內容（三個 Client 格式相同）：</p>
+  <pre><code>{
+  "mcpServers": {
+    "revit-mcp": {
+      "command": "node",
+      "args": ["C:/Project/REVIT_MCP_study/MCP-Server/build/index.js"]
+    }
+  }
+}</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <p><strong>注意：</strong>路徑用正斜線 <code>/</code>，不要用反斜線 <code>\</code>。</p>
+</div>
+
+<!-- Drawer 1-3 -->
+<div class="drawer" id="drawer-1-3">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>三次迭代演進</h2>
+  <table>
+    <tr><th>項目</th><th>第一次（1月）</th><th>第二次（2月）</th><th>現在（3月）</th></tr>
+    <tr><td>MCP 工具數</td><td>~25</td><td>~37</td><td><strong>55</strong></td></tr>
+    <tr><td>Domain 文件</td><td>3</td><td>10</td><td><strong>23</strong></td></tr>
+    <tr><td>Skills</td><td>0</td><td>0</td><td><strong>11</strong></td></tr>
+    <tr><td>Revit 版本</td><td>2024 only</td><td>2024 only</td><td><strong>2022-2026</strong></td></tr>
+    <tr><td>建構方式</td><td>.2024.csproj</td><td>同左</td><td><strong>統一 RevitMCP.csproj</strong></td></tr>
+    <tr><td>AI Client</td><td>Claude Desktop</td><td>+ Gemini CLI</td><td><strong>+ VS Code Copilot</strong></td></tr>
+    <tr><td>社群 PR</td><td>0</td><td>2</td><td><strong>6</strong>（#11~#16）</td></tr>
+  </table>
+  <h3>本次四個關鍵變化</h3>
+  <ol>
+    <li><strong>Skills 出現</strong> — 11 個 Skill，自動觸發對應 Domain</li>
+    <li><strong>工具模組化</strong> — 拆成 8 個模組 + Profile 角色篩選</li>
+    <li><strong>跨版本支援</strong> — Revit 2022 到 2026</li>
+    <li><strong>社群貢獻爆發</strong> — 帷幕牆、排煙窗、明細表等新功能</li>
+  </ol>
+</div>
+
+<!-- Drawer 2-1 -->
+<div class="drawer" id="drawer-2-1">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>工具越多，AI 越笨</h2>
+  <h3>Token 數字</h3>
+  <table>
+    <tr><th>項目</th><th>Token 成本</th></tr>
+    <tr><td>55 個工具定義</td><td>~16,500 tokens</td></tr>
+    <tr><td>CLAUDE.md 全文</td><td>~5,000 tokens</td></tr>
+    <tr><td><strong>每輪固定成本</strong></td><td><strong>~21,500 tokens</strong></td></tr>
+    <tr><td>如果到 100 個工具</td><td>~35,000 tokens</td></tr>
+  </table>
+  <h3>為什麼這是問題</h3>
+  <ul>
+    <li>結構工程師不需要排煙窗工具，但 AI 每次都要掃一遍</li>
+    <li>工具越多，AI 選錯工具的機率越高</li>
+    <li>有人遇過 AI 用 <code>query_elements</code> 而不用更精確的 <code>query_elements_with_filter</code></li>
+  </ul>
+</div>
+
+<!-- Drawer 2-2 -->
+<div class="drawer" id="drawer-2-2">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>規範寫了，但 AI 不讀</h2>
+  <h3>沒有 Domain 引導的情況</h3>
+  <p>AI 自己猜排煙窗計算方式：</p>
+  <ul>
+    <li>❌ 漏掉「天花板下 80cm 有效帶」法規規定</li>
+    <li>❌ 不知道推拉窗折減 0.5、固定窗折減 0</li>
+    <li>❌ 告訴你「通過」但其實不合格</li>
+  </ul>
+  <h3>有 Domain 引導的情況</h3>
+  <p>Domain 文件寫著：</p>
+  <ul>
+    <li>✅ 法規：建技規§101① + 消防§188③⑦</li>
+    <li>✅ 有效帶：天花板下 80cm</li>
+    <li>✅ 折減：Casement=1.0, Sliding=0.5, Fixed=0</li>
+    <li>✅ 呼叫工具：<code>check_smoke_exhaust_windows</code></li>
+  </ul>
+  <h3>根本原因</h3>
+  <p>AI 不會主動去翻 <code>domain/</code> 資料夾。需要觸發機制（Skill 或 GEMINI.md 觸發表）來引導它。</p>
+</div>
+
+<!-- Drawer 2-3 -->
+<div class="drawer" id="drawer-2-3">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>多人貢獻的衝突問題</h2>
+  <h3>真實案例</h3>
+  <p>Alex 同時開發帷幕牆和排煙窗，兩個功能都要改同兩個檔案：</p>
+  <pre><code>MCP/Core/CommandExecutor.cs      ← 3000+ 行
+MCP-Server/src/tools/revit-tools.ts ← 900+ 行</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <p>結果：PR#11 和 PR#12 都插在第 242 行後面 → 合併衝突。PR 還夾帶了 194 個不相關檔案（bin/obj/scratch/slides）。</p>
+  <h3>根本原因</h3>
+  <p><strong>所有功能擠在同兩個檔案裡。</strong>不管加什麼功能，都改同一個地方。</p>
+</div>
+
+<!-- Drawer 2-4 -->
+<div class="drawer" id="drawer-2-4">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>三個問題 → 一個答案</h2>
+  <ol>
+    <li><strong>Context 肥大</strong> → 需要篩選載入</li>
+    <li><strong>Domain 幻覺</strong> → 需要觸發機制</li>
+    <li><strong>PR 衝突</strong> → 需要檔案隔離</li>
+  </ol>
+  <p>三個問題都指向同一個方向：<strong>模組化（Modularization）</strong></p>
+</div>
+
+<!-- Drawer 3-1 -->
+<div class="drawer" id="drawer-3-1">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>三層模組架構</h2>
+  <pre><code>使用者: 「幫我檢查排煙窗」
+         │
+         ▼
+┌─ Layer 1: Skill 觸發 ──────────────┐
+│  description 裡有「排煙」關鍵字     │
+│  → 指示 AI 讀取 Domain             │
+│  成本：~50 tokens                  │
+└──────────────┬─────────────────────┘
+               ▼
+┌─ Layer 2: Domain SOP ──────────────┐
+│  法規判定流程 + 步驟 + 工具名稱     │
+│  成本：~1500 tokens（命中才載入）   │
+└──────────────┬─────────────────────┘
+               ▼
+┌─ Layer 3: MCP Tools ───────────────┐
+│  預建工具，AI 帶參數呼叫           │
+│  成本：~2000 tokens（該模組的工具） │
+└────────────────────────────────────┘</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <h3>比喻</h3>
+  <ul>
+    <li><strong>Skill</strong> = 醫院掛號台（根據症狀分流到科別）</li>
+    <li><strong>Domain</strong> = 醫生的看診 SOP（標準流程）</li>
+    <li><strong>Tools</strong> = 醫療器材（超音波、X 光等）</li>
+  </ul>
+  <h3>成本比較</h3>
+  <table>
+    <tr><th>方案</th><th>每輪 Token 成本</th></tr>
+    <tr><td>舊方案（全量載入）</td><td>~21,000 tokens</td></tr>
+    <tr><td>新方案（三層 + Profile）</td><td>~5,000 tokens</td></tr>
+  </table>
+</div>
+
+<!-- Drawer 3-2 -->
+<div class="drawer" id="drawer-3-2">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>Skill：觸發層</h2>
+  <h3>Skill 檔案長什麼樣</h3>
+  <pre><code>---
+name: fire-safety-check
+description: "Execute fire safety compliance checks.
+  TRIGGER when: fire rating, 防火, 耐燃, corridor,
+  走廊, Article 45, Article 110.
+  Tools: override_element_graphics,
+  check_exterior_wall_openings."
+---
+
+# Fire Safety Compliance Check
+
+## Sub-Workflows
+### 1. Fire Rating Visualization
+1. get_category_fields for Walls
+2. get_field_values → list rating values
+3. query_elements_with_filter → filter by rating
+4. override_element_graphics → apply colors</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+
+  <h3>Skill 放在哪裡</h3>
+  <pre><code>你的專案/
+├── .claude/
+│   └── skills/                    ← 所有 Skill 在這裡
+│       ├── fire-safety-check/
+│       │   └── skill.md           ← 一個 Skill = 一個資料夾 + skill.md
+│       ├── building-compliance/
+│       │   └── skill.md
+│       ├── element-query/
+│       │   └── skill.md
+│       └── ... 共 11 個</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <p>路徑：<span class="copyable-path" onclick="copyText('.claude/skills/')">.claude/skills/</span></p>
+
+  <h3>重要限制</h3>
+  <p><strong>Skill 是 Claude Code 專屬功能。</strong>Gemini CLI 不認識 <code>.claude/skills/</code>，它用 GEMINI.md 裡的觸發表。詳見下一頁 3-3。</p>
+</div>
+
+<!-- Drawer 3-3 -->
+<div class="drawer" id="drawer-3-3">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>CLAUDE.md vs GEMINI.md</h2>
+  <h3>不同 AI Client 的知識來源</h3>
+  <table>
+    <tr><th></th><th>Claude Code</th><th>Gemini CLI</th><th>VS Code Copilot</th></tr>
+    <tr><td>行為指引</td><td>CLAUDE.md</td><td>GEMINI.md</td><td>.github/copilot-instructions.md</td></tr>
+    <tr><td>觸發機制</td><td>.claude/skills/ ✅ 自動</td><td>GEMINI.md 觸發表 ⚙️ 手動</td><td>instructions 引導 ⚙️ 手動</td></tr>
+    <tr><td>Domain 文件</td><td>共用 domain/</td><td>共用 domain/</td><td>共用 domain/</td></tr>
+    <tr><td>MCP Tools</td><td>共用</td><td>共用</td><td>共用</td></tr>
+  </table>
+
+  <h3>GEMINI.md 需要額外的觸發表</h3>
+  <pre><code>## Domain 觸發規則
+| 使用者提到...        | 請先讀取...                         |
+|---------------------|-------------------------------------|
+| 排煙、排煙窗         | domain/smoke-exhaust-review.md      |
+| 防火、耐燃           | domain/fire-rating-check.md         |
+| 走廊、逃生           | domain/corridor-analysis-protocol.md|
+| 帷幕牆、curtain wall | domain/curtain-wall-pattern.md      |</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+
+  <p><strong>一句話：</strong>Claude 有自動掛號台（Skill），Gemini 需要你在門口貼告示牌（GEMINI.md 觸發表）。目的地相同——都是讀 Domain、呼叫 Tools。</p>
+</div>
+
+<!-- Drawer 3-4 -->
+<div class="drawer" id="drawer-3-4">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>Domain：知識層</h2>
+  <h3>Domain 檔案結構</h3>
+  <ol>
+    <li><strong>觸發條件</strong> — 什麼情況下讀這份文件</li>
+    <li><strong>法規依據</strong> — 引用的條文標準</li>
+    <li><strong>檢討步驟</strong> — step by step 流程</li>
+    <li><strong>呼叫的工具</strong> — 明確列出 MCP 工具名稱</li>
+  </ol>
+  <h3>現有 23 個 Domain 文件</h3>
+  <p>位置：<span class="copyable-path" onclick="copyText('domain/')">domain/</span></p>
+  <pre><code>domain/
+├── smoke-exhaust-review.md       ← 排煙窗（§101）
+├── fire-rating-check.md          ← 防火時效
+├── corridor-analysis-protocol.md ← 走廊寬度
+├── daylight-area-check.md        ← 採光（§41）
+├── floor-area-review.md          ← 容積率
+├── parking-clearance-check.md    ← 停車場淨空
+├── curtain-wall-pattern.md       ← 帷幕牆
+├── qa-checklist.md               ← QA 驗證
+└── ... 共 23 個</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <p><strong>最重要的是第 4 點——明確寫出工具名稱。</strong>AI 就不會自己亂寫 API 呼叫，而是使用預建工具。</p>
+</div>
+
+<!-- Drawer 3-5 -->
+<div class="drawer" id="drawer-3-5">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>Profile 角色篩選</h2>
+  <h3>可用的 Profile</h3>
+  <table>
+    <tr><th>Profile</th><th>載入模組</th><th>工具數</th><th>適合</th></tr>
+    <tr><td><code>full</code>（預設）</td><td>全部</td><td>~55</td><td>什麼都要</td></tr>
+    <tr><td><code>architect</code></td><td>基礎+牆+房間+帷幕牆+視覺化+明細表</td><td>~35</td><td>建築師</td></tr>
+    <tr><td><code>mep</code></td><td>基礎+MEP+排煙窗+明細表+視覺化</td><td>~25</td><td>機電工程師</td></tr>
+    <tr><td><code>structural</code></td><td>基礎+牆/結構+視覺化</td><td>~20</td><td>結構工程師</td></tr>
+    <tr><td><code>fire-safety</code></td><td>基礎+房間+排煙窗+視覺化</td><td>~25</td><td>消防審查</td></tr>
+  </table>
+  <h3>設定方式</h3>
+  <p>在 AI Client 設定檔加一行 <code>env</code>：</p>
+  <pre><code>{
+  "mcpServers": {
+    "revit-mcp": {
+      "command": "node",
+      "args": ["C:/Project/REVIT_MCP_study/MCP-Server/build/index.js"],
+      "env": {
+        "MCP_PROFILE": "architect"
+      }
+    }
+  }
+}</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <p>不設定就是 <code>full</code>，跟以前一樣。<strong>Claude / Gemini / VS Code 都支援這個設定。</strong></p>
+</div>
+
+<!-- Drawer 4-1 -->
+<div class="drawer" id="drawer-4-1">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>同步最新版</h2>
+  <h3>Step 1：設定 upstream（只做一次）</h3>
+  <pre><code>cd C:\Project\REVIT_MCP_study
+git remote -v
+git remote add upstream https://github.com/shuotao/REVIT_MCP_study.git</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+
+  <h3>Step 2：拉取並同步</h3>
+  <pre><code>git fetch upstream
+git checkout main
+git rebase upstream/main
+git push origin main --force-with-lease</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+
+  <h3>Step 3：確認成功</h3>
+  <pre><code>git log --oneline -5
+# 應該看到 "Architecture V2" 相關 commit</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+
+  <h3>如果 rebase 衝突</h3>
+  <pre><code># 安全方式：放棄 rebase 重來
+git rebase --abort
+git reset --hard upstream/main
+git push origin main --force-with-lease</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <p>⚠️ <code>reset --hard</code> 會丟棄你在 main 上的本地修改。如果有重要修改請先 <code>git stash</code>。</p>
+</div>
+
+<!-- Drawer 4-2 -->
+<div class="drawer" id="drawer-4-2">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>重新 Build</h2>
+  <h3>MCP Server（Node.js）</h3>
+  <pre><code>cd MCP-Server
+npm install
+npm run build</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <p>需要 Node.js 18 以上。確認：<code>node --version</code></p>
+
+  <h3>Revit Add-in（C#）</h3>
+  <pre><code>cd MCP
+dotnet build -c Release.R24 RevitMCP.csproj</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <p>版本對照：R22=2022, R23=2023, R24=2024, R25=2025, R26=2026</p>
+
+  <h3>部署 DLL</h3>
+  <pre><code># 先關掉 Revit！
+Copy-Item "bin\Release\RevitMCP.dll" `
+  "$env:APPDATA\Autodesk\Revit\Addins\2024\RevitMCP\" -Force</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <p>或用自動腳本：</p>
+  <pre><code>..\scripts\install-addon.ps1</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+</div>
+
+<!-- Drawer 4-3 -->
+<div class="drawer" id="drawer-4-3">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>常見錯誤排除</h2>
+  <h3>問題 1：Revit 載入兩次 MCP 面板</h3>
+  <p>原因：有兩個 .addin 檔案</p>
+  <pre><code># 查看
+Get-ChildItem "$env:APPDATA\Autodesk\Revit\Addins\2024\*RevitMCP*"
+
+# 刪除舊的
+Remove-Item "$env:APPDATA\Autodesk\Revit\Addins\2024\RevitMCP.2024.addin"</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+
+  <h3>問題 2：dotnet build MSB1011 錯誤</h3>
+  <p>原因：資料夾有多個 .csproj</p>
+  <pre><code># ❌ dotnet build -c Release.R24
+# ✅ dotnet build -c Release.R24 RevitMCP.csproj</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+
+  <h3>問題 3：MCP Server 連不上</h3>
+  <ol>
+    <li>Revit 有開嗎？MCP 面板有按「啟動」嗎？</li>
+    <li>Port 一致嗎？預設 8964</li>
+    <li>如果你改了 port，AI Client 設定要加：<pre><code>"env": { "REVIT_MCP_PORT": "11111" }</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre></li>
+  </ol>
+
+  <h3>問題 4：NotImplementedException</h3>
+  <p>帷幕牆和排煙窗共 13 個工具的 C# 端還是 stub。等 <a href="https://github.com/shuotao/REVIT_MCP_study/issues/16" target="_blank" style="color:#60a5fa">Issue #16</a> 完成後就能用。其他 42 個工具正常。</p>
+
+  <h3>問題 5：npm run build 失敗</h3>
+  <pre><code>node --version  # 需要 v18+
+npm --version   # 需要 v8+</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <p>下載：<a href="https://nodejs.org" target="_blank" style="color:#60a5fa">https://nodejs.org</a>（LTS 版本）</p>
+</div>
+
+<!-- Drawer 5-1 -->
+<div class="drawer" id="drawer-5-1">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>三種貢獻層級</h2>
+  <h3>Level 1：Domain + Skill（不需要程式能力）</h3>
+  <p>把你的專業工作流程寫成 SOP（Markdown 文件）。<strong>這是最有價值的貢獻</strong>——程式碼我們可以寫，但法規和實務經驗只有你有。</p>
+  <ul>
+    <li>停車場檢討、無障礙設施、綠建築指標...</li>
+    <li>只需要寫兩個 Markdown 檔案</li>
+  </ul>
+
+  <h3>Level 2：工具定義（需要 TypeScript/JSON）</h3>
+  <p>定義新工具的參數格式（schema），放在 <code>MCP-Server/src/tools/</code></p>
+
+  <h3>Level 3：C# 實作（需要 C# + Revit API）</h3>
+  <p>在 <code>MCP/Core/Commands/</code> 建立 partial class，實作 Revit API 操作。</p>
+</div>
+
+<!-- Drawer 5-2 -->
+<div class="drawer" id="drawer-5-2">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>Level 1 示範：停車場檢討</h2>
+  <h3>檔案 1：Domain 文件</h3>
+  <p>位置：<span class="copyable-path" onclick="copyText('domain/parking-clearance-check.md')">domain/parking-clearance-check.md</span></p>
+  <pre><code># 停車場淨空檢討
+
+## 觸發條件
+使用者提到：停車場、停車位、車道寬度、parking
+
+## 法規依據
+- 建築技術規則設計施工編 §60-1
+- 標準小型車位：寬 2.5m × 深 5.5m
+- 無障礙車位：寬 3.5m × 深 5.5m
+- 車道寬度：單車道 ≥ 3.5m、雙車道 ≥ 5.5m
+
+## 檢討步驟
+1. 呼叫 get_rooms_by_level 找出停車場空間
+2. 呼叫 query_elements_with_filter 篩選停車位族群
+3. 讀取每個車位的寬度和深度參數
+4. 比對法規尺寸標準
+5. 不合規 → override_element_graphics 標示紅色
+6. 合規 → 標示綠色
+7. 匯總報告</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+
+  <h3>檔案 2：Skill 觸發定義</h3>
+  <p>位置：<span class="copyable-path" onclick="copyText('.claude/skills/parking-check/skill.md')">.claude/skills/parking-check/skill.md</span></p>
+  <pre><code>---
+name: parking-check
+description: "停車場淨空檢討：檢查車位尺寸、車道寬度。
+  TRIGGER when: 停車場, 停車位, 車道寬度, parking, 淨空.
+  Tools: get_rooms_by_level, query_elements_with_filter,
+  override_element_graphics."
+---
+
+# 停車場淨空檢討
+
+執行前請先讀取 domain/parking-clearance-check.md。
+
+## 工作流程
+1. 確認目標樓層（通常 B1F、B2F）
+2. 呼叫 get_rooms_by_level 取得停車場空間
+3. 呼叫 query_elements_with_filter 篩選停車位
+4. 逐一檢查尺寸是否合規
+5. 上色標示結果</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <p><strong>就這兩個檔案。</strong>你不需要寫任何程式碼。</p>
+</div>
+
+<!-- Drawer 5-3 -->
+<div class="drawer" id="drawer-5-3">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>提交流程</h2>
+  <h3>Git 操作步驟</h3>
+  <pre><code># 1. 確保最新版
+cd C:\Project\REVIT_MCP_study
+git fetch upstream && git checkout main && git rebase upstream/main
+
+# 2. 建立工作分支
+git checkout -b add/parking-check
+
+# 3. 建立你的檔案（用任何文字編輯器）
+# domain/parking-clearance-check.md
+# .claude/skills/parking-check/skill.md
+
+# 4. 只 add 你的檔案（重要！不要用 git add .）
+git add domain/parking-clearance-check.md
+git add .claude/skills/parking-check/skill.md
+
+# 5. commit
+git commit -m "[Domain] 新增停車場淨空檢討工作流程"
+
+# 6. push 到你的 fork
+git push origin add/parking-check
+
+# 7. 到 GitHub 點 "New Pull Request"</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+
+  <h3>⚠️ 不要做的事</h3>
+  <ul>
+    <li><strong>不要用 <code>git add .</code></strong> — 會把不相關的檔案都加進去</li>
+    <li>不要改 CLAUDE.md、MCP-Server/src/tools/*.ts、MCP/Core/*.cs</li>
+    <li>不要改 package.json / package-lock.json</li>
+  </ul>
+
+  <h3>不會 Git？</h3>
+  <p>沒關係！把寫好的檔案傳給 maintainer（Email / Line / GitHub Issue 貼內容）。<strong>重點是你的知識，不是 Git 操作。</strong></p>
+</div>
+
+<!-- Drawer 6-1 -->
+<div class="drawer" id="drawer-6-1">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>目前進行中</h2>
+  <table>
+    <tr><th>項目</th><th>負責</th><th>狀態</th></tr>
+    <tr><td>Issue #16：帷幕牆+排煙窗 C# 實作</td><td>Alex</td><td>⚠️ 進行中</td></tr>
+    <tr><td>明細表 Skill 升級</td><td>maintainer</td><td>規劃中</td></tr>
+    <tr><td>CONTRIBUTING.md 更新</td><td>maintainer</td><td>規劃中</td></tr>
+    <tr><td>GEMINI.md 觸發表同步</td><td>maintainer</td><td>規劃中</td></tr>
+  </table>
+  <p>追蹤連結：<a href="https://github.com/shuotao/REVIT_MCP_study/issues/16" target="_blank" style="color:#60a5fa">Issue #16</a></p>
+</div>
+
+<!-- Drawer 6-2 -->
+<div class="drawer" id="drawer-6-2">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>未來方向</h2>
+  <h3>更多法規模組</h3>
+  <ul>
+    <li>綠建築指標（EEWH）</li>
+    <li>無障礙設施（坡道、門寬、迴轉空間）</li>
+    <li>停車場（車位尺寸、機械車位）</li>
+    <li>結構安全（梁柱配筋）</li>
+  </ul>
+  <p><strong>這些全部都是 Level 1 貢獻。</strong></p>
+  <h3>自動偵測專案類型</h3>
+  <p>Revit 連線時自動回報專案內容 → MCP Server 自動設定 Profile → 不用手動設 <code>MCP_PROFILE</code>。</p>
+  <h3>Excel / PDF 報告匯出</h3>
+  <p>排煙窗已有 Excel，計劃擴展到防火時效、採光、QA 檢核 → 直接拿去送審。</p>
+</div>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+// === Slide data ===
+const slides = [
+  {id:'slide-cover', section:0, isStart:true},
+  {id:'slide-1-1', section:1, isStart:true},
+  {id:'slide-1-2', section:1},
+  {id:'slide-1-3', section:1},
+  {id:'slide-2-1', section:2, isStart:true},
+  {id:'slide-2-2', section:2},
+  {id:'slide-2-3', section:2},
+  {id:'slide-2-4', section:2},
+  {id:'slide-3-1', section:3, isStart:true},
+  {id:'slide-3-2', section:3},
+  {id:'slide-3-3', section:3},
+  {id:'slide-3-4', section:3},
+  {id:'slide-3-5', section:3},
+  {id:'slide-4-1', section:4, isStart:true},
+  {id:'slide-4-2', section:4},
+  {id:'slide-4-3', section:4},
+  {id:'slide-5-1', section:5, isStart:true},
+  {id:'slide-5-2', section:5},
+  {id:'slide-5-3', section:5},
+  {id:'slide-6-1', section:6, isStart:true},
+  {id:'slide-6-2', section:6},
+];
+
+// === Build nav dots ===
+const nav = document.getElementById('navDots');
+slides.forEach((s, i) => {
+  const dot = document.createElement('button');
+  dot.className = 'nav-dot' + (s.isStart ? ' section-start' : '');
+  dot.title = s.id.replace('slide-','');
+  dot.onclick = () => document.getElementById(s.id).scrollIntoView({behavior:'smooth'});
+  dot.dataset.index = i;
+  nav.appendChild(dot);
+});
+
+// === Scroll spy ===
+const dots = nav.querySelectorAll('.nav-dot');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const idx = slides.findIndex(s => s.id === entry.target.id);
+      dots.forEach(d => d.classList.remove('active'));
+      if (idx >= 0) dots[idx].classList.add('active');
+    }
+  });
+}, { threshold: 0.4 });
+slides.forEach(s => {
+  const el = document.getElementById(s.id);
+  if (el) observer.observe(el);
+});
+
+// === Drawer ===
+function openDrawer(id) {
+  document.getElementById(id).classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDrawer() {
+  document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open'));
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+// === Copy code ===
+function copyCode(btn) {
+  const code = btn.parentElement.querySelector('code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '已複製';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '複製'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    // Brief visual feedback could be added
+  });
+}
+</script>
+</body>
+</html>
