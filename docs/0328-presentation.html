@@ -1054,8 +1054,8 @@
   </div>
 </section>
 
-<!-- ===== SECTION 2: 我們遇到了什麼問題 ===== -->
-<div class="section-divider"><h2>Section 2 — 我們遇到了什麼問題</h2></div>
+<!-- ===== SECTION 2: 問題的發現與釐清 ===== -->
+<div class="section-divider"><h2>Section 2 — 問題的發現與釐清</h2></div>
 
 <!-- 2-1 -->
 <section class="slide" id="slide-2-1" data-section="2">
@@ -1096,15 +1096,20 @@
   </div>
 </section>
 
+<!-- Sub-divider: transition from problems to understanding -->
+<div class="section-divider" style="min-height:40vh;border-bottom:none;">
+  <h2 style="font-size:28px;color:rgba(255,255,255,0.6);">那 Skill 到底解決了什麼？</h2>
+</div>
+
 <!-- 2-4 -->
 <section class="slide" id="slide-2-4" data-section="2">
   <div class="slide-inner">
-    <div class="slide-image"><img src="image/2_4.svg" alt="2-4 MCP ≠ Skill"></div>
+    <div class="slide-image"><img src="image/2_5.svg" alt="2-4 Kitchen vs Recipe"></div>
     <div class="slide-content">
       <div class="slide-number">2-4</div>
-      <div class="slide-title">MCP ≠ Skill</div>
-      <p class="slide-summary">社群在爭論「Skill 會不會取代 MCP」。答案是不會——它們根本不在同一個軸上。MCP 給 AI 能力（DO），Skill 給 AI 知識（KNOW）。</p>
-      <button class="drawer-trigger" onclick="openDrawer('drawer-2-4')">展開官方定義</button>
+      <div class="slide-title">MCP ≠ Skill：廚房與食譜</div>
+      <p class="slide-summary">社群在爭論「Skill 會不會取代 MCP」。答案是不會——MCP 是廚房（給 AI 能力），Skill 是食譜（給 AI 知識）。兩者缺一不可。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-2-4')">展開官方定義與引用</button>
     </div>
   </div>
 </section>
@@ -1112,12 +1117,12 @@
 <!-- 2-5 -->
 <section class="slide" id="slide-2-5" data-section="2">
   <div class="slide-inner">
-    <div class="slide-image"><img src="image/2_5.svg" alt="2-5 Kitchen vs Recipe"></div>
+    <div class="slide-image"><img src="image/2_6.svg" alt="2-5 Progressive Disclosure"></div>
     <div class="slide-content">
       <div class="slide-number">2-5</div>
-      <div class="slide-title">廚房 vs 食譜</div>
-      <p class="slide-summary">Anthropic 官方比喻：MCP 是專業廚房（設備與食材），Skill 是食譜（步驟與火候）。兩者缺一不可，合在一起才能做出菜。</p>
-      <button class="drawer-trigger" onclick="openDrawer('drawer-2-5')">展開官方引用</button>
+      <div class="slide-title">漸進式揭露：三層載入</div>
+      <p class="slide-summary">Skill 真正解決的問題不是減少工具，而是讓「何時載入什麼知識」變得有彈性。L1 永遠載入（~100 tokens），L2 觸發時載入（&lt;5K），L3 按需讀取（無上限）。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-2-5')">展開機制說明</button>
     </div>
   </div>
 </section>
@@ -1125,12 +1130,12 @@
 <!-- 2-6 -->
 <section class="slide" id="slide-2-6" data-section="2">
   <div class="slide-inner">
-    <div class="slide-image"><img src="image/2_6.svg" alt="2-6 Progressive Disclosure"></div>
+    <div class="slide-image"><img src="image/2_7.svg" alt="2-6 Before vs After"></div>
     <div class="slide-content">
       <div class="slide-number">2-6</div>
-      <div class="slide-title">漸進式揭露：三層載入</div>
-      <p class="slide-summary">Skill 真正解決的問題不是減少工具，而是讓「何時載入什麼知識」變得有彈性。L1 永遠載入（~100 tokens），L2 觸發時載入（&lt;5K），L3 按需讀取（無上限）。</p>
-      <button class="drawer-trigger" onclick="openDrawer('drawer-2-6')">展開機制說明</button>
+      <div class="slide-title">Before vs After</div>
+      <p class="slide-summary">我們專案的實測：啟動 token 從 ~9,800 降到 ~3,500（−64%）。社群案例更誇張——Richard Seroter 實測 MCP + Skill 比純 MCP 減少 87% token。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-2-6')">展開數據對比</button>
     </div>
   </div>
 </section>
@@ -1138,25 +1143,12 @@
 <!-- 2-7 -->
 <section class="slide" id="slide-2-7" data-section="2">
   <div class="slide-inner">
-    <div class="slide-image"><img src="image/2_7.svg" alt="2-7 Before vs After"></div>
+    <div class="slide-image"><img src="image/2_8.svg" alt="2-7 On-Demand Orchestration"></div>
     <div class="slide-content">
       <div class="slide-number">2-7</div>
-      <div class="slide-title">Before vs After</div>
-      <p class="slide-summary">我們專案的實測：啟動 token 從 ~9,800 降到 ~3,500（−64%）。社群案例更誇張——Richard Seroter 實測 MCP + Skill 比純 MCP 減少 87% token。</p>
-      <button class="drawer-trigger" onclick="openDrawer('drawer-2-7')">展開數據對比</button>
-    </div>
-  </div>
-</section>
-
-<!-- 2-8 -->
-<section class="slide" id="slide-2-8" data-section="2">
-  <div class="slide-inner">
-    <div class="slide-image"><img src="image/2_8.svg" alt="2-8 On-Demand Orchestration"></div>
-    <div class="slide-content">
-      <div class="slide-number">2-8</div>
       <div class="slide-title">按需調度</div>
-      <p class="slide-summary">2-1 到 2-3 的三個問題，答案不是簡單的「模組化」——Domain 早就模組化了。真正的答案是：Skill 讓驅動工具的編排邏輯從「永遠佔用」變成「按需調度」。</p>
-      <button class="drawer-trigger" onclick="openDrawer('drawer-2-8')">展開完整論述</button>
+      <p class="slide-summary">三個問題的答案不是「模組化」——Domain 早就模組化了。真正的答案是：Skill 讓驅動工具的編排邏輯從「永遠佔用」變成「按需調度」。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-2-7')">展開完整論述</button>
     </div>
   </div>
 </section>
@@ -1171,7 +1163,7 @@
     <div class="slide-content">
       <div class="slide-number">3-1</div>
       <div class="slide-title">三層模組架構</div>
-      <p class="slide-summary">Skill 觸發（50 tokens）→ Domain 引導（1500 tokens）→ Tools 執行（2000 tokens）。從 35K 降到 5K。</p>
+      <p class="slide-summary">Skill 告訴 AI「何時＋如何」（WHEN+HOW）→ Domain 提供「該知道什麼」（WHAT TO KNOW）→ Tools 執行「該做什麼」（WHAT TO DO）。每層按需載入，不常駐。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-3-1')">展開架構解說</button>
     </div>
   </div>
@@ -1714,57 +1706,55 @@ MCP-Server/src/tools/revit-tools.ts ← 900+ 行</code><button class="copy-btn" 
   <p><strong>所有功能擠在同兩個檔案裡。</strong>不管加什麼功能，都改同一個地方。</p>
 </div>
 
-<!-- Drawer 2-4 -->
+<!-- Drawer 2-4 (merged: MCP≠Skill + Kitchen/Recipe) -->
 <div class="drawer" id="drawer-2-4">
   <button class="drawer-close" onclick="closeDrawer()">✕</button>
-  <h2>MCP ≠ Skill：官方定義</h2>
+  <h2>MCP ≠ Skill：官方定義與比喻</h2>
+
   <h3>MCP Tools 是什麼</h3>
   <blockquote>
     <p>"Tools are designed to be <strong>model-controlled</strong>, meaning that the language model can discover and invoke tools automatically."</p>
     <p style="color:rgba(255,255,255,0.5)">（工具被設計為<strong>模型控制</strong>的，意即語言模型可以自動發現並調用工具。）</p>
     <cite>— <a href="https://modelcontextprotocol.io/docs/concepts/tools" target="_blank">MCP Specification: Tools</a></cite>
   </blockquote>
+
   <h3>Agent Skill 是什麼</h3>
   <blockquote>
     <p>"Skills load on-demand and eliminate the need to repeatedly provide the same guidance across multiple conversations."</p>
     <p style="color:rgba(255,255,255,0.5)">（技能按需載入，消除了在多次對話中重複提供相同指引的需要。）</p>
     <cite>— <a href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview" target="_blank">Anthropic: Agent Skills Overview</a></cite>
   </blockquote>
+
   <h3>關鍵區別</h3>
   <table>
     <tr><th>維度</th><th>MCP Tool</th><th>Agent Skill</th></tr>
-    <tr><td>角色</td><td>能力層（DO）</td><td>知識層（KNOW）</td></tr>
+    <tr><td>角色</td><td>能力層（DO）— 廚房</td><td>知識層（KNOW）— 食譜</td></tr>
     <tr><td>控制者</td><td>LLM 自動選擇</td><td>關鍵字觸發 → 按需載入</td></tr>
-    <tr><td>粒度</td><td>單一原子操作</td><td>多步驟工作流</td></tr>
+    <tr><td>粒度</td><td>單一原子操作</td><td>多步驟工作流編排</td></tr>
     <tr><td>需要基礎設施</td><td>是（Server process）</td><td>否（純檔案）</td></tr>
   </table>
-</div>
 
-<!-- Drawer 2-5 -->
-<div class="drawer" id="drawer-2-5">
-  <button class="drawer-close" onclick="closeDrawer()">✕</button>
-  <h2>廚房 vs 食譜：官方比喻</h2>
-  <h3>Anthropic 工程部落格</h3>
+  <h3>Anthropic 官方：互補，不是取代</h3>
   <blockquote>
     <p>"We'll also explore how Skills can <strong>complement</strong> Model Context Protocol (MCP) servers by teaching agents more complex <strong>workflows that involve external tools</strong> and software."</p>
     <p style="color:rgba(255,255,255,0.5)">（我們也將探討 Skill 如何<strong>補充</strong> MCP 伺服器，透過教導 Agent 涉及外部工具的更複雜<strong>工作流程</strong>。）</p>
     <cite>— <a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills" target="_blank">Anthropic Engineering Blog</a></cite>
   </blockquote>
-  <h3>Block/Goose 團隊</h3>
   <blockquote>
     <p>"Skills describe the workflow. MCP provides the runner... Saying Skills killed MCP is like saying GitHub Actions killed Bash."</p>
     <p style="color:rgba(255,255,255,0.5)">（Skill 描述工作流程。MCP 提供執行器……說 Skill 殺死了 MCP，就像說 GitHub Actions 殺死了 Bash。）</p>
-    <cite>— <a href="https://block.github.io/goose/blog/2025/12/22/agent-skills-vs-mcp/" target="_blank">Block/Goose: Agent Skills vs MCP</a></cite>
+    <cite>— <a href="https://block.github.io/goose/blog/2025/12/22/agent-skills-vs-mcp/" target="_blank">Block/Goose Team</a></cite>
   </blockquote>
+
   <h3>以本專案為例</h3>
   <ul>
-    <li><strong>MCP（廚房）</strong>：<code>override_element_graphics</code> 真的去改 Revit model 顏色，<code>query_elements_with_filter</code> 真的查 Revit 資料庫。這些操作需要 WebSocket、Revit API、Transaction。</li>
-    <li><strong>Skill（食譜）</strong>：<code>/fire-safety-check</code> 告訴 AI「先查參數名 → 再列時效等級 → 再篩選 → 最後上色」。這是知識，不是能力。</li>
+    <li><strong>MCP（廚房）</strong>：<code>override_element_graphics</code> 真的去改 Revit model 顏色，<code>query_elements_with_filter</code> 真的查 Revit 資料庫。這些操作需要 WebSocket、Revit API、Transaction。Skill 做不了這些。</li>
+    <li><strong>Skill（食譜）</strong>：<code>/fire-safety-check</code> 告訴 AI「先查參數名 → 再列時效等級 → 再篩選 → 最後上色」。這是知識和順序，不是能力。MCP 不管這些。</li>
   </ul>
 </div>
 
-<!-- Drawer 2-6 -->
-<div class="drawer" id="drawer-2-6">
+<!-- Drawer 2-5 (was 2-6: Progressive Disclosure) -->
+<div class="drawer" id="drawer-2-5">
   <button class="drawer-close" onclick="closeDrawer()">✕</button>
   <h2>漸進式揭露（Progressive Disclosure）</h2>
   <blockquote>
@@ -1789,8 +1779,8 @@ MCP-Server/src/tools/revit-tools.ts ← 900+ 行</code><button class="copy-btn" 
   <p>差別在於：傳統 RAG 用 vector similarity 檢索，Skill 用 <strong>LLM 自身的語意理解</strong>決定是否載入。</p>
 </div>
 
-<!-- Drawer 2-7 -->
-<div class="drawer" id="drawer-2-7">
+<!-- Drawer 2-6 (was 2-7: Before vs After) -->
+<div class="drawer" id="drawer-2-6">
   <button class="drawer-close" onclick="closeDrawer()">✕</button>
   <h2>Before vs After：具體數據</h2>
   <h3>本專案實測</h3>
@@ -1811,8 +1801,8 @@ MCP-Server/src/tools/revit-tools.ts ← 900+ 行</code><button class="copy-btn" 
   <p><strong>不是 Domain（它一直都是拆開的），而是「編排邏輯」。</strong>過去 17 個工作流的 tool 調用順序和約束條件全部塞在 CLAUDE.md 裡常駐。現在搬進各自的 SKILL.md，只在觸發時載入。</p>
 </div>
 
-<!-- Drawer 2-8 -->
-<div class="drawer" id="drawer-2-8">
+<!-- Drawer 2-7 (was 2-8: On-Demand Orchestration) -->
+<div class="drawer" id="drawer-2-7">
   <button class="drawer-close" onclick="closeDrawer()">✕</button>
   <h2>按需調度（On-Demand Orchestration）</h2>
   <h3>為什麼「模組化」不夠精確？</h3>
@@ -1830,37 +1820,38 @@ MCP-Server/src/tools/revit-tools.ts ← 900+ 行</code><button class="copy-btn" 
 <!-- Drawer 3-1 -->
 <div class="drawer" id="drawer-3-1">
   <button class="drawer-close" onclick="closeDrawer()">✕</button>
-  <h2>三層模組架構</h2>
+  <h2>三層模組架構：每層的角色</h2>
   <pre><code>使用者: 「幫我檢查排煙窗」
          │
          ▼
-┌─ Layer 1: Skill 觸發 ──────────────┐
+┌─ Layer 1: Skill ── WHEN + HOW ────┐
+│  角色：告訴 AI 何時啟動、怎麼做    │
 │  description 裡有「排煙」關鍵字     │
 │  → 指示 AI 讀取 Domain             │
-│  成本：~50 tokens                  │
+│  成本：~100 tokens（metadata 常駐） │
+│        &lt; 5K tokens（觸發時載入）    │
 └──────────────┬─────────────────────┘
                ▼
-┌─ Layer 2: Domain SOP ──────────────┐
+┌─ Layer 2: Domain ── WHAT TO KNOW ─┐
+│  角色：提供領域知識 SOP             │
 │  法規判定流程 + 步驟 + 工具名稱     │
-│  成本：~1500 tokens（命中才載入）   │
+│  成本：~1500 tokens（由 Skill 引用）│
 └──────────────┬─────────────────────┘
                ▼
-┌─ Layer 3: MCP Tools ───────────────┐
+┌─ Layer 3: MCP Tools ── WHAT TO DO ┐
+│  角色：執行操作（Revit API 調用）   │
 │  預建工具，AI 帶參數呼叫           │
 │  成本：~2000 tokens（該模組的工具） │
 └────────────────────────────────────┘</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
-  <h3>比喻</h3>
-  <ul>
-    <li><strong>Skill</strong> = 醫院掛號台（根據症狀分流到科別）</li>
-    <li><strong>Domain</strong> = 醫生的看診 SOP（標準流程）</li>
-    <li><strong>Tools</strong> = 醫療器材（超音波、X 光等）</li>
-  </ul>
-  <h3>成本比較</h3>
+  <h3>三個比喻（同一件事）</h3>
   <table>
-    <tr><th>方案</th><th>每輪 Token 成本</th></tr>
-    <tr><td>舊方案（全量載入）</td><td>~21,000 tokens</td></tr>
-    <tr><td>新方案（三層 + Profile）</td><td>~5,000 tokens</td></tr>
+    <tr><th>比喻</th><th>Skill</th><th>Domain</th><th>Tools</th></tr>
+    <tr><td>廚房</td><td>食譜目錄</td><td>食譜步驟</td><td>廚房設備</td></tr>
+    <tr><td>醫院</td><td>掛號台（分流）</td><td>看診 SOP</td><td>醫療器材</td></tr>
+    <tr><td>RAG</td><td>Index（語意匹配）</td><td>Retrieval（chunk）</td><td>Execution</td></tr>
   </table>
+  <h3>關鍵差異：不是三層「結構」，是三層「載入時機」</h3>
+  <p>三層架構的價值不在於把東西分成三個資料夾（Domain 從第一天就是獨立的），而是<strong>每層有不同的載入時機</strong>——Skill metadata 常駐，Skill body 觸發時載入，Domain 被引用時載入。這就是 2-5 講的「漸進式揭露」在架構上的實現。</p>
 </div>
 
 <!-- Drawer 3-2 -->

@@ -16,11 +16,10 @@
 | 2-1 | 工具越多 AI 越笨 | Comparative | Inverse relationship |
 | 2-2 | 規範寫了但不讀 | Comparative | With vs without |
 | 2-3 | 多人衝突 | Comparative | Collision |
-| 2-4 | MCP ≠ Skill | Comparative | Two different axes |
-| 2-5 | 廚房 vs 食譜 | Comparative | Kitchen and recipe |
-| 2-6 | 漸進式揭露 | Single | Three-level loading |
-| 2-7 | Before vs After | Comparative | Token cost comparison |
-| 2-8 | 按需調度 | Single | On-demand orchestration |
+| 2-4 | MCP ≠ Skill：廚房與食譜 | Comparative | Kitchen vs recipe (merged) |
+| 2-5 | 漸進式揭露 | Single | Three-level loading |
+| 2-6 | Before vs After | Comparative | Token cost comparison |
+| 2-7 | 按需調度 | Single | On-demand orchestration |
 | 3-1 | 三層架構 | Single | Stacked layers |
 | 3-2 | Skill 觸發 | Single | Key and lock |
 | 3-3 | CLAUDE.md vs GEMINI.md | Comparative | Two paths, one destination |
@@ -181,10 +180,10 @@ Black background, white elements only.
 
 ---
 
-### Slide 2-4 — "MCP ≠ Skill"
-**Type: Comparative (two different axes)**
+### Slide 2-4 — "MCP ≠ Skill：廚房與食譜"
+**Type: Comparative (merged: axes + kitchen/recipe analogy)**
 
-> **Speaker note**: 在講完三個問題後，先破題：「社群上很多人在爭論 Skill 會不會取代 MCP。答案是不會，因為它們根本不在同一個軸上。」
+> **Speaker note**: 在講完三個問題後，先破題：「社群上很多人在爭論 Skill 會不會取代 MCP。答案是不會，因為它們根本不在同一個軸上。Anthropic 自己的比喻是：MCP 是廚房，Skill 是食譜。」
 
 > **Citation**:
 > MCP 官方 — *"Tools are designed to be **model-controlled**, meaning that the language model can discover and invoke tools automatically."*
@@ -194,46 +193,12 @@ Black background, white elements only.
 > Anthropic Skills 官方 — *"Skills load on-demand and eliminate the need to repeatedly provide the same guidance across multiple conversations."*
 > （技能按需載入，消除了在多次對話中重複提供相同指引的需要。）
 > — [platform.claude.com/docs/en/agents-and-tools/agent-skills/overview](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview)
-
-```
-Minimalist concept illustration, 1:1 square, pure black background.
-
-Two distinct horizontal axes, stacked vertically with clear separation.
-
-Top axis: a white horizontal line with a wrench icon on the left end
-and the word "DO" on the right end. Below the line: "MCP — ABILITY"
-A small label in gray: "58 tools always available"
-
-Bottom axis: a white horizontal line with a book/document icon on the left end
-and the word "KNOW" on the right end. Below the line: "SKILL — KNOWLEDGE"
-A small label in gray: "17 workflows loaded on demand"
-
-Between the two axes, a bold "≠" symbol in white,
-clearly communicating these are different dimensions, not competitors.
-
-At the very bottom, small gray text:
-"Saying Skills killed MCP is like saying recipes killed kitchens."
-
-Style: Jack Butcher / Visualize Value —
-two parallel lines as two dimensions,
-the gap between them IS the message.
-Black background, white lines and icons.
-```
-
----
-
-### Slide 2-5 — "Kitchen vs Recipe"
-**Type: Comparative (Anthropic's official analogy)**
-
-> **Speaker note**: 「這不是我發明的比喻。這是 Anthropic 官方工程部落格使用的框架。」
-
-> **Citation**:
-> *"We'll also explore how Skills can **complement** Model Context Protocol (MCP) servers by teaching agents more complex **workflows that involve external tools** and software."*
-> （我們也將探討技能如何**補充** MCP 伺服器，透過教導 Agent 涉及外部工具的更複雜**工作流程**。）
-> — [Anthropic Engineering Blog: Equipping agents for the real world with Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
+>
+> Anthropic 工程部落格 — *"We'll also explore how Skills can **complement** MCP servers by teaching agents more complex **workflows that involve external tools**."*
+> （Skill 如何**補充** MCP 伺服器，透過教導 Agent 涉及外部工具的更複雜**工作流程**。）
+> — [Anthropic Engineering Blog](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
 >
 > Block/Goose 團隊 — *"Skills describe the workflow. MCP provides the runner."*
-> （Skill 描述工作流程。MCP 提供執行器。）
 > — [block.github.io/goose/blog/2025/12/22/agent-skills-vs-mcp](https://block.github.io/goose/blog/2025/12/22/agent-skills-vs-mcp/)
 
 ```
@@ -267,7 +232,7 @@ Black background, white outlines and icons.
 
 ---
 
-### Slide 2-6 — "Progressive Disclosure: Three Levels"
+### Slide 2-5 — "Progressive Disclosure: Three Levels"
 **Type: Single concept (staged loading)**
 
 > **Speaker note**: 「這是 Skill 真正解決的問題。不是減少工具數量，而是讓『何時載入什麼知識』變得有彈性。過去我們把所有 domain 的編排邏輯塞進 CLAUDE.md，等於把整本百科全書塞進工作記憶。現在 Skill 讓 AI 可以按需翻閱。」
@@ -323,7 +288,7 @@ Black background, white and gray elements.
 
 ---
 
-### Slide 2-7 — "Before vs After"
+### Slide 2-6 — "Before vs After"
 **Type: Comparative (token cost)**
 
 > **Speaker note**: 「具體來看我們專案的變化。過去 CLAUDE.md 要塞 17 個工作流的完整編排邏輯。現在只剩索引。差距是 ~6000 tokens。」
@@ -367,7 +332,7 @@ Black background, white primary, one accent color for emphasis.
 
 ---
 
-### Slide 2-8 — "On-Demand Orchestration"
+### Slide 2-7 — "On-Demand Orchestration"
 **Type: Single concept (the real answer)**
 
 > **Speaker note**: 「所以 2-1 到 2-3 的三個問題，答案不是簡單的『模組化』— domain 早就模組化了。真正的答案是：Skill 讓驅動工具的編排邏輯從『永遠佔用記憶體』變成『按需調度』。這就像是一種不需要 embedding 的 context-level RAG。」
@@ -771,7 +736,7 @@ extreme simplicity, black background, white elements.
 - **Generator**: Use these prompts with image AI (Midjourney / DALL-E / Stable Diffusion)
 - **Negative prompt (global)**: no gradients, no photos, no 3D, no textures, no shadows, no color beyond white and black, no decorative elements
 - **Typography**: If the generator cannot render clean text, add text in post-production using Figma/Canva with Inter Bold or Helvetica Neue Bold
-- **Consistency**: All 24 slides share the same black background, white primary color, 1:1 square format, and geometric-only visual language
+- **Consistency**: All 23 slides share the same black background, white primary color, 1:1 square format, and geometric-only visual language
 - **Numbering**: Add slide number (e.g., "1-1", "2-3") in the bottom-left corner in small gray text during post-production
 - **Citations**: Slides 2-4 through 2-8 include speaker notes with citations. Consider adding a small "Cn" reference number in the bottom-right corner of each slide, referencing the Citations Reference table above.
 - **Accent color**: Slides 2-7 uses one accent color (coral for "before", teal for "after"). All other slides remain black + white only.

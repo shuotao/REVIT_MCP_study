@@ -4,7 +4,7 @@
   <line x1="120" y1="260" x2="680" y2="260" stroke="#fff" stroke-width="2"/>
   <!-- Wrench icon -->
   <circle cx="120" cy="260" r="18" fill="none" stroke="#fff" stroke-width="2"/>
-  <text x="126" y="266" fill="#fff" font-family="Helvetica Neue,sans-serif" font-size="16" text-anchor="middle">🔧</text>
+  <polygon points="112,254 130,260 120,272 112,266" fill="#fff"/>
   <text x="680" y="250" fill="#fff" font-family="Helvetica Neue,sans-serif" font-size="28" font-weight="800" text-anchor="end">DO</text>
   <text x="400" y="300" fill="rgba(255,255,255,0.5)" font-family="Helvetica Neue,sans-serif" font-size="18" text-anchor="middle">MCP — ABILITY</text>
   <text x="400" y="328" fill="rgba(255,255,255,0.3)" font-family="Helvetica Neue,sans-serif" font-size="14" text-anchor="middle">58 tools always available</text>
@@ -16,7 +16,7 @@
   <line x1="120" y1="540" x2="680" y2="540" stroke="#fff" stroke-width="2"/>
   <!-- Book icon -->
   <circle cx="120" cy="540" r="18" fill="none" stroke="#fff" stroke-width="2"/>
-  <text x="126" y="546" fill="#fff" font-family="Helvetica Neue,sans-serif" font-size="16" text-anchor="middle">📖</text>
+  <rect x="112" y="530" width="16" height="20" rx="2" fill="none" stroke="#fff" stroke-width="1.5"/><rect x="120" y="530" width="16" height="20" rx="2" fill="none" stroke="#fff" stroke-width="1.5"/>
   <text x="680" y="530" fill="#fff" font-family="Helvetica Neue,sans-serif" font-size="28" font-weight="800" text-anchor="end">KNOW</text>
   <text x="400" y="580" fill="rgba(255,255,255,0.5)" font-family="Helvetica Neue,sans-serif" font-size="18" text-anchor="middle">SKILL — KNOWLEDGE</text>
   <text x="400" y="608" fill="rgba(255,255,255,0.3)" font-family="Helvetica Neue,sans-serif" font-size="14" text-anchor="middle">17 workflows loaded on demand</text>
