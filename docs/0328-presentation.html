@@ -34,8 +34,20 @@
   .nav-dot.active { background: #fff; transform: scale(1.3); }
   .nav-dot.section-start {
     width: 12px; height: 12px; background: rgba(255,255,255,0.5);
+    position: relative;
   }
   .nav-dot.section-start.active { background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.6); }
+  .nav-dot.section-start::before {
+    content: attr(data-label);
+    position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
+    background: rgba(0,0,0,0.9); color: #fff;
+    padding: 6px 14px; border-radius: 6px; font-size: 13px;
+    white-space: nowrap; opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+    border: 1px solid rgba(255,255,255,0.15);
+    letter-spacing: 0.5px;
+  }
+  .nav-dot.section-start:hover::before { opacity: 1; }
 
   /* ===== SLIDE ===== */
   .slide, .cover {
@@ -376,6 +388,81 @@
     color: rgba(255,255,255,0.3); font-weight: 400;
   }
 
+  /* ===== ENDING PAGE ===== */
+  .ending-page {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 60px 80px; scroll-snap-align: start; scroll-snap-stop: always;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .ending-inner {
+    display: flex; gap: 80px; align-items: flex-start;
+    max-width: 1100px; width: 100%;
+  }
+  .ending-preview { flex: 1; }
+  .ending-eyebrow {
+    font-size: 12px; letter-spacing: 5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3); margin-bottom: 16px;
+  }
+  .ending-title {
+    font-size: 42px; font-weight: 800; letter-spacing: -1px; margin-bottom: 12px;
+  }
+  .ending-date {
+    font-size: 22px; color: rgba(255,255,255,0.7); margin-bottom: 8px; font-weight: 300;
+  }
+  .ending-desc {
+    font-size: 15px; color: rgba(255,255,255,0.35); line-height: 1.7; margin-top: 20px;
+  }
+  .ending-lottery {
+    flex: 0 0 360px; background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+    padding: 32px;
+  }
+  .ending-lottery h3 {
+    font-size: 20px; font-weight: 700; margin-bottom: 4px;
+  }
+  .ending-lottery textarea {
+    width: 100%; height: 140px; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 8px;
+    color: #fff; padding: 12px 14px; font-size: 14px; font-family: inherit;
+    line-height: 1.6; resize: vertical; margin-bottom: 12px;
+    transition: border-color 0.3s;
+  }
+  .ending-lottery textarea:focus {
+    outline: none; border-color: rgba(255,255,255,0.4);
+  }
+  .ending-lottery textarea::placeholder { color: rgba(255,255,255,0.2); }
+  .lottery-btn {
+    width: 100%; padding: 12px; background: #fff; color: #000;
+    border: none; border-radius: 8px; font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; font-family: inherit;
+    letter-spacing: 1px;
+  }
+  .lottery-btn:hover { background: #e0e0e0; transform: translateY(-1px); }
+  .lottery-btn:disabled { background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.5); cursor: default; transform: none; }
+  .lottery-result { margin-top: 16px; min-height: 20px; }
+  .lottery-winner {
+    padding: 10px 14px; margin-bottom: 8px; border-radius: 8px;
+    font-size: 18px; font-weight: 600; text-align: center;
+    transition: all 0.15s;
+  }
+  .lottery-winner.rolling {
+    background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.4);
+  }
+  .lottery-winner.final {
+    background: rgba(255,255,255,0.08); color: #fff;
+    border: 1px solid rgba(255,255,255,0.15);
+    animation: winnerReveal 0.4s ease-out;
+  }
+  @keyframes winnerReveal {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  @media (max-width: 900px) {
+    .ending-page { padding: 40px 24px; }
+    .ending-inner { flex-direction: column; gap: 40px; }
+    .ending-lottery { flex: none; width: 100%; }
+  }
+
   /* ===== RESPONSIVE ===== */
   @media (max-width: 900px) {
     .slide { padding: 40px 24px; }
@@ -510,7 +597,7 @@
     <div class="slide-content">
       <div class="slide-number">1-3</div>
       <div class="slide-title">三次迭代的演進</div>
-      <p class="slide-summary">從 25 個工具到 55 個，從零 Skill 到 11 個，從只支援 Revit 2024 到 2022-2026 全版本。</p>
+      <p class="slide-summary">從 25 個工具到 55 個，從零 Skill 到 17 個，從只支援 Revit 2024 到 2022-2026 全版本。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-1-3')">展開演進對照</button>
     </div>
   </div>
@@ -1087,7 +1174,7 @@ npm run build</code><button class="copy-btn" onclick="copyCode(this)">複製</bu
     <tr><th>項目</th><th>第一次（1月）</th><th>第二次（2月）</th><th>現在（3月）</th></tr>
     <tr><td>MCP 工具數</td><td>~25</td><td>~37</td><td><strong>55</strong></td></tr>
     <tr><td>Domain 文件</td><td>3</td><td>10</td><td><strong>23</strong></td></tr>
-    <tr><td>Skills</td><td>0</td><td>0</td><td><strong>11</strong></td></tr>
+    <tr><td>Skills</td><td>0</td><td>0</td><td><strong>17</strong></td></tr>
     <tr><td>Revit 版本</td><td>2024 only</td><td>2024 only</td><td><strong>2022-2026</strong></td></tr>
     <tr><td>建構方式</td><td>.2024.csproj</td><td>同左</td><td><strong>統一 RevitMCP.csproj</strong></td></tr>
     <tr><td>AI Client</td><td>Claude Desktop</td><td>+ Gemini CLI</td><td><strong>+ VS Code Copilot</strong></td></tr>
@@ -1095,7 +1182,7 @@ npm run build</code><button class="copy-btn" onclick="copyCode(this)">複製</bu
   </table>
   <h3>本次四個關鍵變化</h3>
   <ol>
-    <li><strong>Skills 出現</strong> — 11 個 Skill，自動觸發對應 Domain</li>
+    <li><strong>Skills 出現</strong> — 17 個 Skill，自動觸發對應 Domain</li>
     <li><strong>工具模組化</strong> — 拆成 8 個模組 + Profile 角色篩選</li>
     <li><strong>跨版本支援</strong> — Revit 2022 到 2026</li>
     <li><strong>社群貢獻爆發</strong> — 帷幕牆、排煙窗、明細表等新功能</li>
@@ -1213,34 +1300,45 @@ MCP-Server/src/tools/revit-tools.ts ← 900+ 行</code><button class="copy-btn" 
   <h3>Skill 檔案長什麼樣</h3>
   <pre><code>---
 name: fire-safety-check
-description: "Execute fire safety compliance checks.
-  TRIGGER when: fire rating, 防火, 耐燃, corridor,
-  走廊, Article 45, Article 110.
-  Tools: override_element_graphics,
-  check_exterior_wall_openings."
+description: "消防安全檢討：防火時效視覺化、走廊防火分析、
+  外牆開口距離檢討。觸發條件：防火、耐燃、fire rating、
+  走廊、corridor、Article 45、Article 110。
+  工具：override_element_graphics、
+  check_exterior_wall_openings。"
 ---
 
-# Fire Safety Compliance Check
+# 消防安全檢討
 
-## Sub-Workflows
-### 1. Fire Rating Visualization
-1. get_category_fields for Walls
-2. get_field_values → list rating values
-3. query_elements_with_filter → filter by rating
-4. override_element_graphics → apply colors</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+## Sub-Workflows          ← 結構標頭用英文（照官方規範）
+### 1. 防火時效視覺化      ← 子標頭用中文（內容描述）
+1. `get_category_fields` 查詢牆體 → 找到防火時效參數名稱
+2. `get_field_values` → 列出所有時效等級
+3. `query_elements_with_filter` → 依時效等級篩選牆體
+4. `override_element_graphics` → 套用對應顏色</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
 
   <h3>Skill 放在哪裡</h3>
   <pre><code>你的專案/
 ├── .claude/
 │   └── skills/                    ← 所有 Skill 在這裡
 │       ├── fire-safety-check/
-│       │   └── skill.md           ← 一個 Skill = 一個資料夾 + skill.md
+│       │   └── SKILL.md           ← 一個 Skill = 一個資料夾 + SKILL.md
 │       ├── building-compliance/
-│       │   └── skill.md
+│       │   └── SKILL.md
 │       ├── element-query/
-│       │   └── skill.md
-│       └── ... 共 11 個</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+│       │   └── SKILL.md
+│       └── ... 共 17 個</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
   <p>路徑：<span class="copyable-path" onclick="copyText('.claude/skills/')">.claude/skills/</span></p>
+
+  <h3>重要限制</h3>
+  <h3>語言規則</h3>
+  <p>Skill 的撰寫遵循「結構英文、內容中文」原則：</p>
+  <ul>
+    <li><code>name</code>：英文（資料夾名稱）</li>
+    <li><code>description</code>：中文摘要 + 中英混合觸發關鍵字</li>
+    <li><code>##</code> 結構標頭：英文（照官方規範，如 <code>## Workflow</code>、<code>## Reference</code>）</li>
+    <li><code>###</code> 子標頭與內文：中文（面向使用者的說明）</li>
+    <li>工具名稱 / 程式碼：英文（因為是 code）</li>
+  </ul>
 
   <h3>重要限制</h3>
   <p><strong>Skill 是 Claude Code 專屬功能。</strong>Gemini CLI 不認識 <code>.claude/skills/</code>，它用 GEMINI.md 裡的觸發表。詳見下一頁 3-3。</p>
@@ -1474,25 +1572,25 @@ npm --version   # 需要 v8+</code><button class="copy-btn" onclick="copyCode(th
 7. 匯總報告</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
 
   <h3>檔案 2：Skill 觸發定義</h3>
-  <p>位置：<span class="copyable-path" onclick="copyText('.claude/skills/parking-check/skill.md')">.claude/skills/parking-check/skill.md</span></p>
+  <p>位置：<span class="copyable-path" onclick="copyText('.claude/skills/parking-check/SKILL.md')">.claude/skills/parking-check/SKILL.md</span></p>
   <pre><code>---
 name: parking-check
-description: "停車場淨空檢討：檢查車位尺寸、車道寬度。
-  TRIGGER when: 停車場, 停車位, 車道寬度, parking, 淨空.
-  Tools: get_rooms_by_level, query_elements_with_filter,
-  override_element_graphics."
+description: "停車場檢討：停車位淨空高度檢查與數量分類統計。
+  觸發條件：停車場、停車位、車道寬度、parking、淨空。
+  工具：get_rooms_by_level、query_elements_with_filter、
+  override_element_graphics。"
 ---
 
-# 停車場淨空檢討
+# 停車場檢討
 
 執行前請先讀取 domain/parking-clearance-check.md。
 
-## 工作流程
+## Sub-Workflows               ← 英文結構標頭
+### 1. 停車位淨空高度檢查       ← 中文子標頭
 1. 確認目標樓層（通常 B1F、B2F）
-2. 呼叫 get_rooms_by_level 取得停車場空間
-3. 呼叫 query_elements_with_filter 篩選停車位
-4. 逐一檢查尺寸是否合規
-5. 上色標示結果</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+2. `query_elements_with_filter` 篩選 Parking 類別元素
+3. 計算每個車位上方淨空
+4. `override_element_graphics` 標示不合格車位</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
   <p><strong>就這兩個檔案。</strong>你不需要寫任何程式碼。</p>
 
   <div class="cmd-tip">
@@ -1585,60 +1683,79 @@ git push origin add/parking-check
   <p>排煙窗已有 Excel，計劃擴展到防火時效、採光、QA 檢核 → 直接拿去送審。</p>
 </div>
 
+<!-- ===== ENDING PAGE ===== -->
+<section class="ending-page" id="slide-ending" data-section="6">
+  <div class="ending-inner">
+    <div class="ending-preview">
+      <div class="ending-eyebrow">NEXT MEETUP</div>
+      <h2 class="ending-title">第四次小聚</h2>
+      <div class="ending-date">2026.04.25 (Sat) 10:00 – 12:00</div>
+      <p class="ending-desc">
+        持續擴充法規模組（綠建築、無障礙、結構）<br>
+        Profile 自動偵測 + 送審報告匯出<br>
+        <strong style="color:rgba(255,255,255,0.6)">你的專業，就是下一個按鈕。</strong>
+      </p>
+    </div>
+    <div class="ending-lottery">
+      <h3>抽選下次分享者</h3>
+      <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:12px;">
+        貼上本次參加者名單（每行一位），抽出 3 位
+      </p>
+      <textarea id="lotteryNames" placeholder="王大明&#10;李小華&#10;張三&#10;陳四&#10;..."></textarea>
+      <button class="lottery-btn" id="lotteryBtn" onclick="drawLottery()">抽籤</button>
+      <div id="lotteryResult" class="lottery-result"></div>
+    </div>
+  </div>
+</section>
+
 <!-- ===== JAVASCRIPT ===== -->
 <script>
-// === Slide data ===
-const slides = [
-  {id:'slide-cover', section:0, isStart:true},
-  {id:'slide-why', section:0, isStart:false},
-  {id:'slide-1-1', section:1, isStart:true},
-  {id:'slide-1-2', section:1},
-  {id:'slide-1-3', section:1},
-  {id:'slide-1-4', section:1},
-  {id:'slide-2-1', section:2, isStart:true},
-  {id:'slide-2-2', section:2},
-  {id:'slide-2-3', section:2},
-  {id:'slide-2-4', section:2},
-  {id:'slide-3-1', section:3, isStart:true},
-  {id:'slide-3-2', section:3},
-  {id:'slide-3-3', section:3},
-  {id:'slide-3-4', section:3},
-  {id:'slide-3-5', section:3},
-  {id:'slide-4-1', section:4, isStart:true},
-  {id:'slide-4-2', section:4},
-  {id:'slide-4-3', section:4},
-  {id:'slide-5-1', section:5, isStart:true},
-  {id:'slide-5-2', section:5},
-  {id:'slide-5-3', section:5},
-  {id:'slide-6-1', section:6, isStart:true},
-  {id:'slide-6-2', section:6},
+// === 8 Section dots with labels ===
+const sections = [
+  { id: 'slide-cover', label: '封面' },
+  { id: 'slide-why', label: '為什麼你需要參加' },
+  { id: 'slide-1-1', label: '回顧與複習' },
+  { id: 'slide-2-1', label: '問題與挑戰' },
+  { id: 'slide-3-1', label: 'Architecture V2' },
+  { id: 'slide-4-1', label: '部署更新' },
+  { id: 'slide-5-1', label: '貢獻者指引' },
+  { id: 'slide-6-1', label: '未來方向' },
 ];
 
-// === Build nav dots ===
+// Map every slide id → section index
+const slideToSection = {};
+slideToSection['slide-cover'] = 0;
+slideToSection['slide-why'] = 1;
+document.querySelectorAll('[data-section]').forEach(el => {
+  const sec = parseInt(el.dataset.section);
+  slideToSection[el.id] = sec + 1; // section 1→idx 2, section 2→idx 3, etc.
+});
+
+// Build nav dots (only 8)
 const nav = document.getElementById('navDots');
-slides.forEach((s, i) => {
+sections.forEach((s, i) => {
   const dot = document.createElement('button');
-  dot.className = 'nav-dot' + (s.isStart ? ' section-start' : '');
-  dot.title = s.id.replace('slide-','');
+  dot.className = 'nav-dot section-start';
+  dot.dataset.label = s.label;
   dot.onclick = () => document.getElementById(s.id).scrollIntoView({behavior:'smooth'});
-  dot.dataset.index = i;
   nav.appendChild(dot);
 });
 
-// === Scroll spy ===
-const dots = nav.querySelectorAll('.nav-dot');
+// Scroll spy
+const sectionDots = nav.querySelectorAll('.nav-dot');
 const observer = new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
-      const idx = slides.findIndex(s => s.id === entry.target.id);
-      dots.forEach(d => d.classList.remove('active'));
-      if (idx >= 0) dots[idx].classList.add('active');
+      const secIdx = slideToSection[entry.target.id];
+      if (secIdx !== undefined) {
+        sectionDots.forEach(d => d.classList.remove('active'));
+        sectionDots[secIdx].classList.add('active');
+      }
     }
   });
 }, { threshold: 0.4 });
-slides.forEach(s => {
-  const el = document.getElementById(s.id);
-  if (el) observer.observe(el);
+document.querySelectorAll('.slide, .cover, .why-page, .ending-page').forEach(el => {
+  if (el.id) observer.observe(el);
 });
 
 // === Drawer ===
@@ -1682,9 +1799,50 @@ function copyCode(btn) {
   });
 }
 function copyText(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    // Brief visual feedback could be added
-  });
+  navigator.clipboard.writeText(text).then(() => {});
+}
+
+// === Lottery ===
+function drawLottery() {
+  const textarea = document.getElementById('lotteryNames');
+  const resultDiv = document.getElementById('lotteryResult');
+  const btn = document.getElementById('lotteryBtn');
+  const names = textarea.value.trim().split('\n').map(n => n.trim()).filter(n => n.length > 0);
+
+  if (names.length < 3) {
+    resultDiv.innerHTML = '<p style="color:#f87171;text-align:center;font-size:14px;">請至少輸入 3 位參加者</p>';
+    return;
+  }
+
+  // Shuffle and pick 3
+  const shuffled = [...names].sort(() => Math.random() - 0.5);
+  const winners = shuffled.slice(0, 3);
+
+  btn.disabled = true;
+  btn.textContent = '抽選中...';
+  resultDiv.innerHTML = '';
+
+  // Rolling animation
+  let rollCount = 0;
+  const rollInterval = setInterval(() => {
+    const randomNames = [];
+    for (let i = 0; i < 3; i++) {
+      randomNames.push(names[Math.floor(Math.random() * names.length)]);
+    }
+    resultDiv.innerHTML = randomNames.map((n, i) =>
+      '<div class="lottery-winner rolling">' + (i+1) + '. ' + n + '</div>'
+    ).join('');
+    rollCount++;
+    if (rollCount > 20) {
+      clearInterval(rollInterval);
+      const medals = ['\uD83E\uDD47', '\uD83E\uDD48', '\uD83E\uDD49'];
+      resultDiv.innerHTML = winners.map((n, i) =>
+        '<div class="lottery-winner final">' + medals[i] + ' ' + n + '</div>'
+      ).join('');
+      btn.disabled = false;
+      btn.textContent = '再抽一次';
+    }
+  }, 80);
 }
 </script>
 </body>

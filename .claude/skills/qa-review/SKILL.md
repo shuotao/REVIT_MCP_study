@@ -5,7 +5,7 @@ description: "專案品質檢核：圖紙編號一致性、詳圖元件完整性
 
 # 專案品質檢核
 
-## 檢核項目
+## Checklist
 
 ### 1. 圖紙與編號一致性
 - [ ] 所有圖紙使用正確的編號格式（`[專業碼]-[類型][流水號]`）
@@ -33,7 +33,7 @@ description: "專案品質檢核：圖紙編號一致性、詳圖元件完整性
 - [ ] 所有已註冊的工具能正確回傳結果
 - [ ] Build 產物與原始碼版本一致
 
-## 執行方式
+## Execution
 
 依序執行檢查：
 1. `get_all_sheets` → 驗證編號
@@ -42,13 +42,13 @@ description: "專案品質檢核：圖紙編號一致性、詳圖元件完整性
 4. `query_elements_with_filter` → 抽查參數
 5. 產出合格/不合格摘要報告
 
-## 路徑維護
+## Path Maintenance
 
 修改檔案路徑或參照時：
 - 確認所有 domain 文件的交叉參照仍然有效
 - 確認 CLAUDE.md 的觸發關鍵字表是否需要更新
 - 確認 Skill 描述與目前可用工具一致
 
-## 參考
+## Reference
 
 詳見 `domain/qa-checklist.md`、`domain/path-maintenance-qa.md`。

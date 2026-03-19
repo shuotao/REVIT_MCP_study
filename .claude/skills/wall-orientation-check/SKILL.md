@@ -7,7 +7,7 @@ description: "牆壁內外方向檢查：檢測外牆的 Exterior/Interior Side 
 
 執行前請先讀取 domain/wall-check.md 了解判斷邏輯。
 
-## 工作流程
+## Workflow
 
 ### 步驟 1：區分內牆與外牆
 `query_elements_with_filter` 篩選牆體 → 依 Function 參數分類

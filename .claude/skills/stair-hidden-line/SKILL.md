@@ -7,12 +7,12 @@ description: "剖面隱藏樓梯可視化：在剖面視圖中，自動為被側
 
 在剖面視圖中，為被側板（stringer）遮擋的組合式樓梯梯級自動繪製極密虛線。
 
-## 適用時機
+## When to Use
 
 - 剖面視圖中，組合式樓梯（含側板）的梯級輪廓被遮擋
 - RC 樓梯自動排除（沒有側板遮擋問題）
 
-## 工作流程
+## Workflow
 
 1. 在 Revit 中開啟目標**剖面視圖**
 2. `trace_stair_geometry` → 分析所有 `StairsRun` 元素：
@@ -25,7 +25,7 @@ description: "剖面隱藏樓梯可視化：在剖面視圖中，自動為被側
 3. `get_line_styles` → 找到「虛線(極密)」的樣式 ID
 4. `create_detail_lines` 使用步驟 2 的座標 + 步驟 3 的樣式 ID
 
-## 幾何邏輯
+## Geometry Logic
 
 ```
 剖切面
@@ -40,12 +40,12 @@ description: "剖面隱藏樓梯可視化：在剖面視圖中，自動為被側
 - **第一排過濾**：`depth ≤ minDepth + 2.5ft`（約 75cm 容差）
 - **輪廓偵測**：水平線段（踏板）、垂直線段（踢面）、短線段 < 20cm（踢腳輪廓）
 
-## 建議線條樣式
+## Recommended Line Style
 
 `ID: 11911982` —「虛線(極密)」
 
 使用 `get_line_styles` 確認你的專案中的正確 ID。
 
-## 參考
+## Reference
 
 詳見 `domain/stair-hidden-line-workflow.md`。

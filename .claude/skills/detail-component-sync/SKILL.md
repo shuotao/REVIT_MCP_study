@@ -5,11 +5,11 @@ description: "2D 詳圖元件同步：將詳圖圖頭（AE-numbering）的編號
 
 # 2D 詳圖元件同步（v3.5 安全模式）
 
-## 核心原則
+## Core Principle
 
 確保詳圖圖頭的類型參數（`detail number`、`sheet name`）與其所在圖紙一致。**v3.5 只更新類型名稱已匹配圖紙號碼的元素**——共用/標準詳圖受到保護。
 
-## 可用工具
+## Available Tools
 
 | 工具 | 用途 |
 |------|------|
@@ -18,14 +18,14 @@ description: "2D 詳圖元件同步：將詳圖圖頭（AE-numbering）的編號
 | `create_detail_component_type` | 為特定圖紙建立新類型 |
 | `list_family_symbols` | 瀏覽可用的族群符號 |
 
-## 工作流程 1：建立新詳圖圖頭類型
+## Workflow 1：建立新詳圖圖頭類型
 
 1. 確認圖紙號碼（如 `ARB-D0921`）
 2. 確認詳圖名稱（如 `淺溝`）
 3. `create_detail_component_type` → 建立類型命名為 `ARB-D0921-{圖紙名稱}-{詳圖名稱}`
 4. 設定參數：`detail number` = 圖紙號碼、`sheet name` = 圖紙名稱
 
-## 工作流程 2：批次同步參數
+## Workflow 2：批次同步參數
 
 1. `get_detail_components` 以 `familyName: "AE-numbering"` 查詢 → 稽核
 2. `sync_detail_component_numbers` → 對每個元素：
@@ -34,7 +34,7 @@ description: "2D 詳圖元件同步：將詳圖圖頭（AE-numbering）的編號
    - 是 → 更新 `detail number` 和 `sheet name` 參數
    - 否 → **跳過**（保護跨圖紙共用的標準詳圖）
 
-## 安全邏輯（關鍵）
+## Safeguard Logic
 
 ```
 類型: ARB-D0921-...-淺溝
@@ -42,12 +42,12 @@ description: "2D 詳圖元件同步：將詳圖圖頭（AE-numbering）的編號
 所在圖紙: AR-B-D02X2 → 不匹配 → 跳過 ⏭️（標準詳圖被引用到其他圖紙）
 ```
 
-## 圖紙重新編號後
+## After Sheet Renumbering
 
 v3.5 不會自動重新命名類型。需要手動：
 1. 在 Revit 中重新命名類型（修改圖紙號碼前綴）
 2. 執行 `sync_detail_component_numbers` 更新參數
 
-## 參考
+## Reference
 
 詳見 `domain/detail-component-sync.md`（含 v1.0→v3.5 演進歷程與 FAQ）。
