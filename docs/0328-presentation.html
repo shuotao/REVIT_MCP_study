@@ -111,7 +111,7 @@
   }
   .cover-qr img:hover { transform: scale(1.05); }
   .cover-qr-label {
-    font-size: 20px; letter-spacing: 2px; font-weight: 700;
+    font-size: 28px; letter-spacing: 2px; font-weight: 700;
     color: rgba(255,255,255,0.85);
     animation: pulseGlow 2s ease-in-out infinite;
   }
@@ -510,7 +510,7 @@
     <a href="https://forms.gle/6XzMa6tAEW6VhyWe8" target="_blank">
       <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://forms.gle/6XzMa6tAEW6VhyWe8&bgcolor=000000&color=ffffff&format=svg" alt="報名 QR Code" width="120" height="120">
     </a>
-    <div class="cover-qr-label">我超想報名，點我或掃描 QR Code</div>
+    <div class="cover-qr-label">我還沒有報名，但我超級想參加（點我或掃QRCODE）</div>
   </div>
   <div class="cover-scroll-hint">↓ SCROLL</div>
 </section>
@@ -1234,7 +1234,7 @@ npm run build</code><button class="copy-btn" onclick="copyCode(this)">複製</bu
     <li>✅ 呼叫工具：<code>check_smoke_exhaust_windows</code></li>
   </ul>
   <h3>根本原因</h3>
-  <p>AI 不會主動去翻 <code>domain/</code> 資料夾。需要觸發機制（Skill 或 GEMINI.md 觸發表）來引導它。</p>
+  <p>AI 不會主動去翻 <code>domain/</code> 資料夾。需要觸發機制（Claude 的 <code>.claude/skills/</code> 或 Gemini 的 <code>.gemini/skills/</code>）來引導它讀取對應的 Domain 文件。</p>
 </div>
 
 <!-- Drawer 2-3 -->
@@ -1346,7 +1346,7 @@ description: "消防安全檢討：防火時效視覺化、走廊防火分析、
   </ul>
 
   <h3>重要限制</h3>
-  <p><strong>Skill 是 Claude Code 專屬功能。</strong>Gemini CLI 不認識 <code>.claude/skills/</code>，它用 GEMINI.md 裡的觸發表。詳見下一頁 3-3。</p>
+  <p><strong>Claude Code 和 Gemini CLI 都有原生 Skills 機制。</strong>Claude Code 放在 <code>.claude/skills/</code>，Gemini CLI 放在 <code>.gemini/skills/</code>，格式都是 <code>SKILL.md</code>。我們用 CLAUDE.md + GEMINI.md 建立統一的指向規範，讓不同入口都能導向同一套 Domain。詳見下一頁 3-3。</p>
 </div>
 
 <!-- Drawer 3-3 -->
@@ -1357,21 +1357,21 @@ description: "消防安全檢討：防火時效視覺化、走廊防火分析、
   <table>
     <tr><th></th><th>Claude Code</th><th>Gemini CLI</th><th>VS Code Copilot</th></tr>
     <tr><td>行為指引</td><td>CLAUDE.md</td><td>GEMINI.md</td><td>.github/copilot-instructions.md</td></tr>
-    <tr><td>觸發機制</td><td>.claude/skills/ ✅ 自動</td><td>GEMINI.md 觸發表 ⚙️ 手動</td><td>instructions 引導 ⚙️ 手動</td></tr>
+    <tr><td>觸發機制</td><td><code>.claude/skills/SKILL.md</code></td><td><code>.gemini/skills/SKILL.md</code></td><td>instructions 引導</td></tr>
     <tr><td>Domain 文件</td><td>共用 domain/</td><td>共用 domain/</td><td>共用 domain/</td></tr>
     <tr><td>MCP Tools</td><td>共用</td><td>共用</td><td>共用</td></tr>
   </table>
 
-  <h3>GEMINI.md 需要額外的觸發表</h3>
-  <pre><code>## Domain 觸發規則
-| 使用者提到...        | 請先讀取...                         |
-|---------------------|-------------------------------------|
-| 排煙、排煙窗         | domain/smoke-exhaust-review.md      |
-| 防火、耐燃           | domain/fire-rating-check.md         |
-| 走廊、逃生           | domain/corridor-analysis-protocol.md|
-| 帷幕牆、curtain wall | domain/curtain-wall-pattern.md      |</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+  <h3>統一指向規範</h3>
+  <p>CLAUDE.md 和 GEMINI.md 各自定義行為指引，但都指向同一套 Domain 文件和 MCP Tools。這是「不同入口、同一目的地」的設計。</p>
+  <table>
+    <tr><th>機制</th><th>Claude Code</th><th>Gemini CLI</th></tr>
+    <tr><td>Skills 目錄</td><td><code>.claude/skills/SKILL.md</code></td><td><code>.gemini/skills/SKILL.md</code></td></tr>
+    <tr><td>行為指引</td><td>CLAUDE.md</td><td>GEMINI.md</td></tr>
+    <tr><td>Skills 發現方式</td><td>名稱+描述注入系統提示</td><td>名稱+描述注入系統提示（<a href="https://geminicli.com/docs/cli/skills/" target="_blank" style="color:#60a5fa">官方文件</a>）</td></tr>
+  </table>
 
-  <p><strong>一句話：</strong>Claude 有自動掛號台（Skill），Gemini 需要你在門口貼告示牌（GEMINI.md 觸發表）。目的地相同——都是讀 Domain、呼叫 Tools。</p>
+  <p><strong>一句話：</strong>兩個平台都有原生 Skills 支援，我們用 CLAUDE.md + GEMINI.md 建立統一的指向規範，確保不同 AI Client 都能導向同一套 Domain 和 Tools。</p>
 </div>
 
 <!-- Drawer 3-4 -->
