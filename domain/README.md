@@ -1,105 +1,53 @@
 # domain/ 領域知識目錄
 
-此目錄存放業務流程、工作流程和法規參考資料。
+此目錄存放 BIM 工作流程 SOP、法規檢討標準和設計規範。
+每個 Domain 文件是 AI 的「專業知識」，搭配 Skill 觸發機制使用。
 
 ---
 
-## 📂 目錄結構
+## Domain ↔ Skill 對照表
 
-| 檔案 | 說明 | 狀態 |
-|-----|------|:----:|
-| `floor-area-review.md` | 容積檢討流程 | v1 |
-| `fire-rating-check.md` | 防火等級檢查流程 | v1 |
-| `corridor-analysis-protocol.md` | 走廊分析流程 | v1 |
-| `element-coloring-workflow.md` | 元素上色流程 | v1 |
-| `room-boundary.md` | 房間邊界計算 | v1 |
-| `wall-check.md` | 牆壁檢查機制 | v1 |
-| `path-maintenance-qa.md` | 路徑維護 QA | v1 |
-| `tool-capability-boundary.md` | MCP 工具能力邊界定義 (L1-L5) | v1 |
-| `session-context-guard.md` | 互動式會話上下文守衛 (L1-L3) | v1 |
-| `element-query-workflow.md` | 元素查詢參數工作流程 | v1 |
-| `references/building-code-tw.md` | 台灣建築法規摘要 | v1 |
+### 已有對應 Skill 的 Domain（18 個）
 
----
+| Domain 文件 | 對應 Skill | 觸發關鍵字 |
+|------------|-----------|-----------|
+| `fire-rating-check.md` | fire-safety-check | 防火、耐燃、fire rating |
+| `corridor-analysis-protocol.md` | fire-safety-check | 走廊、逃生、corridor |
+| `exterior-wall-opening-check.md` | fire-safety-check | 外牆開口、鄰地距離、Article 45 |
+| `daylight-area-check.md` | building-compliance | 採光、daylight、§41 |
+| `floor-area-review.md` | building-compliance | 容積、FAR、樓地板面積 |
+| `element-query-workflow.md` | element-query | 查詢元素、filter、上色 |
+| `element-coloring-workflow.md` | element-coloring | 上色、顏色標示、color code |
+| `curtain-wall-pattern.md` | curtain-wall | 帷幕牆、面板排列 |
+| `facade-generation.md` | facade-generation | 立面、facade、弧形面板 |
+| `smoke-exhaust-review.md` | smoke-exhaust | 排煙、排煙窗、§101、§188 |
+| `auto-dimension-workflow.md` | auto-dimension | 自動標註、尺寸標註 |
+| `detail-component-sync.md` | detail-component-sync | 詳圖同步、detail header |
+| `sheet-viewport-management.md` | sheet-management | 圖紙、viewport、編號 |
+| `stair-hidden-line-workflow.md` | stair-hidden-line | 樓梯、隱藏線、stair |
+| `qa-checklist.md` | qa-review | QA、驗證、檢查 |
+| `parking-clearance-check.md` | parking-check | 停車場、車位淨空、parking |
+| `parking-space-review.md` | parking-check | 停車位、數量、法定車位 |
+| `wall-check.md` | wall-orientation-check | 牆壁方向、內外側 |
+| `dependent-view-crop-workflow.md` | dependent-view-crop | 從屬視圖、分區出圖 |
 
-# 容積檢討工具開發計劃
+### 不需要成為 Skill 的 Domain（6 個）
 
->  **注意**：以下為開發計劃，列出的工具**尚未全部實作**。目前已實作的工具請參考 README.md 的工具清單。
-
----
-
-## 開發原則
-
-1. **工具保持原子化**：不做高階整合工具，維持獨立工具讓 AI 自己判斷如何組合
-2. **知識外掛化**：法規 RAG 提供提醒，不干預執行邏輯
-3. **視覺化優先**：結果在圖面上呈現，讓使用者確認
-4. **持續學習**：從成功經驗建立策略（3H 學習機制）
-
----
-
-## 完整流程
-
-### 階段 0：模型品質檢查
-
-| 工具 | 功能 |
-|-----|------|
-| classify_walls | 區分內牆與外牆 |
-| check_wall_orientation | 檢查外牆內外側方向 |
-| highlight_walls_by_status | 用顏色標記牆壁狀態 |
-| clear_wall_highlights | 清除顏色標記 |
-| flip_wall | 翻轉牆的方向 |
-
-### 階段 1：房間資料檢查
-
-| 工具 | 功能 |
-|-----|------|
-| get_rooms_by_level | 取得某樓層所有房間 |
-| get_room_boundaries | 取得房間的邊界元素 |
-| check_room_usage | 檢查房間用途是否完整 |
-| highlight_rooms_by_status | 用顏色標記房間狀態 |
-
-### 階段 2：邊界調整
-
-| 工具 | 功能 |
-|-----|------|
-| get_wall_thickness | 取得牆的厚度資訊 |
-| calculate_boundary_offset | 計算邊界偏移量 |
-| create_area_scheme | 建立面積方案 |
-| create_area_boundary | 建立面積邊界線 |
-
-### 階段 3：面積計算
-
-| 工具 | 功能 |
-|-----|------|
-| calculate_floor_area | 計算樓層總面積 |
-| generate_area_report | 產生面積報告 |
+| Domain 文件 | 類型 | 不成為 Skill 的原因 |
+|------------|------|-------------------|
+| `lessons.md` | 經驗規則庫 | 知識參考文件，由 `/lessons` 指令維護，供其他 Skill 引用，不直接觸發 |
+| `room-boundary.md` | 技術概念文件 | 說明 Room 邊界處理的兩種方案（Area Scheme / Offset），是 `building-compliance` Skill 的背景知識，非獨立工作流程 |
+| `session-context-guard.md` | AI 內部守衛 | 定義 AI 互動安全等級（L1-L3），是所有 Skill 的通用行為規範，不由使用者觸發 |
+| `tool-capability-boundary.md` | 工具邊界定義 | 定義 MCP 工具「不能做的事」（L1-L5 能力等級），防止 AI 嘗試超出能力的操作，是 meta-reference |
+| `path-maintenance-qa.md` | 內部維護指南 | 目錄重構後的路徑交叉參照檢查清單，是開發者維護用文件 |
+| `README.md` | 目錄導航 | 本檔案，不是工作流程 |
 
 ---
 
-## 視覺化工具
+## 貢獻新 Domain
 
-| 工具 | 視覺輸出 |
-|-----|---------|
-| highlight_walls_by_status | 牆壁顏色覆寫 |
-| highlight_rooms_by_status | 房間顏色覆寫 |
-| show_area_boundary | 邊界線顯示 |
-| place_area_tag | 面積標籤 |
+1. 建立 `domain/你的-workflow.md`
+2. 建立對應 Skill：`.claude/skills/你的-skill/SKILL.md`
+3. 提 PR，格式參考現有檔案
 
----
-
-## 3H 學習機制
-
-| 指令 | 功能 |
-|-----|------|
-| /learn | 記錄成功的工具呼叫策略 |
-| /review | 回顧過去的成功案例 |
-| /check | 檢查目前做法是否符合過去經驗 |
-
----
-
-## 開發優先順序
-
-1. get_rooms_by_level（計算房間面積）
-2. classify_walls（區分內外牆）
-3. check_wall_orientation（檢查牆壁方向）
-4. highlight_walls_by_status（視覺化標記）
+詳見 `CONTRIBUTING.md` 和 `docs/architecture-v2-module-system.md`
