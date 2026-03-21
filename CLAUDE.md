@@ -85,7 +85,17 @@ npm run watch    # tsc --watch (development)
 - **Config storage**: `%AppData%\RevitMCP\config.json` (default port 8964)
 - **Logs**: `%AppData%\RevitMCP\Logs\RevitMCP_YYYYMMDD.log`
 
-## Skills（17 個）
+## Domain vs Skill 架構原則
+
+本專案的 Domain 和 Skill 是不同角色，不是不同等級：
+- **Domain**（`domain/*.md`）= 知識（法規、SOP、步驟）。被 Skill 引用時才載入。**任何老師都能寫。**
+- **Skill**（`.claude/skills/`）= 編排（何時觸發、什麼順序呼叫哪些工具）。metadata 永遠常駐。
+
+BIM 的知識是共用的——防火法規同時被消防檢查、走廊分析、建築合規引用。Domain 獨立於 Skill 存在，是因為**知識不應該重複在每個 Skill 裡**。這是對 Anthropic 官方模型（references 放在 Skill 內部）的合理特化。
+
+> **不要把每個 Domain 都升級成 Skill。** Domain 被引用就已經在發揮作用了。詳見 `domain/skill-authoring-standard.md`。
+
+## Skills（18 個）
 
 Skills 位於 `.claude/skills/`，每個 Skill 為一個資料夾 + `SKILL.md`。
 

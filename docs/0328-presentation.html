@@ -1211,12 +1211,25 @@
 <!-- 3-5 -->
 <section class="slide" id="slide-3-5" data-section="3">
   <div class="slide-inner">
-    <div class="slide-image"><img src="image/3_5.png" alt="3-5 Profile Filter"></div>
+    <div class="slide-image"><img src="image/3_5.svg" alt="3-5 Shared Knowledge"></div>
     <div class="slide-content">
       <div class="slide-number">3-5</div>
+      <div class="slide-title">為什麼 Domain 要獨立存在</div>
+      <p class="slide-summary">Anthropic 假設每個 Skill 的知識是獨立的。但在 BIM 裡，防火法規同時被消防檢查、走廊分析、建築合規三個 Skill 引用。Domain 存在，是因為知識是共用的。你的貢獻就在這裡。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-3-5')">展開共用知識架構</button>
+    </div>
+  </div>
+</section>
+
+<!-- 3-6 -->
+<section class="slide" id="slide-3-6" data-section="3">
+  <div class="slide-inner">
+    <div class="slide-image"><img src="image/3_5.png" alt="3-6 Profile Filter"></div>
+    <div class="slide-content">
+      <div class="slide-number">3-6</div>
       <div class="slide-title">Profile：角色篩選</div>
       <p class="slide-summary">設定一行 MCP_PROFILE，結構工程師只看 20 個工具，不再被 55 個不相關的工具淹沒。</p>
-      <button class="drawer-trigger" onclick="openDrawer('drawer-3-5')">展開 Profile 設定</button>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-3-6')">展開 Profile 設定</button>
     </div>
   </div>
 </section>
@@ -1998,8 +2011,46 @@ description: "消防安全檢討：防火時效視覺化、走廊防火分析、
   </div>
 </div>
 
-<!-- Drawer 3-5 -->
+<!-- Drawer 3-5 (Shared Knowledge) -->
 <div class="drawer" id="drawer-3-5">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>為什麼 Domain 要獨立於 Skill</h2>
+
+  <h3>Anthropic 的模型 vs 我們的模型</h3>
+  <table>
+    <tr><th></th><th>Anthropic 官方</th><th>本專案</th></tr>
+    <tr><td>知識放哪</td><td>Skill 內部的 <code>references/</code></td><td>獨立的 <code>domain/</code></td></tr>
+    <tr><td>知識與 Skill 的關係</td><td>1:1（綁定在 Skill 裡面）</td><td>N:N（多個 Skill 共用同一份知識）</td></tr>
+    <tr><td>適合場景</td><td>每個 Skill 的知識不重疊</td><td>BIM 法規被多個工作流共用</td></tr>
+  </table>
+
+  <h3>真實案例：防火法規被三個 Skill 引用</h3>
+  <pre><code>domain/fire-rating-check.md（一份知識）
+    ├── 被 /fire-safety-check 引用（防火時效視覺化）
+    ├── 被 /building-compliance 引用（法規檢討）
+    └── 被 /element-coloring 引用（依防火等級上色）
+
+如果搬進 Skill 內部：
+    fire-safety-check/references/fire-rating.md   ← 複製一
+    building-compliance/references/fire-rating.md  ← 複製二
+    element-coloring/references/fire-rating.md     ← 複製三
+    → 法規更新時要改三個地方，忘改一個就不一致</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+
+  <h3>Domain 不是 Skill 的低階版本</h3>
+  <table>
+    <tr><th></th><th>Domain</th><th>Skill</th></tr>
+    <tr><td>角色</td><td><strong>知識</strong>（法規、SOP、步驟）</td><td><strong>編排</strong>（何時觸發、用什麼順序呼叫工具）</td></tr>
+    <tr><td>載入方式</td><td>被 Skill 引用時才讀取</td><td>metadata 永遠在 system prompt</td></tr>
+    <tr><td>誰來寫</td><td><strong>任何老師</strong>（只需要 Markdown）</td><td>Maintainer（需要理解工具編排）</td></tr>
+    <tr><td>需要升級嗎</td><td>大多數不需要</td><td>—</td></tr>
+  </table>
+
+  <h3>對老師的意義</h3>
+  <p style="font-size:1.15em;font-weight:700;">你寫一份 Domain，所有引用它的 Skill 都自動具備你的專業知識。<br>你不需要懂 Skill 怎麼寫、工具怎麼用、程式碼怎麼改。</p>
+</div>
+
+<!-- Drawer 3-6 (was 3-5: Profile) -->
+<div class="drawer" id="drawer-3-6">
   <button class="drawer-close" onclick="closeDrawer()">✕</button>
   <h2>Profile 角色篩選</h2>
   <h3>可用的 Profile</h3>
