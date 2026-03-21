@@ -36,3 +36,13 @@ version: 1.0
 
 - 儲存前先檢查 `domain/` 是否已有類似流程，避免重複
 - 步驟必須可被其他 AI 直接執行，不得含有模糊描述
+
+## 完成後：是否升級為 Skill？
+
+Domain 產出後，評估是否需要升級為 Skill（滿足任一即可）：
+- 該流程被重複使用 3 次以上
+- 涉及 3 個以上 MCP Tools 的特定順序
+- 有明確的觸發關鍵字
+- 有條件分支或驗證迴圈
+
+如需升級，請使用 `skill-creator` plugin，並提供 `domain/skill-authoring-standard.md` 作為專案規範參照。
