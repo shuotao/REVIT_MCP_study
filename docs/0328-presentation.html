@@ -2354,13 +2354,10 @@ git push origin add/parking-check
           2. 點綠色的 <span style="color:#4ade80;font-weight:700">&lt;&gt; Code</span> 按鈕<br>
           3. 複製 HTTPS 網址<br>
           4. 開啟終端機（按 <code>Win + X</code> → 選「終端」或「PowerShell」）<br>
-          5. 先切換到桌面（這樣專案會下載到桌面）：<br>
-          <code style="margin:4px 0;display:inline-block">cd Desktop</code><br>
-          6. 貼上以下指令，按 Enter：
+          5. 逐行貼上以下指令（每行貼完按 Enter）：
         </div>
-        <div class="deploy-oneliner" onclick="navigator.clipboard.writeText('cd Desktop && git clone https://github.com/shuotao/REVIT_MCP_study.git');this.textContent='已複製！';setTimeout(()=>{this.textContent='cd Desktop && git clone https://github.com/shuotao/REVIT_MCP_study.git'},1500)">
-          cd Desktop && git clone https://github.com/shuotao/REVIT_MCP_study.git
-        </div>
+        <div class="deploy-oneliner" onclick="navigator.clipboard.writeText('cd Desktop\ngit clone https://github.com/shuotao/REVIT_MCP_study.git');this.textContent='已複製！';setTimeout(()=>{this.textContent='cd Desktop\ngit clone https://github.com/shuotao/REVIT_MCP_study.git'},1500)" style="white-space:pre-line">cd Desktop
+git clone https://github.com/shuotao/REVIT_MCP_study.git</div>
         <p class="deploy-note">
           <strong style="color:rgba(255,255,255,0.5);">沒有 Git？</strong>
           前往 <a href="https://git-scm.com/download/win" target="_blank" style="color:#60a5fa">git-scm.com</a> 下載安裝，一路按 Next 即可。<br><br>
