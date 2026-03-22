@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Revit MCP 部署前環境檢查腳本
 .DESCRIPTION

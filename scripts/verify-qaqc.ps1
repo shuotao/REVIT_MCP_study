@@ -1,4 +1,4 @@
-# Revit MCP QA/QC Verification Script
+﻿# Revit MCP QA/QC Verification Script
 # Usage: .\scripts\verify-qaqc.ps1 [-SkipBuild] [-SkipDeploy] [-Version 2024]
 #
 # Phases:

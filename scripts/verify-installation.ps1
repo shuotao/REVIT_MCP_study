@@ -1,4 +1,4 @@
-# Revit MCP Installation Verification Script
+﻿# Revit MCP Installation Verification Script
 # Simple version without complex hashtable
 
 $ErrorActionPreference = "Continue"

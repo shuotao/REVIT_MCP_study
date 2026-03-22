@@ -1,4 +1,4 @@
-# Deprecated: Use verify-qaqc.ps1 instead
+﻿# Deprecated: Use verify-qaqc.ps1 instead
 # This script has been replaced by the comprehensive QA/QC verification script.
 #
 # Usage:
