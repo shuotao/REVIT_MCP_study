@@ -2507,6 +2507,21 @@ git clone https://github.com/shuotao/REVIT_MCP_study.git</div>
         貼上本次參加者名單（每行一位），抽出 3 位
       </p>
       <textarea id="lotteryNames" placeholder="王大明&#10;李小華&#10;張三&#10;陳四&#10;..."></textarea>
+      <div style="margin:12px 0;">
+        <label style="font-size:12px;color:rgba(255,255,255,0.4);display:block;margin-bottom:6px;">
+          排除名單（已報告過 / 已提 PR，每行一位）
+        </label>
+        <textarea id="lotteryExclude" style="height:80px;font-size:12px;" placeholder="已排除的人...">Alex（7alexhuang-ux）
+Jacky（Jacky820507）
+David（davidhsu68-dvstudio）
+Kevin（916kevin-gif）
+CyberPotato（CyberPotato0416）
+yihuiiiii
+taiwanbanana
+ChimingLu
+h30190
+lesleyliuke</textarea>
+      </div>
       <button class="lottery-btn" id="lotteryBtn" onclick="drawLottery()">抽籤</button>
       <div id="lotteryResult" class="lottery-result"></div>
     </div>
@@ -2629,12 +2644,31 @@ function copyText(text) {
 // === Lottery ===
 function drawLottery() {
   const textarea = document.getElementById('lotteryNames');
+  const excludeTextarea = document.getElementById('lotteryExclude');
   const resultDiv = document.getElementById('lotteryResult');
   const btn = document.getElementById('lotteryBtn');
-  const names = textarea.value.trim().split('\n').map(n => n.trim()).filter(n => n.length > 0);
+  const allNames = textarea.value.trim().split('\n').map(n => n.trim()).filter(n => n.length > 0);
+
+  // 建立排除清單（取括號前的名字 + 整行都算，不分大小寫）
+  const excludeRaw = excludeTextarea.value.trim().split('\n').map(n => n.trim()).filter(n => n.length > 0);
+  const excludeSet = new Set();
+  excludeRaw.forEach(line => {
+    excludeSet.add(line.toLowerCase());
+    // 如果有括號，取括號前的名字也加入
+    const match = line.match(/^([^（(]+)/);
+    if (match) excludeSet.add(match[1].trim().toLowerCase());
+  });
+
+  // 過濾排除名單
+  const names = allNames.filter(n => !excludeSet.has(n.toLowerCase()));
+
+  const excludedCount = allNames.length - names.length;
+  if (excludedCount > 0) {
+    console.log(`已排除 ${excludedCount} 位（已報告/已提 PR）`);
+  }
 
   if (names.length < 3) {
-    resultDiv.innerHTML = '<p style="color:#f87171;text-align:center;font-size:14px;">請至少輸入 3 位參加者</p>';
+    resultDiv.innerHTML = '<p style="color:#f87171;text-align:center;font-size:14px;">過濾後參加者不足 3 位（共 ' + allNames.length + ' 人，排除 ' + excludedCount + ' 人，剩 ' + names.length + ' 人）</p>';
     return;
   }
 
