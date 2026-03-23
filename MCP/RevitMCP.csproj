@@ -5,7 +5,9 @@
     <AssemblyName>RevitMCP</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UseWPF>true</UseWPF>
-    <DeployAddin>true</DeployAddin>
+    <!-- DeployAddin 關閉：避免 SDK 自動產生 RevitMCP.{version}.addin 造成重複載入 -->
+    <!-- 部署請使用 setup.ps1 或 /deploy-addon skill -->
+    <DeployAddin>false</DeployAddin>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <Configurations>
       Debug.R22;Debug.R23;Debug.R24;Debug.R25;Debug.R26;

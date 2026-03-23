@@ -88,6 +88,18 @@ export const wallTools: Tool[] = [
         },
     },
     {
+        name: "create_corridor_dimension",
+        description: "走廊寬度標註 — 自動偵測房間邊界的平行牆對，建立精確的牆到牆尺寸標註。回傳每個區段的實測寬度與合規判定。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                roomId: { type: "number", description: "走廊房間的 Element ID" },
+                viewId: { type: "number", description: "要建立標註的平面視圖 ID" },
+            },
+            required: ["roomId", "viewId"],
+        },
+    },
+    {
         name: "query_walls_by_location",
         description: "查詢指定座標附近的牆體，回傳牆厚度、位置線與牆面座標。",
         inputSchema: {

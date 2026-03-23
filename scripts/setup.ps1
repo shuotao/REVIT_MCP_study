@@ -434,10 +434,10 @@ else {
 if ($NonInteractive) {
     # 非互動模式
     if (-not [string]::IsNullOrWhiteSpace($RevitVersions)) {
-        $selectedVersions = $RevitVersions -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -in $supportedVersions }
+        $selectedVersions = @($RevitVersions -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -in $supportedVersions })
     }
     else {
-        $selectedVersions = $detectedVersions
+        $selectedVersions = @($detectedVersions)
     }
     if ($selectedVersions.Count -eq 0) {
         Write-Fail "未指定有效的 Revit 版本，且未偵測到已安裝版本"
@@ -585,7 +585,7 @@ elseif (-not (Test-CommandAvailable "node") -or -not (Test-CommandAvailable "npm
 else {
     $mcpServerDir = Join-Path $script:projectRoot "MCP-Server"
     $nodeModulesPath = Join-Path $mcpServerDir "node_modules"
-    $buildIndexPath = Join-Path $mcpServerDir "build" "index.js"
+    $buildIndexPath = Join-Path (Join-Path $mcpServerDir "build") "index.js"
 
     $mcpServerOk = $true
     Push-Location $mcpServerDir
@@ -713,7 +713,7 @@ else {
 
             # --- Deploy ---
             if (-not $skipDeployFlag) {
-                $dllSource = Join-Path $mcpDir "bin" $config "RevitMCP.dll"
+                $dllSource = Join-Path (Join-Path (Join-Path $mcpDir "bin") $config) "RevitMCP.dll"
 
                 if (-not (Test-Path $dllSource)) {
                     Write-Fail "Revit $ver：找不到 RevitMCP.dll（編譯可能失敗）"
@@ -733,20 +733,27 @@ else {
                         New-Item -ItemType Directory -Path $targetDllDir -Force | Out-Null
                     }
 
+                    # 清理殘黨：刪除舊版 .addin 檔案（如 RevitMCP.2024.addin）
+                    $legacyAddins = Get-ChildItem -Path $targetBase -Filter "RevitMCP.*.addin" -ErrorAction SilentlyContinue
+                    foreach ($legacy in $legacyAddins) {
+                        Remove-Item -Path $legacy.FullName -Force -ErrorAction SilentlyContinue
+                        Write-Info "已清理殘留 .addin：$($legacy.Name)"
+                    }
+
                     # 複製 DLL
                     Copy-Item -Path $dllSource -Destination (Join-Path $targetDllDir "RevitMCP.dll") -Force -ErrorAction Stop
 
-                    # 複製 .addin
+                    # 複製 .addin（唯一正規檔案）
                     Copy-Item -Path $addinSource -Destination (Join-Path $targetBase "RevitMCP.addin") -Force -ErrorAction Stop
 
                     # 複製 Newtonsoft.Json.dll（如果存在）
-                    $jsonDll = Join-Path $mcpDir "bin" $config "Newtonsoft.Json.dll"
+                    $jsonDll = Join-Path (Join-Path (Join-Path $mcpDir "bin") $config) "Newtonsoft.Json.dll"
                     if (Test-Path $jsonDll) {
                         Copy-Item -Path $jsonDll -Destination (Join-Path $targetDllDir "Newtonsoft.Json.dll") -Force -ErrorAction SilentlyContinue
                     }
 
                     # 複製 ClosedXML.dll（如果存在）
-                    $closedXmlDll = Join-Path $mcpDir "bin" $config "ClosedXML.dll"
+                    $closedXmlDll = Join-Path (Join-Path (Join-Path $mcpDir "bin") $config) "ClosedXML.dll"
                     if (Test-Path $closedXmlDll) {
                         Copy-Item -Path $closedXmlDll -Destination (Join-Path $targetDllDir "ClosedXML.dll") -Force -ErrorAction SilentlyContinue
                     }
@@ -781,7 +788,7 @@ if ($SkipAIConfig) {
     Add-Result "AI 設定" "SKIP" "使用者跳過"
 }
 else {
-    $mcpServerIndexJs = Join-Path $script:projectRoot "MCP-Server" "build" "index.js"
+    $mcpServerIndexJs = Join-Path (Join-Path (Join-Path $script:projectRoot "MCP-Server") "build") "index.js"
     # 將路徑轉換為正斜線（JSON 相容）
     $indexJsPath = $mcpServerIndexJs -replace '\\', '/'
 
@@ -819,7 +826,7 @@ else {
             }
 
             # 確保 mcpServers 屬性存在
-            if (-not ($claudeConfig.PSObject.Properties.Name -contains 'mcpServers')) {
+            if (-not ($claudeConfig.PSObject.Properties.Match('mcpServers').Count -gt 0)) {
                 $claudeConfig | Add-Member -MemberType NoteProperty -Name 'mcpServers' -Value ([PSCustomObject]@{})
             }
 
@@ -829,7 +836,7 @@ else {
                 args    = @($indexJsPath)
             }
 
-            if ($claudeConfig.mcpServers.PSObject.Properties.Name -contains 'revit-mcp') {
+            if ($claudeConfig.mcpServers.PSObject.Properties.Match('revit-mcp').Count -gt 0) {
                 $claudeConfig.mcpServers.'revit-mcp' = $revitMcpEntry
             }
             else {
@@ -884,7 +891,7 @@ else {
             }
         }
 
-        if (-not ($geminiConfig.PSObject.Properties.Name -contains 'mcpServers')) {
+        if (-not ($geminiConfig.PSObject.Properties.Match('mcpServers').Count -gt 0)) {
             $geminiConfig | Add-Member -MemberType NoteProperty -Name 'mcpServers' -Value ([PSCustomObject]@{})
         }
 
@@ -893,7 +900,7 @@ else {
             args    = @($indexJsPath)
         }
 
-        if ($geminiConfig.mcpServers.PSObject.Properties.Name -contains 'revit-mcp') {
+        if ($geminiConfig.mcpServers.PSObject.Properties.Match('revit-mcp').Count -gt 0) {
             $geminiConfig.mcpServers.'revit-mcp' = $revitMcpEntry
         }
         else {
@@ -911,7 +918,7 @@ else {
     }
 
     # --- VS Code ---
-    $vscodeConfigFile = Join-Path $script:projectRoot ".vscode" "mcp.json"
+    $vscodeConfigFile = Join-Path (Join-Path $script:projectRoot ".vscode") "mcp.json"
     if (Test-Path $vscodeConfigFile) {
         Write-OK "VS Code 設定已存在（.vscode/mcp.json）"
         Add-Result "VS Code" "OK" "Already configured"

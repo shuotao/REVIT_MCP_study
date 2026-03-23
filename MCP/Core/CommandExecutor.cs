@@ -165,7 +165,11 @@ namespace RevitMCP.Core
                     case "create_dimension":
                         result = CreateDimension(parameters);
                         break;
-                    
+
+                    case "create_corridor_dimension":
+                        result = CreateCorridorDimension(parameters);
+                        break;
+
                     case "query_walls_by_location":
                         result = QueryWallsByLocation(parameters);
                         break;
@@ -1735,6 +1739,190 @@ namespace RevitMCP.Core
                     Message = $"成功建立尺寸標註: {Math.Round(dimValue, 0)} mm"
                 };
             }
+        }
+
+        /// <summary>
+        /// 走廊寬度標註 — 使用房間邊界線段找平行牆對，建立精確的牆到牆標註
+        /// </summary>
+        private object CreateCorridorDimension(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            IdType roomId = parameters["roomId"]?.Value<IdType>() ?? 0;
+            IdType viewId = parameters["viewId"]?.Value<IdType>() ?? 0;
+
+            Room room = doc.GetElement(new ElementId(roomId)) as Room;
+            if (room == null) throw new Exception($"找不到房間 ID: {roomId}");
+
+            View view = doc.GetElement(new ElementId(viewId)) as View;
+            if (view == null) throw new Exception($"找不到視圖 ID: {viewId}");
+
+            // 取得房間邊界線段（使用完成面位置）
+            var bOptions = new SpatialElementBoundaryOptions();
+            bOptions.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Finish;
+            var segmentLoops = room.GetBoundarySegments(bOptions);
+
+            if (segmentLoops == null || segmentLoops.Count == 0)
+                throw new Exception("房間無邊界線段");
+
+            // 從第一個迴路提取直線段
+            var lines = new List<Line>();
+            foreach (var seg in segmentLoops[0])
+            {
+                var curve = seg.GetCurve();
+                if (curve is Line line && line.Length > 0.3) // > ~90mm
+                    lines.Add(line);
+            }
+
+            if (lines.Count < 2)
+                throw new Exception($"邊界線段不足（僅 {lines.Count} 條直線）");
+
+            // Segment-First 演算法：找平行牆對
+            var pairs = new List<int[]>();
+            var pairWidths = new List<double>();
+            var pairAvgLens = new List<double>();
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                XYZ dir1 = lines[i].Direction.Normalize();
+                double len1 = lines[i].Length;
+
+                for (int j = i + 1; j < lines.Count; j++)
+                {
+                    XYZ dir2 = lines[j].Direction.Normalize();
+                    double len2 = lines[j].Length;
+
+                    // 平行檢查（容差 5°）
+                    double dot = Math.Abs(dir1.DotProduct(dir2));
+                    if (dot < 0.996) continue;
+
+                    // 計算垂直距離
+                    XYZ perp = new XYZ(-dir1.Y, dir1.X, 0).Normalize();
+                    XYZ diff = lines[j].GetEndPoint(0).Subtract(lines[i].GetEndPoint(0));
+                    double dist = Math.Abs(diff.DotProduct(perp));
+
+                    // 排除共線（同一側牆壁 < 100mm）
+                    if (dist < 100.0 / 304.8) continue;
+
+                    // 長寬比過濾（走廊特徵：長 > 寬）
+                    double avgLen = (len1 + len2) / 2;
+                    if (avgLen < dist) continue;
+
+                    // 投影重疊檢查
+                    double s1a = lines[i].GetEndPoint(0).DotProduct(dir1);
+                    double s1b = lines[i].GetEndPoint(1).DotProduct(dir1);
+                    double s2a = lines[j].GetEndPoint(0).DotProduct(dir1);
+                    double s2b = lines[j].GetEndPoint(1).DotProduct(dir1);
+
+                    double min1 = Math.Min(s1a, s1b), max1 = Math.Max(s1a, s1b);
+                    double min2 = Math.Min(s2a, s2b), max2 = Math.Max(s2a, s2b);
+                    double oStart = Math.Max(min1, min2);
+                    double oEnd = Math.Min(max1, max2);
+                    if (oEnd <= oStart + 0.01) continue; // 無重疊
+
+                    pairs.Add(new[] { i, j });
+                    pairWidths.Add(dist);
+                    pairAvgLens.Add(avgLen);
+                }
+            }
+
+            if (pairs.Count == 0)
+                throw new Exception("找不到平行牆面對（可能不是走廊形狀）");
+
+            // 依平均長度降序排序（主要走廊壁優先）
+            var sorted = Enumerable.Range(0, pairs.Count)
+                .OrderByDescending(k => pairAvgLens[k])
+                .ToList();
+
+            // 建立標註
+            var measurements = new List<object>();
+            var widthValues = new List<double>();
+
+            using (Transaction trans = new Transaction(doc, "走廊寬度標註"))
+            {
+                trans.Start();
+
+                foreach (int k in sorted)
+                {
+                    var line1 = lines[pairs[k][0]];
+                    var line2 = lines[pairs[k][1]];
+                    XYZ dir = line1.Direction.Normalize();
+                    XYZ perp = new XYZ(-dir.Y, dir.X, 0).Normalize();
+
+                    // 投影重疊中點
+                    double s1a = line1.GetEndPoint(0).DotProduct(dir);
+                    double s1b = line1.GetEndPoint(1).DotProduct(dir);
+                    double s2a = line2.GetEndPoint(0).DotProduct(dir);
+                    double s2b = line2.GetEndPoint(1).DotProduct(dir);
+
+                    double min1 = Math.Min(s1a, s1b), max1 = Math.Max(s1a, s1b);
+                    double min2 = Math.Min(s2a, s2b), max2 = Math.Max(s2a, s2b);
+                    double oMid = (Math.Max(min1, min2) + Math.Min(max1, max2)) / 2;
+
+                    // 在重疊中點處取兩牆面上的點
+                    double t1 = (s1b != s1a) ? (oMid - s1a) / (s1b - s1a) : 0.5;
+                    double t2 = (s2b != s2a) ? (oMid - s2a) / (s2b - s2a) : 0.5;
+                    t1 = Math.Max(0.01, Math.Min(0.99, t1));
+                    t2 = Math.Max(0.01, Math.Min(0.99, t2));
+
+                    XYZ p1 = line1.Evaluate(t1, true);
+                    XYZ p2 = line2.Evaluate(t2, true);
+
+                    // 建立詳圖線作為標註參考（沿走廊方向的短線）
+                    double tickLen = 0.5; // ~150mm
+                    DetailCurve dc1 = doc.Create.NewDetailCurve(view,
+                        Line.CreateBound(p1.Subtract(dir.Multiply(tickLen)), p1.Add(dir.Multiply(tickLen))));
+                    DetailCurve dc2 = doc.Create.NewDetailCurve(view,
+                        Line.CreateBound(p2.Subtract(dir.Multiply(tickLen)), p2.Add(dir.Multiply(tickLen))));
+
+                    // 標註線（連接兩牆面，沿走廊方向偏移）
+                    double offsetFt = 1.5; // ~450mm 偏移
+                    Line dimLine = Line.CreateBound(
+                        p1.Add(dir.Multiply(offsetFt)),
+                        p2.Add(dir.Multiply(offsetFt)));
+
+                    ReferenceArray refArray = new ReferenceArray();
+                    refArray.Append(dc1.GeometryCurve.Reference);
+                    refArray.Append(dc2.GeometryCurve.Reference);
+
+                    Dimension dim = doc.Create.NewDimension(view, dimLine, refArray);
+
+                    double widthMm = dim.Value.HasValue ? dim.Value.Value * 304.8 : pairWidths[k] * 304.8;
+                    widthMm = Math.Round(widthMm, 0);
+                    widthValues.Add(widthMm);
+
+                    measurements.Add(new
+                    {
+                        SegmentIndex = measurements.Count + 1,
+                        Width = widthMm,
+                        Length = Math.Round(pairAvgLens[k] * 304.8, 0),
+                        DimensionId = dim.Id.GetIdValue(),
+                        Point1 = new { X = Math.Round(p1.X * 304.8, 0), Y = Math.Round(p1.Y * 304.8, 0) },
+                        Point2 = new { X = Math.Round(p2.X * 304.8, 0), Y = Math.Round(p2.Y * 304.8, 0) },
+                        Method = "boundary_accurate",
+                        Compliant_1600 = widthMm >= 1600,
+                        Compliant_1200 = widthMm >= 1200
+                    });
+                }
+
+                trans.Commit();
+            }
+
+            string roomName = room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString() ?? "";
+            string roomNumber = room.get_Parameter(BuiltInParameter.ROOM_NUMBER)?.AsString() ?? "";
+            double minWidth = widthValues.Count > 0 ? widthValues.Min() : 0;
+
+            return new
+            {
+                RoomId = roomId,
+                RoomName = roomName,
+                RoomNumber = roomNumber,
+                Level = room.Level?.Name ?? "",
+                TotalSegments = measurements.Count,
+                MinWidth = minWidth,
+                AllPass_1600 = widthValues.All(w => w >= 1600),
+                AllPass_1200 = widthValues.All(w => w >= 1200),
+                Segments = measurements
+            };
         }
 
         /// <summary>

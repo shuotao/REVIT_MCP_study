@@ -85,6 +85,28 @@ npm run watch    # tsc --watch (development)
 - **Config storage**: `%AppData%\RevitMCP\config.json` (default port 8964)
 - **Logs**: `%AppData%\RevitMCP\Logs\RevitMCP_YYYYMMDD.log`
 
+## AI Guard Rails — MCP 工具鏈使用規則
+
+> **本專案已有完整的 Revit 通訊工具鏈，任何 AI 模型都 MUST 遵守以下規則。**
+
+### 禁止事項
+- **DO NOT** 自行撰寫 WebSocket 腳本連接 `ws://localhost:8964`
+- **DO NOT** 自行組裝 JSON 封包（`CommandName`/`Parameters`/`RequestId`）
+- **DO NOT** 繞過 MCP Server 直接與 Revit Add-in 通訊
+- **DO NOT** 用 `node -e` 或臨時腳本複製 MCP Server 已有的功能
+
+### 正確做法
+1. **查詢/操作 Revit** → 使用 MCP Server 已註冊的 tools（定義在 `MCP-Server/src/tools/*.ts`）
+2. **執行 BIM 合規流程** → 使用 Skills（`.claude/skills/*/SKILL.md`），它們會編排正確的 tool 呼叫順序
+3. **查閱法規知識** → 讀取 Domain 文件（`domain/*.md`）
+
+### 為什麼
+MCP Server 已封裝 50+ 個 tools，處理了格式轉換、錯誤處理、重連機制。自寫腳本會：
+- 繞過既有的錯誤處理與格式驗證
+- 產生 process 掛起（如自動重連導致無法退出）
+- 與 Revit API 的 PascalCase 欄位不一致而靜默失敗
+- 重造輪子，浪費使用者時間
+
 ## Domain vs Skill 架構原則
 
 本專案的 Domain 和 Skill 是不同角色，不是不同等級：
@@ -195,13 +217,14 @@ These rules ensure unified multi-version deployment. **Any AI assistant or code 
 - **DO NOT** create nested `MCP/MCP/` directories
 - **DO NOT** hardcode absolute DLL paths in `.addin` files (use relative `RevitMCP.dll` only)
 - **DO NOT** modify `<AddInId>` in `RevitMCP.addin` — duplicates cause Revit to load twice
+- **DO NOT** set `<DeployAddin>true</DeployAddin>` in csproj — Nice3point SDK 會自動產生 `RevitMCP.{version}.addin`，與手動的 `RevitMCP.addin` 衝突導致「重複 AddInId」錯誤
 
 ### Required Architecture
 - **ONE** `.csproj`: `MCP/RevitMCP.csproj` (Nice3point.Revit.Sdk, supports 2022-2026)
 - **ONE** `.addin`: `MCP/RevitMCP.addin` (version-agnostic, relative assembly path)
 - **ONE** install script: `scripts/install-addon.ps1` (primary, all versions)
 - Build config format: `Release.R{YY}` where YY = 22/23/24/25/26
-- `<DeployAddin>true</DeployAddin>` in csproj auto-deploys to correct Addins folder
+- `<DeployAddin>false</DeployAddin>` — 部署由 `setup.ps1` 或 `/deploy-addon` skill 負責
 
 ### Multi-Version Build
 ```
@@ -211,7 +234,7 @@ dotnet build -c Release.R24 → Revit 2024 (.NET Framework 4.8)
 dotnet build -c Release.R25 → Revit 2025 (.NET 8, ElementId=long)
 dotnet build -c Release.R26 → Revit 2026 (.NET 8, ElementId=long)
 ```
-Output to `bin\Release.R{YY}\RevitMCP.dll` (e.g. `bin\Release.R24\RevitMCP.dll`). Each version outputs to its own directory. Note: `<DeployAddin>true</DeployAddin>` in csproj auto-deploys to the correct Addins folder on Windows, so manual Copy-Item is usually unnecessary.
+Output to `bin\Release.R{YY}\RevitMCP.dll` (e.g. `bin\Release.R24\RevitMCP.dll`). Each version outputs to its own directory. Deploy using `setup.ps1` or `/deploy-addon` skill（`<DeployAddin>` 已關閉，不會自動部署）。
 
 ### Adding New Tools/Commands Safely
 When adding new `IExternalCommand` in `Commands/` folder:

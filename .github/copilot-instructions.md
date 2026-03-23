@@ -10,3 +10,5 @@ Key points:
 - Skills: `.claude/skills/*/SKILL.md` (Agent Skills open standard)
 - Domain: `domain/*.md` (BIM compliance workflows)
 - DO NOT create version-specific .csproj or .addin files
+- DO NOT write raw WebSocket scripts to talk to Revit — use the existing MCP tools (`MCP-Server/src/tools/*.ts`)
+- DO NOT bypass the MCP Server tool chain — use Skills (`.claude/skills/`) and Domain (`domain/`) for BIM workflows
