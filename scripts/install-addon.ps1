@@ -231,7 +231,7 @@ Write-Host ""
 # 定義來源檔案路徑 (統一建構：Nice3point.Revit.Sdk)
 # ⚠️ 本專案只使用 RevitMCP.csproj + RevitMCP.addin（統一多版本建構）
 # ⚠️ 禁止新增 RevitMCP.2024.csproj / RevitMCP.2024.addin 等版本特定檔案
-$sourceDllRelease = Join-Path $projectRoot "MCP\bin\Release\RevitMCP.dll"
+$sourceDllRelease = Join-Path $projectRoot "MCP\bin\$buildConfig\RevitMCP.dll"
 $sourceDllDebug = Join-Path $projectRoot "MCP\bin\Debug\RevitMCP.dll"
 $sourceAddin = Join-Path $projectRoot "MCP\RevitMCP.addin"
 
@@ -368,7 +368,7 @@ catch {
 }
 
 # 複製相依套件（如果存在）
-$sourceJson = Join-Path $projectRoot "MCP\bin\Release\Newtonsoft.Json.dll"
+$sourceJson = Join-Path $projectRoot "MCP\bin\$buildConfig\Newtonsoft.Json.dll"
 if (Test-Path $sourceJson) {
     try {
         Copy-Item -Path $sourceJson -Destination (Join-Path $addonPath "Newtonsoft.Json.dll") -Force -ErrorAction Stop

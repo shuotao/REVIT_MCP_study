@@ -713,7 +713,7 @@ else {
 
             # --- Deploy ---
             if (-not $skipDeployFlag) {
-                $dllSource = Join-Path $mcpDir "bin" "Release" "RevitMCP.dll"
+                $dllSource = Join-Path $mcpDir "bin" $config "RevitMCP.dll"
 
                 if (-not (Test-Path $dllSource)) {
                     Write-Fail "Revit $ver：找不到 RevitMCP.dll（編譯可能失敗）"
@@ -740,13 +740,13 @@ else {
                     Copy-Item -Path $addinSource -Destination (Join-Path $targetBase "RevitMCP.addin") -Force -ErrorAction Stop
 
                     # 複製 Newtonsoft.Json.dll（如果存在）
-                    $jsonDll = Join-Path $mcpDir "bin" "Release" "Newtonsoft.Json.dll"
+                    $jsonDll = Join-Path $mcpDir "bin" $config "Newtonsoft.Json.dll"
                     if (Test-Path $jsonDll) {
                         Copy-Item -Path $jsonDll -Destination (Join-Path $targetDllDir "Newtonsoft.Json.dll") -Force -ErrorAction SilentlyContinue
                     }
 
                     # 複製 ClosedXML.dll（如果存在）
-                    $closedXmlDll = Join-Path $mcpDir "bin" "Release" "ClosedXML.dll"
+                    $closedXmlDll = Join-Path $mcpDir "bin" $config "ClosedXML.dll"
                     if (Test-Path $closedXmlDll) {
                         Copy-Item -Path $closedXmlDll -Destination (Join-Path $targetDllDir "ClosedXML.dll") -Force -ErrorAction SilentlyContinue
                     }

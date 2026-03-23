@@ -49,7 +49,7 @@ dotnet build -c Release.R{YY} RevitMCP.csproj   # YY = 22/23/24/25/26
 
 After building, close Revit, then deploy DLL:
 ```powershell
-Copy-Item "bin/Release/RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\{version}\RevitMCP\" -Force
+Copy-Item "bin/Release.R{YY}/RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\{version}\RevitMCP\" -Force
 ```
 Or use `scripts/install-addon.ps1` for automated install.
 Or use Skills: `/build-revit` and `/deploy-addon`
@@ -211,7 +211,7 @@ dotnet build -c Release.R24 → Revit 2024 (.NET Framework 4.8)
 dotnet build -c Release.R25 → Revit 2025 (.NET 8, ElementId=long)
 dotnet build -c Release.R26 → Revit 2026 (.NET 8, ElementId=long)
 ```
-All output to `bin\Release\RevitMCP.dll`. Each build overwrites the previous. Deploy immediately after building for the target version.
+Output to `bin\Release.R{YY}\RevitMCP.dll` (e.g. `bin\Release.R24\RevitMCP.dll`). Each version outputs to its own directory. Note: `<DeployAddin>true</DeployAddin>` in csproj auto-deploys to the correct Addins folder on Windows, so manual Copy-Item is usually unnecessary.
 
 ### Adding New Tools/Commands Safely
 When adding new `IExternalCommand` in `Commands/` folder:
