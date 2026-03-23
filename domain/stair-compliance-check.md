@@ -2,7 +2,8 @@
 name: stair-compliance-check
 description: 同時檢討一般樓梯與無障礙樓梯的標準流程。當用戶提到「樓梯檢查」「無障礙樓梯」「梯級」「扶手」「淨高」時啟用。
 tags: [樓梯, 無障礙, 法規, QA, 建築技術規則]
-version: 2026-03-17
+version: 2026-03-23
+revit_versions: [2022, 2023, 2024, 2025, 2026]
 ---
 
 # 全樓梯法規檢討流程 (一般 + 無障礙)
@@ -58,6 +59,13 @@ version: 2026-03-17
 - get_active_view
 - set_active_view
 - create_dimension
+- create_section_view
+- create_stair_section_view
+- create_text_note
+- create_detail_lines
+- create_filled_region
+- get_stair_actual_width
+- check_stair_headroom
 - modify_element_parameter
 - override_element_graphics
 - clear_element_override
@@ -68,34 +76,36 @@ version: 2026-03-17
 
 違反 Hard Gate 視為流程錯誤，必須立即中止並重新從步驟 -1 開始。
 
-### 系統能力現況對齊（2026-03）
+### 系統能力現況對齊（2026-03 更新）
 
-為避免流程文件與實際工具能力脫鉤，執行前先套用以下對齊規則：
+為避免流程文件與實際工具能力脫鉤，執行前先套用以下對齊規則。本專案支援 **Revit 2022 至 2026** 版本（含 Revit 2025/2026 的 .NET 8 核心）。
 
-1. 已確認可用（本專案 `MCP-Server/src` + Revit Add-in 命令端皆有）：
-  - `get_active_schema`
-  - `get_category_fields`
-  - `get_field_values`
-  - `query_elements_with_filter`（由 MCP Server 映射到 `query_elements`）
-  - `get_all_levels`, `get_rooms_by_level`
-  - `get_all_views`, `get_active_view`, `set_active_view`
-  - `measure_distance`
-  - `create_dimension`
-  - `modify_element_parameter`
-  - `override_element_graphics`, `clear_element_override`
-2. 梯段寬度專用工具 `get_stair_run_widths` 採「條件可用」：
-  - 部分部署環境可用（例如已含 stair-tools 的執行環境）。
-  - 若環境未註冊該工具，不得假設可呼叫，須走本文件備援流程（`measure_distance` / `create_dimension` / `Manual-Review`）。
-3. 尚未提供通用工具：
-  - `create_section_view`
-  - `create_text_note`
-  - `query_stair_effective_width`
-  - `normalize_parameter_units`
-4. 參數回寫邊界：
-  - `modify_element_parameter` 僅能修改「既有參數值」，不包含建立新專案參數或共享參數。
-5. 顏色覆寫注意事項：
-  - `override_element_graphics` 支援 `patternMode = auto|cut|surface`（平面/天花圖偏切割樣式，其餘視圖偏表面樣式）。
-  - 大量元素上色建議序列化執行並於流程末端可選擇清除覆寫，避免殘留誤判。
+#### 1. 已確認可用工具（本專案專屬）
+| 工具名稱 | 分類 | 說明 | 替代做法 (若無此工具時) |
+|---|---|---|---|
+| `get_stair_actual_width` | 數據查詢 | 取代 `get_stair_run_widths`，直接讀取 `ActualRunWidth`。 | 使用 `get_field_values` 嘗試讀取，或以 `measure_distance` 手動量測。 |
+| `check_stair_headroom` | 幾何檢核 | **新開發**：自動執行 190cm 淨高碰撞檢核，回傳結果。 | 以 `measure_distance` 於梯段起點、中點、終點執行垂直量測。 |
+| `create_stair_section_view`| 視圖建立 | **新開發**：自動對齊梯段長向建立最佳剖面，用於標註。 | 使用 `create_section_view` 或手動在 Revit 建立剖面並命名供 AI 搜尋。 |
+| `create_dimension` | 標記標註 | 在指定視圖建立標註線。 | 僅於報告中紀錄數值，或請使用者在對應位置手動標註以便確認。 |
+| `create_text_note` | 標記標註 | 在指定視圖建立法規說明文字。 | 將結果寫入樓梯參數（如 `樓梯檢查成果`）或僅於對話中提示。 |
+| `create_detail_lines` | 標記標註 | 繪製指示線（如淨高線、有效帶）。 | 無。須改為文字描述或請使用者自行繪製。 |
+| `create_filled_region` | 標記標註 | 建立填充區域標示違規範圍。 | 使用 `override_element_graphics` 對元素上色（如紅色）來替代。 |
+
+#### 2. 核心底層工具（標準 MCP 能力）
+- `get_active_schema`, `get_category_fields` (確認品類與欄位)
+- `query_elements_with_filter` (取得樓梯集合)
+- `get_all_levels`, `get_rooms_by_level` (空間關係判斷)
+- `get_all_views`, `get_active_view`, `set_active_view` (視圖切換)
+- `measure_distance` (通用手動量測)
+- `modify_element_parameter` (回寫檢核結果)
+- `override_element_graphics`, `clear_element_override` (視覺化覆寫)
+
+#### 3. 參數回寫邊界
+- `modify_element_parameter` 僅能修改「既有參數值」，不包含自動建立新的「專案參數」或「共享參數」。請使用者預先建立 `樓梯檢查成果` 參數。
+
+#### 4. Revit 版本特性
+- **Revit 2022-2024**: 基於 .NET 4.8，ElementId 為 32 位元整數。
+- **Revit 2025-2026**: 基於 .NET 8，ElementId 已升級為 64 位元長整數 (long)。系統已在相容層自動處理。
 
 ---
 
@@ -469,16 +479,13 @@ AI：偵測到樓梯分類衝突。
 6. 報告需保留寬度證據：量測值、量測方法、視圖名稱或 ViewId、測點位置描述。
 
 目前正式做法（依工具可用性分流）：
-1. 若環境可用 `get_stair_run_widths`：
-  - 以 `get_stair_run_widths` 查詢樓梯梯段寬度（支援 Stair、StairsRun、MultistoryStairs 的 ElementId）。
-  - 讀取 `Stairs[].Runs[].ActualRunWidthMm`，直接參與法規比對。
-  - 同一樓梯若有多個梯段，取最小 `ActualRunWidthMm` 作為該樓梯 G-ST-001 判定值。
-  - 若回傳沒有可用 `ActualRunWidthMm`、或關聯無法解析，該樓梯 G-ST-001 一律標記 `Manual-Review`。
-  - 若需追溯來源，記錄 `LookupPath`、`WidthSource`、`RunElementId` 與 `Level`。
-2. 若環境不可用 `get_stair_run_widths`：
-  - 以 `measure_distance` + `create_dimension` 作為主要證據來源。
-  - 仍須遵守至少 3 測點與最小值判定規則。
-  - 若無法形成可追溯證據，一律標記 `Manual-Review`，不得自動 Pass/Fail。
+1. 若環境可用 `get_stair_actual_width`：
+  - 以 `get_stair_actual_width` 查詢。
+  - 讀取回傳的實際寬度（mm），參與法規比對。
+2. 若不可用 `get_stair_actual_width`（通用/手動替代之路）：
+  - **初階自動化**：使用 `get_field_values` 嘗試讀取 StairsRun 類型下的「ActualRunWidth」參數。
+  - **手動確證**：若參數無法讀取，使用 `measure_distance` 進行點對點量測（需配合 `create_dimension` 或由使用者手動標註）。
+  - 若無法形成可追溯證據（無點位資料），一律標記 `Manual-Review`。
 
 用途套用規則（影響 G-ST-001 / G-ST-002 / G-ST-003）：
 1. 未確認建築用途類組：不得進行自動合格判定，全部列入 `Manual-Review`。
@@ -550,32 +557,34 @@ AI：偵測到樓梯分類衝突。
 2. 新建立之剖面圖應納入報告，記錄其 ViewId / ViewName。
 3. 未建立剖面圖前，不得宣告該項標示作業完成。
 
-目前 MCP 工具限制（必須明記）：
-1. 目前已有 `create_dimension` 可建立尺寸標註。
-2. 目前尚無通用 `create_section_view` 工具可直接建立樓梯剖面圖。
-3. 目前尚無通用 `create_text_note` 工具可直接建立文字註記。
-4. 目前已有 `override_element_graphics` / `clear_element_override` 可做顏色覆寫（若使用者選擇 colorOverlay 或 hybrid）。
-5. `modify_element_parameter` 僅能回寫既有參數，不含建立新欄位。
-6. 因此在工具未補齊前，最低要求為：
-  - 先建立尺寸標註。
-  - 在報告與 `樓梯檢查成果` 內明確寫出「實際值 + 應有值」。
-  - 若缺剖面圖或文字註記工具，標註 `Annotation-Tool-Gap`，並列入待補作業。
+目前 MCP 工具能力（2026-03 更新）：
+1. **樓梯專題工具**：`get_stair_actual_width` (實體寬度查詢)、`check_stair_headroom` (自動化碰撞檢核)、`create_stair_section_view` (自動對齊長向剖面)。
+2. **標示與標記類**：`create_dimension` (尺寸線)、`create_text_note` (文字註解)、`create_detail_lines`與`create_filled_region` (詳圖線與色塊)。
+3. **視覺效果**：`override_element_graphics` (物件著色覆寫)。
+4. **無工具替代路徑 (Fallback)**：
+   - 若無法自動建立剖面，建議請使用者手動建立剖面視圖（視圖名稱包含「樓梯檢核」字樣以便搜尋）。
+   - 若無法建立標註，檢核報應紀錄數值證據，並引導使用者手動確認。
+   - 若無法於圖面標註，將缺失訊息寫入 `樓梯檢查成果` 參數中，引導使用者依 ID 搜尋定位。
 
-#### 尺寸標註執行 SOP（正式流程）
+標註最佳實踐：
+- 級高/級深標註：優先使用 `create_stair_section_view` 以確保剖面切在梯段正中間。
+- 標示原則：保持圖面整潔，若工具衝突或無法正確標註，優先回退並記錄於報告。
+- 參數回寫：始終保持 `樓梯檢查成果` 參數同步，作為最後一線的人機協作橋樑。
+
+#### 尺寸標註與視圖建立 SOP（正式流程）
 
 1. 先取得 Fail 樓梯與對應 Fail 規則清單。
 2. 依規則類型選擇合適視圖：
    - 淨寬：平面圖優先。
-   - 級高 / 級深：剖面圖、立面圖或樓梯詳圖優先。
+   - 級高 / 級深：優先使用 `create_stair_section_view` 建立專用剖面圖（若現有視圖不足以清晰表達）。
 3. 在選定視圖中建立尺寸標註，呈現實際值。
-4. 於尺寸旁建立文字說明，標示應有值與不合格原因。
-5. 若找不到可標示的對應視圖，應建立樓梯剖面圖；若目前工具無法建立，標註 `Annotation-Tool-Gap`。
-6. 完成後，抽查 1~2 座樓梯，確認尺寸與文字可讀、位置不互相遮擋。
+4. 於尺寸旁使用 `create_text_note` 建立文字說明，標示應有值與不合格原因。
+5. 完成後，抽查 1~2 座樓梯，確認尺寸與文字可讀、位置不互相遮擋。
 
 多視圖同步原則（防止只在單一視圖有標註）：
 - 最低要求：標註結果需出現在「目前作用視圖」或「最適合表達該違規項目的對應視圖」。
 - 若目前作用視圖不適合標該項尺寸，允許改用基準樓層視圖、頂部樓層視圖、既有剖面圖或樓梯詳圖。
-- 若仍找不到對應視圖，應建立樓梯剖面圖作為 Fail 標示視圖；若目前工具無法建立，需在報告中記錄缺漏並標註為 `Annotation-Tool-Gap`。
+- 若仍找不到對應視圖，**應強制使用** `create_stair_section_view` 建立樓梯剖面圖作為 Fail 標示視圖。
 
 檢查結果寫入策略（正式專案建議）：
 - 原則：不要預設寫入 `標記`、`備註`，避免與既有圖說流程衝突。
@@ -618,24 +627,20 @@ AI：偵測到樓梯分類衝突。
 
 ---
 
-## 工具映射建議
+## 工具映射與替代路徑建議
 
-| 目的 | 工具 |
-|---|---|
-| 確認可用品類 | get_active_schema |
-| 全專案範圍彙整 | get_all_views, query_elements_with_filter（逐視圖查詢後去重） |
-| 找對應標示視圖 | get_all_views, set_active_view |
-| 取得樓梯參數名稱 | get_category_fields |
-| 取得參數值分佈（輔助過濾/單位判讀） | get_field_values |
-| 查詢樓梯元素 | query_elements_with_filter |
-| 查詢梯段實際寬度（條件可用） | get_stair_run_widths |
-| 淨寬證據備援（通用） | measure_distance, create_dimension |
-| 取得樓層與房間 | get_all_levels, get_rooms_by_level |
-| 顏色/圖形覆寫（可選） | override_element_graphics, clear_element_override |
+| 目的 | MCP 專用路徑 (推薦) | 替代路徑 (若不具備專用工具) |
+|---|---|---|
+| 確認元件品類 | `get_active_schema` | 直接嘗試 `query_elements` 若失敗則報錯。 |
+| 建立檢查視圖 | `create_stair_section_view` | 使用者手冊：請手動建立剖面並命名為「樓梯檢核剖面」。 |
+| 判定實測淨寬 | `get_stair_actual_width` | 讀取 `ActualRunWidth` 參數，若無效則用 `measure_distance`。 |
+| 檢核垂直淨高 | `check_stair_headroom` | 使用 `measure_distance` 測量「起點、中點、終點」高度。 |
+| 產生圖面標註 | `create_dimension` + `create_text_note` | 產生 CSV/Excel 報告，由人工回 Revit 手工標註。 |
+| 高亮違規範圍 | `create_filled_region` | 使用 `override_element_graphics` 將違規樓梯變紅色。 |
+| 法規條文標示 | `create_text_note` | 將條文 ID (如 G-ST-001) 寫入樓梯的「註釋」欄位。 |
+| 手動證據留存 | `measure_distance` | 截圖當前畫面，並在對話中記錄數值。 |
 
 待擴充工具：
-- create_section_view（建立樓梯剖面圖）
-- create_text_note（建立文字註記）
 - query_stair_effective_width（輸入 Stair ElementId，直接回傳最小有效寬度與證據）
 - normalize_parameter_units（回傳 raw/internal/project 單位與 mm 統一值）
 
@@ -710,7 +715,7 @@ AI：偵測到樓梯分類衝突。
 
 ## 最後需求工具（未來進化：關聯查詢）
 
-若執行環境已啟用 `get_stair_run_widths`，可完成 Stair -> Runs 關聯查詢；後續建議優先補齊以下進化能力：
+若執行環境已啟用 `get_stair_actual_width`，可完成 Stair -> Runs 關聯查詢；後續建議優先補齊以下進化能力：
 1. 回傳每個 Run 的原始值與單位資訊（raw 值、內部單位、專案顯示值、mm）。
 2. 一鍵回傳「該樓梯最小有效寬度」與取值明細（runId、寬度、採用原因）。
 3. 批次查詢模式（一次輸入多個 Stair ElementId）。

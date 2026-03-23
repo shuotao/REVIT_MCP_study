@@ -277,8 +277,22 @@ namespace RevitMCP.Core
                     case "create_text_note":
                         result = CreateTextNote(parameters);
                         break;
+                    case "create_stair_text_note_with_leader":
+                        result = CreateTextNoteWithLeader(parameters);
+                        break;
                     case "export_smoke_review_excel":
                         result = ExportSmokeReviewExcel(parameters);
+                        break;
+
+                    // === 樓梯法規檢核模組 ===
+                    case "create_stair_section_view":
+                        result = CreateStairSectionView(parameters);
+                        break;
+                    case "get_stair_actual_width":
+                        result = GetStairActualWidth(parameters);
+                        break;
+                    case "check_stair_headroom":
+                        result = CheckStairHeadroom(parameters);
                         break;
 
                     default:
