@@ -29,7 +29,7 @@ A 5th "embedded" option bypasses the MCP Server entirely — a WPF chat window i
 | 行為指引 | CLAUDE.md | GEMINI.md → CLAUDE.md | .github/copilot-instructions.md |
 | Skills | `.claude/skills/SKILL.md` | `.gemini/skills/SKILL.md`（[官方文件](https://geminicli.com/docs/cli/skills/)） | instructions 引導 |
 | Domain 文件 | 共用 `domain/` | 共用 `domain/` | 共用 `domain/` |
-| MCP Tools | 共用 58 個工具 | 共用 58 個工具 | 共用 58 個工具 |
+| MCP Tools | 共用 55 個工具 | 共用 55 個工具 | 共用 55 個工具 |
 
 SKILL.md 格式遵循 [Agent Skills 開放標準](https://agentskills.io)（YAML frontmatter + Markdown body），Claude Code 與 Gemini CLI 皆原生支援。
 
@@ -67,13 +67,13 @@ npm run watch    # tsc --watch (development)
 | File | Role |
 |------|------|
 | `MCP/Application.cs` | Revit IExternalApplication entry point, creates ribbon panel |
-| `MCP/Core/CommandExecutor.cs` | Central command dispatcher (58 commands), largest file |
+| `MCP/Core/CommandExecutor.cs` | Central command dispatcher (59+ commands), largest file |
 | `MCP/Core/SocketService.cs` | HttpListener-based WebSocket server in Revit |
 | `MCP/Core/RevitCompatibility.cs` | Cross-version compatibility layer (ElementId int→long for 2025+) |
 | `MCP/Core/ExternalEventManager.cs` | Ensures commands execute on Revit UI thread |
 | `MCP-Server/src/index.ts` | MCP Server entry (StdioServerTransport) |
 | `MCP-Server/src/socket.ts` | RevitSocketClient — WebSocket client to Revit |
-| `MCP-Server/src/tools/` | Tool definitions (58 tools, 分 8 個模組) |
+| `MCP-Server/src/tools/` | Tool definitions (55 tools, 分 8 個模組) |
 | `scripts/setup.ps1` | One-click setup for new users (prereqs, build, deploy, AI config) |
 
 ## Code Conventions
@@ -176,7 +176,7 @@ All AI clients connect to the MCP Server via the same config format. Replace `{a
 | MCP Server connection failed | Wrong path or not built | Check absolute path in config, re-run `npm run build`, verify port 8964 free |
 | Commands not responding in Revit | Revit UI thread issue | Ensure `ExternalEventManager` is used; check `%AppData%\RevitMCP\Logs\` |
 
-## Domain Knowledge & Workflow Files（24 個）
+## Domain Knowledge & Workflow Files（26 個）
 
 The `domain/` directory contains BIM compliance workflows that AI must consult before executing related tasks:
 
