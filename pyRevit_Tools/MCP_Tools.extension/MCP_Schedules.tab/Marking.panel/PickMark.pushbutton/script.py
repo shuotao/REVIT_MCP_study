@@ -28,17 +28,32 @@ def get_mouse_screen_pos():
 
 
 def get_writable_mark_param(element):
-    try:
-        param = element.get_Parameter(DB.BuiltInParameter.ALL_MODEL_MARK)
-        if param and not param.IsReadOnly:
-            return param
-    except Exception:
-        pass
-
-    for param_name in ["Mark", "MARK"]:
+    """
+    Enhanced parameter lookup for MEP elements.
+    Includes Fabrication parts and custom MEP parameter names.
+    """
+    # 1. Standard Built-in Parameters (Language Independent)
+    bips = [
+        DB.BuiltInParameter.ALL_MODEL_MARK,
+        DB.BuiltInParameter.FBS_PART_MARK,          # Fabrication Parts
+        DB.BuiltInParameter.HOST_WRITABLE_ORDER_PARAM, # Shared Hosts
+    ]
+    
+    for bip in bips:
         try:
-            param = element.LookupParameter(param_name)
+            param = element.get_Parameter(bip)
             if param and not param.IsReadOnly:
+                return param
+        except Exception:
+            continue
+
+    # 2. MEP System Specific String Lookups
+    # Supports common Chinese/English MEP templates
+    mep_names = ["Mark", "MARK", "標記", "設備編號", "系統編號", "編號", "Tag"]
+    for name in mep_names:
+        try:
+            param = element.LookupParameter(name)
+            if param and not param.IsReadOnly and param.StorageType == DB.StorageType.String:
                 return param
         except Exception:
             pass
@@ -111,7 +126,9 @@ def pick_and_mark():
             with revit.Transaction("MCP: Auto Mark {}".format(mark_value)):
                 param = get_writable_mark_param(element)
                 if not param:
-                    forms.alert("This element does not have a writable Mark parameter.", title="Pick Mark")
+                    elem_cat = element.Category.Name if element.Category else "Unknown Category"
+                    msg = "Element [ID: {}] of Category [{}] does not have a writable Mark parameter.".format(element.Id, elem_cat)
+                    forms.alert(msg, title="Pick Mark Error")
                     continue
                 param.Set(mark_value)
         except Exception as ex:
