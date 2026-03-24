@@ -1,0 +1,27 @@
+﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MCP 編碼設定" Width="320" SizeToContent="Height"
+        ShowInTaskbar="False" WindowStartupLocation="CenterScreen" Background="#F5F5F5">
+    <Border Padding="15">
+        <StackPanel>
+            <Label Content="前綴 (Prefix):" FontWeight="Bold" FontSize="12"/>
+            <TextBox x:Name="prefix_box" Height="28" Margin="0,2,0,10" VerticalContentAlignment="Center" Background="White" BorderBrush="#CCCCCC"/>
+
+            <Label Content="流水號位數 (Padding):" FontWeight="Bold" FontSize="12"/>
+            <TextBox x:Name="padding_box" Height="28" Margin="0,2,0,10" VerticalContentAlignment="Center" Background="White" BorderBrush="#CCCCCC"/>
+
+            <Label Content="起始序號 (Start Index):" FontWeight="Bold" FontSize="12"/>
+            <TextBox x:Name="index_box" Height="28" Margin="0,2,0,10" VerticalContentAlignment="Center" Background="White" BorderBrush="#CCCCCC"/>
+
+            <Label Content="後綴 (Suffix):" FontWeight="Bold" FontSize="12"/>
+            <TextBox x:Name="suffix_box" Height="28" Margin="0,2,0,15" VerticalContentAlignment="Center" Background="White" BorderBrush="#CCCCCC"/>
+
+            <CheckBox x:Name="dialog_checkbox" Content="顯示完成提示視窗" FontWeight="Bold" Margin="0,0,0,20"/>
+
+            <Button x:Name="save_btn" Content="儲存設定" Height="35" Click="on_save"
+                    Background="#2196F3" Foreground="White" FontWeight="Bold" Cursor="Hand"
+                    BorderThickness="0"/>
+            <TextBlock Text="* 前綴可留白。位數輸入 1 代表不補零。" FontSize="10" Foreground="#666666" Margin="0,10,0,0" HorizontalAlignment="Center"/>
+        </StackPanel>
+    </Border>
+</Window>
