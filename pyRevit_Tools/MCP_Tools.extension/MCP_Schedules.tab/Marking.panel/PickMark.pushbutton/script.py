@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Pick elements and write incrementing Mark values."""
+"""按下後，標註模式生效，按下ESC可退出。 (Pick and Mark Elements)"""
 
 __title__ = "Pick Mark"
 __author__ = "MCP"
