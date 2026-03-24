@@ -29,28 +29,20 @@ def get_mouse_screen_pos():
 
 def get_writable_mark_param(element):
     """
-    Enhanced parameter lookup for MEP elements.
-    Includes Fabrication parts and custom MEP parameter names.
+    Find the standard Mark parameter.
+    Focus only on 'Mark' (Built-in) and Chinese '標記'.
     """
-    # 1. Standard Built-in Parameters (Language Independent)
-    bips = [
-        DB.BuiltInParameter.ALL_MODEL_MARK,
-        DB.BuiltInParameter.FBS_PART_MARK,          # Fabrication Parts
-        DB.BuiltInParameter.HOST_WRITABLE_ORDER_PARAM, # Shared Hosts
-    ]
-    
-    for bip in bips:
-        try:
-            param = element.get_Parameter(bip)
-            if param and not param.IsReadOnly:
-                return param
-        except Exception:
-            continue
+    # 1. Standard Built-in 'Mark' Parameter (Most robust)
+    try:
+        param = element.get_Parameter(DB.BuiltInParameter.ALL_MODEL_MARK)
+        if param and not param.IsReadOnly:
+            return param
+    except Exception:
+        pass
 
-    # 2. MEP System Specific String Lookups
-    # Supports common Chinese/English MEP templates
-    mep_names = ["Mark", "MARK", "標記", "設備編號", "系統編號", "編號", "Tag"]
-    for name in mep_names:
+    # 2. String lookup for 'Mark' or '標記'
+    lookups = ["Mark", "MARK", "標記"]
+    for name in lookups:
         try:
             param = element.LookupParameter(name)
             if param and not param.IsReadOnly and param.StorageType == DB.StorageType.String:
