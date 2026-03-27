@@ -125,6 +125,7 @@ connect ECONNREFUSED 127.0.0.1:8964
 1. 確認 Revit 已開啟
 2. 點擊 RevitMCP 按鈕（外部工具）
 3. 檢查 WebSocket 連接狀態
+4. 若顯示 Port 被 System (PID: 4) 佔用，以系統管理員執行 `scripts\release-port.ps1`
 
 ---
 

@@ -7,6 +7,7 @@
 #   3. 讓您選擇 Revit 版本（支援多選）
 #   4. 為每個版本編譯並部署 Revit Add-in
 #   5. 自動設定 AI 客戶端（Claude Desktop、Gemini CLI、VS Code）
+#   6. Port 8964 預檢與自動釋放（HTTP.sys 孤兒清理）
 # ============================================================================
 # 使用方式：
 #   初學者：雙擊 setup.bat 即可
@@ -36,7 +37,7 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 # ============================================================================
 $script:projectRoot = $null
 $script:results = @()
-$script:totalSteps = 7
+$script:totalSteps = 8
 $script:currentStep = 0
 
 # ============================================================================
@@ -930,7 +931,96 @@ else {
 }
 
 # ============================================================================
-# Phase 7: 安裝摘要
+# Phase 7: Port 預檢與釋放
+# ============================================================================
+
+Write-StepHeader "Port 預檢與釋放"
+
+Write-Host "    檢查 Port 8964 是否可用..." -ForegroundColor White
+
+$portInUse = $false
+try {
+    $listeners = [System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners()
+    $portInUse = ($listeners | Where-Object { $_.Port -eq 8964 }).Count -gt 0
+} catch {
+    $portInUse = $false
+}
+
+if (-not $portInUse) {
+    Write-OK "Port 8964 可用"
+    Add-Result "Port 8964" "OK" "Available"
+}
+else {
+    # 辨識佔用者
+    $occupantPid = 0
+    $occupantName = "unknown"
+    $netstatOutput = netstat -ano 2>$null | Select-String ":8964 "
+    foreach ($line in $netstatOutput) {
+        $parts = ($line.ToString().Trim()) -split '\s+'
+        if ($parts.Count -ge 5) {
+            $pid = [int]$parts[-1]
+            if ($pid -gt 0) {
+                $occupantPid = $pid
+                try { $occupantName = (Get-Process -Id $pid -ErrorAction SilentlyContinue).ProcessName } catch { }
+                break
+            }
+        }
+    }
+
+    Write-Host "    Port 8964 被 $occupantName (PID: $occupantPid) 佔用" -ForegroundColor Yellow
+
+    $released = $false
+
+    # Case 1: node/revitmcp 殭屍進程 — 直接 kill
+    if ($occupantName -match "node|revitmcp") {
+        Write-Host "    正在結束殭屍進程 $occupantName..." -ForegroundColor Yellow
+        try {
+            Stop-Process -Id $occupantPid -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Milliseconds 500
+            $released = -not (Test-Path function:Test-PortInUse) -or $true  # 簡化判斷
+            # 重新檢查
+            $listeners2 = [System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners()
+            $released = ($listeners2 | Where-Object { $_.Port -eq 8964 }).Count -eq 0
+        } catch { }
+    }
+
+    # Case 2: PID 4 (HTTP.sys 孤兒) — 重啟 HTTP 服務
+    if (-not $released -and $occupantPid -eq 4) {
+        Write-Host "    偵測到 HTTP.sys 孤兒 Request Queue（上次 Revit 異常關閉殘留）" -ForegroundColor Yellow
+
+        $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+        if ($isAdmin) {
+            Write-Host "    正在重啟 HTTP 服務以釋放 Port..." -ForegroundColor Yellow
+            try {
+                $null = net stop http /y 2>&1
+                Start-Sleep -Seconds 1
+                $null = net start http 2>&1
+                Start-Sleep -Milliseconds 500
+                $listeners3 = [System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners()
+                $released = ($listeners3 | Where-Object { $_.Port -eq 8964 }).Count -eq 0
+            } catch { }
+        }
+        else {
+            Write-Host "    需要系統管理員權限。請以系統管理員身分重新執行 setup.bat，" -ForegroundColor Red
+            Write-Host "    或手動執行: net stop http /y && net start http" -ForegroundColor Cyan
+        }
+    }
+
+    if ($released) {
+        Write-OK "Port 8964 已自動釋放"
+        Add-Result "Port 8964" "OK" "Auto-released from $occupantName"
+    }
+    else {
+        Write-Host "    [!!] Port 8964 釋放失敗" -ForegroundColor Red
+        Write-Host "    手動修復: powershell -File scripts\release-port.ps1" -ForegroundColor Cyan
+        Add-Result "Port 8964" "WARN" "Occupied by $occupantName (PID: $occupantPid)"
+    }
+}
+
+Write-Host ""
+
+# ============================================================================
+# Phase 8: 安裝摘要
 # ============================================================================
 
 Write-StepHeader "安裝摘要"

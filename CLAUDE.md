@@ -176,6 +176,7 @@ All AI clients connect to the MCP Server via the same config format. Replace `{a
 | 56 warnings on build (Revit 2024) | Normal — project uses 2022-compatible syntax | Ignore, does not affect functionality |
 | `RevitMCP.dll` not found after build | Wrong build config | Use `dotnet build -c Release.RXX RevitMCP.csproj` where XX = 22/23/24/25/26 |
 | MCP Server connection failed | Wrong path or not built | Check absolute path in config, re-run `npm run build`, verify port 8964 free |
+| Port 8964 被 System (PID: 4) 佔用 | Revit 異常關閉後 HTTP.sys 孤兒 Request Queue | 執行 `scripts\release-port.ps1`，或手動：`net stop http /y && net start http` |
 | Commands not responding in Revit | Revit UI thread issue | Ensure `ExternalEventManager` is used; check `%AppData%\RevitMCP\Logs\` |
 
 ## Domain Knowledge & Workflow Files（26 個）
@@ -252,8 +253,9 @@ When adding new `IExternalCommand` in `Commands/` folder:
 - `MCP-Server/scripts/` — Stable, reusable workflow scripts (e.g., `fire_rating_full.js`)
 - `MCP-Server/scratch/` — Temporary debug/one-off scripts
 - `scripts/` — Installation & deployment PowerShell scripts
-- `scripts/setup.ps1` — One-click full setup (prerequisites + build + deploy + AI config)
+- `scripts/setup.ps1` — One-click full setup (prerequisites + build + deploy + AI config + port check)
 - `scripts/setup.bat` — Double-click wrapper for setup.ps1 (bypasses ExecutionPolicy)
+- `scripts/release-port.ps1` — Release port 8964 from orphaned HTTP.sys binding (requires Admin for PID 4)
 
 ## CODEOWNERS
 

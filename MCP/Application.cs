@@ -59,6 +59,11 @@ namespace RevitMCP
                 // 初始化 ExternalEventManager (必須在 UI 執行緒建立)
                 _ = ExternalEventManager.Instance;
 
+                // 註冊 Process 退出事件 — Revit crash 時 OnShutdown 不會被呼叫，
+                // 但 ProcessExit 仍有機會觸發，確保 HttpListener 被釋放，
+                // 避免 HTTP.sys 孤兒 Request Queue 佔住 port。
+                AppDomain.CurrentDomain.ProcessExit += (s, e) => EmergencyStopSocket();
+
                 Logger.Info("RevitMCP Plugin 已成功載入");
 
                 TaskDialog.Show("RevitMCP", 
@@ -79,17 +84,32 @@ namespace RevitMCP
         {
             try
             {
-                // 停止 Socket 服務
-                if (_socketService != null)
-                {
-                    _socketService.Stop();
-                }
-                
+                EmergencyStopSocket();
                 return Result.Succeeded;
             }
             catch
             {
                 return Result.Failed;
+            }
+        }
+
+        /// <summary>
+        /// 緊急釋放 Socket 服務。同時被 OnShutdown 和 ProcessExit 呼叫，
+        /// 內部有 null check 防止重複執行。
+        /// </summary>
+        private static void EmergencyStopSocket()
+        {
+            try
+            {
+                if (_socketService != null)
+                {
+                    _socketService.Stop();
+                    _socketService = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"EmergencyStopSocket failed: {ex.Message}");
             }
         }
 

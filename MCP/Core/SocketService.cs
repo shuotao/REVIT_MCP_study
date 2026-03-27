@@ -58,12 +58,22 @@ namespace RevitMCP.Core
                         Thread.Sleep(500);
                         Logger.Info($"已自動結束 {occupantName} (PID: {occupantPid})，Port {_settings.Port} 已釋放");
                     }
+                    else if (occupantPid == 4 && TryReleaseHttpSysPort(_settings.Port))
+                    {
+                        // PID 4 = HTTP.sys 孤兒 Request Queue（Revit 異常關閉殘留）
+                        Logger.Info($"已透過 netsh 釋放 HTTP.sys 孤兒綁定，Port {_settings.Port} 已釋放");
+                    }
                     else
                     {
-                        string msg = $"Port {_settings.Port} 被 {occupantName} (PID: {occupantPid}) 佔用，且無法自動修復。\n\n"
-                                   + "請手動關閉該程式後重試。";
-                        Logger.Error(msg);
-                        TaskDialog.Show("Port 衝突", msg);
+                        string hint = occupantPid == 4
+                            ? $"Port {_settings.Port} 被 HTTP.sys (PID: 4) 佔用（上次異常關閉殘留）。\n\n"
+                              + "請以系統管理員身分在終端機執行：\n"
+                              + "  net stop http /y && net start http\n\n"
+                              + "或執行：scripts\\release-port.ps1"
+                            : $"Port {_settings.Port} 被 {occupantName} (PID: {occupantPid}) 佔用，且無法自動修復。\n\n"
+                              + "請手動關閉該程式後重試。";
+                        Logger.Error(hint);
+                        TaskDialog.Show("Revit MCP Plugin - Port 衝突", hint);
                         return;
                     }
                 }
@@ -335,6 +345,99 @@ namespace RevitMCP.Core
             }
 
             return (-1, "unknown");
+        }
+
+        /// <summary>
+        /// 嘗試透過 netsh 釋放 HTTP.sys 孤兒 Request Queue。
+        /// 當 PID 4 (System) 佔住 port 時，代表 HttpListener 上次沒有正常關閉，
+        /// HTTP.sys kernel driver 仍持有該 port 的綁定。
+        /// </summary>
+        private static bool TryReleaseHttpSysPort(int port)
+        {
+            try
+            {
+                // 嘗試刪除可能殘留的 URL ACL 保留
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "netsh",
+                    Arguments = $"http delete urlacl url=http://localhost:{port}/",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using (var proc = Process.Start(psi))
+                {
+                    proc.WaitForExit(5000);
+                }
+
+                // 也嘗試 http://+:port/ 格式
+                psi.Arguments = $"http delete urlacl url=http://+:{port}/";
+                using (var proc = Process.Start(psi))
+                {
+                    proc.WaitForExit(5000);
+                }
+
+                Thread.Sleep(500);
+
+                // 檢查是否已釋放
+                bool stillInUse = IPGlobalProperties.GetIPGlobalProperties()
+                    .GetActiveTcpListeners()
+                    .Any(ep => ep.Port == port);
+
+                if (!stillInUse)
+                {
+                    Logger.Info($"netsh urlacl 清除成功，Port {port} 已釋放");
+                    return true;
+                }
+
+                // urlacl 清除不夠，嘗試 net stop http（需要管理員權限）
+                Logger.Info("urlacl 清除後 port 仍被佔用，嘗試重啟 HTTP 服務...");
+
+                psi = new ProcessStartInfo
+                {
+                    FileName = "net",
+                    Arguments = "stop http /y",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using (var proc = Process.Start(psi))
+                {
+                    proc.WaitForExit(10000);
+                }
+
+                Thread.Sleep(1000);
+
+                psi.Arguments = "start http";
+                using (var proc = Process.Start(psi))
+                {
+                    proc.WaitForExit(10000);
+                }
+
+                Thread.Sleep(500);
+
+                stillInUse = IPGlobalProperties.GetIPGlobalProperties()
+                    .GetActiveTcpListeners()
+                    .Any(ep => ep.Port == port);
+
+                if (!stillInUse)
+                {
+                    Logger.Info($"HTTP 服務重啟成功，Port {port} 已釋放");
+                    return true;
+                }
+
+                Logger.Error($"HTTP 服務重啟後 Port {port} 仍被佔用");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"TryReleaseHttpSysPort 失敗: {ex.Message}");
+                return false;
+            }
         }
 
         /// <summary>
