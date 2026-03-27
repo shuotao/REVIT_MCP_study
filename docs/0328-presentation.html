@@ -13,6 +13,9 @@
   /* ===== RESET & BASE ===== */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
+  @media (max-width: 900px) {
+    html { scroll-snap-type: y proximity; }
+  }
   body {
     background: #000; color: #fff;
     font-family: 'Helvetica Neue', 'Inter', 'Noto Sans TC', sans-serif;
@@ -434,11 +437,6 @@
     max-width: 500px; line-height: 1.7;
   }
   .why-footer strong { color: rgba(255,255,255,0.6); }
-  @media (max-width: 900px) {
-    .why-page { padding: 40px 24px; }
-    .domain-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  }
-
   /* ===== SECTION DIVIDER ===== */
   .section-divider {
     padding: 40px 80px; text-align: center;
@@ -519,12 +517,6 @@
   .step-tag.every {
     color: rgba(251,191,36,0.8); background: rgba(251,191,36,0.1);
   }
-  @media (max-width: 900px) {
-    .setup-page { padding: 40px 24px; }
-    .setup-steps::before { left: 20px; }
-    .step-number { flex: 0 0 40px; height: 40px; font-size: 16px; }
-  }
-
   /* ===== DEPLOY GUIDE PAGE (Full-screen overlay) ===== */
   .deploy-guide {
     position: fixed; inset: 0; z-index: 300;
@@ -636,11 +628,6 @@
   }
   .deploy-guide.open ~ .deploy-back-btn,
   .deploy-back-btn.open { display: inline-flex; }
-  @media (max-width: 900px) {
-    .deploy-guide { padding: 40px 24px; }
-    .deploy-flow::before { left: 24px; }
-  }
-
   /* ===== ENDING PAGE ===== */
   .ending-page {
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
@@ -710,19 +697,106 @@
     from { transform: scale(0.9); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
   }
-  @media (max-width: 900px) {
-    .ending-page { padding: 40px 24px; }
-    .ending-inner { flex-direction: column; gap: 40px; }
-    .ending-lottery { flex: none; width: 100%; }
-  }
-
   /* ===== RESPONSIVE ===== */
   @media (max-width: 900px) {
-    .slide { padding: 40px 24px; }
+    /* --- Global mobile --- */
+    .slide { padding: 40px 24px; min-height: auto; }
+    .slide, .cover, .why-page, .setup-page, .ending-page {
+      scroll-snap-stop: normal;  /* 不再強制每頁必停 */
+    }
     .slide-inner { flex-direction: column; gap: 24px; }
     .slide-image { flex: none; max-width: 100%; }
     .drawer { width: 90%; padding: 32px 24px; }
-    .nav-dots { right: 12px; }
+    .nav-dots { right: 8px; gap: 6px; }
+    .nav-dot { width: 6px; height: 6px; }
+    .nav-dot.section-start { width: 9px; height: 9px; }
+
+    /* --- Cover mobile --- */
+    .cover {
+      padding: 32px 20px;
+      min-height: auto;
+      gap: 0;
+    }
+    .cover-eyebrow { font-size: 11px; letter-spacing: 4px; margin-bottom: 16px; }
+    .cover-title { font-size: 28px !important; letter-spacing: -0.5px; }
+    .cover-subtitle { font-size: 14px; margin-bottom: 24px; }
+    .cover-meta { gap: 16px; }
+    .cover-meta-label { font-size: 10px; }
+    .cover-meta-value { font-size: 13px; }
+    /* 社群 icon：垂直→水平一排 */
+    .cover > div:first-of-type {
+      flex-direction: column !important;
+      gap: 16px !important;
+    }
+    .cover > div:first-of-type > div:last-child {
+      flex-direction: row !important;
+      flex-wrap: wrap !important;
+      justify-content: center !important;
+      gap: 8px !important;
+    }
+    .cover > div:first-of-type > div:last-child a {
+      padding: 6px 10px !important;
+      font-size: 11px !important;
+      border-radius: 6px !important;
+    }
+    .cover > div:first-of-type > div:last-child a svg {
+      width: 16px !important;
+      height: 16px !important;
+    }
+    /* QR Code 縮小 */
+    .cover-qr { margin-top: 20px; }
+    .cover-qr img { width: 80px !important; height: 80px !important; }
+    .cover-qr-label { font-size: 11px; }
+    .cover-scroll-hint { bottom: 16px; font-size: 10px; }
+    /* 部署按鈕 */
+    .deploy-btn-cover { font-size: 13px; padding: 10px 20px; }
+
+    /* --- Why page mobile --- */
+    .why-page {
+      min-height: auto;
+      padding: 40px 20px;
+    }
+    .why-title { font-size: 24px; }
+    .why-subtitle { font-size: 13px; margin-bottom: 24px; }
+    .domain-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .domain-card { padding: 16px 12px; border-radius: 8px; }
+    .domain-card-icon { font-size: 24px; margin-bottom: 8px; }
+    .domain-card-label { font-size: 13px; }
+    .domain-card-sub { font-size: 10px; }
+    .why-footer { font-size: 12px; margin-top: 24px; }
+
+    /* --- Setup page mobile --- */
+    .setup-page {
+      min-height: auto;
+      padding: 40px 20px;
+    }
+    .setup-steps::before { left: 20px; }
+    .step-number { flex: 0 0 40px; height: 40px; font-size: 16px; }
+
+    /* --- Section divider mobile --- */
+    .section-divider {
+      padding: 24px 20px;
+      min-height: auto !important;
+    }
+
+    /* --- Slide content mobile --- */
+    .slide-title { font-size: 22px; }
+    .slide-summary { font-size: 13px; }
+    .slide-number { font-size: 11px; }
+
+    /* --- Deploy guide mobile --- */
+    .deploy-guide { padding: 32px 20px; }
+    .deploy-flow::before { left: 20px; }
+
+    /* --- Ending page mobile --- */
+    .ending-page { min-height: auto; padding: 40px 20px; }
+    .ending-inner { flex-direction: column; gap: 32px; }
+    .ending-lottery { flex: none; width: 100%; }
+    #lotteryNames { height: 120px; font-size: 13px; }
+    #lotteryExclude { height: 60px !important; font-size: 11px !important; }
   }
 </style>
 </head>
