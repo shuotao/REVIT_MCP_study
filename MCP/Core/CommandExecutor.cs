@@ -2254,12 +2254,17 @@ namespace RevitMCP.Core
         {
             if (string.IsNullOrEmpty(name)) return ElementId.InvalidElementId;
 
+            // 先用名稱比對
             foreach (Category cat in doc.Settings.Categories)
             {
-                if (cat.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || 
-                    cat.BuiltInCategory.ToString().Equals("OST_" + name, StringComparison.OrdinalIgnoreCase) ||
-                    cat.BuiltInCategory.ToString().Equals(name, StringComparison.OrdinalIgnoreCase))
+                if (cat.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                     return cat.Id;
+            }
+            // 再嘗試用 BuiltInCategory enum 比對（相容 Revit 2022）
+            BuiltInCategory bic;
+            if (Enum.TryParse("OST_" + name, true, out bic) || Enum.TryParse(name, true, out bic))
+            {
+                return new ElementId(bic);
             }
             return ElementId.InvalidElementId;
         }
@@ -2282,10 +2287,23 @@ namespace RevitMCP.Core
                     .Select(g => {
                         ElementId catId = new ElementId(g.Key);
                         Category cat = Category.GetCategory(doc, catId);
-                        return new { 
+                        string internalName = "Unknown";
+                        if (cat != null)
+                        {
+                            try
+                            {
+                                var bicVal = (BuiltInCategory)(int)(long)g.Key;
+                                if (Enum.IsDefined(typeof(BuiltInCategory), bicVal))
+                                    internalName = bicVal.ToString().Replace("OST_", "");
+                                else
+                                    internalName = cat.Name;
+                            }
+                            catch { internalName = cat.Name; }
+                        }
+                        return new {
                             Name = cat?.Name ?? "未知品類",
-                            InternalName = cat?.BuiltInCategory.ToString().Replace("OST_", "") ?? "Unknown",
-                            Count = g.Count() 
+                            InternalName = internalName,
+                            Count = g.Count()
                         };
                     })
                     .OrderByDescending(c => c.Count)

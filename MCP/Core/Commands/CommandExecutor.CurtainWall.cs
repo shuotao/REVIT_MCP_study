@@ -373,7 +373,7 @@ namespace RevitMCP.Core
                 throw new Exception("此牆不是帷幕牆");
 
             // 建立類型映射字典
-            var typeMappingDict = new Dictionary<string, int>();
+            var typeMappingDict = new Dictionary<string, IdType>();
             if (typeMapping != null)
             {
                 foreach (var prop in typeMapping.Properties())
@@ -465,7 +465,7 @@ namespace RevitMCP.Core
                         if (!panelGrid.ContainsKey((r, c))) continue;
 
                         // 取得目標類型 ID
-                        int targetTypeId = 0;
+                        IdType targetTypeId = 0;
                         var cellValue = rowData[c];
 
                         if (cellValue.Type == JTokenType.String)
