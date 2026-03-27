@@ -995,11 +995,11 @@ npm run build</code>
       <div class="step-number">6</div>
       <div class="step-body">
         <h3><span class="step-emoji">🔨</span>編譯 Revit Add-in<span class="step-tag every">每次更新都要做</span></h3>
-        <p>在終端機<strong>逐行</strong>輸入（版本號改成你的 Revit 版本）：</p>
-        <code class="step-cmd" style="white-space:pre-line;">cd C:\Users\你的使用者名稱\Desktop\REVIT_MCP_study\MCP
+        <p>你現在應該還在 MCP-Server 資料夾裡，先回上一層再進 MCP：</p>
+        <code class="step-cmd" style="white-space:pre-line;">cd ..\MCP
 dotnet build -c Release.R24 RevitMCP.csproj</code>
         <p style="margin-top:8px;font-size:12px;color:rgba(255,255,255,0.35);">
-          版本號對照：R22=2022, R23=2023, R24=2024, R25=2025, R26=2026<br>
+          版本號改成你的 Revit 版本 — R22=2022, R23=2023, R24=2024, R25=2025, R26=2026<br>
           或在 AI 對話中輸入：<code style="background:rgba(255,255,255,0.06);padding:1px 4px;border-radius:3px;">/build-revit --all</code>（一次編譯全部版本）
         </p>
       </div>
