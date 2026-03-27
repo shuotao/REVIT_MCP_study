@@ -1009,10 +1009,12 @@ dotnet build -c Release.R24 RevitMCP.csproj</code>
       <div class="step-number">7</div>
       <div class="step-body">
         <h3><span class="step-emoji">📂</span>部署 DLL 到 Revit</h3>
-        <p><strong style="color:#f87171;">先關掉 Revit！</strong>然後在終端機輸入（路徑和版本號改成你的）：</p>
-        <code class="step-cmd" style="white-space:pre-line;">Copy-Item "C:\Users\你的使用者名稱\Desktop\REVIT_MCP_study\MCP\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2024\RevitMCP\" -Force</code>
+        <p><strong style="color:#f87171;">先關掉 Revit！</strong>然後在終端機<strong>逐行</strong>輸入（版本號改成你的）：</p>
+        <code class="step-cmd" style="white-space:pre-line;">mkdir "$env:APPDATA\Autodesk\Revit\Addins\2024\RevitMCP" -Force
+Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2024\RevitMCP\" -Force</code>
         <p style="margin-top:8px;font-size:12px;color:rgba(255,255,255,0.35);">
-          路徑中的 R24 和 2024 要換成你的版本號。<br>
+          你應該還在上一步的 MCP 資料夾裡，所以路徑用 <code style="background:rgba(255,255,255,0.06);padding:1px 4px;border-radius:3px;">.\bin\</code> 就好。<br>
+          把兩行的 2024 和 R24 都換成你的版本號。<br>
           或在 AI 對話中輸入：<code style="background:rgba(255,255,255,0.06);padding:1px 4px;border-radius:3px;">/deploy-addon --version 2024</code>
         </p>
       </div>
