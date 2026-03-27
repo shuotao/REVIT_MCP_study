@@ -47,35 +47,44 @@ namespace RevitMCP.Core
             try
             {
                 // 啟動前檢查 Port 是否被佔用
-                var (occupantPid, occupantName) = GetPortOccupant(_settings.Port);
-                if (occupantPid > 0)
+                try
                 {
-                    Logger.Info($"Port {_settings.Port} 被 {occupantName} (PID: {occupantPid}) 佔用，嘗試自動修復...");
+                    var (occupantPid, occupantName) = GetPortOccupant(_settings.Port);
+                    if (occupantPid > 0)
+                    {
+                        Logger.Info($"Port {_settings.Port} 被 {occupantName} (PID: {occupantPid}) 佔用，嘗試自動修復...");
 
-                    if (TryAutoKillPortOccupant(occupantPid, occupantName))
-                    {
-                        // 等待 Port 釋放
-                        Thread.Sleep(500);
-                        Logger.Info($"已自動結束 {occupantName} (PID: {occupantPid})，Port {_settings.Port} 已釋放");
+                        if (TryAutoKillPortOccupant(occupantPid, occupantName))
+                        {
+                            // 等待 Port 釋放
+                            Thread.Sleep(500);
+                            Logger.Info($"已自動結束 {occupantName} (PID: {occupantPid})，Port {_settings.Port} 已釋放");
+                        }
+                        else if (occupantPid == 4 && TryReleaseHttpSysPort(_settings.Port))
+                        {
+                            // PID 4 = HTTP.sys 孤兒 Request Queue（Revit 異常關閉殘留）
+                            Logger.Info($"已透過 netsh 釋放 HTTP.sys 孤兒綁定，Port {_settings.Port} 已釋放");
+                        }
+                        else
+                        {
+                            string hint = occupantPid == 4
+                                ? $"Port {_settings.Port} 被 HTTP.sys (PID: 4) 佔用（上次異常關閉殘留）。\n\n"
+                                  + "請以系統管理員身分在終端機執行：\n"
+                                  + "  net stop http /y && net start http\n\n"
+                                  + "或執行：scripts\\release-port.ps1"
+                                : $"Port {_settings.Port} 被 {occupantName} (PID: {occupantPid}) 佔用，且無法自動修復。\n\n"
+                                  + "請手動關閉該程式後重試。";
+                            Logger.Error(hint);
+                            TaskDialog.Show("Revit MCP Plugin - Port 衝突", hint);
+                            return;
+                        }
                     }
-                    else if (occupantPid == 4 && TryReleaseHttpSysPort(_settings.Port))
-                    {
-                        // PID 4 = HTTP.sys 孤兒 Request Queue（Revit 異常關閉殘留）
-                        Logger.Info($"已透過 netsh 釋放 HTTP.sys 孤兒綁定，Port {_settings.Port} 已釋放");
-                    }
-                    else
-                    {
-                        string hint = occupantPid == 4
-                            ? $"Port {_settings.Port} 被 HTTP.sys (PID: 4) 佔用（上次異常關閉殘留）。\n\n"
-                              + "請以系統管理員身分在終端機執行：\n"
-                              + "  net stop http /y && net start http\n\n"
-                              + "或執行：scripts\\release-port.ps1"
-                            : $"Port {_settings.Port} 被 {occupantName} (PID: {occupantPid}) 佔用，且無法自動修復。\n\n"
-                              + "請手動關閉該程式後重試。";
-                        Logger.Error(hint);
-                        TaskDialog.Show("Revit MCP Plugin - Port 衝突", hint);
-                        return;
-                    }
+                }
+                catch (Exception portCheckEx)
+                {
+                    // GetActiveTcpListeners() 在部分 Windows 版本會拋出 PlatformNotSupportedException
+                    // 跳過 Port 檢查，直接嘗試啟動 HttpListener（若 Port 真的被佔用，Start() 會報錯）
+                    Logger.Info($"Port 預檢查不可用（{portCheckEx.GetType().Name}），跳過直接啟動");
                 }
 
                 _cancellationTokenSource = new CancellationTokenSource();
@@ -288,9 +297,18 @@ namespace RevitMCP.Core
         /// </summary>
         private static (int pid, string name) GetPortOccupant(int port)
         {
-            bool isInUse = IPGlobalProperties.GetIPGlobalProperties()
-                .GetActiveTcpListeners()
-                .Any(ep => ep.Port == port);
+            bool isInUse;
+            try
+            {
+                isInUse = IPGlobalProperties.GetIPGlobalProperties()
+                    .GetActiveTcpListeners()
+                    .Any(ep => ep.Port == port);
+            }
+            catch (PlatformNotSupportedException)
+            {
+                // 部分 Windows 版本不支援此 API，回傳「未佔用」讓 HttpListener 自行處理
+                return (0, null);
+            }
 
             if (!isInUse)
                 return (0, null);
