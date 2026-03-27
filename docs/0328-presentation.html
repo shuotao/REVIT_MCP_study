@@ -955,9 +955,14 @@
       <div class="step-number">4</div>
       <div class="step-body">
         <h3><span class="step-emoji">📦</span>編譯 MCP Server<span class="step-tag every">每次更新都要做</span></h3>
-        <p>重新安裝套件並編譯 TypeScript → JavaScript。</p>
-        <code class="step-cmd">cd MCP-Server && npm install && npm run build</code>
+        <p>重新安裝套件並編譯 TypeScript → JavaScript。<br>
+        請在終端機<strong>逐行</strong>輸入以下 3 行指令：</p>
+        <code class="step-cmd" style="white-space:pre-line;">cd C:\Users\你的使用者名稱\Desktop\REVIT_MCP_study\MCP-Server
+npm install
+npm run build</code>
         <p style="margin-top:8px;font-size:12px;color:rgba(255,255,255,0.35);">
+          ⚠️ 路徑要換成你自己的！例如使用者名稱是 Admin 就打 <code style="background:rgba(255,255,255,0.06);padding:1px 4px;border-radius:3px;">cd C:\Users\Admin\Desktop\REVIT_MCP_study\MCP-Server</code><br>
+          ⚠️ 不要用 <code style="background:rgba(255,255,255,0.06);padding:1px 4px;border-radius:3px;">&&</code> 串接指令 — PowerShell 5.1 不支援，會報錯<br>
           這是終端機指令，在 VS Code Terminal / PowerShell / Git Bash 都可以執行。<br>
           Gemini CLI 是對話介面，請另開終端機或叫 Gemini 幫你執行。
         </p>
