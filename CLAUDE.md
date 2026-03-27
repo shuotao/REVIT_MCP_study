@@ -162,9 +162,10 @@ All AI clients connect to the MCP Server via the same config format. Replace `{a
 
 | AI Client | Config File Location | Notes |
 |-----------|---------------------|-------|
-| Claude Desktop | `%APPDATA%\Claude\config.json` (Windows) | Restart app after edit |
+| Claude Desktop | `%APPDATA%\Claude\claude_desktop_config.json` (Windows) | Restart app after edit |
 | Gemini CLI | `~/.gemini/settings.json` | No restart needed |
 | VS Code Copilot | `.vscode/mcp.json` (project root) | Can use `${workspaceFolder}` instead of absolute path |
+| Claude Code (CLI) | `.mcp.json` (project root) | Restart session after edit, or use `claude mcp add` |
 
 > Run `npm run build` in `MCP-Server/` before first use. Verify port 8964 is free.
 

@@ -983,9 +983,13 @@ npm run build</code>
             <td style="padding:6px 0;color:rgba(255,255,255,0.5);">Gemini CLI</td>
             <td style="padding:6px 0;"><code>%USERPROFILE%\.gemini\settings.json</code></td>
           </tr>
-          <tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
             <td style="padding:6px 0;color:rgba(255,255,255,0.5);">VS Code Copilot</td>
             <td style="padding:6px 0;"><code>.vscode/mcp.json</code>（專案根目錄）</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:rgba(255,255,255,0.5);">Claude Code（CLI）</td>
+            <td style="padding:6px 0;"><code>.mcp.json</code>（專案根目錄）或執行 <code>claude mcp add revit-mcp --scope project -- node "路徑/build/index.js"</code></td>
           </tr>
         </table>
       </div>
@@ -1731,8 +1735,9 @@ npm run build</code><button class="copy-btn" onclick="copyCode(this)">複製</bu
     <tr><td>Claude Desktop</td><td><span class="copyable-path" onclick="copyText('%APPDATA%\\Claude\\claude_desktop_config.json')">%APPDATA%\Claude\claude_desktop_config.json</span></td><td>改完重開 Claude</td></tr>
     <tr><td>Gemini CLI</td><td><span class="copyable-path" onclick="copyText('%USERPROFILE%\\.gemini\\settings.json')">%USERPROFILE%\.gemini\settings.json</span></td><td>不用重開</td></tr>
     <tr><td>VS Code Copilot</td><td><span class="copyable-path" onclick="copyText('.vscode/mcp.json')">.vscode/mcp.json</span></td><td>放在專案根目錄</td></tr>
+    <tr><td>Claude Code（CLI）</td><td><span class="copyable-path" onclick="copyText('.mcp.json')">.mcp.json</span></td><td>放在專案根目錄，或用 <code>claude mcp add</code> 指令</td></tr>
   </table>
-  <p>設定內容（三個 Client 格式相同）：</p>
+  <p>設定內容（四個 Client 格式相同）：</p>
   <pre><code>{
   "mcpServers": {
     "revit-mcp": {
