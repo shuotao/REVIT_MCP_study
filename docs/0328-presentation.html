@@ -995,8 +995,15 @@ npm run build</code>
       <div class="step-number">6</div>
       <div class="step-body">
         <h3><span class="step-emoji">🔨</span>編譯 Revit Add-in</h3>
-        <p>使用 Skill 一鍵編譯，支援 Revit 2022-2026。</p>
+        <p>在 <strong style="color:#60a5fa">Claude Code 或 Gemini CLI 對話中</strong>輸入：</p>
         <code class="step-cmd">/build-revit --all</code>
+        <p style="margin-top:8px;font-size:12px;color:rgba(255,255,255,0.35);">
+          ⚠️ 這是 AI 對話指令（Skill），不是終端機指令！不要在 PowerShell 裡打。<br>
+          如果要在終端機手動編譯，請逐行輸入：
+        </p>
+        <code class="step-cmd" style="white-space:pre-line;font-size:12px;color:rgba(255,255,255,0.5);">cd C:\Users\你的使用者名稱\Desktop\REVIT_MCP_study\MCP
+dotnet build -c Release.R24 RevitMCP.csproj</code>
+        <p style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:4px;">版本號對照：R22=2022, R23=2023, R24=2024, R25=2025, R26=2026，改成你的 Revit 版本。</p>
       </div>
     </div>
 
@@ -1004,9 +1011,15 @@ npm run build</code>
       <div class="step-number">7</div>
       <div class="step-body">
         <h3><span class="step-emoji">📂</span>部署 DLL 到 Revit</h3>
-        <p>把編譯好的 DLL 複製到 Revit Add-ins 資料夾。版本號改成你的。</p>
+        <p>在 <strong style="color:#60a5fa">Claude Code 或 Gemini CLI 對話中</strong>輸入：</p>
         <code class="step-cmd">/deploy-addon --version <span style="color:#4ade80">你的版本</span></code>
-        <p style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:4px;">例如：/deploy-addon --version 2024 或 2025 或 2026</p>
+        <p style="margin-top:8px;font-size:12px;color:rgba(255,255,255,0.35);">
+          ⚠️ 這也是 AI 對話指令（Skill），不是終端機指令！<br>
+          例如：/deploy-addon --version 2024 或 2025 或 2026<br>
+          如果要在終端機手動部署（先關掉 Revit！）：
+        </p>
+        <code class="step-cmd" style="white-space:pre-line;font-size:12px;color:rgba(255,255,255,0.5);">Copy-Item "C:\Users\你的使用者名稱\Desktop\REVIT_MCP_study\MCP\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2024\RevitMCP\" -Force</code>
+        <p style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:4px;">路徑中的 R24 和 2024 要換成你的版本號。</p>
       </div>
     </div>
 
