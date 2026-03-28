@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code 速查表</title>
+<meta property="og:title" content="Claude Code 速查表 — 基礎篇 + 進階篇">
+<meta property="og:description" content="鍵盤快捷鍵、Slash 指令、MCP、Hooks、Agents、SDK、CI/CD 完整參考。v2.1.81 | 2026-03">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #000; color: #fff;
+    font-family: 'Helvetica Neue', 'Inter', 'Noto Sans TC', sans-serif;
+    line-height: 1.6; overflow-x: hidden;
+  }
+  ::selection { background: #fff; color: #000; }
+
+  /* ===== BACK LINK ===== */
+  .back-link {
+    position: fixed; top: 20px; left: 20px; z-index: 100;
+    display: inline-flex; align-items: center; gap: 6px;
+    color: rgba(255,255,255,0.4); text-decoration: none;
+    font-size: 13px; letter-spacing: 1px;
+    padding: 6px 14px; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 100px; backdrop-filter: blur(8px);
+    background: rgba(0,0,0,0.5); transition: all 0.3s;
+  }
+  .back-link:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+
+  /* ===== HEADER ===== */
+  .header {
+    text-align: center; padding: 80px 40px 24px;
+  }
+  .header-eyebrow {
+    font-size: 12px; letter-spacing: 6px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3); margin-bottom: 16px;
+  }
+  .header h1 {
+    font-size: 48px; font-weight: 800; letter-spacing: -1.5px;
+    margin-bottom: 8px;
+  }
+  .header-version {
+    font-size: 14px; color: rgba(255,255,255,0.35);
+  }
+  .header-source {
+    font-size: 12px; color: rgba(255,255,255,0.2); margin-top: 8px;
+  }
+
+  /* ===== TAB NAV ===== */
+  .tab-nav {
+    display: flex; justify-content: center; gap: 4px;
+    padding: 16px 40px 0; position: sticky; top: 0; z-index: 50;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding-bottom: 16px;
+  }
+  .tab-btn {
+    background: none; border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.5); padding: 8px 24px; border-radius: 100px;
+    cursor: pointer; font-size: 14px; font-weight: 600;
+    font-family: inherit; transition: all 0.3s; letter-spacing: 0.5px;
+  }
+  .tab-btn:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+  .tab-btn.active {
+    background: #fff; color: #000; border-color: #fff;
+  }
+
+  /* ===== SECTION ===== */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .section {
+    max-width: 1200px; margin: 0 auto; padding: 40px 40px 0;
+  }
+  .section-title {
+    font-size: 11px; letter-spacing: 5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.25); margin-bottom: 20px; padding-left: 4px;
+  }
+
+  /* ===== CARD GRID ===== */
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px; margin-bottom: 40px;
+  }
+  .card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 24px; transition: all 0.3s;
+  }
+  .card:hover {
+    border-color: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05);
+  }
+  .card h3 {
+    font-size: 16px; font-weight: 700; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card h3 .card-icon {
+    font-size: 18px; opacity: 0.7;
+  }
+
+  /* ===== TABLE ===== */
+  .card table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+  }
+  .card th, .card td {
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 8px 12px; text-align: left;
+  }
+  .card th {
+    background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.7);
+    font-weight: 600; font-size: 12px; letter-spacing: 0.5px;
+  }
+  .card td { color: rgba(255,255,255,0.6); }
+  .card td code {
+    font-family: 'SF Mono','Fira Code','Consolas',monospace;
+    font-size: 12px; background: rgba(96,165,250,0.1);
+    color: #60a5fa; padding: 1px 6px; border-radius: 3px;
+  }
+
+  /* ===== CODE BLOCK ===== */
+  .card pre {
+    background: #111; border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px; padding: 12px 16px; margin: 10px 0 0;
+    overflow-x: auto; position: relative;
+  }
+  .card code {
+    font-family: 'SF Mono','Fira Code','Consolas',monospace;
+    font-size: 12px; color: #e0e0e0; line-height: 1.7;
+  }
+  .card p code {
+    background: rgba(96,165,250,0.1); color: #60a5fa;
+    padding: 1px 6px; border-radius: 3px;
+  }
+
+  /* ===== MISC ===== */
+  .card p {
+    font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.7;
+    margin-bottom: 8px;
+  }
+  .card ul {
+    padding-left: 16px; margin: 8px 0;
+  }
+  .card li {
+    font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.8;
+    margin-bottom: 2px;
+  }
+  .card .tip {
+    margin-top: 12px; padding: 10px 14px;
+    background: rgba(96,165,250,0.06);
+    border-left: 3px solid rgba(96,165,250,0.4);
+    border-radius: 0 6px 6px 0; font-size: 12px;
+    color: rgba(255,255,255,0.5); line-height: 1.7;
+  }
+  .card .tip strong { color: rgba(96,165,250,0.9); }
+  .card .quote {
+    margin-top: 10px; font-size: 12px; font-style: italic;
+    color: rgba(255,255,255,0.3);
+  }
+
+  /* ===== FULL WIDTH CARD ===== */
+  .card-full {
+    grid-column: 1 / -1;
+  }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    text-align: center; padding: 48px 40px 60px;
+    font-size: 12px; color: rgba(255,255,255,0.2);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin-top: 40px;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .header { padding: 60px 20px 16px; }
+    .header h1 { font-size: 28px; }
+    .tab-nav { padding: 12px 16px 12px; gap: 6px; }
+    .tab-btn { padding: 6px 16px; font-size: 12px; }
+    .section { padding: 24px 16px 0; }
+    .card-grid { grid-template-columns: 1fr; gap: 12px; }
+    .card { padding: 18px; }
+    .back-link { top: 12px; left: 12px; font-size: 11px; padding: 4px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<a class="back-link" href="0328-presentation.html#slide-7-1">&larr; 回到簡報</a>
+
+<!-- ===== HEADER ===== -->
+<div class="header">
+  <div class="header-eyebrow">Cheatsheet</div>
+  <h1>Claude Code 速查表</h1>
+  <div class="header-version">v2.1.81 | 2026-03</div>
+  <div class="header-source">資料來源：Anthropic 官方文件 + 社群研究</div>
+</div>
+
+<!-- ===== TAB NAV ===== -->
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('basic')">基礎篇</button>
+  <button class="tab-btn" onclick="switchTab('advanced')">進階篇</button>
+</nav>
+
+<!-- ============================================================ -->
+<!-- BASIC TAB -->
+<!-- ============================================================ -->
+<div class="tab-content active" id="tab-basic">
+
+<div class="section">
+  <div class="section-title">Input &amp; Navigation</div>
+  <div class="card-grid">
+
+    <!-- Keyboard Shortcuts -->
+    <div class="card">
+      <h3><span class="card-icon">&#9000;</span> 鍵盤快捷鍵</h3>
+      <table>
+        <tr><th>按鍵</th><th>功能</th></tr>
+        <tr><td><code>!</code></td><td>Bash 模式（直接輸入 shell 指令）</td></tr>
+        <tr><td><code>@</code></td><td>提及檔案 / 資料夾</td></tr>
+        <tr><td><code>\</code></td><td>換行（多行輸入）</td></tr>
+        <tr><td><code>Esc</code></td><td>中斷目前操作</td></tr>
+        <tr><td><code>Esc x2</code></td><td>Rewind 選單（回溯對話/程式碼）</td></tr>
+        <tr><td><code>Ctrl+R</code></td><td>顯示完整輸出 context</td></tr>
+        <tr><td><code>Ctrl+V</code></td><td>貼上圖片</td></tr>
+        <tr><td><code>Ctrl+T</code></td><td>查看 tasks / todos</td></tr>
+        <tr><td><code>Ctrl+B</code></td><td>把目前任務移到背景</td></tr>
+        <tr><td><code>Shift+Tab</code></td><td>Auto-accept（自動核准工具呼叫）</td></tr>
+      </table>
+    </div>
+
+    <!-- Slash Commands: Context -->
+    <div class="card">
+      <h3><span class="card-icon">/</span> Slash 指令 — Context 管理</h3>
+      <table>
+        <tr><th>指令</th><th>功能</th></tr>
+        <tr><td><code>/compact</code></td><td>壓縮 context（釋放 token）</td></tr>
+        <tr><td><code>/context</code></td><td>視覺化 context 使用量</td></tr>
+        <tr><td><code>/resume</code></td><td>恢復上一次對話</td></tr>
+        <tr><td><code>/branch</code></td><td>從目前對話建立分支</td></tr>
+        <tr><td><code>/clear</code></td><td>清除對話</td></tr>
+        <tr><td><code>/rewind</code></td><td>回溯到之前的對話狀態</td></tr>
+      </table>
+    </div>
+
+    <!-- Slash Commands: Model -->
+    <div class="card">
+      <h3><span class="card-icon">&#9881;</span> Slash 指令 — 模型控制</h3>
+      <table>
+        <tr><th>指令</th><th>功能</th></tr>
+        <tr><td><code>/model</code></td><td>切換模型 (Opus/Sonnet/Haiku)</td></tr>
+        <tr><td><code>/fast</code></td><td>快速模式（同模型、更快輸出）</td></tr>
+        <tr><td><code>/effort</code></td><td>調整推理強度</td></tr>
+      </table>
+    </div>
+
+    <!-- Slash Commands: Dev -->
+    <div class="card">
+      <h3><span class="card-icon">&#128736;</span> Slash 指令 — 開發流程</h3>
+      <table>
+        <tr><th>指令</th><th>功能</th></tr>
+        <tr><td><code>/diff</code></td><td>查看未 commit 的變更</td></tr>
+        <tr><td><code>/plan</code></td><td>進入規劃模式</td></tr>
+        <tr><td><code>/pr-comments</code></td><td>讀取 GitHub PR 評論</td></tr>
+        <tr><td><code>/btw</code></td><td>附帶問題（不消耗 context）</td></tr>
+        <tr><td><code>/loop</code></td><td>排程重複執行任務</td></tr>
+        <tr><td><code>/voice</code></td><td>語音模式（20 種語言）</td></tr>
+      </table>
+    </div>
+
+    <!-- Slash Commands: Settings -->
+    <div class="card">
+      <h3><span class="card-icon">&#128273;</span> Slash 指令 — 管理與設定</h3>
+      <table>
+        <tr><th>指令</th><th>功能</th></tr>
+        <tr><td><code>/add-dir</code></td><td>新增工作目錄</td></tr>
+        <tr><td><code>/agents</code></td><td>查看可用 agents</td></tr>
+        <tr><td><code>/config</code></td><td>編輯設定</td></tr>
+        <tr><td><code>/mcp</code></td><td>管理 MCP servers</td></tr>
+        <tr><td><code>/memory</code></td><td>管理持久記憶</td></tr>
+        <tr><td><code>/permissions</code></td><td>管理權限</td></tr>
+        <tr><td><code>/sandbox</code></td><td>沙箱環境</td></tr>
+        <tr><td><code>/vim</code></td><td>Vim 模式</td></tr>
+      </table>
+    </div>
+
+    <!-- Custom Commands & Skills -->
+    <div class="card">
+      <h3><span class="card-icon">&#9997;</span> 自訂指令 &amp; Skills</h3>
+      <p>在 <code>.claude/commands/</code> 放 <code>.md</code> 檔，以 <code>/my-command arg1</code> 呼叫</p>
+      <pre><code># .claude/commands/my-command.md
+執行任務：$ARGUMENTS</code></pre>
+      <p style="margin-top:12px;">Skills 放在 <code>.claude/skills/</code>，由模型自動觸發，不需手動呼叫</p>
+      <table style="margin-top:10px;">
+        <tr><th>內建 Skill</th><th>功能</th></tr>
+        <tr><td><code>/simplify</code></td><td>3 個平行 agent 做 code review</td></tr>
+        <tr><td><code>/batch</code></td><td>跨多個 worktrees 平行重構</td></tr>
+        <tr><td><code>/debug</code></td><td>標準除錯工作流</td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Infrastructure</div>
+  <div class="card-grid">
+
+    <!-- Headless -->
+    <div class="card">
+      <h3><span class="card-icon">&#9654;</span> Headless 模式（自動化/CI）</h3>
+      <pre><code>claude --print "修復所有 lint 錯誤"
+claude -p "分析程式碼" --output-format json
+claude -p "重構模組" --max-turns 5
+echo "解釋這段 code" | claude -p</code></pre>
+    </div>
+
+    <!-- MCP -->
+    <div class="card">
+      <h3><span class="card-icon">&#128268;</span> MCP (Model Context Protocol)</h3>
+      <table>
+        <tr><th>傳輸</th><th>說明</th></tr>
+        <tr><td>HTTP</td><td>穩定、跨機器（生產環境）</td></tr>
+        <tr><td>STDIO</td><td>快速、本地（本地開發）</td></tr>
+        <tr><td>SSE</td><td>事件推送（即時串流）</td></tr>
+      </table>
+      <table style="margin-top:10px;">
+        <tr><th>設定範圍</th><th>檔案</th></tr>
+        <tr><td>全域</td><td><code>~/.claude.json</code></td></tr>
+        <tr><td>專案</td><td><code>.mcp.json</code></td></tr>
+        <tr><td>使用者</td><td><code>~/.claude/settings.json</code></td></tr>
+      </table>
+      <pre><code>claude mcp add &lt;name&gt; &lt;command&gt;
+claude mcp list
+claude mcp remove &lt;name&gt;</code></pre>
+    </div>
+
+    <!-- Agents -->
+    <div class="card">
+      <h3><span class="card-icon">&#129302;</span> Agents（子代理）</h3>
+      <p>在 <code>.claude/agents/</code> 建立 <code>.md</code> 檔，獨立 context、可限制工具權限</p>
+      <p>內建模板：<code>code-reviewer</code> <code>debugger</code> <code>data-scientist</code></p>
+    </div>
+
+    <!-- Git Worktrees -->
+    <div class="card">
+      <h3><span class="card-icon">&#128194;</span> Git Worktrees（平行開發）</h3>
+      <pre><code>git worktree add &lt;path&gt; &lt;branch&gt;
+git worktree list
+git worktree remove &lt;path&gt;</code></pre>
+    </div>
+
+    <!-- Hooks -->
+    <div class="card">
+      <h3><span class="card-icon">&#128295;</span> Hooks（事件自動化）</h3>
+      <table>
+        <tr><th>Hook</th><th>觸發時機</th></tr>
+        <tr><td><code>PreToolUse</code></td><td>工具呼叫前</td></tr>
+        <tr><td><code>PostToolUse</code></td><td>工具呼叫後</td></tr>
+        <tr><td><code>UserPromptSubmit</code></td><td>使用者送出提示後</td></tr>
+        <tr><td><code>Notification</code></td><td>通知觸發</td></tr>
+        <tr><td><code>Stop</code></td><td>停止時</td></tr>
+        <tr><td><code>SubagentStop</code></td><td>子代理停止時</td></tr>
+        <tr><td><code>PreCompact</code></td><td>壓縮 context 前</td></tr>
+        <tr><td><code>SessionStart</code></td><td>Session 開始</td></tr>
+        <tr><td><code>SessionEnd</code></td><td>Session 結束</td></tr>
+      </table>
+    </div>
+
+    <!-- Permissions -->
+    <div class="card">
+      <h3><span class="card-icon">&#128274;</span> 權限管理</h3>
+      <table>
+        <tr><th>等級</th><th>說明</th></tr>
+        <tr><td>Basic</td><td>常用開發指令允許，敏感檔案阻擋</td></tr>
+        <tr><td>Strict</td><td>最大限制，適合生產環境</td></tr>
+        <tr><td>Enterprise</td><td>MCP 控制，企業級管理</td></tr>
+      </table>
+      <div class="tip">權限類型：<code>allow</code> <code>ask</code> <code>deny</code>，支援 bash command pattern matching</div>
+    </div>
+
+    <!-- Checkpoint & Settings -->
+    <div class="card">
+      <h3><span class="card-icon">&#128190;</span> Checkpoint &amp; 設定優先順序</h3>
+      <p>自動追蹤變更建立回溯點，<code>Esc x2</code> 或 <code>/rewind</code> 開啟回溯選單</p>
+      <div class="tip"><strong>注意：</strong>Bash 指令和外部編輯器的修改不會被 checkpoint 捕捉</div>
+      <p style="margin-top:12px;font-weight:600;color:rgba(255,255,255,0.7);">設定載入順序（高 &rarr; 低）</p>
+      <ol style="padding-left:16px;">
+        <li><code>/etc/claude-code/managed-settings.json</code>（企業）</li>
+        <li><code>.claude/settings.local.json</code>（專案本地）</li>
+        <li><code>.claude/settings.json</code>（專案共用）</li>
+        <li><code>~/.claude/settings.json</code>（使用者全域）</li>
+      </ol>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /tab-basic -->
+
+<!-- ============================================================ -->
+<!-- ADVANCED TAB -->
+<!-- ============================================================ -->
+<div class="tab-content" id="tab-advanced">
+
+<div class="section">
+  <div class="section-title">CLI &amp; Configuration</div>
+  <div class="card-grid">
+
+    <!-- CLI Advanced -->
+    <div class="card">
+      <h3><span class="card-icon">&#9000;</span> CLI 進階參數</h3>
+      <table>
+        <tr><th>參數</th><th>功能</th></tr>
+        <tr><td><code>--allowedTools</code></td><td>白名單：只允許指定工具</td></tr>
+        <tr><td><code>--disallowedTools</code></td><td>黑名單：禁止指定工具</td></tr>
+        <tr><td><code>--permission-mode</code></td><td>default | acceptEdits | plan | dontAsk | bypass</td></tr>
+        <tr><td><code>--dangerously-skip-*</code></td><td>跳過所有確認</td></tr>
+        <tr><td><code>--resume &lt;name&gt;</code></td><td>恢復指定名稱的 session</td></tr>
+        <tr><td><code>-c / --continue</code></td><td>恢復最近一次對話</td></tr>
+        <tr><td><code>--model &lt;id&gt;</code></td><td>指定模型</td></tr>
+        <tr><td><code>--worktree / -w</code></td><td>在獨立 git worktree 中啟動</td></tr>
+        <tr><td><code>--tmux</code></td><td>在獨立 tmux session</td></tr>
+        <tr><td><code>--session-id &lt;uuid&gt;</code></td><td>Headless 多輪對話</td></tr>
+        <tr><td><code>--output-format</code></td><td>text | json | stream-json</td></tr>
+        <tr><td><code>--max-turns N</code></td><td>限制最大對話輪數</td></tr>
+      </table>
+    </div>
+
+    <!-- Env Vars -->
+    <div class="card">
+      <h3><span class="card-icon">$</span> 環境變數</h3>
+      <table>
+        <tr><th>變數</th><th>功能</th></tr>
+        <tr><td><code>..USE_BEDROCK=1</code></td><td>啟用 AWS Bedrock</td></tr>
+        <tr><td><code>..USE_VERTEX=1</code></td><td>啟用 Google Vertex AI</td></tr>
+        <tr><td><code>ANTHROPIC_MODEL</code></td><td>全域預設模型 ID</td></tr>
+        <tr><td><code>..DEFAULT_*_MODEL</code></td><td>按角色指定模型</td></tr>
+        <tr><td><code>..MAX_TURNS</code></td><td>Headless 最大輪數</td></tr>
+        <tr><td><code>..MAX_OUTPUT_TOKENS</code></td><td>單次回應最大 token（預設 32K）</td></tr>
+        <tr><td><code>..AUTOCOMPACT_PCT</code></td><td>自動壓縮觸發 %（預設 ~83%）</td></tr>
+        <tr><td><code>..DISABLE_NONESSENTIAL_*</code></td><td>關閉遙測/更新（離線環境）</td></tr>
+      </table>
+      <div class="tip"><code>..</code> = <code>CLAUDE_CODE_</code> 前綴</div>
+    </div>
+
+    <!-- Thinking -->
+    <div class="card">
+      <h3><span class="card-icon">&#129504;</span> Thinking 層級觸發</h3>
+      <table>
+        <tr><th>觸發詞</th><th>效果</th></tr>
+        <tr><td><code>think</code></td><td>最低層級（快速回應）</td></tr>
+        <tr><td><code>think hard</code></td><td>中等思考</td></tr>
+        <tr><td><code>think harder</code></td><td>深度思考</td></tr>
+        <tr><td><code>think very hard</code></td><td>更深度思考</td></tr>
+        <tr><td><code>ultrathink</code></td><td>最大 thinking token 預算</td></tr>
+      </table>
+      <table style="margin-top:12px;">
+        <tr><th>/effort</th><th>適用場景</th></tr>
+        <tr><td><code>/effort low</code></td><td>改名/錯字等簡單任務</td></tr>
+        <tr><td><code>/effort medium</code></td><td>日常開發（預設）</td></tr>
+        <tr><td><code>/effort high</code></td><td>多檔重構</td></tr>
+        <tr><td><code>/effort max</code></td><td>架構決策（token 消耗可達 10x）</td></tr>
+      </table>
+      <div class="tip">簡單問題用高 effort 不會更好，只會更慢更貴</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Best Practices</div>
+  <div class="card-grid">
+
+    <!-- CLAUDE.md -->
+    <div class="card">
+      <h3><span class="card-icon">&#128220;</span> CLAUDE.md 最佳實踐</h3>
+      <ul>
+        <li>控制在 &lt; 200 行，超過後遵從率下降</li>
+        <li>用 <code>MUST</code> / <code>NEVER</code> 強制語氣（比 "Prefer X" 有效 3 倍）</li>
+        <li>結構：WHAT（技術棧）&rarr; WHY（目的）&rarr; HOW（工作方式）</li>
+        <li>每條規則自問：移除會讓 Claude 犯錯嗎？不會就刪</li>
+        <li>分層放置：根目錄 + 子目錄各自 CLAUDE.md</li>
+        <li>用 <code>@path/to/file</code> 引入額外檔案，避免主檔過長</li>
+        <li>用 <code>/init</code> 自動生成初版，再手動精修</li>
+        <li>commit 進 git，團隊共維，月度 review 更新</li>
+      </ul>
+      <div class="quote">"Claude 做錯就加進 CLAUDE.md" &mdash; Boris</div>
+    </div>
+
+    <!-- Context Management -->
+    <div class="card">
+      <h3><span class="card-icon">&#128200;</span> Context 管理策略</h3>
+      <ul>
+        <li>在 70-80% 時手動 <code>/compact</code>（比自動壓縮品質好）</li>
+        <li>Subagent 探索：主 context 只收 ~2K 摘要（省 93%）</li>
+        <li>停用不用的 MCP（幾個就能吃掉 30%+ 窗口）</li>
+        <li>給精確檔案路徑比模糊描述省 10 倍 context</li>
+        <li>30-45 分鐘 session &gt; 馬拉松 session</li>
+        <li>用 <code>/context</code> 指令審計 token 消耗來源</li>
+      </ul>
+      <div class="quote">"想投入更多算力就在 prompt 加 'use subagents'" &mdash; Boris</div>
+    </div>
+
+    <!-- Workflow -->
+    <div class="card">
+      <h3><span class="card-icon">&#9889;</span> Workflow 高手技</h3>
+      <p style="font-weight:600;color:rgba(255,255,255,0.7);">Plan &rarr; Auto-accept 模式</p>
+      <ul>
+        <li>Plan mode 反覆討論到滿意 &rarr; 切 auto-accept 一次完成</li>
+        <li><code>Ctrl+G</code> 在外部編輯器中直接編輯 plan</li>
+      </ul>
+      <p style="font-weight:600;color:rgba(255,255,255,0.7);margin-top:12px;">平行 Session 策略</p>
+      <ul>
+        <li>終端 5 個 + browser 5-10 個 session 同時跑</li>
+        <li>每個 session 一個 branch（絕不共用 branch）</li>
+        <li>開 3-5 個 git worktree，tab 編號 1-5 方便切換</li>
+      </ul>
+      <pre><code>claude --worktree feature-x --tmux
+claude -w  # 自動命名 worktree</code></pre>
+      <p style="font-weight:600;color:rgba(255,255,255,0.7);margin-top:12px;">三層開發架構</p>
+      <table>
+        <tr><th>層級</th><th>說明</th></tr>
+        <tr><td>Tier 1</td><td>互動式開發（單一 session）</td></tr>
+        <tr><td>Tier 2</td><td>平行衝刺（Agent Teams / worktree）</td></tr>
+        <tr><td>Tier 3</td><td>整夜跑批次（headless + CI/CD）</td></tr>
+      </table>
+      <div class="quote">"給 Claude 驗證方法，品質提升 2-3 倍" &mdash; Boris</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Automation &amp; Integration</div>
+  <div class="card-grid">
+
+    <!-- Hooks Advanced -->
+    <div class="card">
+      <h3><span class="card-icon">&#128295;</span> Hooks 進階自動化</h3>
+      <table>
+        <tr><th>Hook</th><th>用途</th></tr>
+        <tr><td><code>PostToolUse</code></td><td>寫檔後自動 prettier/eslint --fix</td></tr>
+        <tr><td><code>PreToolUse</code></td><td>攔截 rm -rf 等危險指令（exit 2 = 阻擋）</td></tr>
+        <tr><td><code>Notification</code></td><td>完成時推 Slack/系統通知</td></tr>
+        <tr><td><code>PostToolUse</code></td><td>改檔後自動 git add</td></tr>
+        <tr><td><code>PreToolUse</code></td><td>測試沒過就擋 PR 建立</td></tr>
+      </table>
+      <div class="tip">exit code: <code>0=允許</code> <code>1=錯誤</code> <code>2=阻擋並回饋 stderr</code></div>
+    </div>
+
+    <!-- Agent Teams -->
+    <div class="card">
+      <h3><span class="card-icon">&#129309;</span> Agent Teams 多代理協作</h3>
+      <ul>
+        <li>Team lead 分配任務，teammates 獨立 context + branch</li>
+        <li>建議 3-5 teammates，每個專注一件事</li>
+        <li>共享 Task List（<code>Ctrl+T</code>）+ Mailbox 溝通</li>
+        <li>最佳場景：平行研究、多角度 debug、跨層協調</li>
+      </ul>
+      <p style="margin-top:10px;">在 <code>.claude/agents/</code> 建 <code>.md</code>，frontmatter 指定：model, maxTurns, tools, disallowedTools, proactive invocation</p>
+    </div>
+
+    <!-- SDK -->
+    <div class="card">
+      <h3><span class="card-icon">&#128187;</span> SDK 程式化控制</h3>
+      <pre><code>// TypeScript
+import { query } from "@anthropic-ai/claude-code";
+const result = await query({
+  prompt: "Fix the bug",
+  allowedTools: ["Edit", "Read"],
+  permissionMode: "dontAsk",
+  model: "opus"
+});</code></pre>
+      <pre><code># Python - Session 多輪對話
+from claude_code import Session
+session = Session()
+result = session.query("分析這段程式碼")
+result2 = session.query("繼續修改")</code></pre>
+    </div>
+
+    <!-- Headless Advanced -->
+    <div class="card">
+      <h3><span class="card-icon">&#9654;</span> Headless 進階用法</h3>
+      <pre><code># JSON 結構化輸出
+claude -p "分析" --output-format json
+
+# 串流 NDJSON (即時監控)
+claude -p "重構" --output-format stream-json
+
+# 多輪對話 (透過 session-id 延續)
+claude -p "第一步" --output-format json
+claude -p "繼續" --session-id &lt;uuid&gt;
+
+# Pipe 組合
+cat error.log | claude -p "分析錯誤原因"</code></pre>
+    </div>
+
+    <!-- CI/CD -->
+    <div class="card">
+      <h3><span class="card-icon">&#128640;</span> CI/CD 整合</h3>
+      <pre><code># .github/workflows/claude-review.yml
+- uses: anthropics/claude-code-action@v1
+  with:
+    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}</code></pre>
+      <ul>
+        <li>自動 PR review + diff 分析 + 修改建議</li>
+        <li>CLAUDE.md 自動載入為 CI context</li>
+        <li>建議 pin by commit SHA，目標 &lt; 3-5 分鐘</li>
+      </ul>
+    </div>
+
+    <!-- Enterprise -->
+    <div class="card">
+      <h3><span class="card-icon">&#127970;</span> 企業功能</h3>
+      <table>
+        <tr><th>功能</th><th>說明</th></tr>
+        <tr><td><code>managed-settings</code></td><td>組織級強制設定（MDM 部署）</td></tr>
+        <tr><td><code>modelOverrides</code></td><td>模型 ID 映射到 Bedrock / Vertex</td></tr>
+        <tr><td>SSO</td><td>SAML/OIDC 企業身份驗證整合</td></tr>
+        <tr><td>RBAC</td><td>Owner / Admin / Member 角色控制</td></tr>
+        <tr><td>Audit Log</td><td>SOC 2 Type II 審計日誌</td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Tips &amp; Resources</div>
+  <div class="card-grid">
+
+    <!-- Debug -->
+    <div class="card">
+      <h3><span class="card-icon">&#128027;</span> Debug 高效流程</h3>
+      <ul>
+        <li>Director Mode：給目標（不是給步驟）</li>
+        <li>貼完整錯誤訊息 + 檔案路徑（不要只說「出錯了」）</li>
+        <li>卡在 debug 迴圈時用 <code>think harder</code> 或 <code>ultrathink</code></li>
+        <li>讓 Claude 自己讀日誌、跑測試、追 stack trace</li>
+        <li>在 CLAUDE.md 加常用 debug 指令</li>
+      </ul>
+    </div>
+
+    <!-- Code Review -->
+    <div class="card">
+      <h3><span class="card-icon">&#128269;</span> Code Review 進階</h3>
+      <ul>
+        <li>安裝 GitHub integration 自動審查 PR</li>
+        <li>用 REVIEW.md 或 CLAUDE.md 自訂審查規則</li>
+        <li>大 PR (1000+ 行)：84% 被標記問題，平均 7.5 個發現</li>
+        <li>好的 review prompt 要定義 scope + risk areas</li>
+      </ul>
+      <p style="margin-top:10px;">自訂指令支援位置引數 <code>$1</code> <code>$2</code> 和 <code>$ARGUMENTS</code></p>
+      <pre><code>---
+allowed-tools: Read, Grep, Glob
+---
+分析 $ARGUMENTS 的程式碼品質</code></pre>
+    </div>
+
+    <!-- Security -->
+    <div class="card">
+      <h3><span class="card-icon">&#128737;</span> 安全與權限設定</h3>
+      <ul>
+        <li><code>deny</code> &gt; <code>ask</code> &gt; <code>allow</code>（deny 永遠優先）</li>
+        <li>defaultMode: default | acceptEdits | plan | bypassPermissions</li>
+        <li>additionalDirectories 加入額外可存取目錄</li>
+        <li>團隊用 <code>managed-settings.json</code> 強制統一安全策略</li>
+      </ul>
+    </div>
+
+    <!-- Performance -->
+    <div class="card card-full">
+      <h3><span class="card-icon">&#9889;</span> 效能速查表</h3>
+      <table>
+        <tr><th>場景</th><th>建議配置</th></tr>
+        <tr><td>日常單檔修改</td><td>Sonnet + <code>/effort medium</code></td></tr>
+        <tr><td>多檔重構</td><td>Opus + <code>/effort high</code> + Plan Mode</td></tr>
+        <tr><td>架構決策</td><td>Opus + <code>ultrathink</code> + Plan Mode</td></tr>
+        <tr><td>大量研究</td><td><code>use subagents</code>（主 context 乾淨）</td></tr>
+        <tr><td>Debug 卡關</td><td><code>think harder</code> + 貼完整錯誤訊息</td></tr>
+        <tr><td>CI/CD 自動化</td><td>headless + <code>--output-format json</code></td></tr>
+        <tr><td>平行開發</td><td>git worktree + tmux + 多 session</td></tr>
+        <tr><td>簡單改名/錯字</td><td>Haiku + <code>/effort low</code>（最快最省）</td></tr>
+      </table>
+    </div>
+
+    <!-- Community -->
+    <div class="card card-full">
+      <h3><span class="card-icon">&#127760;</span> 社群精選資源</h3>
+      <table>
+        <tr><th>資源</th><th>說明</th></tr>
+        <tr><td><code>awesome-claude-code</code></td><td>Skills、Hooks、Commands 策展清單</td></tr>
+        <tr><td><code>awesome-claude-md</code></td><td>知名開源專案 CLAUDE.md 範例集</td></tr>
+        <tr><td><code>Claude Command Suite</code></td><td>216+ 指令、12 skills、54 agents</td></tr>
+        <tr><td><code>ccstatusline</code></td><td>30+ widget 即時狀態列</td></tr>
+        <tr><td><code>ccusage</code></td><td>歷史費用追蹤 + burn rate 視覺化</td></tr>
+        <tr><td><code>claude-code-action</code></td><td>GitHub Actions 官方 PR review</td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /tab-advanced -->
+
+<!-- ===== FOOTER ===== -->
+<div class="footer">
+  Claude Code 速查表 | Anthropic | 2026-03-28<br>
+  資料來源：官方文件 + 社群研究
+</div>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+</script>
+
+</body>
+</html>

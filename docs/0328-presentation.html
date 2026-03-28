@@ -1431,11 +1431,39 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
   </div>
 </section>
 
-<!-- ===== SECTION 6: 未來方向 ===== -->
-<div class="section-divider"><h2>Section 6 — 未來方向</h2></div>
+<!-- ===== SECTION 7: Claude Code 速查表 ===== -->
+<div class="section-divider"><h2>Section 7 — Claude Code 速查表</h2></div>
+
+<!-- 7-1 -->
+<section class="slide" id="slide-7-1" data-section="6">
+  <div class="slide-inner">
+    <div class="slide-content" style="max-width:800px;margin:0 auto;text-align:center;">
+      <div class="slide-number">7-1</div>
+      <div class="slide-title">Claude Code 速查表</div>
+      <p class="slide-summary">Anthropic 官方工具的完整參考：鍵盤快捷鍵、Slash 指令、MCP、Hooks、Agents、SDK、CI/CD。<br>基礎篇 + 進階篇，隨時查閱。</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px;">
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:18px 22px;text-align:left;flex:0 0 200px;">
+          <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:4px;">基礎篇</div>
+          <div style="font-size:15px;color:#fff;font-weight:600;">快捷鍵 / 指令 / MCP<br>Hooks / 權限 / Agents</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:18px 22px;text-align:left;flex:0 0 200px;">
+          <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:4px;">進階篇</div>
+          <div style="font-size:15px;color:#fff;font-weight:600;">CLI 參數 / Thinking<br>SDK / CI/CD / 企業功能</div>
+        </div>
+      </div>
+      <a href="claude-code-cheatsheet.html" target="_blank" style="display:inline-flex;align-items:center;gap:8px;margin-top:32px;background:#fff;color:#000;padding:12px 32px;border-radius:100px;font-size:16px;font-weight:700;text-decoration:none;transition:all 0.3s;letter-spacing:0.5px;">
+        打開完整速查表 &rarr;
+      </a>
+      <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:12px;">v2.1.81 | 資料來源：Anthropic 官方文件 + 社群研究</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION 8: 未來方向 ===== -->
+<div class="section-divider"><h2>Section 8 — 未來方向</h2></div>
 
 <!-- 6-1 -->
-<section class="slide" id="slide-6-1" data-section="6">
+<section class="slide" id="slide-6-1" data-section="7">
   <div class="slide-inner">
     <div class="slide-image"><img loading="lazy" src="image/6_1.png" alt="6-1 Status"></div>
     <div class="slide-content">
@@ -1448,7 +1476,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
 </section>
 
 <!-- 6-2 -->
-<section class="slide" id="slide-6-2" data-section="6">
+<section class="slide" id="slide-6-2" data-section="7">
   <div class="slide-inner">
     <div class="slide-image"><img loading="lazy" src="image/6_2.png" alt="6-2 Future"></div>
     <div class="slide-content">
@@ -2583,7 +2611,7 @@ git clone https://github.com/shuotao/REVIT_MCP_study.git</div>
 </button>
 
 <!-- ===== ENDING PAGE ===== -->
-<section class="ending-page" id="slide-ending" data-section="6">
+<section class="ending-page" id="slide-ending" data-section="7">
   <div class="ending-inner">
     <div class="ending-preview">
       <div class="ending-eyebrow">NEXT MEETUP</div>
@@ -2641,6 +2669,7 @@ const sections = [
   { id: 'slide-3-1', label: 'Architecture V2' },
   { id: 'slide-4-1', label: '部署更新' },
   { id: 'slide-5-1', label: '貢獻者指引' },
+  { id: 'slide-7-1', label: 'Claude Code 速查表' },
   { id: 'slide-6-1', label: '未來方向' },
 ];
 
@@ -2654,7 +2683,7 @@ document.querySelectorAll('[data-section]').forEach(el => {
   slideToSection[el.id] = sec + 2; // offset by 2 (cover, why, setup)
 });
 
-// Build nav dots (only 8)
+// Build nav dots (10 sections)
 const nav = document.getElementById('navDots');
 sections.forEach((s, i) => {
   const dot = document.createElement('button');
