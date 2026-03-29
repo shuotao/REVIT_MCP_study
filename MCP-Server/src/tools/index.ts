@@ -17,13 +17,14 @@ import { mepTools } from "./mep-tools.js";
 
 import { curtainWallTools } from "./curtain-wall-tools.js";
 import { smokeExhaustTools } from "./smoke-exhaust-tools.js";
+import { markingTools } from "./marking-tools.js";
 
 /**
  * Profile 對照表：每個 profile 包含哪些模組
  */
 const PROFILE_MODULES: Record<string, Tool[][]> = {
-    full: [baseTools, wallTools, roomTools, visualizationTools, scheduleTools, mepTools, curtainWallTools, smokeExhaustTools],
-    architect: [baseTools, wallTools, roomTools, visualizationTools, scheduleTools, curtainWallTools],
+    full: [baseTools, wallTools, roomTools, visualizationTools, scheduleTools, mepTools, curtainWallTools, smokeExhaustTools, markingTools],
+    architect: [baseTools, wallTools, roomTools, visualizationTools, scheduleTools, curtainWallTools, markingTools],
     mep: [baseTools, mepTools, scheduleTools, visualizationTools, smokeExhaustTools],
     structural: [baseTools, wallTools, visualizationTools],
     "fire-safety": [baseTools, roomTools, visualizationTools, smokeExhaustTools],
