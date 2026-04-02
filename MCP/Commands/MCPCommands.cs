@@ -20,7 +20,7 @@ namespace RevitMCP.Commands
             try
             {
                 // 檢查目前狀態
-                bool isConnected = Application.SocketService != null && Application.SocketService.IsConnected;
+                bool isConnected = Application.IsServiceConnected();
 
                 if (isConnected)
                 {
@@ -42,6 +42,50 @@ namespace RevitMCP.Commands
             {
                 message = ex.Message;
                 TaskDialog.Show("錯誤", "切換服務狀態失敗: " + ex.Message);
+                return Result.Failed;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 重新載入 CoreRuntime 命令（不重啟 Revit）
+    /// </summary>
+    [Transaction(TransactionMode.Manual)]
+    public class ReloadCoreCommand : IExternalCommand
+    {
+        public Result Execute(
+            ExternalCommandData commandData,
+            ref string message,
+            ElementSet elements)
+        {
+            try
+            {
+                bool loadedBefore = Application.IsCoreLoaded();
+                bool runningBefore = Application.IsServiceRunning();
+
+                Application.StartMCPService(commandData.Application);
+                bool ok = Application.ReloadCore();
+
+                if (!ok)
+                {
+                    message = "Core 重載失敗";
+                    TaskDialog.Show("Core 重載", "Core 重載失敗，請檢查 log。");
+                    return Result.Failed;
+                }
+
+                string detail =
+                    $"Core 已重載成功\n\n" +
+                    $"重載前是否已載入: {(loadedBefore ? "是" : "否")}\n" +
+                    $"重載前是否執行中: {(runningBefore ? "是" : "否")}\n" +
+                    $"重載後是否執行中: {(Application.IsServiceRunning() ? "是" : "否")}";
+
+                TaskDialog.Show("Core 重載", detail);
+                return Result.Succeeded;
+            }
+            catch (Exception ex)
+            {
+                message = ex.Message;
+                TaskDialog.Show("錯誤", "Core 重載失敗: " + ex.Message);
                 return Result.Failed;
             }
         }

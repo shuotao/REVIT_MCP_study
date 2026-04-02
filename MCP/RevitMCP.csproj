@@ -22,4 +22,28 @@
     <PackageReference Include="ClosedXML" Version="0.102.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MCP.Contracts\MCP.Contracts.csproj" />
+  </ItemGroup>
+
+  <Target Name="BuildCoreRuntime" BeforeTargets="Build">
+    <MSBuild
+      Projects="..\MCP.CoreRuntime\MCP.CoreRuntime.csproj"
+      Targets="Restore;Build"
+      Properties="Configuration=$(Configuration)" />
+  </Target>
+
+  <Target Name="CopyCoreRuntimeArtifacts" AfterTargets="Build">
+    <MakeDir Directories="$(OutDir)runtime" />
+    <Copy
+      SourceFiles="..\MCP.CoreRuntime\bin\$(Configuration)\RevitMCP.CoreRuntime.dll"
+      DestinationFiles="$(OutDir)runtime\RevitMCP.CoreRuntime.dll"
+      SkipUnchangedFiles="true" />
+    <Copy
+      SourceFiles="..\MCP.Contracts\bin\$(Configuration)\netstandard2.0\MCP.Contracts.dll"
+      DestinationFiles="$(OutDir)runtime\MCP.Contracts.dll"
+      SkipUnchangedFiles="true"
+      Condition="Exists('..\MCP.Contracts\bin\$(Configuration)\netstandard2.0\MCP.Contracts.dll')" />
+  </Target>
+
 </Project>

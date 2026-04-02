@@ -1,0 +1,41 @@
+<Project Sdk="Nice3point.Revit.Sdk/6.1.0">
+
+  <PropertyGroup>
+    <RootNamespace>RevitMCP</RootNamespace>
+    <AssemblyName>RevitMCP.CoreRuntime</AssemblyName>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWPF>true</UseWPF>
+    <DeployAddin>false</DeployAddin>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Configurations>
+      Debug.R22;Debug.R23;Debug.R24;Debug.R25;Debug.R26;
+      Release.R22;Release.R23;Release.R24;Release.R25;Release.R26
+    </Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="$(RevitVersion).*" />
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="$(RevitVersion).*" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="ClosedXML" Version="0.102.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MCP.Contracts\MCP.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\MCP\Configuration\ConfigManager.cs" Link="Configuration\ConfigManager.cs" />
+    <Compile Include="..\MCP\Configuration\ServiceSettings.cs" Link="Configuration\ServiceSettings.cs" />
+    <Compile Include="..\MCP\Core\Logger.cs" Link="Core\Logger.cs" />
+    <Compile Include="..\MCP\Core\SocketService.cs" Link="Core\SocketService.cs" />
+    <Compile Include="..\MCP\Core\ExternalEventManager.cs" Link="Core\ExternalEventManager.cs" />
+    <Compile Include="..\MCP\Core\ExteriorWallOpeningChecker.cs" Link="Core\ExteriorWallOpeningChecker.cs" />
+    <Compile Include="..\MCP\Core\CommandExecutor.cs" Link="Core\CommandExecutor.cs" />
+    <Compile Include="..\MCP\Core\RevitCompatibility.cs" Link="Core\RevitCompatibility.cs" />
+    <Compile Include="..\MCP\Core\Commands\CommandExecutor.CurtainWall.cs" Link="Core\Commands\CommandExecutor.CurtainWall.cs" />
+    <Compile Include="..\MCP\Core\Commands\CommandExecutor.SmokeExhaust.cs" Link="Core\Commands\CommandExecutor.SmokeExhaust.cs" />
+    <Compile Include="..\MCP\Models\CommandModels.cs" Link="Models\CommandModels.cs" />
+  </ItemGroup>
+
+</Project>

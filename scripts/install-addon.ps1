@@ -379,6 +379,27 @@ if (Test-Path $sourceJson) {
     }
 }
 
+# 複製 CoreRuntime（Loader/Core 架構）
+$sourceRuntimeDir = Join-Path $projectRoot "MCP\bin\$buildConfig\runtime"
+$targetRuntimeDir = Join-Path $addonPath "runtime"
+if (Test-Path $sourceRuntimeDir) {
+    try {
+        if (-not (Test-Path $targetRuntimeDir)) {
+            New-Item -ItemType Directory -Path $targetRuntimeDir -Force | Out-Null
+        }
+
+        Copy-Item -Path (Join-Path $sourceRuntimeDir "*.dll") -Destination $targetRuntimeDir -Force -ErrorAction Stop
+        Write-Host "✓ 已複製 runtime/*.dll (CoreRuntime)" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "⚠️  警告：無法複製 runtime 目錄（Core 重載將不可用）" -ForegroundColor Yellow
+        Write-Host "    錯誤詳情：$_" -ForegroundColor Yellow
+    }
+}
+else {
+    Write-Host "⚠️  警告：找不到 runtime 目錄，請先執行 dotnet build 產生 CoreRuntime" -ForegroundColor Yellow
+}
+
 Write-Host ""
 
 # ============================================================================
