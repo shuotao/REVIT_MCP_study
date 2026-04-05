@@ -868,19 +868,16 @@
 
   <div class="domain-grid">
     <div class="domain-card" onclick="openDrawer('drawer-why-fire')">
-      <span class="issue-badge">1</span>
       <span class="domain-card-icon">🔥</span>
       <div class="domain-card-label">防火安全</div>
       <div class="domain-card-sub">防火時效 · 走廊寬度 · 外牆開口<br>3 個 Domain · 6 個工具</div>
     </div>
     <div class="domain-card" onclick="openDrawer('drawer-why-smoke')">
-      <span class="issue-badge">1</span>
       <span class="domain-card-icon">🌫️</span>
       <div class="domain-card-label">排煙檢討</div>
       <div class="domain-card-sub">排煙窗有效面積 · 無開口樓層<br>1 個 Domain · 7 個工具</div>
     </div>
     <div class="domain-card" onclick="openDrawer('drawer-why-compliance')">
-      <span class="issue-badge">2</span>
       <span class="domain-card-icon">📐</span>
       <div class="domain-card-label">法規檢討</div>
       <div class="domain-card-sub">採光比 · 容積率 · 停車位數量<br>4 個 Domain · 5 個工具</div>
@@ -1513,13 +1510,11 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <tr><td><code>clear_element_override</code></td><td>清除舊上色</td></tr>
   </table>
 
-  <div class="drawer-issue-section">
-    <h3>法規複查待確認</h3>
-    <div class="issue-item">
-      <p><strong>§45 漏列第四、五款</strong>：排氣口距境界線 ≥ 2m（第四款）、窗臺高度 H-2/D-3/F-3 ≥ 1.1m / 十層以上 ≥ 1.2m（第五款），目前 domain 文件未涵蓋。</p>
-      <p><strong>§110 漏列第五款</strong>：避難通路淨寬 ≥ 1.5m、外牆 1hr 防火 + 0.5hr 阻熱。</p>
-      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/20" target="_blank">Issue #20</a>
-      <span class="issue-assignee">請 @davidhsu68-dvstudio 當場確認</span>
+  <div class="drawer-issue-section" style="border-top-color: rgba(74,222,128,0.2);">
+    <h3 style="color: #4ade80 !important;">已修正</h3>
+    <div class="fix-item">
+      <p><strong>§45 第四、五款已補入</strong>：排氣口距境界線 ≥ 2m、窗臺高度 H-2/D-3/F-3 ≥ 1.1m / 十層以上 ≥ 1.2m，已更新至 <code>exterior-wall-opening-check.md</code>。</p>
+      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/20" target="_blank" style="opacity:0.5;">Issue #20（已關閉）</a>
     </div>
   </div>
 </div>
@@ -1541,16 +1536,14 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <tr><td><code>create_detail_lines</code></td><td>天花板線 / 有效帶線</td></tr>
     <tr><td><code>create_filled_region</code></td><td>有效帶色塊</td></tr>
     <tr><td><code>create_text_note</code></td><td>統計摘要標註</td></tr>
-    <tr><td><code>export_smoke_review_excel</code></td><td>四工作表 Excel 報告</td></tr>
+    <tr><td><code>export_smoke_review_excel</code></td><td>五工作表 Excel 報告（含 §101 補充檢討）</td></tr>
   </table>
 
-  <div class="drawer-issue-section">
-    <h3>法規複查待確認</h3>
-    <div class="issue-item">
-      <p><strong>§101 漏列排風量規定</strong>：排風機排風量不得小於每分鐘 120 立方公尺。</p>
-      <p><strong>§101 漏列中央監控規定</strong>：建築物高度 > 30m 或地下層面積 > 1000m²，排煙控制應設置於中央管理室。</p>
-      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/19" target="_blank">Issue #19</a>
-      <span class="issue-assignee">請 @7alexhuang-ux 當場確認</span>
+  <div class="drawer-issue-section" style="border-top-color: rgba(74,222,128,0.2);">
+    <h3 style="color: #4ade80 !important;">已修正</h3>
+    <div class="fix-item">
+      <p><strong>§101 排風量 + 中央監控已整合</strong>：排風機 ≥ 120 m³/min（靜態提醒）、中央管理室偵測（半自動），已整合至 C# partial class + domain + Excel Sheet 5。</p>
+      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/19" target="_blank" style="opacity:0.5;">Issue #19（已關閉）</a>
     </div>
   </div>
 </div>
@@ -1576,34 +1569,15 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <tr><td><code>get_field_values</code></td><td>停車位類型分佈統計</td></tr>
   </table>
 
-  <div class="drawer-issue-section">
-    <h3>法規複查待確認</h3>
-    <div class="issue-item">
-      <p><strong>§41 天窗 3 倍、遮蔽 70% 規則出處待確認</strong>：目前 <code>daylight-area-check.md</code> 列出天窗有效面積按 3 倍計算、陽台遮蔽 > 2m 按 70% 計算，但第 41 條原文僅規定採光比例和 75cm 排除。這兩條規則可能來自施行細則或地方規範，需確認出處。</p>
-      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/20" target="_blank">Issue #20</a>
-      <span class="issue-assignee">請 @davidhsu68-dvstudio 當場確認</span>
-    </div>
-    <div class="issue-item">
-      <p><strong>停車位條號引用錯誤</strong>：車位尺寸 2.5m × 5.5m 應引用 <strong>§60</strong>（非 §60-1）、車道寬度應引用 <strong>§61</strong>、樓層淨高 ≥ 2.1m 應引用 <strong>§62</strong>。§60-1 實際內容為通道淨寬 ≥ 75cm。</p>
-      <p>無障礙車位 3.5m × 5.5m 可能出自《建築物無障礙設施設計規範》而非建技規，需確認。</p>
-      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/21" target="_blank">Issue #21</a>
-      <span class="issue-assignee">請 @h30190 當場確認</span>
-    </div>
-  </div>
-
   <div class="drawer-issue-section" style="border-top-color: rgba(74,222,128,0.2);">
-    <h3 style="color: #4ade80 !important;">可直接修正（已查證正確條文）</h3>
+    <h3 style="color: #4ade80 !important;">已修正</h3>
     <div class="fix-item">
-      <p><strong>§60-1 → §60</strong>：<code>docs/0328的課程討論.md</code> 車位尺寸引用修正 <span class="fix-tag">已查證</span></p>
+      <p><strong>§41 天窗/遮蔽出處已標註</strong>：<code>daylight-area-check.md</code> 天窗 3 倍、遮蔽 70% 規則已加「出處待確認」標註，可能來自地方自治條例或設計手冊。</p>
+      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/20" target="_blank" style="opacity:0.5;">Issue #20（已關閉）</a>
     </div>
     <div class="fix-item">
-      <p><strong>§60-1 → §61</strong>：車道寬度（單 ≥ 3.5m、雙 ≥ 5.5m）引用修正 <span class="fix-tag">已查證</span></p>
-    </div>
-    <div class="fix-item">
-      <p><strong>parking-clearance-check.md 補 §62</strong>：淨高 > 210cm 正確，但缺條號 <span class="fix-tag">已查證</span></p>
-    </div>
-    <div class="fix-item">
-      <p>以上 3 項法規來源明確，上完課後統一修改。雖無 Issue 但建議比對 <a href="https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=D0070115" target="_blank" style="color:#4ade80;">官方條文</a> 再次確認。</p>
+      <p><strong>停車位條號已修正</strong>：§60-1 → §60（車位尺寸）、§61（車道寬度）、§62（樓層淨高），已更新 <code>docs/0328的課程討論.md</code>。</p>
+      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/21" target="_blank" style="opacity:0.5;">Issue #21（已關閉）</a>
     </div>
   </div>
 </div>
