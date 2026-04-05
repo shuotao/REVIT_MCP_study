@@ -112,7 +112,7 @@ export const smokeExhaustTools: Tool[] = [
     },
     {
         name: "export_smoke_review_excel",
-        description: "匯出排煙窗檢討 Excel 報告（.xlsx），含樓層總覽、房間明細、窗戶明細、改善建議四個工作表。",
+        description: "匯出排煙窗檢討 Excel 報告（.xlsx），含樓層總覽、房間明細、窗戶明細、改善建議、§101補充檢討（排風量提醒+中央管理室偵測）五個工作表。",
         inputSchema: {
             type: "object",
             properties: {

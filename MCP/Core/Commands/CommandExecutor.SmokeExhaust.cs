@@ -1459,6 +1459,160 @@ namespace RevitMCP.Core
 
         #endregion
 
+        #region §101 補充法規檢討
+
+        /// <summary>
+        /// §101 補充法規檢討：排風量提醒 + 中央管理室偵測
+        /// 排風量：靜態提醒（MEP 設備無法自動偵測）
+        /// 中央管理室：半自動偵測（建築高度 > 30m 或地下面積 > 1000m²）
+        /// </summary>
+        private object CheckSupplementaryRegulations(Document doc)
+        {
+            const double FEET_TO_M = 0.3048;
+            const double SQ_FEET_TO_SQ_M = 0.092903;
+
+            // 取得所有樓層
+            var allLevels = new FilteredElementCollector(doc)
+                .OfClass(typeof(Level))
+                .Cast<Level>()
+                .OrderBy(l => l.Elevation)
+                .ToList();
+
+            if (allLevels.Count == 0)
+            {
+                return new
+                {
+                    BuildingHeight = 0.0,
+                    BasementTotalArea = 0.0,
+                    RequiresCentralControl = false,
+                    TriggerReason = (string)null,
+                    CentralControlRoom = (object)null,
+                    ExhaustFanReminder = "§101：排風機排風量 ≥ 120 m³/min，須隨排煙口自動啟動（需人工確認）",
+                    Items = new List<object>()
+                };
+            }
+
+            // 1. 計算建築物高度
+            double minElevation = allLevels.First().Elevation * FEET_TO_M;
+            double maxElevation = allLevels.Last().Elevation * FEET_TO_M;
+            double buildingHeight = maxElevation - minElevation;
+
+            // 2. 計算地下層總面積（Elevation < 0 的樓層）
+            var basementLevels = allLevels.Where(l => l.Elevation < 0).ToList();
+            double basementTotalArea = 0;
+            var basementDetails = new List<object>();
+
+            foreach (var bLevel in basementLevels)
+            {
+                var bRooms = new FilteredElementCollector(doc)
+                    .OfCategory(BuiltInCategory.OST_Rooms)
+                    .WhereElementIsNotElementType()
+                    .Cast<Room>()
+                    .Where(r => r.LevelId == bLevel.Id && r.Area > 0)
+                    .ToList();
+                double levelArea = bRooms.Sum(r => r.Area * SQ_FEET_TO_SQ_M);
+                basementTotalArea += levelArea;
+                basementDetails.Add(new
+                {
+                    LevelName = bLevel.Name,
+                    Elevation = Math.Round(bLevel.Elevation * FEET_TO_M, 2),
+                    Area = Math.Round(levelArea, 2),
+                    RoomCount = bRooms.Count
+                });
+            }
+
+            // 3. 判斷是否觸發中央監控要求
+            bool requiresCentralControl = buildingHeight > 30.0 || basementTotalArea > 1000.0;
+            string triggerReason = null;
+            if (buildingHeight > 30.0 && basementTotalArea > 1000.0)
+                triggerReason = $"建築高度 {buildingHeight:F1}m > 30m 且地下面積 {basementTotalArea:F1}m² > 1000m²";
+            else if (buildingHeight > 30.0)
+                triggerReason = $"建築高度 {buildingHeight:F1}m > 30m";
+            else if (basementTotalArea > 1000.0)
+                triggerReason = $"地下層面積 {basementTotalArea:F1}m² > 1000m²";
+
+            // 4. 搜尋中央管理室
+            object centralControlRoom = null;
+            string centralControlResult = "N/A";
+            if (requiresCentralControl)
+            {
+                string[] keywords = { "中央管理", "防災中心", "中控", "監控室", "中央監控", "管理室" };
+                var allRooms = new FilteredElementCollector(doc)
+                    .OfCategory(BuiltInCategory.OST_Rooms)
+                    .WhereElementIsNotElementType()
+                    .Cast<Room>()
+                    .Where(r => r.Area > 0)
+                    .ToList();
+
+                Room foundRoom = allRooms.FirstOrDefault(r =>
+                {
+                    string roomName = r.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString() ?? "";
+                    return keywords.Any(kw => roomName.Contains(kw));
+                });
+
+                if (foundRoom != null)
+                {
+                    Level roomLevel = doc.GetElement(foundRoom.LevelId) as Level;
+                    centralControlRoom = new
+                    {
+                        RoomId = foundRoom.Id.GetIdValue(),
+                        RoomName = foundRoom.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString(),
+                        RoomNumber = foundRoom.Number,
+                        LevelName = roomLevel?.Name ?? "未知",
+                        Area = Math.Round(foundRoom.Area * SQ_FEET_TO_SQ_M, 2)
+                    };
+                    centralControlResult = "PASS";
+                }
+                else
+                {
+                    centralControlResult = "WARNING";
+                }
+            }
+
+            // 5. 組合檢討項目
+            var items = new List<object>
+            {
+                new
+                {
+                    Item = "排風量 ≥ 120 m³/min",
+                    LegalBasis = "建技規§101：排風機應隨排煙口之開啟而自動操作，排風量不得小於每分鐘 120 m³",
+                    TriggerCondition = "設有排煙設備時",
+                    Result = "MANUAL",
+                    Note = "MEP 設備需人工確認：(1) 排風機是否連動排煙口自動啟動 (2) 排風量是否 ≥ 120 m³/min"
+                },
+                new
+                {
+                    Item = "中央管理室",
+                    LegalBasis = "建技規§101：建築物高度 > 30m 或地下層面積 > 1000m²，排煙設備控制應設於中央管理室",
+                    TriggerCondition = requiresCentralControl ? triggerReason : "未達門檻（高度 ≤ 30m 且地下面積 ≤ 1000m²）",
+                    Result = centralControlResult,
+                    Note = centralControlResult == "PASS"
+                        ? "已偵測到中央管理室"
+                        : centralControlResult == "WARNING"
+                            ? "⚠ 未偵測到中央管理室，依§101 應設置排煙控制中央管理室"
+                            : "未達設置門檻"
+                }
+            };
+
+            return new
+            {
+                BuildingHeight = Math.Round(buildingHeight, 1),
+                MaxElevation = Math.Round(maxElevation, 1),
+                MinElevation = Math.Round(minElevation, 1),
+                TotalLevels = allLevels.Count,
+                BasementLevels = basementDetails,
+                BasementTotalArea = Math.Round(basementTotalArea, 2),
+                RequiresCentralControl = requiresCentralControl,
+                TriggerReason = triggerReason,
+                CentralControlRoom = centralControlRoom,
+                CentralControlResult = centralControlResult,
+                ExhaustFanReminder = "§101：排風機排風量 ≥ 120 m³/min，須隨排煙口自動啟動（需人工確認）",
+                Items = items
+            };
+        }
+
+        #endregion
+
         #region Excel 匯出
 
         /// <summary>
@@ -1778,6 +1932,115 @@ namespace RevitMCP.Core
                 ws4.Column(5).Width = 45;
                 ws4.Column(6).Width = 35;
 
+                // ===== Sheet 5：§101 補充法規檢討 =====
+                var ws5 = wb.Worksheets.Add("§101補充檢討");
+                var supplementary = JObject.FromObject(CheckSupplementaryRegulations(doc));
+
+                ws5.Cell(1, 1).Value = "§101 補充法規檢討 — 排風量・中央管理室";
+                ws5.Range(1, 1, 1, 5).Merge().Style.Font.SetBold().Font.SetFontSize(14)
+                    .Alignment.SetHorizontal(ClosedXML.Excel.XLAlignmentHorizontalValues.Center);
+                ws5.Cell(2, 1).Value = $"產出時間：{DateTime.Now:yyyy/MM/dd HH:mm}";
+                ws5.Range(2, 1, 2, 5).Merge().Style.Font.SetFontColor(ClosedXML.Excel.XLColor.Gray);
+
+                // 建築物資訊
+                r = 4;
+                ws5.Cell(r, 1).Value = "建築物資訊";
+                ws5.Cell(r, 1).Style.Font.SetBold().Font.SetFontSize(12);
+                r++;
+                ws5.Cell(r, 1).Value = "建築物高度";
+                ws5.Cell(r, 2).Value = $"{supplementary["BuildingHeight"]} m";
+                ws5.Cell(r, 3).Value = (double)supplementary["BuildingHeight"] > 30 ? "⚠ 超過 30m" : "≤ 30m";
+                r++;
+                ws5.Cell(r, 1).Value = "地下層總面積";
+                ws5.Cell(r, 2).Value = $"{supplementary["BasementTotalArea"]} m²";
+                ws5.Cell(r, 3).Value = (double)supplementary["BasementTotalArea"] > 1000 ? "⚠ 超過 1000m²" : "≤ 1000m²";
+
+                // 地下層明細
+                var basementLevels = supplementary["BasementLevels"] as JArray;
+                if (basementLevels != null && basementLevels.Count > 0)
+                {
+                    r += 2;
+                    ws5.Cell(r, 1).Value = "地下層明細";
+                    ws5.Cell(r, 1).Style.Font.SetBold();
+                    r++;
+                    string[] hBL = { "樓層", "標高(m)", "面積(m²)", "房間數" };
+                    for (int c = 0; c < hBL.Length; c++)
+                    {
+                        ws5.Cell(r, c + 1).Value = hBL[c];
+                        ws5.Cell(r, c + 1).Style.Fill.SetBackgroundColor(headerBg).Font.SetFontColor(headerFg).Font.SetBold();
+                    }
+                    r++;
+                    foreach (JToken bl in basementLevels)
+                    {
+                        ws5.Cell(r, 1).Value = bl["LevelName"]?.ToString();
+                        ws5.Cell(r, 2).Value = (double)bl["Elevation"];
+                        ws5.Cell(r, 3).Value = (double)bl["Area"];
+                        ws5.Cell(r, 4).Value = bl["RoomCount"]?.Value<int>() ?? 0;
+                        r++;
+                    }
+                }
+
+                // 檢討項目表
+                r += 2;
+                ws5.Cell(r, 1).Value = "檢討項目";
+                ws5.Cell(r, 1).Style.Font.SetBold().Font.SetFontSize(12);
+                r++;
+                string[] h5 = { "檢討項目", "法規依據", "觸發條件", "判定結果", "說明" };
+                for (int c = 0; c < h5.Length; c++)
+                {
+                    ws5.Cell(r, c + 1).Value = h5[c];
+                    ws5.Cell(r, c + 1).Style.Fill.SetBackgroundColor(headerBg).Font.SetFontColor(headerFg).Font.SetBold();
+                }
+                r++;
+
+                var items = supplementary["Items"] as JArray;
+                if (items != null)
+                {
+                    foreach (JToken item in items)
+                    {
+                        ws5.Cell(r, 1).Value = item["Item"]?.ToString();
+                        ws5.Cell(r, 2).Value = item["LegalBasis"]?.ToString();
+                        ws5.Cell(r, 3).Value = item["TriggerCondition"]?.ToString();
+                        string itemResult = item["Result"]?.ToString() ?? "";
+                        ws5.Cell(r, 4).Value = itemResult;
+                        ws5.Cell(r, 5).Value = item["Note"]?.ToString();
+
+                        // 結果底色
+                        var resultBg = itemResult == "PASS" ? passBg
+                            : itemResult == "WARNING" ? warnBg
+                            : itemResult == "MANUAL" ? ClosedXML.Excel.XLColor.FromHtml("#E3F2FD") // 淺藍
+                            : altRowBg;
+                        ws5.Cell(r, 4).Style.Fill.SetBackgroundColor(resultBg);
+                        ws5.Cell(r, 5).Style.Alignment.SetWrapText(true);
+                        r++;
+                    }
+                }
+
+                // 中央管理室詳細資訊
+                var centralRoom = supplementary["CentralControlRoom"];
+                if (centralRoom != null && centralRoom.Type != JTokenType.Null)
+                {
+                    r += 1;
+                    ws5.Cell(r, 1).Value = "偵測到中央管理室";
+                    ws5.Cell(r, 1).Style.Font.SetBold();
+                    r++;
+                    ws5.Cell(r, 1).Value = "房間名稱";
+                    ws5.Cell(r, 2).Value = centralRoom["RoomName"]?.ToString();
+                    r++;
+                    ws5.Cell(r, 1).Value = "房間編號";
+                    ws5.Cell(r, 2).Value = centralRoom["RoomNumber"]?.ToString();
+                    r++;
+                    ws5.Cell(r, 1).Value = "所在樓層";
+                    ws5.Cell(r, 2).Value = centralRoom["LevelName"]?.ToString();
+                    r++;
+                    ws5.Cell(r, 1).Value = "面積";
+                    ws5.Cell(r, 2).Value = $"{centralRoom["Area"]} m²";
+                }
+
+                ws5.Columns().AdjustToContents();
+                ws5.Column(2).Width = 55;
+                ws5.Column(5).Width = 50;
+
                 // 全域框線
                 foreach (var ws in wb.Worksheets)
                 {
@@ -1797,8 +2060,8 @@ namespace RevitMCP.Core
             {
                 OutputPath = outputPath,
                 LevelName = levelName ?? "全部",
-                RoomsChecked = (int)checkResult["LevelSummary"]["RoomsChecked"],
-                RoomsFailed = (int)checkResult["LevelSummary"]["RoomsFailed"],
+                RoomsChecked = checkResult["LevelSummary"]?["RoomsChecked"]?.Value<int>() ?? 0,
+                RoomsFailed = checkResult["LevelSummary"]?["RoomsFailed"]?.Value<int>() ?? 0,
                 Message = $"排煙窗檢討報告已匯出至：{outputPath}"
             };
         }
