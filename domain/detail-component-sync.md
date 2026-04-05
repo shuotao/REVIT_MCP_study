@@ -2,8 +2,8 @@
 description: 詳圖元件同步工作流程
 trigger_keywords: [詳圖, detail, 圖號, 標頭, 同步, sync, AE-圖號]
 tools: [get_detail_components, create_detail_component_type, sync_detail_component_numbers]
-version: 3.5
-last_updated: 2026-02-02
+version: 4.0
+last_updated: 2026-04-02
 ---
 
 # 詳圖元件同步工作流程
@@ -251,11 +251,11 @@ graph TD
 ### v3.4 - 參數格式調整
 - **調整：** 確認 `詳圖圖號` 使用完整格式（含 `ARB-` 前綴）
 
-### v3.5 - Safeguard Mode（最終版）⭐⭐⭐
-- **重大修正：** 移除所有自動更名與符號切換邏輯
-- **核心防護：** 只有「類型名稱已匹配圖紙編號」的元件才會更新參數
-- **保護機制：** 標準/共用詳圖（如 `D0921`）被引用到其他圖紙時，自動跳過不更新
-- **穩定性：** ✅ 已驗證，不會誤改任何類型
+### v4.0 - Sequential Fuzzy Match ⭐⭐⭐⭐
+- **重大變更：** 實作 `async/await` 順序執行機制，解決大規模寫入（>50 條指令）時的穩定性問題。
+- **改進：** 加入強型態名稱正規化（Normalization），支援全半形轉換、自動移除括號與符號、自動排除 placeholder。
+- **策略：** 當資產編號格式不一時（如 `ARB-D09001` vs `AR-B-D0901`），改以「前置 ID 提取」或「正規化名稱包含了」作為次要比對手段。
+- **性能：** ✅ 已驗證，可穩定處理 100+ 個同時同步請求而不遺漏指令。
 
 ---
 
@@ -370,6 +370,6 @@ AR-B-D02X2 圖紙：全棟高架車道剖面圖(2/2)
 
 ---
 
-**最後更新：** 2026-02-02  
-**當前版本：** v3.5 Safeguard Mode  
+**最後更新：** 2026-04-02  
+**當前版本：** v4.0 Sequential Fuzzy Match  
 **維護者：** RevitMCP Team
