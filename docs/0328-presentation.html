@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>0328 Revit MCP 讀書會</title>
 <meta property="og:title" content="MCP 功能開發三月小聚">
-<meta property="og:description" content="從工具堆砌到模組化架構 — 8 大專業系統、26 個 Domain、44 個工具已上線驗證。你的專業就是下一個按鈕。">
+<meta property="og:description" content="從工具堆砌到模組化架構 — 8 大專業系統、30 個 Domain、76 個工具已上線驗證。你的專業就是下一個按鈕。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://shuotao.github.io/REVIT_MCP_study/docs/0328-presentation.html">
 <meta name="twitter:card" content="summary">
@@ -912,7 +912,7 @@
     </div>
   </div>
 
-  <div class="why-footer">以上 8 大系統、<strong>26 個 Domain</strong>、<strong>44 個工具</strong>已上線驗證。<br>你的專業領域，就是第 9 個、第 10 個按鈕。</div>
+  <div class="why-footer">以上 8 大系統、<strong>30 個 Domain</strong>、<strong>76 個工具</strong>已上線驗證。<br>你的專業領域，就是第 9 個、第 10 個按鈕。</div>
 </section>
 
 <!-- ===== SETUP PAGE ===== -->
@@ -1177,7 +1177,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content">
       <div class="slide-number">2-1</div>
       <div class="slide-title">工具越多，AI 越笨</div>
-      <p class="slide-summary">55 個工具定義 = 每輪對話都佔用 context 的固定成本。工具越多，AI 選錯的機率越高。</p>
+      <p class="slide-summary">76 個工具定義 = 每輪對話都佔用 context 的固定成本。工具越多，AI 選錯的機率越高。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-2-1')">展開數據分析</button>
     </div>
   </div>
@@ -1341,7 +1341,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content">
       <div class="slide-number">3-6</div>
       <div class="slide-title">Profile：角色篩選</div>
-      <p class="slide-summary">設定一行 MCP_PROFILE，結構工程師只看 20 個工具，不再被 55 個不相關的工具淹沒。</p>
+      <p class="slide-summary">設定一行 MCP_PROFILE，結構工程師只看 20 個工具，不再被 76 個不相關的工具淹沒。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-3-6')">展開 Profile 設定</button>
     </div>
   </div>
@@ -1812,9 +1812,9 @@ npm run build</code><button class="copy-btn" onclick="copyCode(this)">複製</bu
   <h3>Token 數字</h3>
   <table>
     <tr><th>項目</th><th>Token 成本</th></tr>
-    <tr><td>55 個工具定義</td><td>~16,500 tokens</td></tr>
+    <tr><td>76 個工具定義</td><td>~22,800 tokens</td></tr>
     <tr><td>CLAUDE.md 全文</td><td>~5,000 tokens</td></tr>
-    <tr><td><strong>每輪固定成本</strong></td><td><strong>~21,500 tokens</strong></td></tr>
+    <tr><td><strong>每輪固定成本</strong></td><td><strong>~27,800 tokens</strong></td></tr>
     <tr><td>如果到 100 個工具</td><td>~35,000 tokens</td></tr>
   </table>
   <h3>為什麼這是問題</h3>
