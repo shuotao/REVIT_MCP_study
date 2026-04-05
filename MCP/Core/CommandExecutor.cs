@@ -1246,14 +1246,15 @@ namespace RevitMCP.Core
                             Element element = doc.GetElement(segment.ElementId);
                             if (element is Wall wall)
                             {
-                                IList<ElementId> insertIds = wall.FindInserts(true, false, false, false);
+                                IList<ElementId> insertIds = wall.FindInserts(true, true, false, false);
                                 foreach (ElementId insertId in insertIds)
                                 {
                                     if (globalProcessedIds.Contains(insertId.GetIdValue())) continue;
 
                                     Element insert = doc.GetElement(insertId);
                                     if (insert is FamilyInstance fi &&
-                                        (fi.Category.Id.GetIdValue() == (IdType)BuiltInCategory.OST_Windows))
+                                        (fi.Category.Id.GetIdValue() == (IdType)BuiltInCategory.OST_Windows ||
+                                         fi.Category.Id.GetIdValue() == (IdType)BuiltInCategory.OST_Doors))
                                     {
                                         bool belongsToRoom = false;
 
