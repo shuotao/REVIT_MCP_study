@@ -285,6 +285,20 @@ namespace RevitMCP.Core
                         result = ExportSmokeReviewExcel(parameters);
                         break;
 
+                    // === 樓梯法規檢核模組 ===
+                    case "create_stair_section_view":
+                        result = CreateStairSectionView(parameters);
+                        break;
+                    case "get_stair_actual_width":
+                        result = GetStairActualWidth(parameters);
+                        break;
+                    case "check_stair_headroom":
+                        result = CheckStairHeadroom(parameters);
+                        break;
+                    case "create_stair_text_note_with_leader":
+                        result = CreateTextNoteWithLeader(parameters);
+                        break;
+
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
                 }
