@@ -299,6 +299,67 @@ namespace RevitMCP.Core
                         result = CreateTextNoteWithLeader(parameters);
                         break;
 
+                    // === 圖紙管理模組 ===
+                    case "get_all_sheets":
+                        result = GetAllSheets();
+                        break;
+                    case "get_titleblocks":
+                        result = GetTitleBlocks();
+                        break;
+                    case "create_sheets":
+                        result = CreateSheets(parameters);
+                        break;
+                    case "auto_renumber_sheets":
+                        result = AutoRenumberSheets(parameters);
+                        break;
+                    case "get_viewport_map":
+                        result = GetViewportMap();
+                        break;
+
+                    // === 詳圖元件模組 ===
+                    case "get_detail_components":
+                        result = GetDetailComponents(parameters);
+                        break;
+                    case "create_detail_component_type":
+                        result = CreateDetailComponentType(parameters);
+                        break;
+                    case "sync_detail_component_numbers":
+                        result = SyncDetailComponentNumbers();
+                        break;
+                    case "list_family_symbols":
+                        result = ListFamilySymbols(parameters);
+                        break;
+
+                    // === 尺寸標註模組 ===
+                    case "create_dimension_by_ray":
+                        result = CreateDimensionByRay(parameters);
+                        break;
+                    case "create_dimension_by_bounding_box":
+                        result = CreateDimensionByBoundingBox(parameters);
+                        break;
+
+                    // === 從屬視圖模組 ===
+                    case "calculate_grid_bounds":
+                        result = CalculateGridBounds(parameters);
+                        break;
+                    case "create_dependent_views":
+                        result = CreateDependentViews(parameters);
+                        break;
+
+                    // === 牆類型與元素管理模組 ===
+                    case "get_wall_types":
+                        result = GetWallTypes(parameters);
+                        break;
+                    case "change_element_type":
+                        result = ChangeElementType(parameters);
+                        break;
+                    case "get_line_styles":
+                        result = GetLineStyles();
+                        break;
+                    case "trace_stair_geometry":
+                        result = TraceStairGeometry(parameters);
+                        break;
+
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
                 }
