@@ -49,6 +49,10 @@ MCP/obj/
 
 # MCP 編譯輸出
 MCP/bin/
+MCP.Contracts/bin/
+MCP.Contracts/obj/
+MCP.CoreRuntime/bin/
+MCP.CoreRuntime/obj/
 
 # Result 資料夾（與此專案無關）
 result/

@@ -18,6 +18,13 @@ namespace RevitMCP.Core
 
         protected override Assembly Load(AssemblyName assemblyName)
         {
+            // Keep shared contracts in default load context to avoid invalid cast
+            // between identical type names loaded from different contexts.
+            if (string.Equals(assemblyName.Name, "MCP.Contracts", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
             string candidatePath = Path.Combine(_baseDirectory, assemblyName.Name + ".dll");
             if (File.Exists(candidatePath))
             {

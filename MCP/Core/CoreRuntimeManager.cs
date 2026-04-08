@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Linq;
 using Autodesk.Revit.UI;
 using RevitMCP.Contracts;
 
@@ -14,6 +15,7 @@ namespace RevitMCP.Core
 
 #if NET8_0_OR_GREATER
         private CoreLoadContext _loadContext;
+    private string _shadowRuntimeDirectory;
 #endif
 
         public bool IsLoaded => _runtime != null;
@@ -46,18 +48,23 @@ namespace RevitMCP.Core
 
                 string loaderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 string runtimePath = Path.Combine(loaderPath, "runtime");
-                string coreAssemblyPath = Path.Combine(runtimePath, "RevitMCP.CoreRuntime.dll");
+                string sourceCoreAssemblyPath = Path.Combine(runtimePath, "RevitMCP.CoreRuntime.dll");
 
-                if (!File.Exists(coreAssemblyPath))
+                if (!File.Exists(sourceCoreAssemblyPath))
                 {
-                    throw new FileNotFoundException($"找不到 CoreRuntime: {coreAssemblyPath}");
+                    throw new FileNotFoundException($"找不到 CoreRuntime: {sourceCoreAssemblyPath}");
                 }
 
 #if NET8_0_OR_GREATER
-                _loadContext = new CoreLoadContext(runtimePath);
+                // Load from a shadow-copied runtime folder so deployed runtime DLLs
+                // can be overwritten while Revit is running.
+                _shadowRuntimeDirectory = CreateShadowRuntimeDirectory(runtimePath);
+                string coreAssemblyPath = Path.Combine(_shadowRuntimeDirectory, "RevitMCP.CoreRuntime.dll");
+
+                _loadContext = new CoreLoadContext(_shadowRuntimeDirectory);
                 var assembly = _loadContext.LoadFromAssemblyPath(coreAssemblyPath);
 #else
-                var assembly = Assembly.LoadFrom(coreAssemblyPath);
+                var assembly = Assembly.LoadFrom(sourceCoreAssemblyPath);
 #endif
 
                 var type = assembly.GetType("RevitMCP.CoreRuntime.RevitMcpCoreRuntime");
@@ -137,8 +144,47 @@ namespace RevitMCP.Core
                     GC.WaitForPendingFinalizers();
                     GC.Collect();
                 }
+
+                if (!string.IsNullOrWhiteSpace(_shadowRuntimeDirectory) && Directory.Exists(_shadowRuntimeDirectory))
+                {
+                    try
+                    {
+                        Directory.Delete(_shadowRuntimeDirectory, true);
+                    }
+                    catch
+                    {
+                        // Best-effort cleanup only.
+                    }
+                    finally
+                    {
+                        _shadowRuntimeDirectory = null;
+                    }
+                }
 #endif
             }
         }
+
+#if NET8_0_OR_GREATER
+        private static string CreateShadowRuntimeDirectory(string sourceRuntimeDirectory)
+        {
+            string shadowRoot = Path.Combine(Path.GetTempPath(), "RevitMCP", "runtime-shadow");
+            Directory.CreateDirectory(shadowRoot);
+
+            string shadowDir = Path.Combine(shadowRoot, DateTime.Now.ToString("yyyyMMdd_HHmmss_fff"));
+            Directory.CreateDirectory(shadowDir);
+
+            foreach (string file in Directory.EnumerateFiles(sourceRuntimeDirectory, "*.*", SearchOption.TopDirectoryOnly)
+                                           .Where(f => f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
+                                                    || f.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase)
+                                                    || f.EndsWith(".json", StringComparison.OrdinalIgnoreCase)))
+            {
+                string fileName = Path.GetFileName(file);
+                string targetPath = Path.Combine(shadowDir, fileName);
+                File.Copy(file, targetPath, true);
+            }
+
+            return shadowDir;
+        }
+#endif
     }
 }

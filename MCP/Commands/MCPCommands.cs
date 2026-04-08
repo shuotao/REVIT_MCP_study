@@ -2,6 +2,7 @@ using System;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using System.Net.Sockets;
 using RevitMCP.Core;
 
 namespace RevitMCP.Commands
@@ -98,6 +99,22 @@ namespace RevitMCP.Commands
     [Transaction(TransactionMode.Manual)]
     public class SettingsCommand : IExternalCommand
     {
+        private static bool IsPortListening(string host, int port)
+        {
+            try
+            {
+                using (var client = new TcpClient())
+                {
+                    var connectTask = client.ConnectAsync(host, port);
+                    return connectTask.Wait(TimeSpan.FromMilliseconds(300)) && client.Connected;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public Result Execute(
             ExternalCommandData commandData,
             ref string message,
@@ -106,10 +123,36 @@ namespace RevitMCP.Commands
             try
             {
                 var settings = Configuration.ConfigManager.Instance.Settings;
+
+                bool isRunning = Application.IsServiceRunning();
+                bool isConnected = Application.IsServiceConnected();
+                bool portListening = IsPortListening(settings.Host, settings.Port);
+
+                string serviceStatus;
+                if (isConnected)
+                {
+                    serviceStatus = "啟用（已連線）";
+                }
+                else if (isRunning)
+                {
+                    serviceStatus = "啟用（待連線）";
+                }
+                else if (portListening)
+                {
+                    serviceStatus = "啟用（埠已監聽）";
+                }
+                else
+                {
+                    serviceStatus = "停用";
+                }
+
                 string info = $"目前設定:\n\n" +
                     $"主機: {settings.Host}\n" +
                     $"埠號: {settings.Port}\n" +
-                    $"服務狀態: {(settings.IsEnabled ? "啟用" : "停用")}\n\n" +
+                    $"服務狀態: {serviceStatus}\n" +
+                    $"Runtime.IsRunning: {(isRunning ? "是" : "否")}\n" +
+                    $"Runtime.IsConnected: {(isConnected ? "是" : "否")}\n" +
+                    $"Port監聽: {(portListening ? "是" : "否")}\n\n" +
                     $"配置檔位置:\n" +
                     $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\RevitMCP\\config.json";
                 
