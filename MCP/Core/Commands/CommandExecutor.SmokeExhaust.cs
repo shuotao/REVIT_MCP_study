@@ -1423,19 +1423,40 @@ namespace RevitMCP.Core
             View view = doc.GetElement(new ElementId(viewId)) as View;
             if (view == null) throw new Exception($"找不到視圖 ID: {viewId}");
 
-            // 取得或建立文字類型
-            TextNoteType textType = new FilteredElementCollector(doc)
+            // 取得或建立符合 textSize 的文字類型
+            // Revit TextNoteType.Text Size 單位為 feet（紙面尺寸）
+            double textSizeFeet = textSize / 304.8;
+            var allTypes = new FilteredElementCollector(doc)
                 .OfClass(typeof(TextNoteType))
                 .Cast<TextNoteType>()
-                .FirstOrDefault();
-
-            if (textType == null)
+                .ToList();
+            if (allTypes.Count == 0)
                 throw new Exception("找不到文字標註類型");
+
+            TextNoteType textType = allTypes.FirstOrDefault(t =>
+            {
+                var p = t.get_Parameter(BuiltInParameter.TEXT_SIZE);
+                return p != null && Math.Abs(p.AsDouble() - textSizeFeet) < 1e-6;
+            });
 
             IdType textNoteId;
             using (Transaction trans = new Transaction(doc, "建立文字標註"))
             {
                 trans.Start();
+
+                if (textType == null)
+                {
+                    // 從第一個 type 複製出指定字級的新 type
+                    string newTypeName = $"MCP_TextSize_{textSize:0.##}mm";
+                    textType = allTypes.FirstOrDefault(t => t.Name == newTypeName);
+                    if (textType == null)
+                    {
+                        var seedType = allTypes.First();
+                        textType = seedType.Duplicate(newTypeName) as TextNoteType;
+                        var sp = textType.get_Parameter(BuiltInParameter.TEXT_SIZE);
+                        if (sp != null) sp.Set(textSizeFeet);
+                    }
+                }
 
                 TextNoteOptions options = new TextNoteOptions
                 {

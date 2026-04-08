@@ -316,6 +316,14 @@ namespace RevitMCP.Core
                         result = GetViewportMap();
                         break;
 
+                    // === Legend 模組 ===
+                    case "create_legends":
+                        result = CreateLegends(parameters);
+                        break;
+                    case "read_excel_tables":
+                        result = ReadExcelTables(parameters);
+                        break;
+
                     // === 詳圖元件模組 ===
                     case "get_detail_components":
                         result = GetDetailComponents(parameters);
