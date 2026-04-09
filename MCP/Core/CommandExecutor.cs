@@ -323,6 +323,9 @@ namespace RevitMCP.Core
                     case "read_excel_tables":
                         result = ReadExcelTables(parameters);
                         break;
+                    case "import_excel_to_drafting_views":
+                        result = ImportExcelToDraftingViews(parameters);
+                        break;
 
                     // === 詳圖元件模組 ===
                     case "get_detail_components":
