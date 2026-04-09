@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>0328 Revit MCP 讀書會</title>
-<meta property="og:title" content="MCP 功能開發三月小聚">
-<meta property="og:description" content="從工具堆砌到模組化架構 — 8 大專業系統、26 個 Domain、44 個工具已上線驗證。你的專業就是下一個按鈕。">
+<meta property="og:title" content="MCP 功能開發四月小聚">
+<meta property="og:description" content="從工具堆砌到模組化架構 — 8 大專業系統、30 個 Domain、76 個工具已上線驗證。你的專業就是下一個按鈕。">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://shuotao.github.io/REVIT_MCP_study/docs/0328-presentation.html">
+<meta property="og:url" content="https://shuotao.github.io/REVIT_MCP_study/docs/0425-presentation.html">
 <meta name="twitter:card" content="summary">
 <style>
   /* ===== RESET & BASE ===== */
@@ -809,7 +809,7 @@
 <section class="cover" id="slide-cover">
   <div class="cover-eyebrow">Revit MCP Study Group</div>
   <div style="display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap;">
-    <h1 class="cover-title" style="margin:0;">MCP 功能開發<br>三月小聚</h1>
+    <h1 class="cover-title" style="margin:0;">MCP 功能開發<br>四月小聚</h1>
     <div style="display:flex;flex-direction:column;gap:12px;padding-top:8px;">
       <a href="https://luma.com/claudecommunity" target="_blank" title="Claude Community — Anthropic 官方社群" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:rgba(255,255,255,0.6);font-size:13px;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px 14px;transition:all 0.3s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.4)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='rgba(255,255,255,0.6)'">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
@@ -833,7 +833,7 @@
   <div class="cover-meta">
     <div class="cover-meta-item">
       <div class="cover-meta-label">Date</div>
-      <div class="cover-meta-value">2026.03.28 (Sat)</div>
+      <div class="cover-meta-value">2026.04.25 (Sat)</div>
     </div>
     <div class="cover-meta-item">
       <div class="cover-meta-label">Format</div>
@@ -853,8 +853,8 @@
     我還沒部署，請點我
   </a>
   <div class="cover-qr">
-    <a href="https://forms.gle/6XzMa6tAEW6VhyWe8" target="_blank">
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://forms.gle/6XzMa6tAEW6VhyWe8&bgcolor=000000&color=ffffff&format=svg" alt="報名 QR Code" width="120" height="120">
+    <a href="https://forms.gle/hWrvnRc7SYEzEK6i8" target="_blank">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://forms.gle/hWrvnRc7SYEzEK6i8&bgcolor=000000&color=ffffff&format=svg" alt="四月小聚報名 QR Code" width="120" height="120">
     </a>
     <div class="cover-qr-label">我還沒有報名，但我超級想參加（點我或掃QRCODE）</div>
   </div>
@@ -868,19 +868,16 @@
 
   <div class="domain-grid">
     <div class="domain-card" onclick="openDrawer('drawer-why-fire')">
-      <span class="issue-badge">1</span>
       <span class="domain-card-icon">🔥</span>
       <div class="domain-card-label">防火安全</div>
       <div class="domain-card-sub">防火時效 · 走廊寬度 · 外牆開口<br>3 個 Domain · 6 個工具</div>
     </div>
     <div class="domain-card" onclick="openDrawer('drawer-why-smoke')">
-      <span class="issue-badge">1</span>
       <span class="domain-card-icon">🌫️</span>
       <div class="domain-card-label">排煙檢討</div>
       <div class="domain-card-sub">排煙窗有效面積 · 無開口樓層<br>1 個 Domain · 7 個工具</div>
     </div>
     <div class="domain-card" onclick="openDrawer('drawer-why-compliance')">
-      <span class="issue-badge">2</span>
       <span class="domain-card-icon">📐</span>
       <div class="domain-card-label">法規檢討</div>
       <div class="domain-card-sub">採光比 · 容積率 · 停車位數量<br>4 個 Domain · 5 個工具</div>
@@ -912,7 +909,7 @@
     </div>
   </div>
 
-  <div class="why-footer">以上 8 大系統、<strong>26 個 Domain</strong>、<strong>44 個工具</strong>已上線驗證。<br>你的專業領域，就是第 9 個、第 10 個按鈕。</div>
+  <div class="why-footer">以上 8 大系統、<strong>30 個 Domain</strong>、<strong>76 個工具</strong>已上線驗證。<br>你的專業領域，就是第 9 個、第 10 個按鈕。</div>
 </section>
 
 <!-- ===== SETUP PAGE ===== -->
@@ -1177,7 +1174,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content">
       <div class="slide-number">2-1</div>
       <div class="slide-title">工具越多，AI 越笨</div>
-      <p class="slide-summary">55 個工具定義 = 每輪對話都佔用 context 的固定成本。工具越多，AI 選錯的機率越高。</p>
+      <p class="slide-summary">76 個工具定義 = 每輪對話都佔用 context 的固定成本。工具越多，AI 選錯的機率越高。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-2-1')">展開數據分析</button>
     </div>
   </div>
@@ -1341,7 +1338,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content">
       <div class="slide-number">3-6</div>
       <div class="slide-title">Profile：角色篩選</div>
-      <p class="slide-summary">設定一行 MCP_PROFILE，結構工程師只看 20 個工具，不再被 55 個不相關的工具淹沒。</p>
+      <p class="slide-summary">設定一行 MCP_PROFILE，結構工程師只看 20 個工具，不再被 76 個不相關的工具淹沒。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-3-6')">展開 Profile 設定</button>
     </div>
   </div>
@@ -1513,13 +1510,11 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <tr><td><code>clear_element_override</code></td><td>清除舊上色</td></tr>
   </table>
 
-  <div class="drawer-issue-section">
-    <h3>法規複查待確認</h3>
-    <div class="issue-item">
-      <p><strong>§45 漏列第四、五款</strong>：排氣口距境界線 ≥ 2m（第四款）、窗臺高度 H-2/D-3/F-3 ≥ 1.1m / 十層以上 ≥ 1.2m（第五款），目前 domain 文件未涵蓋。</p>
-      <p><strong>§110 漏列第五款</strong>：避難通路淨寬 ≥ 1.5m、外牆 1hr 防火 + 0.5hr 阻熱。</p>
-      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/20" target="_blank">Issue #20</a>
-      <span class="issue-assignee">請 @davidhsu68-dvstudio 當場確認</span>
+  <div class="drawer-issue-section" style="border-top-color: rgba(74,222,128,0.2);">
+    <h3 style="color: #4ade80 !important;">已修正</h3>
+    <div class="fix-item">
+      <p><strong>§45 第四、五款已補入</strong>：排氣口距境界線 ≥ 2m、窗臺高度 H-2/D-3/F-3 ≥ 1.1m / 十層以上 ≥ 1.2m，已更新至 <code>exterior-wall-opening-check.md</code>。</p>
+      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/20" target="_blank" style="opacity:0.5;">Issue #20（已關閉）</a>
     </div>
   </div>
 </div>
@@ -1541,16 +1536,14 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <tr><td><code>create_detail_lines</code></td><td>天花板線 / 有效帶線</td></tr>
     <tr><td><code>create_filled_region</code></td><td>有效帶色塊</td></tr>
     <tr><td><code>create_text_note</code></td><td>統計摘要標註</td></tr>
-    <tr><td><code>export_smoke_review_excel</code></td><td>四工作表 Excel 報告</td></tr>
+    <tr><td><code>export_smoke_review_excel</code></td><td>五工作表 Excel 報告（含 §101 補充檢討）</td></tr>
   </table>
 
-  <div class="drawer-issue-section">
-    <h3>法規複查待確認</h3>
-    <div class="issue-item">
-      <p><strong>§101 漏列排風量規定</strong>：排風機排風量不得小於每分鐘 120 立方公尺。</p>
-      <p><strong>§101 漏列中央監控規定</strong>：建築物高度 > 30m 或地下層面積 > 1000m²，排煙控制應設置於中央管理室。</p>
-      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/19" target="_blank">Issue #19</a>
-      <span class="issue-assignee">請 @7alexhuang-ux 當場確認</span>
+  <div class="drawer-issue-section" style="border-top-color: rgba(74,222,128,0.2);">
+    <h3 style="color: #4ade80 !important;">已修正</h3>
+    <div class="fix-item">
+      <p><strong>§101 排風量 + 中央監控已整合</strong>：排風機 ≥ 120 m³/min（靜態提醒）、中央管理室偵測（半自動），已整合至 C# partial class + domain + Excel Sheet 5。</p>
+      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/19" target="_blank" style="opacity:0.5;">Issue #19（已關閉）</a>
     </div>
   </div>
 </div>
@@ -1576,34 +1569,15 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <tr><td><code>get_field_values</code></td><td>停車位類型分佈統計</td></tr>
   </table>
 
-  <div class="drawer-issue-section">
-    <h3>法規複查待確認</h3>
-    <div class="issue-item">
-      <p><strong>§41 天窗 3 倍、遮蔽 70% 規則出處待確認</strong>：目前 <code>daylight-area-check.md</code> 列出天窗有效面積按 3 倍計算、陽台遮蔽 > 2m 按 70% 計算，但第 41 條原文僅規定採光比例和 75cm 排除。這兩條規則可能來自施行細則或地方規範，需確認出處。</p>
-      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/20" target="_blank">Issue #20</a>
-      <span class="issue-assignee">請 @davidhsu68-dvstudio 當場確認</span>
-    </div>
-    <div class="issue-item">
-      <p><strong>停車位條號引用錯誤</strong>：車位尺寸 2.5m × 5.5m 應引用 <strong>§60</strong>（非 §60-1）、車道寬度應引用 <strong>§61</strong>、樓層淨高 ≥ 2.1m 應引用 <strong>§62</strong>。§60-1 實際內容為通道淨寬 ≥ 75cm。</p>
-      <p>無障礙車位 3.5m × 5.5m 可能出自《建築物無障礙設施設計規範》而非建技規，需確認。</p>
-      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/21" target="_blank">Issue #21</a>
-      <span class="issue-assignee">請 @h30190 當場確認</span>
-    </div>
-  </div>
-
   <div class="drawer-issue-section" style="border-top-color: rgba(74,222,128,0.2);">
-    <h3 style="color: #4ade80 !important;">可直接修正（已查證正確條文）</h3>
+    <h3 style="color: #4ade80 !important;">已修正</h3>
     <div class="fix-item">
-      <p><strong>§60-1 → §60</strong>：<code>docs/0328的課程討論.md</code> 車位尺寸引用修正 <span class="fix-tag">已查證</span></p>
+      <p><strong>§41 天窗/遮蔽出處已標註</strong>：<code>daylight-area-check.md</code> 天窗 3 倍、遮蔽 70% 規則已加「出處待確認」標註，可能來自地方自治條例或設計手冊。</p>
+      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/20" target="_blank" style="opacity:0.5;">Issue #20（已關閉）</a>
     </div>
     <div class="fix-item">
-      <p><strong>§60-1 → §61</strong>：車道寬度（單 ≥ 3.5m、雙 ≥ 5.5m）引用修正 <span class="fix-tag">已查證</span></p>
-    </div>
-    <div class="fix-item">
-      <p><strong>parking-clearance-check.md 補 §62</strong>：淨高 > 210cm 正確，但缺條號 <span class="fix-tag">已查證</span></p>
-    </div>
-    <div class="fix-item">
-      <p>以上 3 項法規來源明確，上完課後統一修改。雖無 Issue 但建議比對 <a href="https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=D0070115" target="_blank" style="color:#4ade80;">官方條文</a> 再次確認。</p>
+      <p><strong>停車位條號已修正</strong>：§60-1 → §60（車位尺寸）、§61（車道寬度）、§62（樓層淨高），已更新 <code>docs/0328的課程討論.md</code>。</p>
+      <a class="issue-link-btn" href="https://github.com/shuotao/REVIT_MCP_study/issues/21" target="_blank" style="opacity:0.5;">Issue #21（已關閉）</a>
     </div>
   </div>
 </div>
@@ -1812,9 +1786,9 @@ npm run build</code><button class="copy-btn" onclick="copyCode(this)">複製</bu
   <h3>Token 數字</h3>
   <table>
     <tr><th>項目</th><th>Token 成本</th></tr>
-    <tr><td>55 個工具定義</td><td>~16,500 tokens</td></tr>
+    <tr><td>76 個工具定義</td><td>~22,800 tokens</td></tr>
     <tr><td>CLAUDE.md 全文</td><td>~5,000 tokens</td></tr>
-    <tr><td><strong>每輪固定成本</strong></td><td><strong>~21,500 tokens</strong></td></tr>
+    <tr><td><strong>每輪固定成本</strong></td><td><strong>~27,800 tokens</strong></td></tr>
     <tr><td>如果到 100 個工具</td><td>~35,000 tokens</td></tr>
   </table>
   <h3>為什麼這是問題</h3>
@@ -2615,20 +2589,13 @@ git clone https://github.com/shuotao/REVIT_MCP_study.git</div>
   <div class="ending-inner">
     <div class="ending-preview">
       <div class="ending-eyebrow">NEXT MEETUP</div>
-      <h2 class="ending-title">第四次小聚</h2>
-      <div class="ending-date">2026.04.25 (Sat) 10:00 – 12:00</div>
+      <h2 class="ending-title">五月小聚</h2>
+      <div class="ending-date">敬請期待</div>
       <p class="ending-desc">
         持續擴充法規模組（綠建築、無障礙、結構）<br>
         Profile 自動偵測 + 送審報告匯出<br>
         <strong style="color:rgba(255,255,255,0.6)">你的專業，就是下一個按鈕。</strong>
       </p>
-      <div class="cover-qr" style="margin-top:24px;">
-        <a href="https://forms.gle/hWrvnRc7SYEzEK6i8" target="_blank">
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://forms.gle/hWrvnRc7SYEzEK6i8&bgcolor=000000&color=ffffff&format=svg" alt="第四次小聚報名 QR Code" width="120" height="120">
-        </a>
-        <div class="cover-qr-label" style="font-size:18px;">我要報名</div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.45);margin-top:4px;">下次小聚新增筆記分享免費選項</div>
-      </div>
     </div>
     <div class="ending-lottery">
       <h3>抽選下次分享者</h3>

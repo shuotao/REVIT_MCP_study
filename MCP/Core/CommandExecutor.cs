@@ -285,6 +285,81 @@ namespace RevitMCP.Core
                         result = ExportSmokeReviewExcel(parameters);
                         break;
 
+                    // === 樓梯法規檢核模組 ===
+                    case "create_stair_section_view":
+                        result = CreateStairSectionView(parameters);
+                        break;
+                    case "get_stair_actual_width":
+                        result = GetStairActualWidth(parameters);
+                        break;
+                    case "check_stair_headroom":
+                        result = CheckStairHeadroom(parameters);
+                        break;
+                    case "create_stair_text_note_with_leader":
+                        result = CreateTextNoteWithLeader(parameters);
+                        break;
+
+                    // === 圖紙管理模組 ===
+                    case "get_all_sheets":
+                        result = GetAllSheets();
+                        break;
+                    case "get_titleblocks":
+                        result = GetTitleBlocks();
+                        break;
+                    case "create_sheets":
+                        result = CreateSheets(parameters);
+                        break;
+                    case "auto_renumber_sheets":
+                        result = AutoRenumberSheets(parameters);
+                        break;
+                    case "get_viewport_map":
+                        result = GetViewportMap();
+                        break;
+
+                    // === 詳圖元件模組 ===
+                    case "get_detail_components":
+                        result = GetDetailComponents(parameters);
+                        break;
+                    case "create_detail_component_type":
+                        result = CreateDetailComponentType(parameters);
+                        break;
+                    case "sync_detail_component_numbers":
+                        result = SyncDetailComponentNumbers();
+                        break;
+                    case "list_family_symbols":
+                        result = ListFamilySymbols(parameters);
+                        break;
+
+                    // === 尺寸標註模組 ===
+                    case "create_dimension_by_ray":
+                        result = CreateDimensionByRay(parameters);
+                        break;
+                    case "create_dimension_by_bounding_box":
+                        result = CreateDimensionByBoundingBox(parameters);
+                        break;
+
+                    // === 從屬視圖模組 ===
+                    case "calculate_grid_bounds":
+                        result = CalculateGridBounds(parameters);
+                        break;
+                    case "create_dependent_views":
+                        result = CreateDependentViews(parameters);
+                        break;
+
+                    // === 牆類型與元素管理模組 ===
+                    case "get_wall_types":
+                        result = GetWallTypes(parameters);
+                        break;
+                    case "change_element_type":
+                        result = ChangeElementType(parameters);
+                        break;
+                    case "get_line_styles":
+                        result = GetLineStyles();
+                        break;
+                    case "trace_stair_geometry":
+                        result = TraceStairGeometry(parameters);
+                        break;
+
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
                 }
@@ -1232,14 +1307,15 @@ namespace RevitMCP.Core
                             Element element = doc.GetElement(segment.ElementId);
                             if (element is Wall wall)
                             {
-                                IList<ElementId> insertIds = wall.FindInserts(true, false, false, false);
+                                IList<ElementId> insertIds = wall.FindInserts(true, true, false, false);
                                 foreach (ElementId insertId in insertIds)
                                 {
                                     if (globalProcessedIds.Contains(insertId.GetIdValue())) continue;
 
                                     Element insert = doc.GetElement(insertId);
                                     if (insert is FamilyInstance fi &&
-                                        (fi.Category.Id.GetIdValue() == (IdType)BuiltInCategory.OST_Windows))
+                                        (fi.Category.Id.GetIdValue() == (IdType)BuiltInCategory.OST_Windows ||
+                                         fi.Category.Id.GetIdValue() == (IdType)BuiltInCategory.OST_Doors))
                                     {
                                         bool belongsToRoom = false;
 

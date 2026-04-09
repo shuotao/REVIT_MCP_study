@@ -1,7 +1,16 @@
 # Domain Analysis: Parking Clearance Check (B1F)
 
+## 法規依據
+
+| 條號 | 內容 |
+|:-----|:-----|
+| **§60** | 停車位尺寸：寬 2.5m × 長 5.5m（角度 ≤ 30° 時長 6m） |
+| **§61** | 車道寬度：單車道 ≥ 3.5m、雙車道 ≥ 5.5m |
+| **§62** | 停車空間樓層淨高 ≥ 2.1m（210cm） |
+| 無障礙設施設計規範 | 無障礙車位尺寸 3.5m × 5.5m（非建技規，另定規範） |
+
 ## 1. Goal Description
-Check if the clearance of parking spaces meets the requirement of **>210cm**. If the clearance is insufficient (<= 210cm), override the graphic display of those parking spaces to **Red**.
+Check if the clearance of parking spaces meets the requirement of **>210cm** (建技規 §62). If the clearance is insufficient (<= 210cm), override the graphic display of those parking spaces to **Red**.
 
 ## 2. Technical Approach
 1. **Identify Target Elements**: 

@@ -399,7 +399,7 @@ A thin white downward arrow connects each layer.
 To the right of each layer, TWO annotations:
   SKILL:  "~100 tokens (metadata)" in gray  |  "< 5K tokens (when triggered)" in white
   DOMAIN: "loaded by skill reference" in gray
-  TOOLS:  "58 tools via MCP protocol" in gray  |  "always available" in white
+  TOOLS:  "76 tools via MCP protocol" in gray  |  "always available" in white
 
 To the left of each layer, a role label:
   SKILL:  "WHEN + HOW"
@@ -499,7 +499,7 @@ simplicity implies authority. Black background, white elements.
 ```
 Minimalist concept illustration, 1:1 square, pure black background.
 
-Top: a row of many small white dots (representing 55 tools), densely packed.
+Top: a row of many small white dots (representing 76 tools), densely packed.
 
 Center: a white horizontal line acting as a filter/sieve,
 with a label "PROFILE: architect" next to it.
