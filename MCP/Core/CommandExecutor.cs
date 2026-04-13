@@ -324,6 +324,9 @@ namespace RevitMCP.Core
                     case "scale_drafting_view_width":
                         result = ScaleDraftingViewWidth(parameters);
                         break;
+                    case "scale_drafting_view_height":
+                        result = ScaleDraftingViewHeight(parameters);
+                        break;
                     case "move_text_notes_in_views":
                         result = MoveTextNotesInViews(parameters);
                         break;

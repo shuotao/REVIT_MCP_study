@@ -114,6 +114,28 @@ export const sheetTools: Tool[] = [
         },
     },
     {
+        name: "scale_drafting_view_height",
+        description: "縮放圖紙上所有 DraftingView 中表格的行高（僅 Y 軸），寬度不變。以每個 view 的上邊緣為錨點，將所有 DetailCurve 和 TextNote 的 Y 座標按比例縮放。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                scaleFactor: {
+                    type: "number",
+                    description: "行高縮放比例（例如 1.1 表示放大到 110%，0.9 表示縮小到 90%）。預設 1.1",
+                },
+                viewNames: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "只處理指定名稱的 DraftingView（選填，不指定則處理圖紙上所有 DraftingView）",
+                },
+                sheetId: {
+                    type: "number",
+                    description: "圖紙的 Element ID（選填，不指定則使用當前作用圖紙）",
+                },
+            },
+        },
+    },
+    {
         name: "move_text_notes_in_views",
         description:
             "在多個 DraftingView 中，依文字內容子字串搜尋 TextNote 並批次平移。適用於跨圖面統一調整法規文字位置。",
