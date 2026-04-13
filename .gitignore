@@ -74,3 +74,7 @@ MCP-Server/scripts/rooms_output.txt
 MCP-Server/scripts/exterior_wall_check_report.json
 MCP-Server/far_report.txt
 Recent_Update_Review.md
+
+# 本地設定檔（不同步）
+.claude/settings.local.json
+.mcp.json

@@ -202,7 +202,7 @@ namespace RevitMCP.Core
                     {
                         string original = s.SheetNumber.Replace("_MCPFIX", "");
                         try { s.SheetNumber = original; }
-                        catch (Exception ex) { Logger.Instance.Log($"還原 _MCPFIX 失敗: {ex.Message}"); }
+                        catch (Exception ex) { Logger.Error($"還原 _MCPFIX 失敗: {ex.Message}"); }
                     }
                     tFix.Commit();
                 }
@@ -443,6 +443,738 @@ namespace RevitMCP.Core
             public SheetSortInfo Data { get; set; }
             public string BaseName { get; set; }
             public int MatchIndex { get; set; }
+        }
+
+        /// <summary>
+        /// 取得指定圖紙上所有視埠的詳細資訊（中心點、邊界框、尺寸）
+        /// </summary>
+        private object GetSheetViewportDetails(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            IdType sheetId = parameters?["sheetId"]?.Value<IdType>() ?? 0;
+
+            ViewSheet sheet;
+            if (sheetId != 0)
+            {
+                sheet = doc.GetElement(sheetId.ToElementId()) as ViewSheet;
+                if (sheet == null)
+                    throw new Exception($"找不到圖紙 ID: {sheetId}");
+            }
+            else
+            {
+                View activeView = _uiApp.ActiveUIDocument.ActiveView;
+                sheet = activeView as ViewSheet;
+                if (sheet == null)
+                    throw new Exception($"目前的作用視圖不是圖紙 (ViewSheet)，而是 {activeView.ViewType}。請指定 sheetId 或切換至圖紙視圖。");
+            }
+
+            var vpIds = sheet.GetAllViewports();
+            var viewports = new List<object>();
+
+            foreach (var vpId in vpIds)
+            {
+                var vp = doc.GetElement(vpId) as Viewport;
+                if (vp == null) continue;
+
+                var view = doc.GetElement(vp.ViewId) as View;
+                XYZ center = vp.GetBoxCenter();
+                Outline outline = vp.GetBoxOutline();
+                XYZ min = outline.MinimumPoint;
+                XYZ max = outline.MaximumPoint;
+
+                double widthFt = max.X - min.X;
+                double heightFt = max.Y - min.Y;
+
+                viewports.Add(new
+                {
+                    ViewportId = vp.Id.GetIdValue(),
+                    ViewId = vp.ViewId.GetIdValue(),
+                    ViewName = view?.Name ?? "Unknown",
+                    ViewType = view?.ViewType.ToString() ?? "Unknown",
+                    Center = new
+                    {
+                        X = Math.Round(center.X * 304.8, 2),
+                        Y = Math.Round(center.Y * 304.8, 2)
+                    },
+                    Outline = new
+                    {
+                        MinX = Math.Round(min.X * 304.8, 2),
+                        MinY = Math.Round(min.Y * 304.8, 2),
+                        MaxX = Math.Round(max.X * 304.8, 2),
+                        MaxY = Math.Round(max.Y * 304.8, 2)
+                    },
+                    WidthMm = Math.Round(widthFt * 304.8, 2),
+                    HeightMm = Math.Round(heightFt * 304.8, 2)
+                });
+            }
+
+            return new
+            {
+                SheetId = sheet.Id.GetIdValue(),
+                SheetNumber = sheet.SheetNumber,
+                SheetName = sheet.Name,
+                ViewportCount = viewports.Count,
+                Viewports = viewports
+            };
+        }
+
+        /// <summary>
+        /// 依指定順序排列圖紙上的視埠（支援 viewportIds 或 viewNames）
+        /// </summary>
+        private object ArrangeViewportsOnSheet(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            var viewportIdsArray = parameters?["viewportIds"] as JArray;
+            var viewNamesArray = parameters?["viewNames"] as JArray;
+            string direction = parameters?["direction"]?.Value<string>() ?? "horizontal";
+            double gapMm = parameters?["gapMm"]?.Value<double>() ?? 0;
+            string alignY = parameters?["alignY"]?.Value<string>() ?? "center";
+            IdType sheetId = parameters?["sheetId"]?.Value<IdType>() ?? 0;
+
+            if ((viewportIdsArray == null || viewportIdsArray.Count == 0) &&
+                (viewNamesArray == null || viewNamesArray.Count == 0))
+                throw new Exception("請提供 viewportIds 或 viewNames（至少一項）");
+
+            direction = direction.ToLower();
+            if (direction != "horizontal" && direction != "vertical")
+                throw new Exception($"direction 必須是 'horizontal' 或 'vertical'，收到: '{direction}'");
+
+            alignY = alignY.ToLower();
+
+            // Resolve sheet
+            ViewSheet sheet;
+            if (sheetId != 0)
+            {
+                sheet = doc.GetElement(sheetId.ToElementId()) as ViewSheet;
+                if (sheet == null)
+                    throw new Exception($"找不到圖紙 ID: {sheetId}");
+            }
+            else
+            {
+                View activeView = _uiApp.ActiveUIDocument.ActiveView;
+                sheet = activeView as ViewSheet;
+                if (sheet == null)
+                    throw new Exception($"目前的作用視圖不是圖紙 (ViewSheet)，而是 {activeView.ViewType}。請指定 sheetId 或切換至圖紙視圖。");
+            }
+
+            double gapFt = gapMm / 304.8;
+            var warnings = new List<string>();
+            int placedCount = 0;
+
+            // Build ordered viewport list
+            var orderedViewports = new List<Viewport>();
+
+            if (viewNamesArray != null && viewNamesArray.Count > 0)
+            {
+                // Resolve by view name: build name->viewport map from sheet
+                var vpIds = sheet.GetAllViewports();
+                var nameMap = new Dictionary<string, Viewport>(StringComparer.OrdinalIgnoreCase);
+                foreach (var vpId in vpIds)
+                {
+                    var vp = doc.GetElement(vpId) as Viewport;
+                    if (vp == null) continue;
+                    var view = doc.GetElement(vp.ViewId) as View;
+                    if (view == null) continue;
+
+                    if (view.ViewType != ViewType.DraftingView)
+                        continue;
+
+                    if (!nameMap.ContainsKey(view.Name))
+                        nameMap[view.Name] = vp;
+                }
+
+                // Build project-wide DraftingView name->View map for auto-place
+                var allDraftingViews = new FilteredElementCollector(doc)
+                    .OfClass(typeof(ViewDrafting))
+                    .Cast<ViewDrafting>()
+                    .ToDictionary(v => v.Name, v => v, StringComparer.OrdinalIgnoreCase);
+
+                // Phase 1: Auto-place views not yet on this sheet (requires transaction)
+                var namesToPlace = new List<string>();
+                foreach (var nameToken in viewNamesArray)
+                {
+                    string name = nameToken.Value<string>();
+                    if (!nameMap.ContainsKey(name) && allDraftingViews.ContainsKey(name))
+                        namesToPlace.Add(name);
+                }
+
+                if (namesToPlace.Count > 0)
+                {
+                    using (Transaction tPlace = new Transaction(doc, "放置視圖到圖紙"))
+                    {
+                        tPlace.Start();
+                        XYZ tempCenter = new XYZ(0, 0, 0);
+                        foreach (var name in namesToPlace)
+                        {
+                            var draftView = allDraftingViews[name];
+                            try
+                            {
+                                Viewport newVp = Viewport.Create(doc, sheet.Id, draftView.Id, tempCenter);
+                                nameMap[name] = newVp;
+                                placedCount++;
+                            }
+                            catch (Exception ex)
+                            {
+                                warnings.Add($"無法將 '{name}' 放到圖紙上: {ex.Message}");
+                            }
+                        }
+                        tPlace.Commit();
+                    }
+                }
+
+                // Phase 2: Build ordered list
+                foreach (var nameToken in viewNamesArray)
+                {
+                    string name = nameToken.Value<string>();
+                    if (nameMap.TryGetValue(name, out Viewport matchedVp))
+                    {
+                        orderedViewports.Add(matchedVp);
+                    }
+                    else if (!allDraftingViews.ContainsKey(name))
+                    {
+                        warnings.Add($"專案中找不到名為 '{name}' 的 DraftingView");
+                    }
+                }
+            }
+            else
+            {
+                // Resolve by viewport IDs
+                foreach (var idToken in viewportIdsArray)
+                {
+                    IdType vpIdVal = idToken.Value<IdType>();
+                    var vp = doc.GetElement(vpIdVal.ToElementId()) as Viewport;
+                    if (vp == null)
+                        throw new Exception($"找不到視埠 ID: {vpIdVal}");
+
+                    var vpSheet = doc.GetElement(vp.SheetId) as ViewSheet;
+                    if (vpSheet == null || vpSheet.Id.GetIdValue() != sheet.Id.GetIdValue())
+                        throw new Exception($"視埠 {vpIdVal} 不在圖紙 {sheet.SheetNumber} 上");
+
+                    orderedViewports.Add(vp);
+                }
+            }
+
+            if (orderedViewports.Count < 2)
+                throw new Exception($"有效的視埠數量不足（需至少 2 個，實際 {orderedViewports.Count} 個）");
+
+            // Collect outline data
+            var vpDataList = orderedViewports.Select(vp =>
+            {
+                Outline outline = vp.GetBoxOutline();
+                double w = outline.MaximumPoint.X - outline.MinimumPoint.X;
+                double h = outline.MaximumPoint.Y - outline.MinimumPoint.Y;
+                return new { Vp = vp, Outline = outline, Width = w, Height = h };
+            }).ToList();
+
+            // Anchor: first viewport's current left edge
+            XYZ firstCenter = vpDataList[0].Vp.GetBoxCenter();
+            Outline firstOutline = vpDataList[0].Outline;
+
+            var results = new List<object>();
+
+            using (Transaction trans = new Transaction(doc, "排列視埠"))
+            {
+                trans.Start();
+
+                if (direction == "horizontal")
+                {
+                    double currentLeftX = firstOutline.MinimumPoint.X;
+
+                    double refY;
+                    if (alignY == "top")
+                        refY = firstOutline.MaximumPoint.Y;
+                    else if (alignY == "bottom")
+                        refY = firstOutline.MinimumPoint.Y;
+                    else
+                        refY = firstCenter.Y;
+
+                    for (int i = 0; i < vpDataList.Count; i++)
+                    {
+                        var d = vpDataList[i];
+                        double newCenterX = currentLeftX + d.Width / 2.0;
+
+                        double newCenterY;
+                        if (alignY == "top")
+                            newCenterY = refY - d.Height / 2.0;
+                        else if (alignY == "bottom")
+                            newCenterY = refY + d.Height / 2.0;
+                        else
+                            newCenterY = refY;
+
+                        d.Vp.SetBoxCenter(new XYZ(newCenterX, newCenterY, 0));
+
+                        var view = doc.GetElement(d.Vp.ViewId) as View;
+                        results.Add(new
+                        {
+                            ViewportId = d.Vp.Id.GetIdValue(),
+                            ViewName = view?.Name ?? "Unknown",
+                            NewCenter = new
+                            {
+                                X = Math.Round(newCenterX * 304.8, 2),
+                                Y = Math.Round(newCenterY * 304.8, 2)
+                            },
+                            WidthMm = Math.Round(d.Width * 304.8, 2),
+                            HeightMm = Math.Round(d.Height * 304.8, 2)
+                        });
+
+                        currentLeftX += d.Width + gapFt;
+                    }
+                }
+                else // vertical
+                {
+                    double currentTopY = firstOutline.MaximumPoint.Y;
+                    double refX = firstCenter.X;
+
+                    for (int i = 0; i < vpDataList.Count; i++)
+                    {
+                        var d = vpDataList[i];
+                        double newCenterY = currentTopY - d.Height / 2.0;
+                        double newCenterX = refX;
+
+                        d.Vp.SetBoxCenter(new XYZ(newCenterX, newCenterY, 0));
+
+                        var view = doc.GetElement(d.Vp.ViewId) as View;
+                        results.Add(new
+                        {
+                            ViewportId = d.Vp.Id.GetIdValue(),
+                            ViewName = view?.Name ?? "Unknown",
+                            NewCenter = new
+                            {
+                                X = Math.Round(newCenterX * 304.8, 2),
+                                Y = Math.Round(newCenterY * 304.8, 2)
+                            },
+                            WidthMm = Math.Round(d.Width * 304.8, 2),
+                            HeightMm = Math.Round(d.Height * 304.8, 2)
+                        });
+
+                        currentTopY -= d.Height + gapFt;
+                    }
+                }
+
+                trans.Commit();
+            }
+
+            double totalWidth, totalHeight;
+            if (direction == "horizontal")
+            {
+                totalWidth = vpDataList.Sum(d => d.Width) + gapFt * (vpDataList.Count - 1);
+                totalHeight = vpDataList.Max(d => d.Height);
+            }
+            else
+            {
+                totalWidth = vpDataList.Max(d => d.Width);
+                totalHeight = vpDataList.Sum(d => d.Height) + gapFt * (vpDataList.Count - 1);
+            }
+
+            return new
+            {
+                Success = true,
+                Direction = direction,
+                GapMm = gapMm,
+                Alignment = alignY,
+                TotalWidthMm = Math.Round(totalWidth * 304.8, 2),
+                TotalHeightMm = Math.Round(totalHeight * 304.8, 2),
+                PlacedCount = placedCount,
+                ArrangedCount = results.Count,
+                ArrangedViewports = results,
+                Warnings = warnings
+            };
+        }
+
+        /// <summary>
+        /// 縮放 DraftingView 中表格的寬度（僅 X 軸），高度不變
+        /// </summary>
+        private object ScaleDraftingViewWidth(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            double scaleFactor = parameters?["scaleFactor"]?.Value<double>() ?? 0.9;
+            IdType sheetId = parameters?["sheetId"]?.Value<IdType>() ?? 0;
+            var viewNamesArray = parameters?["viewNames"] as JArray;
+
+            if (scaleFactor <= 0 || scaleFactor > 5)
+                throw new Exception($"scaleFactor 必須在 0~5 之間，收到: {scaleFactor}");
+
+            // Resolve sheet
+            ViewSheet sheet;
+            if (sheetId != 0)
+            {
+                sheet = doc.GetElement(sheetId.ToElementId()) as ViewSheet;
+                if (sheet == null)
+                    throw new Exception($"找不到圖紙 ID: {sheetId}");
+            }
+            else
+            {
+                View activeView = _uiApp.ActiveUIDocument.ActiveView;
+                sheet = activeView as ViewSheet;
+                if (sheet == null)
+                    throw new Exception("目前的作用視圖不是圖紙 (ViewSheet)，請指定 sheetId 或切換至圖紙視圖。");
+            }
+
+            // Get target DraftingViews from sheet's viewports
+            var vpIds = sheet.GetAllViewports();
+            var targetViews = new List<ViewDrafting>();
+            var nameFilter = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (viewNamesArray != null)
+                foreach (var n in viewNamesArray)
+                    nameFilter.Add(n.Value<string>());
+
+            foreach (var vpId in vpIds)
+            {
+                var vp = doc.GetElement(vpId) as Viewport;
+                if (vp == null) continue;
+                var view = doc.GetElement(vp.ViewId) as ViewDrafting;
+                if (view == null) continue;
+
+                if (nameFilter.Count > 0 && !nameFilter.Contains(view.Name))
+                    continue;
+
+                targetViews.Add(view);
+            }
+
+            if (targetViews.Count == 0)
+                throw new Exception("目標圖紙上沒有找到符合條件的 DraftingView");
+
+            var results = new List<object>();
+            Logger.Info($"[ScaleWidth] 開始縮放 {targetViews.Count} 個 DraftingView，scaleFactor={scaleFactor}");
+
+            for (int i = 0; i < targetViews.Count; i++)
+            {
+                var view = targetViews[i];
+                try
+                {
+                    // Collect elements before transaction
+                    var curveElements = new FilteredElementCollector(doc, view.Id)
+                        .OfCategory(BuiltInCategory.OST_Lines)
+                        .WhereElementIsNotElementType()
+                        .ToList();
+
+                    var textNotes = new FilteredElementCollector(doc, view.Id)
+                        .OfClass(typeof(TextNote))
+                        .Cast<TextNote>()
+                        .ToList();
+
+                    if (curveElements.Count == 0 && textNotes.Count == 0)
+                    {
+                        results.Add(new { ViewName = view.Name, Scaled = false, Reason = "無可縮放的元素" });
+                        continue;
+                    }
+
+                    // Find anchor (min X from detail curves = table left edge)
+                    double anchorX = double.MaxValue;
+                    foreach (var el in curveElements)
+                    {
+                        var ce = el as CurveElement;
+                        if (ce == null) continue;
+                        Curve curve = ce.GeometryCurve;
+                        if (curve == null) continue;
+                        XYZ p0 = curve.GetEndPoint(0);
+                        XYZ p1 = curve.GetEndPoint(1);
+                        anchorX = Math.Min(anchorX, Math.Min(p0.X, p1.X));
+                    }
+                    if (anchorX == double.MaxValue)
+                    {
+                        foreach (var tn in textNotes)
+                            anchorX = Math.Min(anchorX, tn.Coord.X);
+                    }
+                    if (anchorX == double.MaxValue) anchorX = 0;
+
+                    int curveCount = 0, textCount = 0;
+                    var viewWarnings = new List<string>();
+
+                    // Per-view transaction to avoid giant commit
+                    using (Transaction trans = new Transaction(doc, $"縮放 {view.Name} 寬度"))
+                    {
+                        trans.Start();
+
+                        // Scale DetailCurves (table grid lines)
+                        foreach (var el in curveElements)
+                        {
+                            var ce = el as CurveElement;
+                            if (ce == null) continue;
+
+                            try
+                            {
+                                Line line = ce.GeometryCurve as Line;
+                                if (line == null) continue;
+
+                                XYZ p0 = line.GetEndPoint(0);
+                                XYZ p1 = line.GetEndPoint(1);
+
+                                double newX0 = anchorX + (p0.X - anchorX) * scaleFactor;
+                                double newX1 = anchorX + (p1.X - anchorX) * scaleFactor;
+
+                                XYZ newP0 = new XYZ(newX0, p0.Y, p0.Z);
+                                XYZ newP1 = new XYZ(newX1, p1.Y, p1.Z);
+
+                                if (newP0.DistanceTo(newP1) > 1e-9)
+                                {
+                                    ce.GeometryCurve = Line.CreateBound(newP0, newP1);
+                                    curveCount++;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                viewWarnings.Add($"Curve {el.Id.GetIdValue()}: {ex.Message}");
+                            }
+                        }
+
+                        // Scale TextNotes (cell content)
+                        foreach (var tn in textNotes)
+                        {
+                            try
+                            {
+                                XYZ coord = tn.Coord;
+                                double newX = anchorX + (coord.X - anchorX) * scaleFactor;
+                                double deltaX = newX - coord.X;
+
+                                if (Math.Abs(deltaX) > 1e-9)
+                                    ElementTransformUtils.MoveElement(doc, tn.Id, new XYZ(deltaX, 0, 0));
+
+                                // Scale text wrapping width
+                                try { tn.Width = tn.Width * scaleFactor; }
+                                catch { /* Width may be read-only for some notes */ }
+
+                                textCount++;
+                            }
+                            catch (Exception ex)
+                            {
+                                viewWarnings.Add($"TextNote {tn.Id.GetIdValue()}: {ex.Message}");
+                            }
+                        }
+
+                        trans.Commit();
+                    }
+
+                    Logger.Info($"[ScaleWidth] ({i + 1}/{targetViews.Count}) {view.Name}: {curveCount} curves, {textCount} texts");
+
+                    results.Add(new
+                    {
+                        ViewName = view.Name,
+                        Scaled = true,
+                        DetailCurvesModified = curveCount,
+                        TextNotesModified = textCount,
+                        Warnings = viewWarnings
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"[ScaleWidth] {view.Name} 失敗: {ex.Message}");
+                    results.Add(new { ViewName = view.Name, Scaled = false, Reason = ex.Message });
+                }
+            }
+
+            Logger.Info($"[ScaleWidth] 完成，共處理 {results.Count} 個 view");
+
+            return new
+            {
+                Success = true,
+                ScaleFactor = scaleFactor,
+                ViewsProcessed = results.Count,
+                Results = results
+            };
+        }
+
+        /// <summary>
+        /// 縮放 DraftingView 表格的行高（僅 Y 軸），寬度不變
+        /// </summary>
+        private object ScaleDraftingViewHeight(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            double scaleFactor = parameters?["scaleFactor"]?.Value<double>() ?? 1.1;
+            IdType sheetId = parameters?["sheetId"]?.Value<IdType>() ?? 0;
+            var viewNamesArray = parameters?["viewNames"] as JArray;
+
+            if (scaleFactor <= 0 || scaleFactor > 5)
+                throw new Exception($"scaleFactor 必須在 0~5 之間，收到: {scaleFactor}");
+
+            // Resolve target views: by sheetId, active sheet, or all DraftingViews
+            var targetViews = new List<ViewDrafting>();
+            var nameFilter = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (viewNamesArray != null)
+                foreach (var n in viewNamesArray)
+                    nameFilter.Add(n.Value<string>());
+
+            if (sheetId != 0)
+            {
+                var sheet = doc.GetElement(sheetId.ToElementId()) as ViewSheet;
+                if (sheet == null)
+                    throw new Exception($"找不到圖紙 ID: {sheetId}");
+
+                foreach (var vpId in sheet.GetAllViewports())
+                {
+                    var vp = doc.GetElement(vpId) as Viewport;
+                    if (vp == null) continue;
+                    var view = doc.GetElement(vp.ViewId) as ViewDrafting;
+                    if (view == null) continue;
+                    if (nameFilter.Count > 0 && !nameFilter.Contains(view.Name)) continue;
+                    targetViews.Add(view);
+                }
+            }
+            else if (viewNamesArray != null && viewNamesArray.Count > 0)
+            {
+                // No sheetId but viewNames given: search all DraftingViews by name
+                var allDrafting = new FilteredElementCollector(doc)
+                    .OfClass(typeof(ViewDrafting))
+                    .Cast<ViewDrafting>()
+                    .Where(v => nameFilter.Contains(v.Name))
+                    .ToList();
+                targetViews.AddRange(allDrafting);
+            }
+            else
+            {
+                // No sheetId, no viewNames: use active sheet
+                View activeView = _uiApp.ActiveUIDocument.ActiveView;
+                var sheet = activeView as ViewSheet;
+                if (sheet == null)
+                    throw new Exception("目前的作用視圖不是圖紙 (ViewSheet)，請指定 sheetId 或 viewNames 或切換至圖紙視圖。");
+
+                foreach (var vpId in sheet.GetAllViewports())
+                {
+                    var vp = doc.GetElement(vpId) as Viewport;
+                    if (vp == null) continue;
+                    var view = doc.GetElement(vp.ViewId) as ViewDrafting;
+                    if (view == null) continue;
+                    targetViews.Add(view);
+                }
+            }
+
+            if (targetViews.Count == 0)
+                throw new Exception("沒有找到符合條件的 DraftingView");
+
+            var results = new List<object>();
+            Logger.Info($"[ScaleHeight] 開始縮放 {targetViews.Count} 個 DraftingView，scaleFactor={scaleFactor}");
+
+            for (int i = 0; i < targetViews.Count; i++)
+            {
+                var view = targetViews[i];
+                try
+                {
+                    var curveElements = new FilteredElementCollector(doc, view.Id)
+                        .OfCategory(BuiltInCategory.OST_Lines)
+                        .WhereElementIsNotElementType()
+                        .ToList();
+
+                    var textNotes = new FilteredElementCollector(doc, view.Id)
+                        .OfClass(typeof(TextNote))
+                        .Cast<TextNote>()
+                        .ToList();
+
+                    if (curveElements.Count == 0 && textNotes.Count == 0)
+                    {
+                        results.Add(new { ViewName = view.Name, Scaled = false, Reason = "無可縮放的元素" });
+                        continue;
+                    }
+
+                    // Find anchor (max Y from detail curves = table top edge)
+                    double anchorY = double.MinValue;
+                    foreach (var el in curveElements)
+                    {
+                        var ce = el as CurveElement;
+                        if (ce == null) continue;
+                        Curve curve = ce.GeometryCurve;
+                        if (curve == null) continue;
+                        XYZ p0 = curve.GetEndPoint(0);
+                        XYZ p1 = curve.GetEndPoint(1);
+                        anchorY = Math.Max(anchorY, Math.Max(p0.Y, p1.Y));
+                    }
+                    if (anchorY == double.MinValue)
+                    {
+                        foreach (var tn in textNotes)
+                            anchorY = Math.Max(anchorY, tn.Coord.Y);
+                    }
+                    if (anchorY == double.MinValue) anchorY = 0;
+
+                    int curveCount = 0, textCount = 0;
+                    var viewWarnings = new List<string>();
+
+                    using (Transaction trans = new Transaction(doc, $"縮放 {view.Name} 行高"))
+                    {
+                        trans.Start();
+
+                        // Scale DetailCurves Y coordinates
+                        foreach (var el in curveElements)
+                        {
+                            var ce = el as CurveElement;
+                            if (ce == null) continue;
+
+                            try
+                            {
+                                Line line = ce.GeometryCurve as Line;
+                                if (line == null) continue;
+
+                                XYZ p0 = line.GetEndPoint(0);
+                                XYZ p1 = line.GetEndPoint(1);
+
+                                double newY0 = anchorY + (p0.Y - anchorY) * scaleFactor;
+                                double newY1 = anchorY + (p1.Y - anchorY) * scaleFactor;
+
+                                XYZ newP0 = new XYZ(p0.X, newY0, p0.Z);
+                                XYZ newP1 = new XYZ(p1.X, newY1, p1.Z);
+
+                                if (newP0.DistanceTo(newP1) > 1e-9)
+                                {
+                                    ce.GeometryCurve = Line.CreateBound(newP0, newP1);
+                                    curveCount++;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                viewWarnings.Add($"Curve {el.Id.GetIdValue()}: {ex.Message}");
+                            }
+                        }
+
+                        // Scale TextNotes Y coordinates
+                        foreach (var tn in textNotes)
+                        {
+                            try
+                            {
+                                XYZ coord = tn.Coord;
+                                double newY = anchorY + (coord.Y - anchorY) * scaleFactor;
+                                double deltaY = newY - coord.Y;
+
+                                if (Math.Abs(deltaY) > 1e-9)
+                                    ElementTransformUtils.MoveElement(doc, tn.Id, new XYZ(0, deltaY, 0));
+
+                                textCount++;
+                            }
+                            catch (Exception ex)
+                            {
+                                viewWarnings.Add($"TextNote {tn.Id.GetIdValue()}: {ex.Message}");
+                            }
+                        }
+
+                        trans.Commit();
+                    }
+
+                    Logger.Info($"[ScaleHeight] ({i + 1}/{targetViews.Count}) {view.Name}: {curveCount} curves, {textCount} texts");
+
+                    results.Add(new
+                    {
+                        ViewName = view.Name,
+                        Scaled = true,
+                        DetailCurvesModified = curveCount,
+                        TextNotesModified = textCount,
+                        Warnings = viewWarnings
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"[ScaleHeight] {view.Name} 失敗: {ex.Message}");
+                    results.Add(new { ViewName = view.Name, Scaled = false, Reason = ex.Message });
+                }
+            }
+
+            Logger.Info($"[ScaleHeight] 完成，共處理 {results.Count} 個 view");
+
+            return new
+            {
+                Success = true,
+                ScaleFactor = scaleFactor,
+                ViewsProcessed = results.Count,
+                Results = results
+            };
         }
 
         #endregion

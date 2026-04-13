@@ -315,6 +315,32 @@ namespace RevitMCP.Core
                     case "get_viewport_map":
                         result = GetViewportMap();
                         break;
+                    case "get_sheet_viewport_details":
+                        result = GetSheetViewportDetails(parameters);
+                        break;
+                    case "arrange_viewports_on_sheet":
+                        result = ArrangeViewportsOnSheet(parameters);
+                        break;
+                    case "scale_drafting_view_width":
+                        result = ScaleDraftingViewWidth(parameters);
+                        break;
+                    case "scale_drafting_view_height":
+                        result = ScaleDraftingViewHeight(parameters);
+                        break;
+                    case "move_text_notes_in_views":
+                        result = MoveTextNotesInViews(parameters);
+                        break;
+
+                    // === Legend 模組 ===
+                    case "create_legends":
+                        result = CreateLegends(parameters);
+                        break;
+                    case "read_excel_tables":
+                        result = ReadExcelTables(parameters);
+                        break;
+                    case "import_excel_to_drafting_views":
+                        result = ImportExcelToDraftingViews(parameters);
+                        break;
 
                     // === 詳圖元件模組 ===
                     case "get_detail_components":
@@ -358,6 +384,17 @@ namespace RevitMCP.Core
                         break;
                     case "trace_stair_geometry":
                         result = TraceStairGeometry(parameters);
+                        break;
+
+                    // === 視圖元素隱藏/顯示模組 ===
+                    case "hide_elements":
+                        result = HideElements(parameters);
+                        break;
+                    case "unhide_elements":
+                        result = UnhideElements(parameters);
+                        break;
+                    case "set_category_visibility":
+                        result = SetCategoryVisibility(parameters);
                         break;
 
                     default:
@@ -2708,6 +2745,209 @@ namespace RevitMCP.Core
                     Message = $"已清除 {successCount} 個元素在視圖 '{view.Name}' 的圖形覆寫"
                 };
             }
+        }
+
+        private object HideElements(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            IdType? singleElementId = parameters["elementId"]?.Value<IdType>();
+            IdType? viewId = parameters["viewId"]?.Value<IdType>();
+
+            View view;
+            if (viewId.HasValue)
+            {
+                view = doc.GetElement(new ElementId(viewId.Value)) as View;
+                if (view == null)
+                    throw new Exception($"找不到視圖 ID: {viewId}");
+            }
+            else
+            {
+                view = _uiApp.ActiveUIDocument.ActiveView;
+            }
+
+            List<IdType> elementIds = new List<IdType>();
+            if (singleElementId.HasValue)
+                elementIds.Add(singleElementId.Value);
+            elementIds.AddRange(ParseIdArray(parameters["elementIds"]));
+
+            if (elementIds.Count == 0)
+                throw new Exception("請提供至少一個元素 ID");
+
+            var validIds = new List<ElementId>();
+            foreach (var elemId in elementIds)
+            {
+                Element element = doc.GetElement(new ElementId(elemId));
+                if (element != null && element.CanBeHidden(view))
+                    validIds.Add(new ElementId(elemId));
+            }
+
+            if (validIds.Count == 0)
+                throw new Exception("沒有可隱藏的元素");
+
+            using (Transaction trans = new Transaction(doc, "Hide Elements"))
+            {
+                trans.Start();
+                view.HideElements(validIds);
+                trans.Commit();
+
+                return new
+                {
+                    Success = true,
+                    HiddenCount = validIds.Count,
+                    RequestedCount = elementIds.Count,
+                    ViewId = view.Id.GetIdValue(),
+                    ViewName = view.Name,
+                    Message = $"已在視圖 '{view.Name}' 中隱藏 {validIds.Count} 個元素"
+                };
+            }
+        }
+
+        private object UnhideElements(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            IdType? singleElementId = parameters["elementId"]?.Value<IdType>();
+            IdType? viewId = parameters["viewId"]?.Value<IdType>();
+
+            View view;
+            if (viewId.HasValue)
+            {
+                view = doc.GetElement(new ElementId(viewId.Value)) as View;
+                if (view == null)
+                    throw new Exception($"找不到視圖 ID: {viewId}");
+            }
+            else
+            {
+                view = _uiApp.ActiveUIDocument.ActiveView;
+            }
+
+            List<IdType> elementIds = new List<IdType>();
+            if (singleElementId.HasValue)
+                elementIds.Add(singleElementId.Value);
+            elementIds.AddRange(ParseIdArray(parameters["elementIds"]));
+
+            if (elementIds.Count == 0)
+                throw new Exception("請提供至少一個元素 ID");
+
+            var validIds = new List<ElementId>();
+            foreach (var elemId in elementIds)
+            {
+                Element element = doc.GetElement(new ElementId(elemId));
+                if (element != null)
+                    validIds.Add(new ElementId(elemId));
+            }
+
+            if (validIds.Count == 0)
+                throw new Exception("找不到任何有效元素");
+
+            using (Transaction trans = new Transaction(doc, "Unhide Elements"))
+            {
+                trans.Start();
+                view.UnhideElements(validIds);
+                trans.Commit();
+
+                return new
+                {
+                    Success = true,
+                    UnhiddenCount = validIds.Count,
+                    RequestedCount = elementIds.Count,
+                    ViewId = view.Id.GetIdValue(),
+                    ViewName = view.Name,
+                    Message = $"已在視圖 '{view.Name}' 中取消隱藏 {validIds.Count} 個元素"
+                };
+            }
+        }
+
+        private object SetCategoryVisibility(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            string categoryName = parameters["category"]?.Value<string>();
+            bool hidden = parameters["hidden"]?.Value<bool>() ?? true;
+            IdType? viewId = parameters["viewId"]?.Value<IdType>();
+
+            if (string.IsNullOrEmpty(categoryName))
+                throw new Exception("請提供類別名稱 (category)");
+
+            View view;
+            if (viewId.HasValue)
+            {
+                view = doc.GetElement(new ElementId(viewId.Value)) as View;
+                if (view == null)
+                    throw new Exception($"找不到視圖 ID: {viewId}");
+            }
+            else
+            {
+                view = _uiApp.ActiveUIDocument.ActiveView;
+            }
+
+            // 使用現有的 ResolveCategoryId 方法解析類別
+            ElementId categoryId = ResolveCategoryId(doc, categoryName);
+            if (categoryId == ElementId.InvalidElementId)
+                throw new Exception($"找不到類別: {categoryName}");
+
+            Category category = null;
+            foreach (Category cat in doc.Settings.Categories)
+            {
+                if (cat.Id.IntegerValue == categoryId.IntegerValue)
+                {
+                    category = cat;
+                    break;
+                }
+            }
+            string resolvedName = category?.Name ?? categoryName;
+
+            using (Transaction trans = new Transaction(doc, hidden ? "Hide Category" : "Show Category"))
+            {
+                trans.Start();
+                view.SetCategoryHidden(categoryId, hidden);
+                trans.Commit();
+
+                return new
+                {
+                    Success = true,
+                    Category = resolvedName,
+                    Hidden = hidden,
+                    ViewId = view.Id.GetIdValue(),
+                    ViewName = view.Name,
+                    Message = $"已在視圖 '{view.Name}' 中{(hidden ? "隱藏" : "顯示")}類別 '{resolvedName}'"
+                };
+            }
+        }
+
+        /// <summary>
+        /// 健壯解析 ID 陣列，支援 JArray、JSON 字串、逗號分隔字串
+        /// </summary>
+        private List<IdType> ParseIdArray(JToken token)
+        {
+            var result = new List<IdType>();
+            if (token == null) return result;
+
+            // 已經是 JArray
+            if (token is JArray arr)
+            {
+                result.AddRange(arr.Select(id => id.Value<IdType>()));
+                return result;
+            }
+
+            // 可能是 JSON 字串 "[1,2,3]"
+            var str = token.ToString().Trim();
+            if (str.StartsWith("["))
+            {
+                try
+                {
+                    var parsed = JArray.Parse(str);
+                    result.AddRange(parsed.Select(id => id.Value<IdType>()));
+                    return result;
+                }
+                catch { }
+            }
+
+            // 嘗試逗號分隔
+            foreach (var part in str.Split(','))
+            {
+                if (IdType.TryParse(part.Trim(), out IdType id))
+                    result.Add(id);
+            }
+            return result;
         }
 
         /// <summary>

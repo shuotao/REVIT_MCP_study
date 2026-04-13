@@ -60,4 +60,41 @@ export const visualizationTools: Tool[] = [
             },
         },
     },
+    {
+        name: "set_category_visibility",
+        description: "在指定視圖中隱藏或顯示整個類別（同時影響主模型與連結模型）。使用 View.SetCategoryHidden() API。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                category: { type: "string", description: "類別名稱（如 Planting, Furniture, Doors, 或 OST_Planting）" },
+                hidden: { type: "boolean", description: "true = 隱藏, false = 顯示", default: true },
+                viewId: { type: "number", description: "視圖 ID（若不指定則使用當前視圖）" },
+            },
+            required: ["category"],
+        },
+    },
+    {
+        name: "hide_elements",
+        description: "在指定視圖中隱藏元素。使用 View.HideElements() API，支援單一或批次操作。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                elementId: { type: "number", description: "要隱藏的單一元素 ID" },
+                elementIds: { type: "array", items: { type: "number" }, description: "批次隱藏的元素 ID 陣列" },
+                viewId: { type: "number", description: "視圖 ID（若不指定則使用當前視圖）" },
+            },
+        },
+    },
+    {
+        name: "unhide_elements",
+        description: "在指定視圖中取消隱藏元素。使用 View.UnhideElements() API，支援單一或批次操作。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                elementId: { type: "number", description: "要取消隱藏的單一元素 ID" },
+                elementIds: { type: "array", items: { type: "number" }, description: "批次取消隱藏的元素 ID 陣列" },
+                viewId: { type: "number", description: "視圖 ID（若不指定則使用當前視圖）" },
+            },
+        },
+    },
 ];

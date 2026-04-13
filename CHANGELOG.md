@@ -6,6 +6,51 @@
 
 ---
 
+## [1.6.0] - 2026-03-30
+
+### 🆕 新增
+
+- **`hide_elements` MCP 工具**：在視圖中隱藏指定元素（View.HideElements API），支援單一或批次操作
+- **`unhide_elements` MCP 工具**：取消隱藏元素（View.UnhideElements API），支援單一或批次操作
+- **`set_category_visibility` MCP 工具**：隱藏/顯示整個類別，同時影響主模型與連結模型（View.SetCategoryHidden API）
+- **`view-category-visibility` Skill**：視圖類別可見性控制工作流程（`.claude/skills/view-category-visibility/SKILL.md`）
+- **`CHANGELOG.md`**：新增本次記錄
+
+### 🔧 改進
+
+- **`CLAUDE.md`**：Skills 18 → 19 個，工具 58 → 61 個
+- **`.gitignore`**：新增 `.claude/settings.local.json`、`.mcp.json` 排除規則
+- **Git remote**：`origin` 切換至個人 fork（lesleyliuke），原始倉庫改為 `upstream`
+
+### 📝 修改檔案
+
+| 檔案 | 變更 |
+|------|------|
+| `MCP/Core/CommandExecutor.cs` | 新增 `HideElements()`、`UnhideElements()`、`SetCategoryVisibility()` 三個方法 + switch cases |
+| `MCP-Server/src/tools/visualization-tools.ts` | 新增 3 個工具定義 |
+| `.claude/skills/view-category-visibility/SKILL.md` | 新 Skill |
+| `CLAUDE.md` | 更新 Skills 與工具數量 |
+| `.gitignore` | 排除本地設定檔 |
+
+### ⚠ 成員需執行的動作
+
+**C# 程式碼有更新，需重新編譯 DLL：**
+
+```powershell
+cd "專案路徑/MCP"
+dotnet build -c Release.R24 RevitMCP.csproj   # 依你的 Revit 版本選擇
+```
+
+複製 DLL → Revit Addins 資料夾 → 重啟 Revit。
+
+**MCP Server 也有更新，需重新編譯：**
+```bash
+cd MCP-Server
+npm run build
+```
+
+---
+
 ## [1.5.1] - 2026-03-09
 
 ### 🐛 Bug 修正（C# — 需重新編譯）
