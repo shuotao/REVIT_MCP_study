@@ -202,7 +202,7 @@ namespace RevitMCP.Core
                     {
                         string original = s.SheetNumber.Replace("_MCPFIX", "");
                         try { s.SheetNumber = original; }
-                        catch (Exception ex) { Logger.Instance.Log($"還原 _MCPFIX 失敗: {ex.Message}"); }
+                        catch (Exception ex) { Logger.Debug($"還原 _MCPFIX 失敗: {ex.Message}"); }
                     }
                     tFix.Commit();
                 }

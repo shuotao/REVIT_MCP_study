@@ -145,7 +145,7 @@ namespace RevitMCP.Core
 
                     string newName = $"{parentView.Name}-{finalSuffix}";
                     try { newView.Name = newName; }
-                    catch (Exception ex) { Logger.Instance.Log($"視圖命名失敗: {ex.Message}"); }
+                    catch (Exception ex) { Logger.Debug($"視圖命名失敗: {ex.Message}"); }
 
                     newView.CropBoxActive = true;
                     newView.CropBoxVisible = true;
