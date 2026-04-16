@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>0328 Revit MCP 讀書會</title>
+<title>0425 MCP 功能開發四月小聚</title>
 <meta property="og:title" content="MCP 功能開發四月小聚">
-<meta property="og:description" content="從工具堆砌到模組化架構 — 8 大專業系統、30 個 Domain、76 個工具已上線驗證。你的專業就是下一個按鈕。">
+<meta property="og:description" content="從工具堆砌到模組化架構 — 9 大專業系統、31 個 Domain、76 個工具已上線驗證。你的專業就是下一個按鈕。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://shuotao.github.io/REVIT_MCP_study/docs/0425-presentation.html">
 <meta name="twitter:card" content="summary">
@@ -907,9 +907,15 @@
       <div class="domain-card-label">系統性檢討</div>
       <div class="domain-card-sub">QA 五階段 · MEP 接頭 · 管帽安裝<br>2 個 Domain · 5 個工具</div>
     </div>
+    <div class="domain-card" onclick="openDrawer('drawer-why-stair')" style="border:1px solid rgba(74,222,128,0.4);box-shadow:0 0 12px rgba(74,222,128,0.15);">
+      <span style="position:absolute;top:-8px;right:-8px;background:#4ade80;color:#000;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:0.5px;">NEW</span>
+      <span class="domain-card-icon">🪜</span>
+      <div class="domain-card-label">樓梯法規</div>
+      <div class="domain-card-sub">級高級深 · 淨高 · 無障礙樓梯<br>1 個 Domain · 4 個工具</div>
+    </div>
   </div>
 
-  <div class="why-footer">以上 8 大系統、<strong>30 個 Domain</strong>、<strong>76 個工具</strong>已上線驗證。<br>你的專業領域，就是第 9 個、第 10 個按鈕。</div>
+  <div class="why-footer">以上 <strong style="color:#4ade80;">9</strong> 大系統、<strong style="color:#4ade80;">31 個 Domain</strong>、<strong>76 個工具</strong>已上線驗證。<br>你的專業領域，就是第 10 個、第 11 個按鈕。</div>
 </section>
 
 <!-- ===== SETUP PAGE ===== -->
@@ -1682,6 +1688,26 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <tr><td><code>add_pipe_cap</code></td><td>管端安裝管帽 / 法蘭</td></tr>
     <tr><td><code>get_element_info</code></td><td>元素詳細參數檢查</td></tr>
     <tr><td><code>get_project_info</code></td><td>專案基本資訊驗證</td></tr>
+  </table>
+</div>
+
+<div class="drawer" id="drawer-why-stair">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>🪜 樓梯法規檢討系統 <span style="background:#4ade80;color:#000;font-size:12px;padding:2px 10px;border-radius:10px;margin-left:8px;font-weight:700;">NEW</span></h2>
+  <p>Domain：<strong>stair-compliance-check</strong></p>
+  <h3>涵蓋法規</h3>
+  <ul>
+    <li><code>stair-compliance-check.md</code> — 建技規 §33~§36 + 無障礙規範 §167</li>
+    <li>一般樓梯：級高級深、平台寬度、垂直淨高 ≥ 190cm</li>
+    <li>無障礙樓梯：梯寬、突鼻、扶手、防滑</li>
+  </ul>
+  <h3>呼叫的 MCP 工具</h3>
+  <table>
+    <tr><th>工具</th><th>用途</th></tr>
+    <tr><td><code>check_stair_headroom</code></td><td>樓梯淨高自動檢測 + 上色標示</td></tr>
+    <tr><td><code>get_stair_actual_width</code></td><td>扣除扶手後實際淨寬</td></tr>
+    <tr><td><code>create_stair_section_view</code></td><td>建立樓梯剖面檢討視圖</td></tr>
+    <tr><td><code>create_stair_text_note_with_leader</code></td><td>自動標註檢討結果（含引線）</td></tr>
   </table>
 </div>
 
