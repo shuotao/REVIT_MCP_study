@@ -325,4 +325,5 @@ When adding new `IExternalCommand` in `Commands/` folder:
 2. After TypeScript changes: `npm run build` in MCP-Server (no Revit restart needed)
 3. Config/addin file changes: restart may be needed depending on scope
 4. Use `/lessons` to capture new rules, `/domain` to convert workflows to SOP
-5. Before writing new scripts, check `domain/`, `scripts/`, and `MCP-Server/scripts/` for existing workflows — avoid duplicating logic
+5. 品質檢核：定期執行 `/qaqc`（含 Phase 6 Content Quality Lint），驗證 domain frontmatter 完整性與交叉引用一致性。詳見 `domain/frontmatter-standard.md`
+6. Before writing new scripts, check `domain/`, `scripts/`, and `MCP-Server/scripts/` for existing workflows — avoid duplicating logic

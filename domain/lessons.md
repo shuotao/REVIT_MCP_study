@@ -1,3 +1,20 @@
+---
+name: lessons
+description: "(TODO: 月小聚補描述) lessons"
+metadata:
+  version: "1.0"
+  updated: "2026-04-02"
+  created: "2026-03-13"
+  contributors:
+    - "Admin"
+    - "shuotao"
+    - "unknown"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  tags: []  # TODO: 月小聚補分類關鍵字
+---
+
 # Lessons Learned
 
 > 此檔案由 `/lessons` 指令自動維護，記錄專案特定的高階開發規則與避坑經驗。

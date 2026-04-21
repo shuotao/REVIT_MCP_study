@@ -1,3 +1,19 @@
+---
+name: parking-clearance-check
+description: "Check if the clearance of parking spaces meets the requirement based on **parking type** (建技規 §62 + 土地使用分區管制). Different..."
+metadata:
+  version: "1.0"
+  updated: "2026-04-16"
+  created: "2026-02-10"
+  contributors:
+    - "HunKue"
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  tags: []  # TODO: 月小聚補分類關鍵字
+---
+
 # Domain Analysis: Parking Clearance Check (B1F)
 
 ## 法規依據

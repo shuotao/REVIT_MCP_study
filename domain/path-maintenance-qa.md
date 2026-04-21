@@ -1,3 +1,20 @@
+---
+name: path-maintenance-qa
+description: "此變更需要同步更新專案中所有相關的路徑參照。"
+metadata:
+  version: "1.0"
+  updated: "2026-03-13"
+  created: "2025-12-18"
+  contributors:
+    - "Admin"
+    - "Shuotao Chiang/江碩濤/CTCI-ATFT"
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  tags: []  # TODO: 月小聚補分類關鍵字
+---
+
 # 路徑維護與 QA/QC 工作流程
 
 > 專案目錄重構後的維護指南

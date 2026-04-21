@@ -1,3 +1,21 @@
+---
+name: exterior-wall-opening-check
+description: "**主要規定**："
+metadata:
+  version: "1.0"
+  updated: "2026-04-05"
+  created: "2026-01-19"
+  contributors:
+    - "Admin"
+    - "DAVID\\david"
+    - "David"
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  tags: []  # TODO: 月小聚補分類關鍵字
+---
+
 # 外牆開口檢討工作流程
 
 > 依據台灣建築技術規則第45條、第110條進行外牆開口法規檢討

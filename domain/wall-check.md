@@ -1,3 +1,18 @@
+---
+name: wall-check
+description: "建模者可能因不熟悉 Revit，導致牆壁的內外方向顛倒。這會影響："
+metadata:
+  version: "1.0"
+  updated: "2025-12-14"
+  created: "2025-12-14"
+  contributors:
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  tags: []  # TODO: 月小聚補分類關鍵字
+---
+
 # 牆壁檢查機制
 
 ## 問題背景

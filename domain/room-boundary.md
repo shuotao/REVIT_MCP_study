@@ -1,3 +1,18 @@
+---
+name: room-boundary
+description: "容積計算需要正確的邊界位置："
+metadata:
+  version: "1.0"
+  updated: "2025-12-14"
+  created: "2025-12-14"
+  contributors:
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  tags: []  # TODO: 月小聚補分類關鍵字
+---
+
 # 房間邊界計算
 
 ## 問題背景
