@@ -42,18 +42,27 @@
 ---
 
 > [!TIP]
-> ##  AI 協作指南 (AI Collaboration Guide)
+> ## 你是誰？從這裡開始
 >
-> **開始協作前，請務必遵循以下規範：**
+> 本專案有多個入口文件，請依你的身份選擇閱讀路徑：
 >
-> 1. **人類開發者 (Human Developer)**：
->    - 請詳讀 [**CLAUDE.md**](./CLAUDE.md)，了解本專案的架構、建構指令、部署規則與程式碼慣例。
->    - `GEMINI.md` 和 `AGENTS.md` 皆重定向至 `CLAUDE.md`，為專案唯一規範文件。
+> | 你的身份 | 先讀這個 | 再讀這個 |
+> |---|---|---|
+> | **想安裝使用 Revit MCP** | 本檔下方「一鍵安裝」段 | — |
+> | **想貢獻 domain 知識 / SOP / 規則** | [CONTRIBUTING.md](./CONTRIBUTING.md) | [domain/README.md](./domain/README.md) |
+> | **想開發新工具 / 修改程式碼** | [CLAUDE.md](./CLAUDE.md) | 執行 `/dev-guide` 命令 |
+> | **想了解整體架構** | [CLAUDE.md](./CLAUDE.md) | [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) |
+> | **我是學生上課** | [教材/README.md](./教材/README.md) | — |
+> | **我是 AI Agent**（Claude / Gemini / Copilot） | [CLAUDE.md](./CLAUDE.md)（**必讀**） | 依任務觸發對應 skill |
 >
-> 2. **AI 助手 (AI Assistant / Agent)**：
->    - **Context Loading**：啟動時必須載入 [**CLAUDE.md**](./CLAUDE.md) 以獲取專案地圖與技術指引。
->    - **Workflow Compliance**：執行任務前，必須檢查 `domain/` 目錄下是否有定義好的工作流程（如上色任務）。
->    - **Safety First**：所有 Revit 操作必須是可逆的，使用 Transaction 確保可復原。
+> ---
+>
+> ### 關鍵原則（所有角色都要遵守）
+>
+> - **AI 規範唯一性**：`GEMINI.md` 和 `AGENTS.md` 皆重定向至 `CLAUDE.md`，為專案唯一 AI 規範文件
+> - **Safety First**：所有 Revit 操作必須可逆，使用 Transaction 確保可復原
+> - **Workflow Compliance**：AI Agent 執行任務前，必須先檢查 `domain/` 目錄是否已有對應的工作流程
+> - **貢獻邊界**：程式碼由維護者管理，外部貢獻者只修改 `domain/` 知識檔案（詳見 [CONTRIBUTING.md](./CONTRIBUTING.md)）
 >
 > ---
 
@@ -1436,6 +1445,8 @@ MIT License
 | **domain/** | |
 | [domain/README.md](./domain/README.md) | 領域知識目錄（AI 工作流程 SOP） |
 | [domain/lessons.md](./domain/lessons.md) | 開發經驗與避坑規則（由 `/lessons` 指令維護） |
+| **log/** | |
+| [log/README.md](./log/README.md) | 事件日誌系統說明（Karpathy LLM Wiki pattern，跨 AI 自動維護） |
 | **docs/** | |
 | [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | 文件目錄結構說明 |
 | [docs/MIGRATION_GUIDE.md](./docs/MIGRATION_GUIDE.md) | 統一建構遷移指南（舊版升級必讀） |
