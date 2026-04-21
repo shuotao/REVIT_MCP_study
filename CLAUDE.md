@@ -42,6 +42,8 @@ AI Agent 啟動時，**應**讀取 `log/` 目錄下最新月份檔的末尾 ~60 
 ls log/*.md | grep -v README | sort | tail -1 | xargs tail -60
 ```
 
+**特別注意最新的 `session-summary` 條目**——那是上次重要會話的精華濃縮（包含五段落：完成／對齊的概念／Pending／拒絕的選項／起手式）。讀到 session-summary 即可直接延續，不需要使用者重述脈絡。
+
 首次接觸專案（`log/` 為空或不存在）可略過此步驟。
 
 ## Logging Protocol（跨 AI 通用）
