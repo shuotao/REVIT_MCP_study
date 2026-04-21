@@ -905,7 +905,7 @@
     <div class="domain-card" onclick="openDrawer('drawer-why-qa')">
       <span class="domain-card-icon">✅</span>
       <div class="domain-card-label">系統性檢討</div>
-      <div class="domain-card-sub">QA 五階段 · MEP 接頭 · 管帽安裝<br>2 個 Domain · 5 個工具</div>
+      <div class="domain-card-sub">QA 六階段 · MEP 接頭 · 管帽安裝<br>2 個 Domain · 5 個工具</div>
     </div>
     <div class="domain-card" onclick="openDrawer('drawer-why-stair')" style="border:1px solid rgba(74,222,128,0.4);box-shadow:0 0 12px rgba(74,222,128,0.15);">
       <span style="position:absolute;top:-8px;right:-8px;background:#4ade80;color:#000;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:0.5px;">NEW</span>
@@ -916,6 +916,40 @@
   </div>
 
   <div class="why-footer">以上 <strong style="color:#4ade80;">9</strong> 大系統、<strong style="color:#4ade80;">31 個 Domain</strong>、<strong>76 個工具</strong>已上線驗證。<br>你的專業領域，就是第 10 個、第 11 個按鈕。</div>
+</section>
+
+<!-- ===== KARPATHY WIKI GATEWAY PAGE ===== -->
+<section class="slide" id="slide-karpathy-gateway" style="justify-content:center;text-align:center;padding:80px 40px;">
+  <div style="max-width:860px;margin:0 auto;">
+    <div style="display:inline-block;margin-bottom:20px;padding:6px 18px;background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.35);border-radius:100px;font-size:11px;letter-spacing:3px;color:#60a5fa;font-weight:600;">
+      FIELD NOTES · NO. 02 · 2026-04-21
+    </div>
+    <h1 style="font-size:52px;font-weight:800;line-height:1.2;letter-spacing:-1px;margin-bottom:20px;">
+      Karpathy 的 LLM Wiki<br>
+      <span style="color:#60a5fa;">剛好是我們在做的事</span>
+    </h1>
+    <p style="font-size:19px;color:rgba(255,255,255,0.55);font-weight:300;line-height:1.7;margin-bottom:36px;max-width:720px;margin-left:auto;margin-right:auto;">
+      2026 年初，Karpathy 提出讓 LLM 長期維護會自我交叉引用、偵測矛盾的 markdown 知識庫。<br>
+      本專案已落地：<strong style="color:#4ade80">三層 log 防線、Anthropic-compliant frontmatter、/handoff session 交接機制</strong>。
+    </p>
+
+    <div style="display:inline-block;margin-bottom:40px;padding:10px 22px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.3);border-radius:100px;font-size:13px;letter-spacing:1px;color:#4ade80;">
+      ✓ 研討完成 · 建議的四招已全部落地 · 6 個 commit 已推送到 main
+    </div>
+
+    <div>
+      <a href="0425-karpathy-wiki.html" style="display:inline-flex;align-items:center;gap:12px;padding:18px 40px;background:#60a5fa;color:#000;text-decoration:none;font-size:17px;font-weight:700;letter-spacing:0.5px;border-radius:100px;transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 30px rgba(96,165,250,0.35)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        閱讀完整導讀（~18 min）
+        <span style="font-size:20px;">→</span>
+      </a>
+    </div>
+
+    <div style="margin-top:40px;font-size:12px;color:rgba(255,255,255,0.3);letter-spacing:1px;">
+      原文：<a href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f" target="_blank" style="color:rgba(96,165,250,0.7);border-bottom:1px solid rgba(96,165,250,0.25);text-decoration:none;">karpathy / gist</a>
+      &nbsp;·&nbsp;
+      鏡像：<a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" style="color:rgba(96,165,250,0.7);border-bottom:1px solid rgba(96,165,250,0.25);text-decoration:none;">shuotao / REVIT_MCP_study</a>
+    </div>
+  </div>
 </section>
 
 <!-- ===== SETUP PAGE ===== -->
@@ -1086,7 +1120,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content" style="max-width:100%;flex:1">
       <div class="slide-number">1-4</div>
       <div class="slide-title">斜線指令總覽</div>
-      <p class="slide-summary">7 個斜線指令，覆蓋從知識記錄到品質驗證的完整開發週期。點擊白色圓點跳到實作說明。</p>
+      <p class="slide-summary">8 個斜線指令，覆蓋從知識記錄、品質驗證到 session 交接的完整開發週期。點擊白色圓點跳到實作說明。</p>
       <div class="cmd-grid">
         <div class="cmd-card" onclick="toggleCmd(this)">
           <div class="cmd-card-top">
@@ -1124,12 +1158,12 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
         <div class="cmd-card" onclick="toggleCmd(this)">
           <div class="cmd-card-top">
             <code>/qaqc</code>
-            <span class="cmd-card-desc">五階段品質驗證</span>
+            <span class="cmd-card-desc">六階段品質驗證</span>
             <a class="cmd-card-link" title="跳到 4-3 實作" onclick="event.stopPropagation();document.getElementById('slide-4-3').scrollIntoView({behavior:'smooth'})"></a>
           </div>
           <div class="cmd-card-detail">
             <span class="cmd-who">開發者</span>
-            <p>你改了一些東西，但不確定有沒有弄壞別的地方。打 <code>/qaqc</code>，它會像體檢一樣掃描整個專案——五個階段、二十幾項檢查，每個問題都附修復步驟。安心交付。</p>
+            <p>你改了一些東西，但不確定有沒有弄壞別的地方。打 <code>/qaqc</code>，它會像體檢一樣掃描整個專案——六個階段（<strong>新增 Phase 6 Content Quality Lint 驗證 domain frontmatter</strong>）、三十多項檢查，每個問題都附修復步驟。安心交付。</p>
           </div>
         </div>
         <div class="cmd-card" onclick="toggleCmd(this)">
@@ -1163,6 +1197,17 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
           <div class="cmd-card-detail">
             <span class="cmd-who">Maintainer</span>
             <p>CLAUDE.md 不知不覺已經 300 多行了，你擔心裡面有過時的路徑或重複的規則。打 <code>/review</code>，它會幫你審計整份文件，告訴你哪些該刪、哪些該更新。</p>
+          </div>
+        </div>
+        <div class="cmd-card" onclick="toggleCmd(this)" style="border-color:rgba(74,222,128,0.25);">
+          <div class="cmd-card-top">
+            <code>/handoff</code>
+            <span class="cmd-card-desc">Session 交接（跨機器 / 跨 AI）<span style="margin-left:6px;font-size:10px;background:#4ade80;color:#000;padding:1px 6px;border-radius:6px;font-weight:700;">NEW</span></span>
+            <a class="cmd-card-link" title="閱讀 Karpathy 導讀" onclick="event.stopPropagation();document.getElementById('slide-karpathy-gateway').scrollIntoView({behavior:'smooth'})"></a>
+          </div>
+          <div class="cmd-card-detail">
+            <span class="cmd-who">所有人</span>
+            <p>重要 session 告一段落（多主題研討完成、MVP 落地、或你明天要換電腦繼續）。打 <code>/handoff</code>，它會產出 <code>session-summary</code> 五段落（完成／對齊概念／Pending／拒絕選項／起手式）到 <code>log/YYYY-MM.md</code>。下次任何 AI 在任何機器啟動都能直接接上，不用你重講脈絡。</p>
           </div>
         </div>
       </div>
@@ -1677,7 +1722,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
   <p>Skill：<strong>qa-review</strong>（MEP 工具已上線）</p>
   <h3>涵蓋 Domain</h3>
   <ul>
-    <li><code>qa-checklist.md</code> — 五階段品質驗證（結構→參照→設定→建構→部署）</li>
+    <li><code>qa-checklist.md</code> — 六階段品質驗證（結構→參照→設定→建構→部署→內容 Lint）</li>
     <li>MEP 管線接頭檢查（已有工具）</li>
   </ul>
   <h3>呼叫的 MCP 工具</h3>
@@ -2313,7 +2358,7 @@ npm --version   # 需要 v8+</code><button class="copy-btn" onclick="copyCode(th
 
   <div class="cmd-tip">
     <div class="cmd-tip-title">斜線指令快捷</div>
-    <code>/qaqc</code> — 一鍵執行五階段品質驗證（檔案結構→交叉參照→建構設定→Build→部署）
+    <code>/qaqc</code> — 一鍵執行六階段品質驗證（檔案結構→交叉參照→建構設定→Build→部署→<strong>內容 Lint</strong>）
     <p>情境：不確定自己的環境有沒有問題？跑一次 <code>/qaqc</code> 就能全面體檢，每個 FAIL 項目都會附上修復步驟。</p>
   </div>
 </div>
@@ -2656,6 +2701,7 @@ lesleyliuke</textarea>
 const sections = [
   { id: 'slide-cover', label: '封面' },
   { id: 'slide-why', label: '為什麼你需要參加' },
+  { id: 'slide-karpathy-gateway', label: 'Karpathy LLM Wiki 導讀' },
   { id: 'slide-setup', label: '系統更新' },
   { id: 'slide-1-1', label: '回顧與複習' },
   { id: 'slide-2-1', label: '問題與挑戰' },
@@ -2670,10 +2716,11 @@ const sections = [
 const slideToSection = {};
 slideToSection['slide-cover'] = 0;
 slideToSection['slide-why'] = 1;
-slideToSection['slide-setup'] = 2;
+slideToSection['slide-karpathy-gateway'] = 2;
+slideToSection['slide-setup'] = 3;
 document.querySelectorAll('[data-section]').forEach(el => {
   const sec = parseInt(el.dataset.section);
-  slideToSection[el.id] = sec + 2; // offset by 2 (cover, why, setup)
+  slideToSection[el.id] = sec + 3; // offset by 3 (cover, why, karpathy-gateway, setup)
 });
 
 // Build nav dots (10 sections)
