@@ -30,8 +30,59 @@ A 5th "embedded" option bypasses the MCP Server entirely — a WPF chat window i
 | Skills | `.claude/skills/SKILL.md` | `.gemini/skills/SKILL.md`（[官方文件](https://geminicli.com/docs/cli/skills/)） | instructions 引導 |
 | Domain 文件 | 共用 `domain/` | 共用 `domain/` | 共用 `domain/` |
 | MCP Tools | 共用 76 個工具 | 共用 76 個工具 | 共用 76 個工具 |
+| Event Log | 共用 `log/` | 共用 `log/` | 共用 `log/` |
 
 SKILL.md 格式遵循 [Agent Skills 開放標準](https://agentskills.io)（YAML frontmatter + Markdown body），Claude Code 與 Gemini CLI 皆原生支援。
+
+## Session Start Protocol（跨 AI 通用）
+
+AI Agent 啟動時，**應**讀取 `log/` 目錄下最新月份檔的末尾 ~60 行（約 20 筆事件），了解專案近期動態。這讓 AI 在失憶狀態下能快速延續工作。
+
+```bash
+ls log/*.md | grep -v README | sort | tail -1 | xargs tail -60
+```
+
+首次接觸專案（`log/` 為空或不存在）可略過此步驟。
+
+## Logging Protocol（跨 AI 通用）
+
+所有改動專案的 AI（Claude / Gemini / Copilot / 未來模型）都必須遵守以下 log 維護規則。
+
+### 三層機制
+
+| 層級 | 觸發方式 | AI 是否需要主動配合 |
+|------|---------|---------------------|
+| Layer 1（`scripts/git-hooks/post-commit`）| 每次 commit 自動 fire | ❌ 不用，git 自己處理 |
+| Layer 2（本憲章規則）| AI 執行重要命令後主動 append | ✅ 必須遵守 |
+| Layer 3（`.claude/hooks/` 擴充）| Claude Code harness 事件 | 選配 |
+
+### Layer 2：AI 何時要主動 append log
+
+| 事件 | 動作 |
+|------|------|
+| 執行 `/lessons` 完成後 | append `lessons` 事件到 `log/YYYY-MM.md` |
+| 執行 `/domain` 完成後 | append `domain` 事件 |
+| 執行 `/qaqc` 完成後 | append `qaqc` 事件（含 PASS/FAIL 數字） |
+| 執行 `/review` 完成後 | append `review` 事件 |
+| 編輯 `.claude/skills/` 或 tool 相關檔（非 commit 驅動）| append 對應事件 |
+| 日常對話、臨時決策 | ❌ **不要**記錄（避免 log 膨脹） |
+
+### 格式
+
+```markdown
+## [YYYY-MM-DD HH:MM] {event-type} | {short-description}
+- actor: {model-id} (via {client-name})
+- files: {comma-separated list}
+- trigger: {git-hook | claude-hook | manual}
+- summary: {one-liner}
+```
+
+### 隱私規則
+
+- ✅ 可記：檔名、時間、事件類型、一行摘要、commit sha
+- ❌ 不可記：使用者原始訊息、AI 完整輸出、程式碼片段、API Keys、認證資訊
+
+首次部署：執行 `./scripts/install-log-hooks.sh`（Mac/Linux）或 `.\scripts\install-log-hooks.ps1`（Windows）設定 git hook 路徑。詳見 `log/README.md`。
 
 ## Build Commands
 
