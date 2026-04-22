@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>0425 MCP 功能開發四月小聚</title>
 <meta property="og:title" content="MCP 功能開發四月小聚">
-<meta property="og:description" content="從工具堆砌到模組化架構 — 9 大專業系統、31 個 Domain、76 個工具已上線驗證。你的專業就是下一個按鈕。">
+<meta property="og:description" content="從工具堆砌到模組化架構 — 9 大專業系統、32 個 Domain、82 個工具已上線驗證。你的專業就是下一個按鈕。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://shuotao.github.io/REVIT_MCP_study/docs/0425-presentation.html">
 <meta name="twitter:card" content="summary">
@@ -915,7 +915,7 @@
     </div>
   </div>
 
-  <div class="why-footer">以上 <strong style="color:#4ade80;">9</strong> 大系統、<strong style="color:#4ade80;">31 個 Domain</strong>、<strong>76 個工具</strong>已上線驗證。<br>你的專業領域，就是第 10 個、第 11 個按鈕。</div>
+  <div class="why-footer">以上 <strong style="color:#4ade80;">9</strong> 大系統、<strong style="color:#4ade80;">32 個 Domain</strong>、<strong>82 個工具</strong>已上線驗證。<br>你的專業領域，就是第 10 個、第 11 個按鈕。</div>
 </section>
 
 <!-- ===== KARPATHY WIKI GATEWAY PAGE ===== -->
@@ -1108,7 +1108,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content">
       <div class="slide-number">1-3</div>
       <div class="slide-title">三次迭代的演進</div>
-      <p class="slide-summary">從 25 個工具到 55 個，從零 Skill 到 18 個，從只支援 Revit 2024 到 2022-2026 全版本。</p>
+      <p class="slide-summary">從 25 個工具到 82 個，從零 Skill 到 19 個，從只支援 Revit 2024 到 2022-2026 全版本。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-1-3')">展開演進對照</button>
     </div>
   </div>
@@ -1225,7 +1225,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content">
       <div class="slide-number">2-1</div>
       <div class="slide-title">工具越多，AI 越笨</div>
-      <p class="slide-summary">76 個工具定義 = 每輪對話都佔用 context 的固定成本。工具越多，AI 選錯的機率越高。</p>
+      <p class="slide-summary">82 個工具定義 = 每輪對話都佔用 context 的固定成本。工具越多，AI 選錯的機率越高。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-2-1')">展開數據分析</button>
     </div>
   </div>
@@ -1389,7 +1389,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content">
       <div class="slide-number">3-6</div>
       <div class="slide-title">Profile：角色篩選</div>
-      <p class="slide-summary">設定一行 MCP_PROFILE，結構工程師只看 20 個工具，不再被 76 個不相關的工具淹沒。</p>
+      <p class="slide-summary">設定一行 MCP_PROFILE，結構工程師只看 20 個工具，不再被 82 個不相關的工具淹沒。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-3-6')">展開 Profile 設定</button>
     </div>
   </div>
@@ -1843,8 +1843,8 @@ npm run build</code><button class="copy-btn" onclick="copyCode(this)">複製</bu
   </table>
   <h3>本次四個關鍵變化</h3>
   <ol>
-    <li><strong>Skills 出現</strong> — 18 個 Skill，自動觸發對應 Domain</li>
-    <li><strong>工具模組化</strong> — 拆成 8 個模組 + Profile 角色篩選</li>
+    <li><strong>Skills 出現</strong> — 19 個 Skill，自動觸發對應 Domain</li>
+    <li><strong>工具模組化</strong> — 拆成 15 個模組 + Profile 角色篩選</li>
     <li><strong>跨版本支援</strong> — Revit 2022 到 2026</li>
     <li><strong>社群貢獻爆發</strong> — 帷幕牆、排煙窗、明細表等新功能</li>
   </ol>
@@ -1857,9 +1857,9 @@ npm run build</code><button class="copy-btn" onclick="copyCode(this)">複製</bu
   <h3>Token 數字</h3>
   <table>
     <tr><th>項目</th><th>Token 成本</th></tr>
-    <tr><td>76 個工具定義</td><td>~22,800 tokens</td></tr>
+    <tr><td>82 個工具定義</td><td>~24,600 tokens</td></tr>
     <tr><td>CLAUDE.md 全文</td><td>~5,000 tokens</td></tr>
-    <tr><td><strong>每輪固定成本</strong></td><td><strong>~27,800 tokens</strong></td></tr>
+    <tr><td><strong>每輪固定成本</strong></td><td><strong>~29,600 tokens</strong></td></tr>
     <tr><td>如果到 100 個工具</td><td>~35,000 tokens</td></tr>
   </table>
   <h3>為什麼這是問題</h3>
@@ -2122,7 +2122,7 @@ description: "消防安全檢討：防火時效視覺化、走廊防火分析、
 │       │   └── SKILL.md
 │       ├── element-query/
 │       │   └── SKILL.md
-│       └── ... 共 18 個</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+│       └── ... 共 19 個</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
   <p>路徑：<span class="copyable-path" onclick="copyText('.claude/skills/')">.claude/skills/</span></p>
 
   <h3>重要限制</h3>
@@ -2489,7 +2489,7 @@ git push origin add/parking-check
     <tr><th>項目</th><th>負責</th><th>狀態</th></tr>
     <tr><td>Issue #16：帷幕牆+排煙窗 C# 實作</td><td>Alex</td><td>✅ 已完成</td></tr>
     <tr><td>Issue #18：lessons.md 觸發機制</td><td>maintainer</td><td>✅ 已完成（/dev-guide）</td></tr>
-    <tr><td>Domain → Skill 全面升級</td><td>maintainer</td><td>✅ 已完成（18 個 Skill）</td></tr>
+    <tr><td>Domain → Skill 全面升級</td><td>maintainer</td><td>✅ 已完成（19 個 Skill）</td></tr>
     <tr><td>CONTRIBUTING.md 更新</td><td>maintainer</td><td>規劃中</td></tr>
   </table>
   <p>追蹤連結：<a href="https://github.com/shuotao/REVIT_MCP_study/issues" target="_blank" style="color:#60a5fa">GitHub Issues</a></p>
