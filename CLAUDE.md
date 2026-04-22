@@ -29,7 +29,7 @@ A 5th "embedded" option bypasses the MCP Server entirely — a WPF chat window i
 | 行為指引 | CLAUDE.md | GEMINI.md → CLAUDE.md | .github/copilot-instructions.md |
 | Skills | `.claude/skills/SKILL.md` | `.gemini/skills/SKILL.md`（[官方文件](https://geminicli.com/docs/cli/skills/)） | instructions 引導 |
 | Domain 文件 | 共用 `domain/` | 共用 `domain/` | 共用 `domain/` |
-| MCP Tools | 共用 76 個工具 | 共用 76 個工具 | 共用 76 個工具 |
+| MCP Tools | 共用 82 個工具 | 共用 82 個工具 | 共用 82 個工具 |
 | Event Log | 共用 `log/` | 共用 `log/` | 共用 `log/` |
 
 SKILL.md 格式遵循 [Agent Skills 開放標準](https://agentskills.io)（YAML frontmatter + Markdown body），Claude Code 與 Gemini CLI 皆原生支援。
@@ -154,7 +154,7 @@ npm run watch    # tsc --watch (development)
 3. **查閱法規知識** → 讀取 Domain 文件（`domain/*.md`）
 
 ### 為什麼
-MCP Server 已封裝 55 個 tools，處理了格式轉換、錯誤處理、重連機制。自寫腳本會：
+MCP Server 已封裝 82 個 tools，處理了格式轉換、錯誤處理、重連機制。自寫腳本會：
 - 繞過既有的錯誤處理與格式驗證
 - 產生 process 掛起（如自動重連導致無法退出）
 - 與 Revit API 的 PascalCase 欄位不一致而靜默失敗
