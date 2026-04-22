@@ -10,7 +10,8 @@ metadata:
     - "shuotao"
   references: []  # TODO: 月小聚補法規條號或外部依據
   related: []  # TODO: 月小聚補相關 domain（檔名）
-  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  referenced_by:
+    - building-compliance
   tags: [採光, 法規, 居室, 開口, 檢討]
 ---
 

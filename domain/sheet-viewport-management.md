@@ -9,7 +9,8 @@ metadata:
     - "unknown"
   references: []  # TODO: 月小聚補法規條號或外部依據
   related: []  # TODO: 月小聚補相關 domain（檔名）
-  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  referenced_by:
+    - sheet-management
   tags: [圖紙, sheet, 視埠, viewport, 圖框, titleblock, 圖紙編號]
 ---
 

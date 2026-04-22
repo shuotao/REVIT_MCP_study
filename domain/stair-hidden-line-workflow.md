@@ -9,7 +9,8 @@ metadata:
     - "unknown"
   references: []  # TODO: 月小聚補法規條號或外部依據
   related: []  # TODO: 月小聚補相關 domain（檔名）
-  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  referenced_by:
+    - stair-hidden-line
   tags: [樓梯, stair, hidden line, 虛線, 剖面, 組合樓梯]
 ---
 

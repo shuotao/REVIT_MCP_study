@@ -9,7 +9,8 @@ metadata:
     - "Alex Huang"
   references: []  # TODO: 月小聚補法規條號或外部依據
   related: []  # TODO: 月小聚補相關 domain（檔名）
-  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  referenced_by:
+    - facade-generation
   tags: [立面, facade, 面板, 弧形面板, 凹窗, 導角, 傾斜面板]
 ---
 

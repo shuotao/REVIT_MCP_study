@@ -9,7 +9,9 @@ metadata:
     - "unknown"
   references: []  # TODO: 月小聚補法規條號或外部依據
   related: []  # TODO: 月小聚補相關 domain（檔名）
-  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  referenced_by:
+    - dependent-view-crop
+    - sheet-management
   tags: [從屬視圖, dependent view, 網格裁剪, 分區出圖, batch crop]
 ---
 

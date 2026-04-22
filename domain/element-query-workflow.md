@@ -9,7 +9,8 @@ metadata:
     - "Admin"
   references: []  # TODO: 月小聚補法規條號或外部依據
   related: []  # TODO: 月小聚補相關 domain（檔名）
-  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  referenced_by:
+    - element-query
   tags: [查詢, 元素, 參數, 類型, 類型標記, 欄位, 門, 窗, 類別]
 ---
 

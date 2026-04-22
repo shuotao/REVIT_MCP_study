@@ -9,7 +9,8 @@ metadata:
     - "shuotao"
   references: []  # TODO: 月小聚補法規條號或外部依據
   related: []  # TODO: 月小聚補相關 domain（檔名）
-  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  referenced_by:
+    - element-query
   tags: [房間邊界, room boundary, Finish Face, Center Line, Core Line, 容積邊界]
 ---
 
