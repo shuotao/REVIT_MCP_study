@@ -1,0 +1,5 @@
+d618d91 fix: QA/QC 全面同步 — 簡報新增樓梯法規按鈕、Domain README 補齊、Issue #31 整合
+e621aa5 fix: 修正 PR#14 引入的 4 處編譯錯誤 — Logger.Instance 與 Room namespace (#34)
+0759740 fix: 停車位 domain 補齊正確法規條號 — §59~§62 + 無障礙來源釐清
+0fd4c16 fix: 移除已解決 issue 的紅色 badge — #19 #20 #21 全部已關閉
+6eed4eb fix: 簡報改為四月小聚 — 檔名 0328→0425、封面 QR 修正、頁尾改五月敬請期待

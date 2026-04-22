@@ -1,0 +1,28 @@
+[
+    {
+        "Name": "DN32 - DN300",
+        "PartType": 32,
+        "Id": 3137265,
+        "Category": "ºÞ°t¥ó",
+        "Connectors": [
+            {
+                "Domain": "DomainPiping",
+                "ConnectorType": "End",
+                "Origin": "60.894963285076621, -14.609596409959931, 0.0",
+                "Id": 1,
+                "Shape": "Round",
+                "DirectionZ": "-1.0, 0.0, 0.0"
+            },
+            {
+                "Domain": "DomainPiping",
+                "ConnectorType": "End",
+                "Origin": "61.15086879688765, -14.609596409959931, 0.0",
+                "Id": 2,
+                "Shape": "Round",
+                "DirectionZ": "1.0, 0.0, 0.0"
+            }
+        ],
+        "UniqueId": "cadc1726-69dd-424b-bec1-039fa86e9139-002fdef1",
+        "FamilyName": "PIF_PROGEF Plus bf - outlet flange adaptor_GF"
+    }
+]

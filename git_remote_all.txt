@@ -1,0 +1,4 @@
+origin	https://github.com/CyberPotato0416/REVIT_MCP_study.git (fetch)
+origin	https://github.com/CyberPotato0416/REVIT_MCP_study.git (push)
+upstream	https://github.com/shuotao/REVIT_MCP_study.git (fetch)
+upstream	https://github.com/shuotao/REVIT_MCP_study.git (push)

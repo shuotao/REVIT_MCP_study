@@ -1,0 +1,85 @@
+On branch feat/pyrevit-tools
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   .claude/skills/element-marking/skill.md
+	new file:   .claude/skills/mep-automation/skill.md
+	modified:   MCP-Server/gemini_mcp_config.json
+	modified:   MCP-Server/src/index.ts
+	modified:   MCP-Server/src/socket.ts
+	modified:   MCP-Server/src/tools/index.ts
+	new file:   MCP-Server/src/tools/marking-tools.ts
+	modified:   MCP-Server/src/tools/mep-tools.ts
+	modified:   MCP/Core/CommandExecutor.cs
+	new file:   docs/install_guide_pyrevit.md
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/CustomMark.panel/WizardPick.pushbutton/bundle.yaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/CustomMark.panel/WizardPick.pushbutton/confirm.xaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/CustomMark.panel/WizardPick.pushbutton/icon.png
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/CustomMark.panel/WizardPick.pushbutton/script.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/CustomMark.panel/WizardSettings.pushbutton/bundle.yaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/CustomMark.panel/WizardSettings.pushbutton/icon.png
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/CustomMark.panel/WizardSettings.pushbutton/script.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/CustomMark.panel/WizardSettings.pushbutton/ui.xaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Marking.panel/PickMark.pushbutton/bundle.yaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Marking.panel/PickMark.pushbutton/confirm.xaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Marking.panel/PickMark.pushbutton/icon.png
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Marking.panel/PickMark.pushbutton/script.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Marking.panel/Settings.pushbutton/icon.png
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Marking.panel/Settings.pushbutton/script.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Marking.panel/Settings.pushbutton/ui.xaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/QuickAccess.panel/FavoritePipes.pulldown/Pipe1.pushbutton/bundle.yaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/QuickAccess.panel/FavoritePipes.pulldown/Pipe1.pushbutton/script.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/QuickAccess.panel/FavoritePipes.pulldown/Pipe2.pushbutton/bundle.yaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/QuickAccess.panel/FavoritePipes.pulldown/Pipe2.pushbutton/script.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/QuickAccess.panel/FavoritePipes.pulldown/Pipe3.pushbutton/bundle.yaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/QuickAccess.panel/FavoritePipes.pulldown/Pipe3.pushbutton/script.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/QuickAccess.panel/FavoritePipes.pulldown/Pipe4.pushbutton/bundle.yaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/QuickAccess.panel/FavoritePipes.pulldown/Pipe4.pushbutton/script.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/QuickAccess.panel/FavoritePipes.pulldown/Pipe5.pushbutton/bundle.yaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/QuickAccess.panel/FavoritePipes.pulldown/Pipe5.pushbutton/script.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/QuickAccess.panel/FavoritePipes.pulldown/bundle.yaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/QuickAccess.panel/Settings.pushbutton/bundle.yaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/QuickAccess.panel/Settings.pushbutton/script.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/QuickAccess.panel/bundle.yaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Standard.panel/CreateSchedules.pushbutton/icon.png
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Standard.panel/DumpInfo.pushbutton/bundle.yaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Standard.panel/DumpInfo.pushbutton/script.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Standard.panel/FlangeDiagnosis.pushbutton/script.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Standard.panel/SplitPipe.pushbutton/__pycache__/domain.cpython-314.pyc
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Standard.panel/SplitPipe.pushbutton/bundle.yaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Standard.panel/SplitPipe.pushbutton/domain.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Standard.panel/SplitPipe.pushbutton/script.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Standard.panel/TestPipeCopy.pushbutton/script.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Views.panel/DependentSplit.pushbutton/bundle.yaml
+	new file:   pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Views.panel/DependentSplit.pushbutton/script.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/hooks/app-init.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/lib/quick_access.py
+	new file:   pyRevit_Tools/MCP_Tools.extension/lib/quick_access_config.json
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	MCP-Server/test_all_grids.js
+	MCP-Server/test_flange.js
+	MCP-Server/test_grid_raw.js
+	MCP-Server/test_grids.js
+	MCP-Server/test_revit.js
+	docs/lessons/
+	docs/test_pipe_copy_tool.md
+	flange_info.json
+	git_head.txt
+	git_log.txt
+	git_log_2.txt
+	git_main.txt
+	git_main_log.txt
+	git_master.txt
+	git_master_log.txt
+	git_remote_all.txt
+	git_remote_origin.txt
+	git_status.txt
+	git_status_2.txt
+	git_status_clean.txt
+	git_status_staged.txt
+	git_status_upstream.txt
+	git_upstream_main.txt
+	scripts/query_selection.js
+	tools/
+

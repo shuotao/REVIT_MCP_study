@@ -1,0 +1,11 @@
+* remote origin
+  Fetch URL: https://github.com/CyberPotato0416/REVIT_MCP_study.git
+  Push  URL: https://github.com/CyberPotato0416/REVIT_MCP_study.git
+  HEAD branch: main
+  Remote branches:
+    main   tracked
+    master tracked
+  Local branch configured for 'git pull':
+    master merges with remote master
+  Local ref configured for 'git push':
+    master pushes to master (up to date)

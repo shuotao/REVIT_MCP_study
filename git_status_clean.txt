@@ -1,0 +1,14 @@
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   MCP-Server/gemini_mcp_config.json
+	modified:   MCP-Server/src/index.ts
+	modified:   MCP-Server/src/socket.ts
+	modified:   MCP-Server/src/tools/index.ts
+	modified:   MCP-Server/src/tools/mep-tools.ts
+	modified:   MCP/Core/CommandExecutor.cs
+
+no changes added to commit (use "git add" and/or "git commit -a")

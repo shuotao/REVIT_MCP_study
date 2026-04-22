@@ -1,0 +1,56 @@
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   MCP-Server/gemini_mcp_config.json
+	modified:   MCP-Server/src/index.ts
+	modified:   MCP-Server/src/socket.ts
+	modified:   MCP-Server/src/tools/index.ts
+	modified:   MCP-Server/src/tools/mep-tools.ts
+	modified:   MCP/Core/CommandExecutor.cs
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	.claude/skills/element-marking/
+	.claude/skills/mep-automation/
+	MCP-Server/src/tools/marking-tools.ts
+	MCP-Server/test_all_grids.js
+	MCP-Server/test_flange.js
+	MCP-Server/test_grid_raw.js
+	MCP-Server/test_grids.js
+	MCP-Server/test_revit.js
+	docs/install_guide_pyrevit.md
+	docs/lessons/
+	docs/test_pipe_copy_tool.md
+	flange_info.json
+	git_head.txt
+	git_log.txt
+	git_log_2.txt
+	git_main.txt
+	git_main_log.txt
+	git_master.txt
+	git_master_log.txt
+	git_remote_all.txt
+	git_remote_origin.txt
+	git_status.txt
+	git_status_2.txt
+	git_status_clean.txt
+	git_status_upstream.txt
+	git_upstream_main.txt
+	pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/CustomMark.panel/
+	pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Marking.panel/
+	pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/QuickAccess.panel/
+	pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Standard.panel/CreateSchedules.pushbutton/icon.png
+	pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Standard.panel/DumpInfo.pushbutton/
+	pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Standard.panel/FlangeDiagnosis.pushbutton/
+	pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Standard.panel/SplitPipe.pushbutton/
+	pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Standard.panel/TestPipeCopy.pushbutton/
+	pyRevit_Tools/MCP_Tools.extension/MCP_Schedules.tab/Views.panel/
+	pyRevit_Tools/MCP_Tools.extension/hooks/
+	pyRevit_Tools/MCP_Tools.extension/lib/
+	scripts/query_selection.js
+	tools/
+
+no changes added to commit (use "git add" and/or "git commit -a")
