@@ -76,7 +76,7 @@
 ### 3-1. csproj 設定
 讀取 `MCP/RevitMCP.csproj`，確認：
 - 包含 `Nice3point.Revit.Sdk` 套件引用
-- 包含 `<DeployAddin>true</DeployAddin>`
+- 包含 `<DeployAddin>false</DeployAddin>`
 - Configurations 包含：`Release.R22;Release.R23;Release.R24;Release.R25;Release.R26`
 
 ### 3-2. addin 設定
