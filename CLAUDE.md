@@ -120,13 +120,13 @@ npm run watch    # tsc --watch (development)
 | File | Role |
 |------|------|
 | `MCP/Application.cs` | Revit IExternalApplication entry point, creates ribbon panel |
-| `MCP/Core/CommandExecutor.cs` | Central command dispatcher (76+ commands), largest file |
+| `MCP/Core/CommandExecutor.cs` | Central command dispatcher (82+ commands), largest file |
 | `MCP/Core/SocketService.cs` | HttpListener-based WebSocket server in Revit |
 | `MCP/Core/RevitCompatibility.cs` | Cross-version compatibility layer (ElementId int→long for 2025+) |
 | `MCP/Core/ExternalEventManager.cs` | Ensures commands execute on Revit UI thread |
 | `MCP-Server/src/index.ts` | MCP Server entry (StdioServerTransport) |
 | `MCP-Server/src/socket.ts` | RevitSocketClient — WebSocket client to Revit |
-| `MCP-Server/src/tools/` | Tool definitions (76 tools, 分 14 個模組) |
+| `MCP-Server/src/tools/` | Tool definitions (82 tools, 分 15 個模組) |
 | `scripts/setup.ps1` | One-click setup for new users (prereqs, build, deploy, AI config) |
 
 ## Code Conventions
@@ -170,7 +170,7 @@ BIM 的知識是共用的——防火法規同時被消防檢查、走廊分析�
 
 > **不要把每個 Domain 都升級成 Skill。** Domain 被引用就已經在發揮作用了。詳見 `domain/skill-authoring-standard.md`。
 
-## Skills（18 個）
+## Skills（19 個）
 
 Skills 位於 `.claude/skills/`，每個 Skill 為一個資料夾 + `SKILL.md`。
 
@@ -193,6 +193,7 @@ Skills 位於 `.claude/skills/`，每個 Skill 為一個資料夾 + `SKILL.md`�
 | `/dependent-view-crop` | 從屬視圖批次裁剪（依網格線邊界） |
 | `/sheet-management` | 圖紙與視圖埠管理（批次建立、重新排序） |
 | `/stair-hidden-line` | 剖面隱藏樓梯可視化（虛線詳圖線） |
+| `/detect-clashes` | MEP vs CSA 碰撞偵測（Curve-to-Solid 干涉分析 + 視覺化 + 報告匯出） |
 | `/claude-md-sync` | CLAUDE.md 雙向同步驗證（合併/Skill異動/Tools異動後觸發） |
 
 > **Cross-version compatibility:** `MCP/Core/RevitCompatibility.cs` provides `GetIdValue()` and `ToElementId()` extension methods.
@@ -232,7 +233,7 @@ All AI clients connect to the MCP Server via the same config format. Replace `{a
 | Port 8964 被 System (PID: 4) 佔用 | Revit 異常關閉後 HTTP.sys 孤兒 Request Queue | 執行 `scripts\release-port.ps1`，或手動：`net stop http /y && net start http` |
 | Commands not responding in Revit | Revit UI thread issue | Ensure `ExternalEventManager` is used; check `%AppData%\RevitMCP\Logs\` |
 
-## Domain Knowledge & Workflow Files（31 個）
+## Domain Knowledge & Workflow Files（32 個）
 
 The `domain/` directory contains BIM compliance workflows that AI must consult before executing related tasks:
 
@@ -268,6 +269,7 @@ The `domain/` directory contains BIM compliance workflows that AI must consult b
 | 房間編號, room numbering, 自動編號 | `domain/room-numbering-workflow.md` |
 | 房間表面積, 粉刷, surface area, finish | `domain/room-surface-area-review.md` |
 | 樓梯法規, stair compliance, 淨高, 級高級深 | `domain/stair-compliance-check.md` |
+| 碰撞, 干涉, clash, MEP, 管線穿牆, 套管, penetration | `domain/mep-csa-clash-detection.md` |
 
 ## Deployment Rules (DO NOT VIOLATE)
 

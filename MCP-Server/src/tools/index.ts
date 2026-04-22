@@ -22,15 +22,16 @@ import { sheetTools } from "./sheet-tools.js";
 import { detailComponentTools } from "./detail-component-tools.js";
 import { dimensionTools } from "./dimension-tools.js";
 import { dependentViewTools } from "./dependent-view-tools.js";
+import { clashTools } from "./clash-tools.js";
 
 /**
  * Profile 對照表：每個 profile 包含哪些模組
  */
 const PROFILE_MODULES: Record<string, Tool[][]> = {
-    full: [baseTools, wallTools, roomTools, visualizationTools, scheduleTools, mepTools, curtainWallTools, smokeExhaustTools, STAIR_COMPLIANCE_TOOLS, sheetTools, detailComponentTools, dimensionTools, dependentViewTools],
+    full: [baseTools, wallTools, roomTools, visualizationTools, scheduleTools, mepTools, curtainWallTools, smokeExhaustTools, STAIR_COMPLIANCE_TOOLS, sheetTools, detailComponentTools, dimensionTools, dependentViewTools, clashTools],
     architect: [baseTools, wallTools, roomTools, visualizationTools, scheduleTools, curtainWallTools, STAIR_COMPLIANCE_TOOLS, sheetTools, detailComponentTools, dimensionTools, dependentViewTools],
-    mep: [baseTools, mepTools, scheduleTools, visualizationTools, smokeExhaustTools],
-    structural: [baseTools, wallTools, visualizationTools],
+    mep: [baseTools, mepTools, scheduleTools, visualizationTools, smokeExhaustTools, clashTools],
+    structural: [baseTools, wallTools, visualizationTools, clashTools],
     "fire-safety": [baseTools, roomTools, visualizationTools, smokeExhaustTools],
 };
 
