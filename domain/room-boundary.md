@@ -1,6 +1,6 @@
 ---
 name: room-boundary
-description: "容積計算需要正確的邊界位置："
+description: "房間邊界計算：容積計算需要正確的邊界位置（外牆算外緣、內牆算中心、同戶內牆依規定處理），但 Revit 的 Room 預設使用 Finish Face。本文件定義三種邊界（Finish/Center/Core）的適用情境。當使用者提到房間邊界、room boundary、Finish Face、Center Line、Core Line、容積邊界時觸發。"
 metadata:
   version: "1.0"
   updated: "2025-12-14"
@@ -10,7 +10,7 @@ metadata:
   references: []  # TODO: 月小聚補法規條號或外部依據
   related: []  # TODO: 月小聚補相關 domain（檔名）
   referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
-  tags: []  # TODO: 月小聚補分類關鍵字
+  tags: [房間邊界, room boundary, Finish Face, Center Line, Core Line, 容積邊界]
 ---
 
 # 房間邊界計算

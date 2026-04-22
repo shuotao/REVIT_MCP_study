@@ -1,6 +1,6 @@
 ---
 name: wall-check
-description: "建模者可能因不熟悉 Revit，導致牆壁的內外方向顛倒。這會影響："
+description: "牆壁檢查機制：偵測 Revit 牆壁的 Exterior/Interior 面方向是否正確，避免飾面錯位、容積計算邊界判斷錯誤。當使用者提到牆壁內外方向、wall orientation、wall check、Exterior Side、Interior Side 時觸發。"
 metadata:
   version: "1.0"
   updated: "2025-12-14"
@@ -10,7 +10,7 @@ metadata:
   references: []  # TODO: 月小聚補法規條號或外部依據
   related: []  # TODO: 月小聚補相關 domain（檔名）
   referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
-  tags: []  # TODO: 月小聚補分類關鍵字
+  tags: [牆壁, wall, 內外方向, orientation, Exterior Side, Interior Side, wall check]
 ---
 
 # 牆壁檢查機制

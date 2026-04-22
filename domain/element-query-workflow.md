@@ -1,8 +1,16 @@
 ---
 name: element-query-workflow
-description: 元素查詢參數的完整工作流程，涵蓋實例與類型參數的區分及常見混淆場景
-tags: [查詢, 元素, 參數, 類型, 類型標記, 欄位, 門, 窗, 類別]
-revit_versions: [2022, 2023, 2024, 2025, 2026]
+description: "元素查詢參數的完整工作流程，涵蓋實例 (Instance) 與類型 (Type) 參數的區分及常見混淆場景。當使用者提到查詢、篩選、element query、filter、參數查詢、類型標記、Mark、Type Mark 時觸發。"
+metadata:
+  version: "1.0"
+  updated: "2026-03-10"
+  created: "2026-03-10"
+  contributors:
+    - "Admin"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  tags: [查詢, 元素, 參數, 類型, 類型標記, 欄位, 門, 窗, 類別]
 ---
 
 # 元素查詢參數工作流程 (Element Query Workflow)

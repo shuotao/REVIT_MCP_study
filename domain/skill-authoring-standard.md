@@ -1,8 +1,20 @@
 ---
 name: skill-authoring-standard
-description: Revit MCP 專案的 Skill 編寫規範。供 skill-creator plugin 執行時參照。
-tags: [skill, 規範, 品質, description, 觸發]
-version: 1.0
+description: "Revit MCP 專案的 Skill 編寫規範。供 skill-creator plugin 執行時參照，處理專案特有的約束（description 規則、觸發關鍵字、品質檢查）。當使用者提到 skill 規範、skill 品質、skill 編寫標準、description 規則時觸發。"
+metadata:
+  version: "1.0"
+  updated: "2026-03-21"
+  created: "2026-03-21"
+  contributors:
+    - "shuotao"
+  references:
+    - "https://agentskills.io/specification"
+    - "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices"
+    - "https://github.com/anthropics/skills"
+  related:
+    - frontmatter-standard.md
+  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  tags: [skill, 規範, 品質, description, 觸發]
 ---
 
 # Skill 編寫規範（Revit MCP 專案）

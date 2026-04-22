@@ -1,7 +1,17 @@
 ---
 name: daylight-area-check
 description: 執行建築物居室採光面積檢討流程（依據建築技術規則建築設計施工編第41條）。
-tags: [採光, 法規, 居室, 開口, 檢討]
+metadata:
+  version: "1.0"
+  updated: "2026-04-05"
+  created: "2026-02-24"
+  contributors:
+    - "DAVID\\david"
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  tags: [採光, 法規, 居室, 開口, 檢討]
 ---
 
 # 居室採光面積檢討流程

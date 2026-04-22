@@ -1,6 +1,6 @@
 ---
 name: lessons
-description: "(TODO: 月小聚補描述) lessons"
+description: "Lessons Learned：由 /lessons 指令自動維護的專案避坑經驗集。記錄高階開發規則與實作教訓，採 Append-only 追加、禁止修改或刪除已有條目。當使用者提到 lessons、開發經驗、避坑、經驗、教訓時觸發。"
 metadata:
   version: "1.0"
   updated: "2026-04-02"
@@ -12,7 +12,7 @@ metadata:
   references: []  # TODO: 月小聚補法規條號或外部依據
   related: []  # TODO: 月小聚補相關 domain（檔名）
   referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
-  tags: []  # TODO: 月小聚補分類關鍵字
+  tags: [lessons, 開發經驗, 避坑, 經驗, 教訓, append-only]
 ---
 
 # Lessons Learned

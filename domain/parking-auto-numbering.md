@@ -1,6 +1,16 @@
 ---
-title: 停車格自動編號標準作業程序 (Auto Numbering SOP)
-tags: [Revit, Automation, Parking, MCP]
+name: parking-auto-numbering
+description: "停車格自動編號 SOP：自動化對 Revit 停車格（汽車、機車、大客車）進行分類排序與編號，取代人工手動輸入「備註」參數的繁瑣流程。當使用者提到停車自動編號、parking numbering、停車備註、車位編碼時觸發。"
+metadata:
+  version: "1.0"
+  updated: "2026-04-02"
+  created: "2026-04-02"
+  contributors:
+    - "unknown"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  tags: [Revit, Automation, Parking, MCP, 停車自動編號, parking numbering]
 ---
 
 # 停車格自動編號標準作業程序 (Auto Numbering SOP)

@@ -1,6 +1,6 @@
 ---
 name: exterior-wall-opening-check
-description: "**主要規定**："
+description: "外牆開口檢討工作流程：依據台灣建築技術規則第 45 條（鄰地距離）與第 110 條（防火間隔）進行外牆開口法規合規驗證。當使用者提到外牆開口、鄰地距離、防火間隔、第 45 條、第 110 條、境界線、opening 時觸發。"
 metadata:
   version: "1.0"
   updated: "2026-04-05"
@@ -13,7 +13,7 @@ metadata:
   references: []  # TODO: 月小聚補法規條號或外部依據
   related: []  # TODO: 月小聚補相關 domain（檔名）
   referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
-  tags: []  # TODO: 月小聚補分類關鍵字
+  tags: [外牆開口, 鄰地距離, 防火間隔, 第45條, 第110條, 境界線, opening]
 ---
 
 # 外牆開口檢討工作流程
