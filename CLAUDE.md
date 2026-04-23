@@ -193,6 +193,41 @@ Every concrete datum produced in an output — identifiers (6+ digit IDs, GUIDs,
 **正確做法（Branch B）**：
 > 「您目前在 L2（FloorPlan）。若您需要針對此樓層的具體操作建議，我需要先呼叫 `get_rooms_by_level(level='L2')` 取得實際房間清單——要我現在執行嗎？在查到實際資料前，我只能給泛型建議：若此樓層有走廊、居室、樓梯，分別對應 `/fire-safety-check`、`/smoke-exhaust`、`check_stair_headroom` 工作流。」
 
+### Domain Method Compliance (MUST — Supersedes Ad-hoc Analytical Intuition)
+
+**Scope**: Applies whenever a response involves regulatory compliance, code-check computation, engineering analysis, or any task whose correct algorithm is codified in a project file under `domain/*.md`. The authoritative trigger table is the "Domain Knowledge & Workflow Files" table later in this CLAUDE.md — if a keyword in the user's request matches a row there, the linked `domain/*.md` defines the algorithm.
+
+**Relationship to Tool Call Data Honesty**: Data Honesty governs *where facts come from* (tool response, not LM prior). Domain Method Compliance governs *how those facts are transformed* (domain SOP, not LM intuition). Both rules must be satisfied simultaneously. Clean tool data + fabricated algorithm = still a hallucinated answer.
+
+**Core invariant**:
+When a task maps to a `domain/*.md` file in the trigger table, the computation procedure — formulas, deductions, multipliers, inclusion/exclusion criteria, edge cases — MUST come from that file. Language-model prior knowledge of "how one typically computes X" MUST NOT substitute for the project's codified SOP, even when the LM's method appears reasonable or produces a plausible number.
+
+**Pre-analysis self-check (run BEFORE the first numerical computation)**:
+1. Is the user asking for a regulatory check, compliance ratio, area / volume / count computation, or any domain-specific quantitative analysis? → proceed to step 2.
+2. Scan the "Domain Knowledge & Workflow Files" trigger keywords (e.g., 採光 / daylight, 走廊 / corridor, 防火 / fire rating, 排煙 / smoke exhaust, 停車 / parking, 容積 / FAR, 碰撞 / clash, 樓梯 / stair compliance). Does any keyword match the task? → If yes, the corresponding `domain/*.md` MUST be read before any computation begins.
+3. Does my planned algorithm replicate every step in that domain file, including all deductions (e.g., 75cm sill baseline), inclusion rules (e.g., doors with glass count toward daylight), and multipliers (e.g., ×3 for skylight, ×0.7 for deep balcony)? → If not, discard my algorithm and use the domain file verbatim.
+4. Are any tool fields unused that the domain file requires as inputs (e.g., `SillHeight`, `HeadHeight`, `Category=門`)? → If yes, my algorithm is under-specified. Fix before emitting results.
+
+**Output branches**:
+- **Branch A — domain file read and applied**: Cite source explicitly. Template:
+  > "Per `domain/{file}.md` step {N}: {formula}. Applied to tool data: {calculation}. Result: {value}."
+- **Branch B — domain file exists but unread**: STOP. Read the file first. DO NOT improvise an algorithm and label the output as a compliance result. Even self-consistent numbers are wrong when the method is wrong.
+- **Branch C — no domain file covers this keyword**: Explicitly disclaim. Template:
+  > "此專案尚未收錄 {topic} 的檢討 SOP（無對應 `domain/*.md`）。以下為通用工程常識而非專案認可算法，請勿作為合規依據。"
+
+**Precedence (this rule outranks)**:
+- The LM's "reasonable default" for how a domain computation is normally done
+- Prior-turn computations that used the wrong algorithm (they must be corrected, not carried forward or defended)
+- Any Skill body whose steps omit a deduction, inclusion, or multiplier present in the domain SOP (the domain file wins)
+- User's implicit expectation of a "quick answer" when the correct path requires reading a spec
+
+**Rule of thumb**: *If a `domain/*.md` file exists for this topic, its algorithm is the algorithm. Your analytical intuition does not get a vote.*
+
+**違規範例（Violation case, 2026-04-23, Revit — 採光分析）**：
+使用者請求「L2 居室採光分析」。AI 正確呼叫 `get_room_daylight_info` 取得 tool response（Data Honesty 過關），但**未讀 `domain/daylight-area-check.md`** 即自行套用簡化算法：排除所有外牆門、未套 75cm 台度扣除公式。結果 Room 203/204/205 的有效採光面積被系統性低估 1.38–4.14 m²。同時間另一 AI 遵照 domain SOP（納入外牆門 + 套用 `Effective Height = HeadHeight - 750mm`）計算，數值與官方公式一致。
+**正確做法（Branch A）**：
+> 「執行前先讀 `domain/daylight-area-check.md` 步驟 3、4：納入外牆門（含玻璃部分）且對 `SillHeight < 750mm` 的開口套 `Effective Height = HeadHeight - 750mm` 公式。據此 Room 203 = 4 扇外牆窗（SH 全 >750mm，合計 7.742 m²）+ 1 扇外牆門（Effective Height = 2260.6 - 750 = 1510.6mm；面積 = 0.9144 × 1.5106 = 1.381 m²）= **9.123 m²**，採光比 9.123/55.08 = **16.56%**，≥ 12.5% 合格。」
+
 ## Domain vs Skill 架構原則
 
 本專案的 Domain 和 Skill 是不同角色，不是不同等級：
