@@ -67,6 +67,7 @@ ls log/*.md | grep -v README | sort | tail -1 | xargs tail -60
 | 執行 `/qaqc` 完成後 | append `qaqc` 事件（含 PASS/FAIL 數字） |
 | 執行 `/review` 完成後 | append `review` 事件 |
 | 編輯 `.claude/skills/` 或 tool 相關檔（非 commit 驅動）| append 對應事件 |
+| 編輯 CLAUDE.md 之 AI Guard Rails / 憲法規則 | append `domain` 事件，摘要新規則名稱與起因 |
 | 日常對話、臨時決策 | ❌ **不要**記錄（避免 log 膨脹） |
 
 ### 格式
@@ -338,6 +339,7 @@ The `domain/` directory contains BIM compliance workflows that AI must consult b
 | 房間表面積, 粉刷, surface area, finish | `domain/room-surface-area-review.md` |
 | 樓梯法規, stair compliance, 淨高, 級高級深 | `domain/stair-compliance-check.md` |
 | 碰撞, 干涉, clash, MEP, 管線穿牆, 套管, penetration | `domain/mep-csa-clash-detection.md` |
+| frontmatter, metadata, YAML 標頭, 欄位規範 | `domain/frontmatter-standard.md` |
 
 ## Deployment Rules (DO NOT VIOLATE)
 
@@ -384,6 +386,15 @@ When adding new `IExternalCommand` in `Commands/` folder:
 - `scripts/setup.ps1` — One-click full setup (prerequisites + build + deploy + AI config + port check)
 - `scripts/setup.bat` — Double-click wrapper for setup.ps1 (bypasses ExecutionPolicy)
 - `scripts/release-port.ps1` — Release port 8964 from orphaned HTTP.sys binding (requires Admin for PID 4)
+
+### Claude Code Hooks（`.claude/hooks/`）
+
+本專案的 Claude Code 外掛 hook 腳本，由 `.claude/settings.json` 註冊於 runtime：
+
+| Hook | 觸發 matcher | 功能 |
+|------|-------------|------|
+| `detect-claudemd-trigger.sh` | `Bash\|Write\|Edit` | 偵測 CLAUDE.md / Skill / Tools 異動，提示雙向驗證 |
+| `remind-tool-call-data-honesty.sh` | `mcp__.*` | 任何 MCP 工具呼叫後注入「資料誠實度」提醒，為 Tool Call Data Honesty 的 runtime 反悔保險 |
 
 ## CODEOWNERS
 
