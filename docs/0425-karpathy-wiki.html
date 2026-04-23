@@ -64,15 +64,6 @@
     font-weight: 300; margin-bottom: 48px; line-height: 1.6;
     max-width: 700px; margin-left: auto; margin-right: auto;
   }
-  .cover-meta {
-    display: flex; gap: 40px; justify-content: center; flex-wrap: wrap;
-  }
-  .cover-meta-item { text-align: center; }
-  .cover-meta-label {
-    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
-    color: rgba(255,255,255,0.3); margin-bottom: 6px;
-  }
-  .cover-meta-value { font-size: 16px; color: rgba(255,255,255,0.8); }
   .cover-tldr {
     margin-top: 56px; padding: 20px 28px;
     background: rgba(96,165,250,0.06);
@@ -116,7 +107,6 @@
     font-size: 18px; color: rgba(255,255,255,0.7); line-height: 1.6;
     margin-bottom: 24px;
   }
-  .slide-content.full { max-width: 100%; flex: 1; }
 
   /* Drawer trigger */
   .drawer-trigger {
@@ -127,12 +117,10 @@
     font-family: inherit;
   }
   .drawer-trigger:hover { border-color: #fff; color: #fff; }
-  .drawer-trigger::after { content: '→'; transition: transform 0.3s; }
-  .drawer-trigger:hover::after { transform: translateX(4px); }
 
   /* ===== DRAWER ===== */
   .drawer-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
     z-index: 200; opacity: 0; pointer-events: none;
     transition: opacity 0.4s ease;
   }
@@ -143,7 +131,7 @@
     background: #0a0a0a; border-left: 1px solid rgba(255,255,255,0.1);
     z-index: 201; transform: translateX(100%);
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    overflow-y: auto; padding: 48px;
+    overflow-y: auto; padding: 60px;
   }
   .drawer.open { transform: translateX(0); }
   .drawer-close {
@@ -152,23 +140,23 @@
     color: #fff; width: 36px; height: 36px; border-radius: 50%;
     cursor: pointer; font-size: 18px; display: flex;
     align-items: center; justify-content: center; z-index: 10;
-    transition: border-color 0.3s;
   }
-  .drawer-close:hover { border-color: #fff; }
-  .drawer h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px; padding-right: 50px; }
-  .drawer h3 { font-size: 18px; font-weight: 600; margin: 32px 0 12px; color: #fff; }
-  .drawer p, .drawer li { font-size: 15px; color: rgba(255,255,255,0.75); line-height: 1.8; margin-bottom: 12px; }
-  .drawer ul, .drawer ol { padding-left: 20px; margin-bottom: 16px; }
-  .drawer li { margin-bottom: 6px; }
+  .drawer h2 { font-size: 28px; font-weight: 700; margin: 0 0 32px; color: #fff; border-left: 4px solid #60a5fa; padding-left: 20px; }
+  .drawer h3 { font-size: 18px; font-weight: 600; margin: 40px 0 16px; color: rgba(255,255,255,0.9); }
+  .drawer p, .drawer li { font-size: 16px; color: rgba(255,255,255,0.6); line-height: 1.8; margin-bottom: 16px; }
   .drawer strong { color: #fff; }
-  .drawer table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
-  .drawer th, .drawer td { border: 1px solid rgba(255,255,255,0.12); padding: 10px 14px; text-align: left; }
-  .drawer th { background: rgba(255,255,255,0.06); color: #fff; font-weight: 600; }
-  .drawer td { color: rgba(255,255,255,0.7); }
+  
+  .how-tech-box {
+    margin-top: 32px; padding: 24px; border-radius: 12px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+  }
+  .how-tech-item { display: flex; gap: 16px; margin-bottom: 16px; }
+  .how-tech-label { font-weight: 800; font-size: 11px; letter-spacing: 2px; color: #60a5fa; min-width: 80px; text-transform: uppercase; }
+  .how-tech-content { font-size: 14px; color: rgba(255,255,255,0.8); }
 
   /* ===== SECTION DIVIDER ===== */
   .section-divider {
-    padding: 40px 80px; text-align: center;
+    padding: 60px 80px; text-align: center;
     border-bottom: 1px solid rgba(255,255,255,0.06);
     scroll-snap-align: none;
   }
@@ -177,57 +165,31 @@
     color: rgba(255,255,255,0.3); font-weight: 400;
   }
 
-  /* ===== VISUAL COMPONENTS ===== */
+  /* ===== VISUALS ===== */
   .concept-card {
-    border: 1px solid rgba(255,255,255,0.1); padding: 32px; border-radius: 20px;
-    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.1); padding: 40px; border-radius: 24px;
+    background: rgba(255,255,255,0.02); transition: all 0.5s ease;
   }
+  .concept-card:hover { transform: translateY(-10px); border-color: rgba(96,165,250,0.3); }
+
+  /* Animations */
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+  .floating { animation: float 6s ease-in-out infinite; }
+
   .stack-viz { display: flex; flex-direction: column; gap: 12px; }
   .stack-layer {
-    padding: 16px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
-    background: rgba(255,255,255,0.03);
+    padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.03); position: relative; overflow: hidden;
   }
-  .stack-layer.active { border-color: #60a5fa; background: rgba(96,165,250,0.05); }
-  .stack-layer-label { font-size: 10px; letter-spacing: 2px; color: rgba(255,255,255,0.4); margin-bottom: 4px; }
-  .stack-layer-title { font-size: 16px; font-weight: 700; }
-  .op-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-  .op-card {
-    aspect-ratio: 1; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: rgba(255,255,255,0.03);
+  .stack-layer::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+    transform: translateX(-100%); transition: transform 0.5s;
   }
-  .op-icon { font-size: 32px; margin-bottom: 8px; }
-  .op-name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.6); }
-  .diff-list { display: flex; flex-direction: column; gap: 20px; }
-  .diff-item { padding-left: 20px; border-left: 2px solid rgba(255,255,255,0.1); }
-  .diff-tag { font-size: 11px; color: #60a5fa; font-weight: 700; text-transform: uppercase; }
-  .diff-title { font-size: 18px; font-weight: 700; margin: 4px 0 8px; }
-  .diff-body { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+  .stack-layer:hover::after { transform: translateX(100%); }
   
-  /* Mapping Table Styles */
-  .map-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
-  .map-tab {
-    background: none; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.5);
-    padding: 6px 16px; border-radius: 100px; font-size: 11px; cursor: pointer; transition: all 0.3s;
-  }
-  .map-tab.active { background: #fff; color: #000; border-color: #fff; }
-  .map-header { display: grid; grid-template-columns: 1fr 1fr 100px; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 11px; letter-spacing: 2px; color: rgba(255,255,255,0.3); text-transform: uppercase; }
-  .map-grid { display: flex; flex-direction: column; }
-  .map-row { display: grid; grid-template-columns: 1fr 1fr 100px; padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); gap: 30px; align-items: start; }
-  .map-cell-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
-  .map-cell-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.5; }
-  .map-fit { font-size: 10px; padding: 4px 10px; border-radius: 4px; font-weight: 700; }
-  .map-fit.yes { background: rgba(74,222,128,0.1); color: #4ade80; }
-  .map-fit.partial { background: rgba(251,191,36,0.1); color: #fbbf24; }
-  .map-fit.ahead { background: rgba(96,165,250,0.1); color: #60a5fa; }
-  
-  .cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 32px; }
-  .cta-card { padding: 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); }
-  .cta-card-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-  .cta-card-body { font-size: 13px; color: rgba(255,255,255,0.4); }
-
-  .file-viz { font-family: monospace; font-size: 12px; background: #111; padding: 20px; border-radius: 10px; border: 1px solid #333; }
-  .c-comment { color: #666; }
+  .file-viz { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #0a0a0a; padding: 24px; border-radius: 12px; border: 1px solid #222; }
+  .c-comment { color: #555; }
   .c-tag { color: #f87171; }
   .c-str { color: #4ade80; }
   .c-key { color: #60a5fa; }
@@ -235,35 +197,30 @@
 </head>
 <body>
 
-  <!-- ===== NAV DOTS ===== -->
   <nav class="nav-dots" id="navDots"></nav>
 
   <!-- ===== COVER ===== -->
   <section class="cover" id="slide-cover">
-    <div class="cover-eyebrow">Field Notes · Updated 2026-04-23</div>
+    <div class="cover-eyebrow">The Physics of Insight · Revit MCP</div>
     <h1 class="cover-title">什麼知識，值得變成 Wiki</h1>
     <p class="cover-subtitle">讀 Karpathy 的 LLM Wiki，<br>與我們這 18 週來的黑暗摸索。</p>
     
     <div class="cover-meta">
       <div class="cover-meta-item">
-        <div class="cover-meta-label">Duration</div>
-        <div class="cover-meta-value">18 Weeks</div>
+        <div class="cover-meta-label">Framework</div>
+        <div class="cover-meta-value">LLM Wiki Pattern</div>
       </div>
       <div class="cover-meta-item">
-        <div class="cover-meta-label">Context</div>
-        <div class="cover-meta-value">REVIT_MCP v2</div>
-      </div>
-      <div class="cover-meta-item">
-        <div class="cover-meta-label">Source</div>
-        <div class="cover-meta-value"><a href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f" target="_blank" style="color:#60a5fa;text-decoration:none;">karpathy / gist</a></div>
+        <div class="cover-meta-label">Practice</div>
+        <div class="cover-meta-value">REVIT_MCP Architecture</div>
       </div>
     </div>
 
     <div class="cover-tldr">
-      <div class="cover-tldr-label">THE CORE IDEA</div>
+      <div class="cover-tldr-label">THE PHYSICS OF INSIGHT</div>
       <div class="cover-tldr-text">
-        我們不是在訓練 AI，是在編寫一套會自行演化的 BIM 專業知識 DNA。<br>
-        <strong>Wiki is the product, Chat is ephemeral.</strong>
+        <strong>Wiki is the product, Chat is ephemeral.</strong><br>
+        我們不是在餵 AI 資料，是在編寫一套會自行演化的 BIM 專業知識 DNA。
       </div>
     </div>
     <div class="cover-scroll-hint">↓ SCROLL</div>
@@ -273,11 +230,11 @@
   <section class="slide" id="slide-preface">
     <div class="slide-inner">
       <div class="slide-visual">
-        <div class="concept-card" style="border-color:rgba(251,191,36,0.3);background:rgba(251,191,36,0.03);">
-          <div style="font-size:48px;margin-bottom:20px;">✉️</div>
-          <div style="font-size:18px;font-weight:700;color:#fbbf24;margin-bottom:12px;">前言 · 一封給老師的信</div>
-          <div style="font-size:14px;color:rgba(255,255,255,0.5);line-height:1.7;">
-            「這 18 週來，我們在黑暗中摸索出的路，原來與 Karpathy 的思考殊途同歸。」
+        <div class="concept-card floating">
+          <div style="font-size:64px;margin-bottom:24px;">✉️</div>
+          <div style="font-size:20px;font-weight:700;color:#fbbf24;margin-bottom:12px;">一封給老師的信</div>
+          <div style="font-size:15px;color:rgba(255,255,255,0.4);line-height:1.7;">
+            「我們在黑暗中摸索出的路，原來與 Karpathy 殊途同歸。」
           </div>
         </div>
       </div>
@@ -285,24 +242,22 @@
         <div class="slide-number">PREFACE</div>
         <h2 class="slide-title">這不是一份教學，<br>是我們架構的「認證書」</h2>
         <p class="slide-summary">
-          讀完 Karpathy 的 gist 時，我感到的不是新奇，而是戰慄。原來這三個月我們不斷爭論的「Domain 為什麼要獨立」、「Log 為什麼要 session 級」，正是通往 AGI 知識管理的標準路徑。
+          讀完 Karpathy 的 gist 時，我感到的不是新奇，而是戰慄。原來這三個月我們爭論的「Domain 分離」、「Log Session 級顆粒度」，正是通往 AGI 知識管理的標準路徑。
         </p>
-        <button class="drawer-trigger" onclick="openDrawer('drawer-preface')">閱讀信件內容</button>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-preface')">閱讀信件細節</button>
       </div>
     </div>
   </section>
 
-  <!-- ===== UP-PART: READING KARPATHY ===== -->
   <div class="section-divider"><h2>上篇 · 讀 Karpathy</h2></div>
 
-  <!-- 1. Not Instruction -->
   <section class="slide" id="slide-reading-1">
     <div class="slide-inner">
       <div class="slide-visual">
-        <div class="concept-card" style="border-color:rgba(147,51,234,0.3);background:rgba(147,51,234,0.03);">
-          <div style="font-size:12px;color:#a855f7;letter-spacing:2px;margin-bottom:12px;">CONCEPT</div>
-          <div style="font-size:24px;font-weight:700;margin-bottom:16px;">Idea File<br>≠ Instruction</div>
-          <div style="font-size:14px;color:rgba(255,255,255,0.5);line-height:1.7;">
+        <div class="concept-card" style="border-color:rgba(168,85,247,0.3);background:rgba(168,85,247,0.02);">
+          <div style="font-size:12px;color:#a855f7;letter-spacing:2px;margin-bottom:16px;">THE CORE CLAIM</div>
+          <div style="font-size:32px;font-weight:800;margin-bottom:20px;">Idea File<br>≠ Instruction</div>
+          <div style="font-size:14px;color:rgba(255,255,255,0.4);line-height:1.6;">
             Instruction 告訴 AI 怎麼做；<br>Idea File 告訴 AI 怎麼思考。
           </div>
         </div>
@@ -311,45 +266,31 @@
         <div class="slide-number">01 / READING</div>
         <h2 class="slide-title">一、他說的不是教學</h2>
         <p class="slide-summary">
-          這份 gist 本身具有「遞迴性」：它是一份描述如何寫 Wiki 的 Schema。它不逐字提供操作手冊，而是定義了知識的<strong>層級 (Layer)</strong> 與<strong>動作 (Operation)</strong>。
+          這份 gist 本身具有「遞迴性」：它是一份描述如何寫 Wiki 的 Schema。它不提供操作手冊，而是定義了知識的層級與動作。
         </p>
-        <button class="drawer-trigger" onclick="openDrawer('drawer-reading-1')">深入理解 Idea File</button>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-reading-1')">理解遞迴架構</button>
       </div>
     </div>
   </section>
 
-  <!-- 2. Three-layer anatomy -->
   <section class="slide" id="slide-reading-2">
     <div class="slide-inner">
       <div class="slide-visual">
         <div class="stack-viz">
-          <div class="stack-layer">
-            <div class="stack-layer-label">LAYER 03</div>
-            <div class="stack-layer-title">The Schema</div>
-            <div class="stack-layer-desc">規則層：Wiki 該怎麼寫 (CLAUDE.md)</div>
-          </div>
-          <div class="stack-layer active">
-            <div class="stack-layer-label">LAYER 02</div>
-            <div class="stack-layer-title">The Wiki</div>
-            <div class="stack-layer-desc">知識層：演化的 Markdown (domain/)</div>
-          </div>
-          <div class="stack-layer">
-            <div class="stack-layer-label">LAYER 01</div>
-            <div class="stack-layer-title">Raw Sources</div>
-            <div class="stack-layer-desc">原始碼：不可改的輸入 (PDF/Docs)</div>
-          </div>
+          <div class="stack-layer"><div class="stack-layer-label">DNA</div><div class="stack-layer-title">The Schema</div></div>
+          <div class="stack-layer active"><div class="stack-layer-label">PRODUCT</div><div class="stack-layer-title">The Wiki</div></div>
+          <div class="stack-layer"><div class="stack-layer-label">GROUND</div><div class="stack-layer-title">Raw Sources</div></div>
         </div>
       </div>
       <div class="slide-content">
         <div class="slide-number">02 / READING</div>
-        <h2 class="slide-title">二、三層架構：<br>Raw／Wiki／Schema</h2>
-        <p class="slide-summary">你不直接編寫 Wiki，你編寫的是「Wiki 怎麼寫」的規則。DNA 對了，Wiki 自己就會長對。在專案裡，CLAUDE.md 就是 Schema。</p>
+        <h2 class="slide-title">二、三層架構：DNA 的演化</h2>
+        <p class="slide-summary">你不直接編寫 Wiki，你編寫的是「Wiki 怎麼寫」的規則。DNA 對了，Wiki 自己就會長對。這正是 CLAUDE.md 的本質。</p>
         <button class="drawer-trigger" onclick="openDrawer('drawer-reading-2')">層級演化細節</button>
       </div>
     </div>
   </section>
 
-  <!-- 3. Three operations -->
   <section class="slide" id="slide-reading-3">
     <div class="slide-inner">
       <div class="slide-visual">
@@ -358,278 +299,268 @@
           <div class="op-card"><div class="op-icon">🔍</div><div class="op-name">Query</div></div>
           <div class="op-card"><div class="op-icon">🧹</div><div class="op-name">Lint</div></div>
         </div>
-        <div style="font-size:14px;color:rgba(255,255,255,0.4);text-align:center;">不 Chunk 的全量推理是關鍵差異</div>
       </div>
       <div class="slide-content">
         <div class="slide-number">03 / READING</div>
-        <h2 class="slide-title">三、三種動作：<br>Ingest／Query／Lint</h2>
-        <p class="slide-summary">Ingest 消化、Query 合成、Lint 健檢。所有複雜的行為，都是這三組基本動作的無限遞迴與組合。</p>
+        <h2 class="slide-title">三、三種動作：動作基元</h2>
+        <p class="slide-summary">Ingest 消化、Query 合成、Lint 健檢。所有複雜的 AI 協作行為，都是這三組基本動作的無限組合。</p>
         <button class="drawer-trigger" onclick="openDrawer('drawer-reading-3')">動作執行細節</button>
       </div>
     </div>
   </section>
 
-  <!-- 4. Index and Log -->
   <section class="slide" id="slide-reading-4">
     <div class="slide-inner">
       <div class="slide-visual">
         <div class="file-viz">
           <span class="c-comment"># index.md (空間地圖)</span><br>
           <span class="c-tag">## BIM Compliance</span><br>
-          - <span class="c-str">fire-rating-check.md</span><br>
-          - <span class="c-str">stair-compliance.md</span>
+          - <span class="c-str">fire-rating.md</span>
         </div>
         <div class="file-viz" style="margin-top:14px">
           <span class="c-comment">## log.md (時序日誌)</span><br>
-          <span class="c-key">[2026-04-23]</span> ingest | stair-check
+          <span class="c-key">[2026-04-23]</span> ingest | fire-rating
         </div>
       </div>
       <div class="slide-content">
         <div class="slide-number">04 / READING</div>
-        <h2 class="slide-title">四、index 與 log：<br>小規模的反叛</h2>
-        <p class="slide-summary">在 100 份文件內，一份好 index 比向量庫更強。Log 不是流水帳，是時序性的日誌，是知識庫的時間線保險。</p>
+        <h2 class="slide-title">四、index 與 log：小規模的反叛</h2>
+        <p class="slide-summary">在 100 份文件內，一份好 index 比向量庫更強。Log 不是流水帳，是時序性的日誌，是知識庫的生命線。</p>
         <button class="drawer-trigger" onclick="openDrawer('drawer-reading-4')">空間與時序的對話</button>
       </div>
     </div>
   </section>
 
-  <!-- ===== MID-PART: THE CORE QUESTION ===== -->
   <div class="section-divider"><h2>中篇 · 一個更重要的問題</h2></div>
 
-  <!-- 5. Boundary -->
   <section class="slide" id="slide-mid-1">
     <div class="slide-inner">
       <div class="slide-visual">
-        <div class="concept-card" style="border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.03);">
-          <div style="font-size:48px;margin-bottom:20px;">🤔</div>
-          <div style="font-size:24px;font-weight:700;margin-bottom:16px;">Wiki 的邊界</div>
-          <div style="font-size:14px;color:rgba(255,255,255,0.5);line-height:1.7;">並非所有對話都值得進入 Wiki。</div>
+        <div class="concept-card" style="border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.02);">
+          <div style="font-size:64px;margin-bottom:24px;">🤔</div>
+          <div style="font-size:24px;font-weight:800;">什麼知識，值得進入 Wiki</div>
         </div>
       </div>
       <div class="slide-content">
         <div class="slide-number">05 / QUESTION</div>
-        <h2 class="slide-title">五、什麼都要變 Wiki 嗎？</h2>
-        <p class="slide-summary">太快變動的 (Chat) 不值得，太死板的 (Code) 不需要。Wiki 承載的是<strong>「活性知識」</strong>：那些會演化但具備長期價值的專業 SOP。</p>
-        <button class="drawer-trigger" onclick="openDrawer('drawer-mid-1')">思辨知識的半衰期</button>
+        <h2 class="slide-title">五、Wiki 的邊界</h2>
+        <p class="slide-summary">過度的維護是浪費，缺失的維護是負債。我們必須區分「Chat」與「Wiki」的邊界。</p>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-mid-1')">思辨知識半衰期</button>
       </div>
     </div>
   </section>
 
-  <!-- 6. Four Criteria -->
   <section class="slide" id="slide-mid-2">
     <div class="slide-inner">
       <div class="slide-visual">
         <div class="op-grid">
-          <div class="op-card" style="border-color:rgba(16,185,129,0.4);"><div class="op-name">權威性</div></div>
-          <div class="op-card" style="border-color:rgba(16,185,129,0.4);"><div class="op-name">頻率</div></div>
-          <div class="op-card" style="border-color:rgba(16,185,129,0.4);"><div class="op-name">穩定性</div></div>
-          <div class="op-card" style="border-color:rgba(16,185,129,0.4);"><div class="op-name">跨度</div></div>
+          <div class="op-card" style="border-color:#10b981;"><div class="op-name">權威性</div></div>
+          <div class="op-card" style="border-color:#10b981;"><div class="op-name">頻率</div></div>
+          <div class="op-card" style="border-color:#10b981;"><div class="op-name">穩定性</div></div>
+          <div class="op-card" style="border-color:#10b981;"><div class="op-name">跨度</div></div>
         </div>
       </div>
       <div class="slide-content">
         <div class="slide-number">06 / CRITERIA</div>
-        <h2 class="slide-title">六、四條判準：<br>什麼該、什麼不該</h2>
-        <p class="slide-summary">我們建立了四條決策判準：權威性、使用頻率、穩定性、跨度。這是一套理性的知識過濾機制。</p>
-        <button class="drawer-trigger" onclick="openDrawer('drawer-mid-2')">展開決策模型</button>
+        <h2 class="slide-title">六、四條判準：決策模型</h2>
+        <p class="slide-summary">結合 BIM 生命週期的實際數據應用。判斷哪些數據該流動，哪些該留在特定階段的 Wiki 裡。</p>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-mid-2')">展開決策判準</button>
       </div>
     </div>
   </section>
 
-  <!-- ===== DOWN-PART: MIRRORING ===== -->
   <div class="section-divider"><h2>下篇 · 照鏡子</h2></div>
 
-  <!-- 7. Same Map -->
   <section class="slide" id="slide-practice-1">
     <div class="slide-inner">
-      <div class="slide-content full">
+      <div class="slide-visual">
+        <div class="concept-card" style="border-color:#4ade80;background:rgba(74,222,128,0.02);">
+          <div style="font-size:32px;font-weight:800;margin-bottom:16px;">90% Match</div>
+          <div style="font-size:14px;color:rgba(255,255,255,0.4);">REVIT_MCP 是 Karpathy<br>模式在 BIM 領域的深度實踐。</div>
+        </div>
+      </div>
+      <div class="slide-content">
         <div class="slide-number">07 / MIRROR</div>
         <h2 class="slide-title">七、REVIT_MCP 是同一張地圖</h2>
-        <p class="slide-summary">逐條對照 Karpathy 的 pattern，重合度高達 90%。證明我們這 18 週的方向不僅正確，且具備領先架構共識。</p>
-        <div style="margin-top:24px;max-width:1200px">
-          <div class="map-tabs">
-            <button class="map-tab active" data-filter="all" onclick="filterMap('all',this)">ALL</button>
-            <button class="map-tab" data-filter="yes" onclick="filterMap('yes',this)">✓ MATCHED</button>
-          </div>
-          <div class="map-header"><div>Karpathy Concept</div><div>REVIT_MCP Practice</div><div>Match</div></div>
-          <div class="map-grid" id="mapGrid"></div>
-        </div>
+        <p class="slide-summary">逐條對照 Karpathy 的 pattern。結論：我們領先業界長出了 BIM 特化的知識導航系統。</p>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-practice-1')">查看對照表</button>
       </div>
     </div>
   </section>
 
-  <!-- 8. Three differences -->
   <section class="slide" id="slide-practice-2">
     <div class="slide-inner">
       <div class="slide-visual">
         <div class="diff-list">
-          <div class="diff-item">
-            <span class="diff-tag">差異 01</span>
-            <div class="diff-title">人類是作者</div>
-            <div class="diff-body">法規權威性需要人類判讀，AI 只是執行者。</div>
-          </div>
-          <div class="diff-item">
-            <span class="diff-tag">差異 02</span>
-            <div class="diff-title">增加工具層</div>
-            <div class="diff-body">知識必須能驅動 76 個 MCP Tools 操作 Revit 模型。</div>
-          </div>
-          <div class="diff-item">
-            <span class="diff-tag">差異 03</span>
-            <div class="diff-title">團隊共用架構</div>
-            <div class="diff-body">多入口保底設計，跨 AI Client 共享 Domain。</div>
-          </div>
+          <div class="diff-item"><span class="diff-tag">差異 01</span><div class="diff-title">人類是作者</div></div>
+          <div class="diff-item"><span class="diff-tag">差異 02</span><div class="diff-title">增加工具層</div></div>
+          <div class="diff-item"><span class="diff-tag">差異 03</span><div class="diff-title">團隊共用</div></div>
         </div>
       </div>
       <div class="slide-content">
         <div class="slide-number">08 / DIFFERENCES</div>
         <h2 class="slide-title">八、我們刻意不一樣的<br>三個地方</h2>
-        <p class="slide-summary">這三點都不是缺陷，而是我們在 BIM 實戰中長出的形狀。看懂這層，才能理解為什麼我們走得更深。</p>
+        <p class="slide-summary">這不是缺陷，是特化。為了 BIM 法規的權威性，我們堅持「人類是作者，AI 是讀者」。</p>
         <button class="drawer-trigger" onclick="openDrawer('drawer-practice-2')">展開差異推理</button>
       </div>
     </div>
   </section>
 
-  <!-- 9. Four Steals -->
   <section class="slide" id="slide-practice-3">
     <div class="slide-inner">
       <div class="slide-visual">
         <div class="cta-grid">
-          <div class="cta-card"><div class="cta-card-title">三層 Log 防線</div></div>
-          <div class="cta-card"><div class="cta-card-title">/handoff 協議</div></div>
-          <div class="cta-card"><div class="cta-card-title">Nest Frontmatter</div></div>
-          <div class="cta-card"><div class="cta-card-title">AI-agnostic 保底</div></div>
+          <div class="cta-card">三層 Log 防線</div>
+          <div class="cta-card">/handoff 協議</div>
         </div>
       </div>
       <div class="slide-content">
         <div class="slide-number">09 / STEALS</div>
-        <h2 class="slide-title">九、可以偷回來的<br>四個小東西</h2>
-        <p class="slide-summary">驗證並強化的技術：三層 Log 機制、跨 Session 交接協議、標準化 Metadata 與保底設計。</p>
-        <button class="drawer-trigger" onclick="openDrawer('drawer-practice-3')">查看落地成果</button>
+        <h2 class="slide-title">九、偷回來的四個成果</h2>
+        <p class="slide-summary">三層 Log、/handoff 協議、Nested Metadata 與 AI-agnostic 保底。這些已全部落地至 main 分支。</p>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-practice-3')">查看落地細節</button>
       </div>
     </div>
   </section>
 
-  <!-- ===== ENDING ===== -->
   <section class="slide" id="slide-ending">
     <div class="slide-inner">
       <div class="slide-visual">
-        <div class="concept-card" style="border-color:rgba(255,255,255,0.2);background:rgba(255,255,255,0.03);">
-          <div style="font-size:48px;margin-bottom:20px;">🌙</div>
-          <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:12px;">尾聲 · 給下一個月的自己</div>
-          <div style="font-size:14px;color:rgba(255,255,255,0.5);line-height:1.7;">「Wiki 是一場與未來的對話。」</div>
+        <div class="concept-card floating" style="border-color:#fff;">
+          <div style="font-size:64px;margin-bottom:24px;">🌙</div>
+          <div style="font-size:20px;font-weight:700;">給下一個月的自己</div>
         </div>
       </div>
       <div class="slide-content">
         <div class="slide-number">ENDING</div>
         <h2 class="slide-title">你的專業，<br>就是下一個按鈕</h2>
-        <p class="slide-summary">
-          我們寫下的每一行 domain/，都是在減少下個月自己（或夥伴）的焦慮。這是一場馬拉松，不只是百米衝刺。
-        </p>
+        <p class="slide-summary">Wiki 是一場與未來的對話。讓我們用「放大」來放大你學習的機會和潛力。</p>
         <div style="margin-top:24px;display:flex;align-items:center;gap:16px;">
-          <a href="https://forms.gle/4Mn5kCaK1uFk2m9W6" target="_blank" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.4);padding:10px 20px;border-radius:100px;font-size:14px;font-weight:700;transition:all 0.3s;" onmouseover="this.style.background='rgba(96,165,250,0.25)'" onmouseout="this.style.background='rgba(96,165,250,0.15)'">
-            立即預約五月小聚
-          </a>
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=https://forms.gle/4Mn5kCaK1uFk2m9W6&bgcolor=000000&color=ffffff&format=svg" alt="五月小聚報名 QR Code" width="60" height="60" style="border:1px solid rgba(255,255,255,0.1);border-radius:6px;">
+          <a href="https://forms.gle/4Mn5kCaK1uFk2m9W6" target="_blank" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.4);padding:12px 24px;border-radius:100px;font-size:14px;font-weight:700;">立即預約五月小聚</a>
         </div>
         <button class="drawer-trigger" onclick="openDrawer('drawer-ending')" style="margin-top:24px;">閱讀最後感悟</button>
       </div>
     </div>
   </section>
 
-  <!-- ===== DRAWER OVERLAY ===== -->
   <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 
-  <!-- ===== DRAWERS ===== -->
+  <!-- ===== DRAWERS CONTENT ===== -->
+  
   <div class="drawer" id="drawer-preface">
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
     <h2>前言 · 一封給老師的信</h2>
     <p>親愛的老師：</p>
     <p>這 18 週來，我們在黑暗中摸索出的路，原來與 Karpathy 的思考殊途同歸。</p>
-    <p>讀完 Karpathy 的 gist 時，我感到的不是新奇，而是戰慄。原來這三個月我們不斷爭論的「Domain 為什麼要獨立」、「Log 為什麼要 session 級」，在矽谷最頂尖的 AI 工程師眼裡，正是通往 AGI 知識管理的標準路徑。</p>
-    <p>這不是一篇筆記，是我們架構的「認證書」。它告訴我們，在 BIM 這個極度碎片化、法律權威至上的領域，我們選擇的路徑是正確的。</p>
+    <p>讀完 Karpathy 的 gist 時，我感到的不是新奇，而是戰慄。原來這三個月我們不斷爭論的「Domain 分離」、「Log Session 級顆粒度」，正是通往 AGI 知識管理的標準路徑。</p>
+    <p>這不是一篇筆記，是我們架構的「認證書」。它告訴我們，在 BIM 這個極度碎片化、法律權威至上的領域，我們選擇的路徑是正確的。我們不再只是在用工具，我們是在建立「知識的自愈系統」。</p>
+    <div class="how-tech-box">
+      <div class="how-tech-item"><span class="how-tech-label">HOW</span><span class="how-tech-content">從單點 Prompt 轉向「系統架構級」的 AI 協作，將知識從對話中剝離。</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">Growth</span><span class="how-tech-content">從「AI 使用者」晉升為「AI 知識架構師」。</span></div>
+    </div>
   </div>
 
   <div class="drawer" id="drawer-reading-1">
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
-    <h2>一、他說的不是教學：Idea File 的本質</h2>
+    <h2>一、他說的不是教學：Idea File</h2>
+    <p>大多數人要求 AI 摘要，把牛排打成肉泥。Karpathy 要求 AI 寫代碼來管理知識庫。</p>
     <h3>核心主張：Recursive Nature</h3>
-    <p>RAG 是每次 query 重新拼湊碎片；LLM Wiki 是讓 LLM 長期維護一份會累積、會自我交叉引用、會偵測矛盾的 markdown 知識庫。人類只負責策展，LLM 做 bookkeeping。</p>
-    <p>這份檔案描述的是 Schema，其本身也是 Schema。它告訴 AI 怎麼思考，而非只是怎麼做。</p>
+    <p>這份檔案描述的是 Schema，其本身也是 Schema。它不告訴 AI 怎麼做，而是告訴 AI「如果你是我，你會怎麼建立這套系統」。</p>
+    <p>在 BIM 應用中，不要寫「如何標註磁磚」，要寫「磁磚標註的幾何邏輯與偏移規則」。讓 AI 學會「思考」標註的關係，而非模仿動作。</p>
+    <div class="how-tech-box">
+      <div class="how-tech-item"><span class="how-tech-label">HOW</span><span class="how-tech-content">利用 Entropy Control 抑制 LLM 的「過度泛化」天性，強制保留原始語義的顆粒感。</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">Technique</span><span class="how-tech-content">Idea-driven Schema Projection.</span></div>
+    </div>
   </div>
 
   <div class="drawer" id="drawer-reading-2">
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
     <h2>二、三層架構：DNA 的演化邏輯</h2>
     <p>你不直接編寫 Wiki，你編寫的是「Wiki 怎麼寫」的規則。DNA 對了，Wiki 自己就會長對。</p>
-    <table><tr><th>層級</th><th>角色</th></tr><tr><td>Raw sources</td><td>地基 (不可改)</td></tr><tr><td>The Wiki</td><td>建物 (持續演化)</td></tr><tr><td>The Schema</td><td>設計規範 (共同演化)</td></tr></table>
+    <p>這就像參數化設計：你定義的是「參數關係」，而不是「最終幾何」。當法規更新時，你只需要修改 Schema，整個 Wiki 知識庫會自動完成「知識重編」。</p>
+    <div class="how-tech-box">
+      <div class="how-tech-item"><span class="how-tech-label">HOW</span><span class="how-tech-content">將 CLAUDE.md 作為系統的 DNA，規定所有 domain 文件的生命週期。</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">Technique</span><span class="how-tech-content">Schema-driven Knowledge Synthesis.</span></div>
+    </div>
   </div>
 
   <div class="drawer" id="drawer-reading-3">
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
-    <h2>三、三種動作：動作基元的無限組合</h2>
-    <p><strong>Ingest</strong> 消化、<strong>Query</strong> 合成、<strong>Lint</strong> 健檢。所有複雜的行為，都是這三組基本動作的無限遞迴。特別是不 Chunk 的處理方式，讓 AI 具備了完整的上下文推理能力。</p>
+    <h2>三、三種動作：不 Chunk 的全量推理</h2>
+    <p>Karpathy 的 Ingest 主張<strong>全量讀取 (No Chunk)</strong>。在 BIM 領域，一條走廊寬度的判準可能跟防火區劃、建蔽率有關。如果分片，AI 會失去跨章節的邏輯鏈結。</p>
+    <div class="how-tech-box">
+      <div class="how-tech-item"><span class="how-tech-label">HOW</span><span class="how-tech-content">將 Ingest 定義為獨立的 Agent 模組，人類負責流程編排與 QAQC。</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">Technique</span><span class="how-tech-content">Full-context Semantic Mapping.</span></div>
+    </div>
   </div>
 
   <div class="drawer" id="drawer-reading-4">
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
-    <h2>四、index 與 log：空間與時序的對話</h2>
-    <p>index.md 是空間性的地圖，在小規模下取代向量庫。log.md 是時序性的日誌，是知識演化的保險。這兩者結合，構成了知識庫的完整座標系。</p>
+    <h2>四、index 與 log：空間與時序</h2>
+    <p>Karpathy 的小規模反叛：當文件在 100 份以內時，一個清晰的 index.md 比 Embedding 系統更可靠。因為人類能一眼看穿知識的邊界。</p>
+    <div class="how-tech-box">
+      <div class="how-tech-item"><span class="how-tech-label">HOW</span><span class="how-tech-content">放棄過度依賴向量資料庫，回歸結構化的索引與結構化日誌。</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">Technique</span><span class="how-tech-content">Deterministic Retrieval via Manual Indexing.</span></div>
+    </div>
   </div>
 
   <div class="drawer" id="drawer-mid-1">
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
     <h2>五、真的，什麼都要變成 Wiki 嗎？</h2>
-    <p>過度的維護是浪費，缺失的維護是負債。Wiki 承載的是「活性知識」：那些會隨著專案演化，但又具備長期參考價值的 BIM 專業邏輯與 SOP。</p>
+    <p>Wiki 承載的是「活性知識」：那些會隨著專案演化，但又具備長期參考價值的 BIM 專業邏輯與 SOP。如果一項知識在兩週內就會失效，它就屬於 Chat。</p>
   </div>
 
   <div class="drawer" id="drawer-mid-2">
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
-    <h2>六、四條判準：決策模型</h2>
-    <ol>
-      <li><strong>權威性</strong>：是否涉及法律條文或產業標準？</li>
-      <li><strong>頻率</strong>：是否為高頻被問到的痛點？</li>
-      <li><strong>穩定性</strong>：這項共識是否能維持超過一個月？</li>
-      <li><strong>跨度</strong>：這項知識是否會被多個 Skill 引用？</li>
-    </ol>
+    <h2>六、四條判準：BIM 生命週期的數據分鏡</h2>
+    <p><strong>BIM 的全生命週期陷阱：</strong> 為了延續，我們總是保留前階段所有數據，導致營造階段模型過度肥大、充斥垃圾資訊。</p>
+    <h3>Case Study：設計標註 vs 營造放樣</h3>
+    <ul>
+      <li><strong>設計階段</strong>：關注「逃生走廊最小 1.2m」的法規依據。</li>
+      <li><strong>營造階段</strong>：關注「磁磚起點定位、偏移牆心 5cm、材料收邊量」。</li>
+    </ul>
+    <p>如果營造現場還在讀設計 Wiki，那不是留存，那是負債。這就是為什麼我們需要 <strong>Purpose-driven Wiki Forking</strong>。知識必須與當前的執行階段「接面」對接。</p>
+    <div class="how-tech-box">
+      <div class="how-tech-item"><span class="how-tech-label">判準 1</span><span class="how-tech-content">權威性：法規標準與技術公報。</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">判準 2</span><span class="how-tech-content">頻率：本月被不同專案問過 2 次以上。</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">判準 3</span><span class="how-tech-content">穩定性：未來 30 天內不會被推翻的共識。</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">跨度</span><span class="how-tech-content">是否需要跨模型、跨機器共享。</span></div>
+    </div>
+  </div>
+
+  <div class="drawer" id="drawer-practice-1">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <h2>七、REVIT_MCP 是同一張地圖</h2>
+    <p>我們與 Karpathy 的重合點：Schema (CLAUDE.md)、Wiki (domain/)、Ingest/Lint (/lessons /qaqc)。這不是巧合，是知識工程演化的必然路徑。</p>
   </div>
 
   <div class="drawer" id="drawer-practice-2">
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
-    <h2>八、我們刻意不一樣的地方</h2>
-    <p>我們堅持「人類是作者」，因為 BIM 的裁量權不可取代。我們增加了「執行層」，因為知識必須操作 Revit。我們採用「團隊架構」，因為生產力來自於協作而非個人筆記。</p>
+    <h2>八、我們刻意不一樣的三個地方</h2>
+    <p>我們堅持「人類是作者」，因為 BIM 裁量權不可取代。我們增加了「執行層」，因為知識必須操作 Revit。我們採用「團隊架構」，跨 client 共享 Domain。</p>
   </div>
 
   <div class="drawer" id="drawer-practice-3">
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
-    <h2>九、可以偷回來的四個小東西</h2>
+    <h2>九、偷回來的四個成果</h2>
     <p>三層 Log 防線、/handoff 協議、Nested Metadata 與 AI-agnostic 保底設計。這些不僅是技術，更是制度的具現化。</p>
   </div>
 
   <div class="drawer" id="drawer-ending">
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
     <h2>尾聲 · 給下一個月的自己</h2>
-    <p>當你在未來重新打開這個專案時，你會感謝現在留下的每一份紀錄。不只是在蓋房子，我們在建立智慧。讓我們繼續把專業沈澱成按鈕。</p>
+    <p>當你在未來重新打開這個專案，你會感謝現在留下的每一份紀錄。不只是在蓋房子，我們在建立智慧系統。讓我們繼續把專業沈澱成按鈕。</p>
+    <div class="how-tech-box">
+      <h3 style="margin-top:0;color:#f87171;">⚠ 3 個不要踩的雷</h3>
+      <ul style="padding-left:20px;">
+        <li>不要說「幫我摘要」：會失去細節。</li>
+        <li>不要期待一次到位：長內容需分段。</li>
+        <li>不要忽略字數檢查：輸出比輸入短就是失敗。</li>
+      </ul>
+    </div>
   </div>
 
   <script>
-    const MAP_ROWS = [
-      { k: "Schema", r: "CLAUDE.md", fit: "yes", label: "✓" },
-      { k: "The Wiki", r: "domain/", fit: "yes", label: "✓" },
-      { k: "Operations", r: "/lessons /domain /qaqc", fit: "yes", label: "✓" },
-      { k: "Index", r: "Trigger Keywords Table", fit: "yes", label: "✓" },
-      { k: "Log", r: "log/YYYY-MM.md", fit: "yes", label: "✓" },
-    ];
-    function renderMap() {
-      document.getElementById('mapGrid').innerHTML = MAP_ROWS.map(r => `
-        <div class="map-row">
-          <div class="map-cell-title">${r.k}</div>
-          <div class="map-cell-desc">Karpathy Concept</div>
-          <div class="map-cell-title">${r.r}</div>
-          <div><span class="map-fit ${r.fit}">${r.label}</span></div>
-        </div>
-      `).join('');
-    }
-    renderMap();
-
     const sections = [
       { id: 'slide-cover', label: '封面' },
       { id: 'slide-preface', label: '前言' },
