@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karpathy LLM Wiki 繁體中文深度譯本 · 好學生筆記</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #000; color: #ccc;
+    font-family: 'Helvetica Neue', 'Inter', 'Noto Sans TC', sans-serif;
+    line-height: 1.8; overflow-x: hidden;
+  }
+  .container { max-width: 900px; margin: 0 auto; padding: 100px 40px; }
+  header { margin-bottom: 80px; text-align: center; }
+  .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 4px; color: #666; text-transform: uppercase; margin-bottom: 20px; }
+  h1 { font-size: 48px; font-weight: 800; color: #fff; letter-spacing: -2px; margin-bottom: 16px; line-height: 1.1; }
+  .subtitle { font-size: 18px; color: #444; font-weight: 300; }
+  
+  .content-meta { margin: 60px 0; padding: 30px; border: 1px solid #1a1a1a; background: #050505; display: flex; justify-content: space-between; align-items: center; }
+  .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .meta-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: 2px; }
+  .meta-val { font-size: 14px; color: #888; }
+
+  h2 { font-size: 28px; font-weight: 700; color: #fff; margin: 80px 0 32px; border-left: 4px solid #60a5fa; padding-left: 24px; }
+  h3 { font-size: 20px; font-weight: 600; color: #eee; margin: 48px 0 20px; }
+  p { margin-bottom: 24px; font-size: 17px; }
+  ul { margin-bottom: 32px; padding-left: 24px; list-style-type: square; }
+  li { margin-bottom: 12px; font-size: 17px; }
+  strong { color: #fff; font-weight: 600; }
+  code { font-family: 'JetBrains Mono', monospace; background: #111; color: #60a5fa; padding: 2px 6px; border-radius: 4px; font-size: 15px; }
+
+  /* Good Student Note Block */
+  .perspective-block {
+    margin: 48px 0; padding: 40px; background: rgba(96,165,250,0.03); border: 1px solid rgba(96,165,250,0.1); border-radius: 4px;
+    position: relative;
+  }
+  .perspective-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .perspective-icon { font-size: 24px; }
+  .perspective-title { font-weight: 800; font-size: 14px; letter-spacing: 2px; color: #60a5fa; text-transform: uppercase; }
+  .perspective-content { font-family: 'Noto Sans TC', sans-serif; }
+  .perspective-item { margin-bottom: 16px; }
+  .perspective-label { font-weight: 700; color: #eee; font-size: 15px; display: block; margin-bottom: 4px; }
+  .perspective-val { font-size: 15px; color: #888; line-height: 1.6; }
+
+  .summary-box { background: #111; padding: 32px; border-radius: 8px; margin-bottom: 60px; border: 1px solid #222; }
+  .summary-title { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  
+  .footer { margin-top: 100px; padding-top: 60px; border-top: 1px solid #111; text-align: center; }
+  .back-btn { display: inline-flex; align-items: center; gap: 8px; color: #666; text-decoration: none; font-family: 'JetBrains Mono', monospace; font-size: 13px; transition: color 0.3s; }
+  .back-btn:hover { color: #fff; }
+
+  blockquote { border-left: 2px solid #333; padding-left: 24px; font-style: italic; color: #666; margin: 40px 0; }
+</style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="eyebrow">High-Fidelity Translation</div>
+      <h1>LLM Wiki</h1>
+      <div class="subtitle">一種利用大模型建立個人知識庫的範式</div>
+    </header>
+
+    <div class="summary-box">
+      <div class="summary-title">📝 學習摘要</div>
+      <p style="font-size: 15px; color: #888; margin-bottom: 0;">本文譯自 Andrej Karpathy 的 Gist。其核心論點在於：傳統 RAG 是碎片的重新發現，而 LLM Wiki 是知識的持續編譯。這是一份「Idea File」，旨在啟發開發者與 AI 協作，將對話沈澱為可維護的代碼化知識庫。</p>
+    </div>
+
+    <div class="content-meta">
+      <div class="meta-item">
+        <span class="meta-label">Original Author</span>
+        <span class="meta-val">Andrej Karpathy</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Translator</span>
+        <span class="meta-val">Gemini Agent (Good Student Mode)</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Last Updated</span>
+        <span class="meta-val">2026-04-23</span>
+      </div>
+    </div>
+
+    <p>這是一份<strong> Idea File（想法草案）</strong>。它被設計成可以直接複製並貼給你的 LLM Agent（例如 OpenAI Codex, Claude Code, OpenCode / Pi 等等）。它的目標是傳達高層次的設計理念，但具體的實作細節，則需要由你的 Agent 在與你的協作過程中共同構建出來。</p>
+
+    <h2>核心理念 (The core idea)</h2>
+    <p>大多數人使用 LLM 處理文件的經驗看起來像 RAG：你上傳一堆檔案，LLM 在提問時檢索相關的碎片（chunks），然後生成答案。這雖然可行，但 LLM 每次都在針對每個問題「從頭開始重新發現知識」。<strong>這沒有累積。</strong></p>
+    <p>如果你問一個需要綜合五份文件的微妙問題，LLM 每次都必須重新尋找並拼湊這些相關片段。沒有任何東西被建立起來。NotebookLM、ChatGPT 的檔案上傳功能，以及大多數 RAG 系統都是以這種方式運作的。</p>
+    <p>這裡的想法不同。LLM 不僅僅是在查詢時從原始文件中檢索，而是會<strong>增量式地構建並維護一個持久的 Wiki</strong> —— 一個結構化、互聯的 Markdown 文件集合，介於你與原始資料源之間。</p>
+    <p>當你加入新資料源時，LLM 不只是對其進行索引以備後查。它會閱讀它、提取關鍵資訊，並將其整合到現有的 Wiki 中 —— 更新實體頁面（entity pages）、修正主題摘要、註記新數據與舊主張矛盾之處，並強化或挑戰不斷演化中的綜合論述。<strong>知識被編譯了一次，隨後保持更新，而不是在每次查詢時重新推導。</strong></p>
+
+    <div class="perspective-block">
+      <div class="perspective-header">
+        <span class="perspective-icon">🎯</span>
+        <span class="perspective-title">建築師視角</span>
+      </div>
+      <div class="perspective-content">
+        <div class="perspective-item">
+          <span class="perspective-label">類比</span>
+          <span class="perspective-val">這就像從「2D 繪圖」轉向「BIM 建模」。RAG 是在浩如煙海的圖紙中尋找標註；LLM Wiki 則是維護一個參數化的模型中心檔。</span>
+        </div>
+        <div class="perspective-item">
+          <span class="perspective-label">應用</span>
+          <span class="perspective-val">當我們把《建築技術規則》丟進去時，AI 不該只是搜尋條文，而是要將條文轉化為 Wiki 裡的「空間約束規則」。新舊法規更迭時，它應自動指出設計邏輯的衝突點。</span>
+        </div>
+      </div>
+    </div>
+
+    <p>這就是關鍵差異：<strong>Wiki 是一個持久的、具備複利效應的產物 (Compounding Artifact)。</strong> 交叉引用已經建立好了。矛盾之處已經被標記出來。綜合論述已經反映了你讀過的所有內容。Wiki 會隨著你加入的每個資料源和問出的每個問題，變得越來越豐富。</p>
+    <p>你從不（或很少）親自撰寫 Wiki —— 全部由 LLM 來撰寫與維護。你負責的是來源提供、探索方向，以及提出正確的問題。LLM 負責所有的粗重活 —— 摘要、交叉引用、存檔和簿記，這些工作讓知識庫隨著時間的推移真正變得有用。</p>
+    <p>在實踐中，我一邊開著 LLM Agent，另一邊開著 Obsidian。LLM 根據我們的對話進行編輯，而我實時瀏覽結果 —— 點擊連結、檢查關聯圖視圖（graph view）、閱讀更新後的頁面。<strong>Obsidian 是 IDE；LLM 是程式設計師；Wiki 是代碼庫 (Codebase)。</strong></p>
+
+    <h2>架構 (Architecture)</h2>
+    <p>系統分為三層：</p>
+    <ul>
+      <li><strong>Raw sources（原始來源）</strong>：你策展的來源文件集合。文章、論文、圖片、數據文件。這些是<strong>不可變的 (Immutable)</strong> —— LLM 只從中讀取，絕不修改。這是你的「真相來源」。</li>
+      <li><strong>The Wiki（維基層）</strong>：由 LLM 生成的 Markdown 文件目錄。包含摘要、實體頁面、概念頁面、對照表、總覽與綜合論述。LLM 完全擁有這一層。它創建頁面、隨新來源更新頁面、維護交叉引用，並保持一切的一致性。你讀，LLM 寫。</li>
+      <li><strong>The Schema（架構規範）</strong>：一份告訴 LLM 該 Wiki 如何組織的文件（例如 <code>CLAUDE.md</code> 或 <code>AGENTS.md</code>）。它定義了慣例、攝取來源的流程、回答問題的規範，以及如何維護 Wiki。這是關鍵的配置檔案 —— <strong>正是它讓 LLM 成為一名自律的 Wiki 維護者，而不是一個通用的聊天機器人。</strong> 你與 LLM 會隨著時間共同演化這份文件，直到找到最適合你領域的範式。</li>
+    </ul>
+
+    <h2>操作 (Operations)</h2>
+    <ul>
+      <li><strong>Ingest (攝取)</strong>：你將新來源放入原始集合中，並告訴 LLM 進行處理。例如：LLM 閱讀來源、與你討論關鍵要點、在 Wiki 中寫下摘要頁、更新索引 (index)、更新整個 Wiki 中相關的實體與概念頁面，最後在日誌 (log) 中附加一條條目。一個來源可能會觸動 10 到 15 個 Wiki 頁面。</li>
+      <li><strong>Query (查詢)</strong>：你針對 Wiki 提出問題。LLM 搜尋相關頁面、閱讀它們，並綜合出帶有引用的答案。答案可以有多種形式 —— Markdown 頁面、比較表、簡報、圖表或畫布。<strong>重要的洞察是：好的答案可以作為新頁面歸檔回 Wiki。</strong> 你要求的對比、你的分析、你發現的關聯 —— 這些都是有價值的，不應該消失在對話歷史中。</li>
+      <li><strong>Lint (健檢)</strong>：定期要求 LLM 對 Wiki 進行健康檢查。尋找：頁面間的矛盾、被新來源取代的陳舊主張、沒有入站連結的孤兒頁面、被提及但沒有獨立頁面的重要概念。這能保持 Wiki 隨著增長依然健康。</li>
+    </ul>
+
+    <div class="perspective-block">
+      <div class="perspective-header">
+        <span class="perspective-icon">🎯</span>
+        <span class="perspective-title">建築師視角</span>
+      </div>
+      <div class="perspective-content">
+        <div class="perspective-item">
+          <span class="perspective-label">類比</span>
+          <span class="perspective-val">Lint 操作就像是 BIM 模型的 Clash Detection (碰撞檢查)。我們不是在檢查管線衝突，是在檢查「知識邏輯」的衝突。</span>
+        </div>
+      </div>
+    </div>
+
+    <h2>索引與日誌 (Indexing and logging)</h2>
+    <p>兩個特殊檔案幫助 LLM（和你自己）在 Wiki 增長時導航：</p>
+    <ul>
+      <li><code>index.md</code> 是<strong>內容導向的</strong>。它是 Wiki 中所有內容的目錄。按類別（實體、概念、來源等）組織。LLM 在每次攝取時更新它。</li>
+      <li><code>log.md</code> 是<strong>時序導向的</strong>。它是「發生了什麼以及何時發生」的追加紀錄。如果每個條目都有統一的前綴，日誌就可以用簡單的 Unix 工具（如 grep）來解析。</li>
+    </ul>
+
+    <h2>為什麼這有效 (Why this works)</h2>
+    <p>維護知識庫最枯燥的部分不是閱讀或思考 —— 而是<strong>「簿記 (Bookkeeping)」</strong>。更新交叉引用、保持摘要即時、記錄新數據何時與舊主張矛盾、維護數十個頁面間的一致性。</p>
+    <p>人類會放棄維護 Wiki，是因為<strong>維護負擔的增長速度超過了價值產生的速度</strong>。而 LLM 不會感到無聊，不會忘記更新交叉引用，並且可以在一次處理中改動 15 個檔案。Wiki 能夠持續維持，是因為<strong>維護成本趨近於零</strong>。</p>
+
+    <div class="footer">
+      <div class="summary-title">💡 核心洞察</div>
+      <p style="font-style: italic;">「你不再只是在做筆記。你是在編寫一套用來管理你知識的軟體。」</p>
+      <a href="./0425-karpathy-wiki.html" class="back-btn">← 回到導讀簡報</a>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') window.location.href = './0425-karpathy-wiki.html';
+    });
+  </script>
+</body>
+</html>
