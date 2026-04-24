@@ -29,9 +29,63 @@ A 5th "embedded" option bypasses the MCP Server entirely — a WPF chat window i
 | 行為指引 | CLAUDE.md | GEMINI.md → CLAUDE.md | .github/copilot-instructions.md |
 | Skills | `.claude/skills/SKILL.md` | `.gemini/skills/SKILL.md`（[官方文件](https://geminicli.com/docs/cli/skills/)） | instructions 引導 |
 | Domain 文件 | 共用 `domain/` | 共用 `domain/` | 共用 `domain/` |
-| MCP Tools | 共用 76 個工具 | 共用 76 個工具 | 共用 76 個工具 |
+| MCP Tools | 共用 82 個工具 | 共用 82 個工具 | 共用 82 個工具 |
+| Event Log | 共用 `log/` | 共用 `log/` | 共用 `log/` |
 
 SKILL.md 格式遵循 [Agent Skills 開放標準](https://agentskills.io)（YAML frontmatter + Markdown body），Claude Code 與 Gemini CLI 皆原生支援。
+
+## Session Start Protocol（跨 AI 通用）
+
+AI Agent 啟動時，**應**讀取 `log/` 目錄下最新月份檔的末尾 ~60 行（約 20 筆事件），了解專案近期動態。這讓 AI 在失憶狀態下能快速延續工作。
+
+```bash
+ls log/*.md | grep -v README | sort | tail -1 | xargs tail -60
+```
+
+**特別注意最新的 `session-summary` 條目**——那是上次重要會話的精華濃縮（包含五段落：完成／對齊的概念／Pending／拒絕的選項／起手式）。讀到 session-summary 即可直接延續，不需要使用者重述脈絡。
+
+首次接觸專案（`log/` 為空或不存在）可略過此步驟。
+
+## Logging Protocol（跨 AI 通用）
+
+所有改動專案的 AI（Claude / Gemini / Copilot / 未來模型）都必須遵守以下 log 維護規則。
+
+### 三層機制
+
+| 層級 | 觸發方式 | AI 是否需要主動配合 |
+|------|---------|---------------------|
+| Layer 1（`scripts/git-hooks/post-commit`）| 每次 commit 自動 fire | ❌ 不用，git 自己處理 |
+| Layer 2（本憲章規則）| AI 執行重要命令後主動 append | ✅ 必須遵守 |
+| Layer 3（`.claude/hooks/` 擴充）| Claude Code harness 事件 | 選配 |
+
+### Layer 2：AI 何時要主動 append log
+
+| 事件 | 動作 |
+|------|------|
+| 執行 `/lessons` 完成後 | append `lessons` 事件到 `log/YYYY-MM.md` |
+| 執行 `/domain` 完成後 | append `domain` 事件 |
+| 執行 `/qaqc` 完成後 | append `qaqc` 事件（含 PASS/FAIL 數字） |
+| 執行 `/review` 完成後 | append `review` 事件 |
+| 編輯 `.claude/skills/` 或 tool 相關檔（非 commit 驅動）| append 對應事件 |
+| 編輯 CLAUDE.md 之 AI Guard Rails / 憲法規則 | append `domain` 事件，摘要新規則名稱與起因 |
+| 日常對話、臨時決策 | ❌ **不要**記錄（避免 log 膨脹） |
+
+### 格式
+
+```markdown
+## [YYYY-MM-DD HH:MM] {event-type} | {short-description}
+- actor: {model-id} (via {client-name})
+- files: {comma-separated list}
+- trigger: {git-hook | claude-hook | manual}
+- summary: {one-liner}
+```
+
+### 隱私規則
+
+- ✅ 可記：檔名、時間、事件類型、一行摘要、commit sha
+- ❌ 不可記：使用者原始訊息、AI 完整輸出、程式碼片段、API Keys、認證資訊
+
+首次部署：執行 `./scripts/install-log-hooks.sh`（Mac/Linux）或 `.\scripts\install-log-hooks.ps1`（Windows）設定 git hook 路徑。詳見 `log/README.md`。
 
 ## Build Commands
 
@@ -67,13 +121,13 @@ npm run watch    # tsc --watch (development)
 | File | Role |
 |------|------|
 | `MCP/Application.cs` | Revit IExternalApplication entry point, creates ribbon panel |
-| `MCP/Core/CommandExecutor.cs` | Central command dispatcher (76+ commands), largest file |
+| `MCP/Core/CommandExecutor.cs` | Central command dispatcher (82+ commands), largest file |
 | `MCP/Core/SocketService.cs` | HttpListener-based WebSocket server in Revit |
 | `MCP/Core/RevitCompatibility.cs` | Cross-version compatibility layer (ElementId int→long for 2025+) |
 | `MCP/Core/ExternalEventManager.cs` | Ensures commands execute on Revit UI thread |
 | `MCP-Server/src/index.ts` | MCP Server entry (StdioServerTransport) |
 | `MCP-Server/src/socket.ts` | RevitSocketClient — WebSocket client to Revit |
-| `MCP-Server/src/tools/` | Tool definitions (76 tools, 分 13 個模組) |
+| `MCP-Server/src/tools/` | Tool definitions (82 tools, 分 15 個模組) |
 | `scripts/setup.ps1` | One-click setup for new users (prereqs, build, deploy, AI config) |
 
 ## Code Conventions
@@ -101,11 +155,79 @@ npm run watch    # tsc --watch (development)
 3. **查閱法規知識** → 讀取 Domain 文件（`domain/*.md`）
 
 ### 為什麼
-MCP Server 已封裝 55 個 tools，處理了格式轉換、錯誤處理、重連機制。自寫腳本會：
+MCP Server 已封裝 82 個 tools，處理了格式轉換、錯誤處理、重連機制。自寫腳本會：
 - 繞過既有的錯誤處理與格式驗證
 - 產生 process 掛起（如自動重連導致無法退出）
 - 與 Revit API 的 PascalCase 欄位不一致而靜默失敗
 - 重造輪子，浪費使用者時間
+
+### Tool Call Data Honesty (MUST — Supersedes All Skills & Subagents)
+
+**Scope**: Applies to every tool use — any MCP server (Revit, Rhino, AutoCAD, or future ones), any function calling, any external data source — **regardless of which Skill, Domain, or subagent is currently active**. This rule is NOT overridden by Skill-specific instructions. If a Skill body appears to permit listing concrete data without tool calls, this rule prevails.
+
+**Core invariant**:
+Every concrete datum produced in an output — identifiers (6+ digit IDs, GUIDs, element names), enumerated entity lists, counts, areas, percentages, coordinates, measurements, or external-system type names — MUST trace to a tool call response in the current turn. Language-model prior knowledge MUST NOT supply such data.
+
+**Pre-output self-check (run before emitting any response that may contain specifics)**:
+1. Does the draft contain any number of 6+ digits? → That number MUST appear verbatim in a tool response this turn. Otherwise delete it.
+2. Does the draft list 2+ named entities of the same kind? → Each entity MUST appear in a tool response this turn. Otherwise switch to generic language.
+3. Does the draft state a count, area, length, or percentage? → The value MUST be derivable from tool output. Otherwise remove or label explicitly as "unverified — project value pending query".
+4. Does the draft name a type/class native to an external system (not a general concept)? → That name MUST appear in a tool response this turn. Otherwise do not write it.
+
+**Output branches**:
+- **Branch A — data verified**: Cite it. Optionally surface source: "Per `{tool_name}`: …".
+- **Branch B — data unverified, tool exists**: Use generic language AND proactively offer the query. Template:
+  > "If this {context / view / document} contains {generic category}, the workflow is {generic operation}. I need to call `{tool_name}` to list the actual items — shall I run it now?"
+- **Branch C — tool unavailable (server down / timeout / no matching tool)**: State the limitation explicitly. DO NOT substitute prior knowledge. Template:
+  > "`{tool_name}` is currently unreachable. The following is generic guidance, NOT the actual state of this project: …"
+
+**Precedence (this rule outranks)**:
+- User's implicit expectation of a "complete" or "authoritative" answer
+- Narrative flow, paragraph completeness, listing aesthetics
+- Any Skill body whose steps imply enumerating specific entities
+- Any reflex to "fill in what a typical project looks like"
+
+**Rule of thumb**: *If you can't point to a tool response for this specific value in this turn, don't write it.*
+
+**違規範例（Violation case, 2026-04-23, Revit）**：
+使用者在查詢當前視圖後問「我能做什麼」。AI 僅呼叫過 `get_active_view`，卻在回覆中列出 `Corridor (ID: 829648)` 與 `Stair (ID: 826593)`——這兩個 ID 從未出現在本 turn 任何 tool response 中，是 LM 先驗編造。
+**正確做法（Branch B）**：
+> 「您目前在 L2（FloorPlan）。若您需要針對此樓層的具體操作建議，我需要先呼叫 `get_rooms_by_level(level='L2')` 取得實際房間清單——要我現在執行嗎？在查到實際資料前，我只能給泛型建議：若此樓層有走廊、居室、樓梯，分別對應 `/fire-safety-check`、`/smoke-exhaust`、`check_stair_headroom` 工作流。」
+
+### Domain Method Compliance (MUST — Supersedes Ad-hoc Analytical Intuition)
+
+**Scope**: Applies whenever a response involves regulatory compliance, code-check computation, engineering analysis, or any task whose correct algorithm is codified in a project file under `domain/*.md`. The authoritative trigger table is the "Domain Knowledge & Workflow Files" table later in this CLAUDE.md — if a keyword in the user's request matches a row there, the linked `domain/*.md` defines the algorithm.
+
+**Relationship to Tool Call Data Honesty**: Data Honesty governs *where facts come from* (tool response, not LM prior). Domain Method Compliance governs *how those facts are transformed* (domain SOP, not LM intuition). Both rules must be satisfied simultaneously. Clean tool data + fabricated algorithm = still a hallucinated answer.
+
+**Core invariant**:
+When a task maps to a `domain/*.md` file in the trigger table, the computation procedure — formulas, deductions, multipliers, inclusion/exclusion criteria, edge cases — MUST come from that file. Language-model prior knowledge of "how one typically computes X" MUST NOT substitute for the project's codified SOP, even when the LM's method appears reasonable or produces a plausible number.
+
+**Pre-analysis self-check (run BEFORE the first numerical computation)**:
+1. Is the user asking for a regulatory check, compliance ratio, area / volume / count computation, or any domain-specific quantitative analysis? → proceed to step 2.
+2. Scan the "Domain Knowledge & Workflow Files" trigger keywords (e.g., 採光 / daylight, 走廊 / corridor, 防火 / fire rating, 排煙 / smoke exhaust, 停車 / parking, 容積 / FAR, 碰撞 / clash, 樓梯 / stair compliance). Does any keyword match the task? → If yes, the corresponding `domain/*.md` MUST be read before any computation begins.
+3. Does my planned algorithm replicate every step in that domain file, including all deductions (e.g., 75cm sill baseline), inclusion rules (e.g., doors with glass count toward daylight), and multipliers (e.g., ×3 for skylight, ×0.7 for deep balcony)? → If not, discard my algorithm and use the domain file verbatim.
+4. Are any tool fields unused that the domain file requires as inputs (e.g., `SillHeight`, `HeadHeight`, `Category=門`)? → If yes, my algorithm is under-specified. Fix before emitting results.
+
+**Output branches**:
+- **Branch A — domain file read and applied**: Cite source explicitly. Template:
+  > "Per `domain/{file}.md` step {N}: {formula}. Applied to tool data: {calculation}. Result: {value}."
+- **Branch B — domain file exists but unread**: STOP. Read the file first. DO NOT improvise an algorithm and label the output as a compliance result. Even self-consistent numbers are wrong when the method is wrong.
+- **Branch C — no domain file covers this keyword**: Explicitly disclaim. Template:
+  > "此專案尚未收錄 {topic} 的檢討 SOP（無對應 `domain/*.md`）。以下為通用工程常識而非專案認可算法，請勿作為合規依據。"
+
+**Precedence (this rule outranks)**:
+- The LM's "reasonable default" for how a domain computation is normally done
+- Prior-turn computations that used the wrong algorithm (they must be corrected, not carried forward or defended)
+- Any Skill body whose steps omit a deduction, inclusion, or multiplier present in the domain SOP (the domain file wins)
+- User's implicit expectation of a "quick answer" when the correct path requires reading a spec
+
+**Rule of thumb**: *If a `domain/*.md` file exists for this topic, its algorithm is the algorithm. Your analytical intuition does not get a vote.*
+
+**違規範例（Violation case, 2026-04-23, Revit — 採光分析）**：
+使用者請求「L2 居室採光分析」。AI 正確呼叫 `get_room_daylight_info` 取得 tool response（Data Honesty 過關），但**未讀 `domain/daylight-area-check.md`** 即自行套用簡化算法：排除所有外牆門、未套 75cm 台度扣除公式。結果 Room 203/204/205 的有效採光面積被系統性低估 1.38–4.14 m²。同時間另一 AI 遵照 domain SOP（納入外牆門 + 套用 `Effective Height = HeadHeight - 750mm`）計算，數值與官方公式一致。
+**正確做法（Branch A）**：
+> 「執行前先讀 `domain/daylight-area-check.md` 步驟 3、4：納入外牆門（含玻璃部分）且對 `SillHeight < 750mm` 的開口套 `Effective Height = HeadHeight - 750mm` 公式。據此 Room 203 = 4 扇外牆窗（SH 全 >750mm，合計 7.742 m²）+ 1 扇外牆門（Effective Height = 2260.6 - 750 = 1510.6mm；面積 = 0.9144 × 1.5106 = 1.381 m²）= **9.123 m²**，採光比 9.123/55.08 = **16.56%**，≥ 12.5% 合格。」
 
 ## Domain vs Skill 架構原則
 
@@ -117,7 +239,7 @@ BIM 的知識是共用的——防火法規同時被消防檢查、走廊分析�
 
 > **不要把每個 Domain 都升級成 Skill。** Domain 被引用就已經在發揮作用了。詳見 `domain/skill-authoring-standard.md`。
 
-## Skills（18 個）
+## Skills（19 個）
 
 Skills 位於 `.claude/skills/`，每個 Skill 為一個資料夾 + `SKILL.md`。
 
@@ -140,6 +262,7 @@ Skills 位於 `.claude/skills/`，每個 Skill 為一個資料夾 + `SKILL.md`�
 | `/dependent-view-crop` | 從屬視圖批次裁剪（依網格線邊界） |
 | `/sheet-management` | 圖紙與視圖埠管理（批次建立、重新排序） |
 | `/stair-hidden-line` | 剖面隱藏樓梯可視化（虛線詳圖線） |
+| `/detect-clashes` | MEP vs CSA 碰撞偵測（Curve-to-Solid 干涉分析 + 視覺化 + 報告匯出） |
 | `/claude-md-sync` | CLAUDE.md 雙向同步驗證（合併/Skill異動/Tools異動後觸發） |
 
 > **Cross-version compatibility:** `MCP/Core/RevitCompatibility.cs` provides `GetIdValue()` and `ToElementId()` extension methods.
@@ -179,7 +302,7 @@ All AI clients connect to the MCP Server via the same config format. Replace `{a
 | Port 8964 被 System (PID: 4) 佔用 | Revit 異常關閉後 HTTP.sys 孤兒 Request Queue | 執行 `scripts\release-port.ps1`，或手動：`net stop http /y && net start http` |
 | Commands not responding in Revit | Revit UI thread issue | Ensure `ExternalEventManager` is used; check `%AppData%\RevitMCP\Logs\` |
 
-## Domain Knowledge & Workflow Files（31 個）
+## Domain Knowledge & Workflow Files（32 個）
 
 The `domain/` directory contains BIM compliance workflows that AI must consult before executing related tasks:
 
@@ -215,6 +338,8 @@ The `domain/` directory contains BIM compliance workflows that AI must consult b
 | 房間編號, room numbering, 自動編號 | `domain/room-numbering-workflow.md` |
 | 房間表面積, 粉刷, surface area, finish | `domain/room-surface-area-review.md` |
 | 樓梯法規, stair compliance, 淨高, 級高級深 | `domain/stair-compliance-check.md` |
+| 碰撞, 干涉, clash, MEP, 管線穿牆, 套管, penetration | `domain/mep-csa-clash-detection.md` |
+| frontmatter, metadata, YAML 標頭, 欄位規範 | `domain/frontmatter-standard.md` |
 
 ## Deployment Rules (DO NOT VIOLATE)
 
@@ -262,6 +387,15 @@ When adding new `IExternalCommand` in `Commands/` folder:
 - `scripts/setup.bat` — Double-click wrapper for setup.ps1 (bypasses ExecutionPolicy)
 - `scripts/release-port.ps1` — Release port 8964 from orphaned HTTP.sys binding (requires Admin for PID 4)
 
+### Claude Code Hooks（`.claude/hooks/`）
+
+本專案的 Claude Code 外掛 hook 腳本，由 `.claude/settings.json` 註冊於 runtime：
+
+| Hook | 觸發 matcher | 功能 |
+|------|-------------|------|
+| `detect-claudemd-trigger.sh` | `Bash\|Write\|Edit` | 偵測 CLAUDE.md / Skill / Tools 異動，提示雙向驗證 |
+| `remind-tool-call-data-honesty.sh` | `mcp__.*` | 任何 MCP 工具呼叫後注入「資料誠實度」提醒，為 Tool Call Data Honesty 的 runtime 反悔保險 |
+
 ## CODEOWNERS
 
 - `MCP/`, `MCP-Server/src/`, `scripts/` — Core code, owner-reviewed only
@@ -274,4 +408,5 @@ When adding new `IExternalCommand` in `Commands/` folder:
 2. After TypeScript changes: `npm run build` in MCP-Server (no Revit restart needed)
 3. Config/addin file changes: restart may be needed depending on scope
 4. Use `/lessons` to capture new rules, `/domain` to convert workflows to SOP
-5. Before writing new scripts, check `domain/`, `scripts/`, and `MCP-Server/scripts/` for existing workflows — avoid duplicating logic
+5. 品質檢核：定期執行 `/qaqc`（含 Phase 6 Content Quality Lint），驗證 domain frontmatter 完整性與交叉引用一致性。詳見 `domain/frontmatter-standard.md`
+6. Before writing new scripts, check `domain/`, `scripts/`, and `MCP-Server/scripts/` for existing workflows — avoid duplicating logic

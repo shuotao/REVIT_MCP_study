@@ -1,9 +1,17 @@
 ---
-description: 圖紙與視埠管理工作流程
-trigger_keywords: [圖紙, sheet, 視埠, viewport, 圖框, titleblock, 圖紙編號]
-tools: [get_all_sheets, get_titleblocks, create_sheets, auto_renumber_sheets, get_viewport_map]
-version: 1.0
-last_updated: 2026-02-02
+name: sheet-viewport-management
+description: "圖紙與視埠管理工作流程：批次建立圖紙、自動修正圖號衝突、語義化重新排序、視埠定位。當使用者提到圖紙、sheet、視埠、viewport、圖框、titleblock、圖紙編號時觸發。"
+metadata:
+  version: "1.0"
+  updated: "2026-03-16"
+  created: "2026-03-16"
+  contributors:
+    - "unknown"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by:
+    - sheet-management
+  tags: [圖紙, sheet, 視埠, viewport, 圖框, titleblock, 圖紙編號]
 ---
 
 # 圖紙與視埠管理工作流程

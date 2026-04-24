@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>0328 Revit MCP 讀書會</title>
+<title>0425 MCP 功能開發四月小聚</title>
 <meta property="og:title" content="MCP 功能開發四月小聚">
-<meta property="og:description" content="從工具堆砌到模組化架構 — 8 大專業系統、30 個 Domain、76 個工具已上線驗證。你的專業就是下一個按鈕。">
+<meta property="og:description" content="從工具堆砌到模組化架構 — 9 大專業系統、32 個 Domain、82 個工具已上線驗證。你的專業就是下一個按鈕。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://shuotao.github.io/REVIT_MCP_study/docs/0425-presentation.html">
 <meta name="twitter:card" content="summary">
@@ -853,10 +853,10 @@
     我還沒部署，請點我
   </a>
   <div class="cover-qr">
-    <a href="https://forms.gle/hWrvnRc7SYEzEK6i8" target="_blank">
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://forms.gle/hWrvnRc7SYEzEK6i8&bgcolor=000000&color=ffffff&format=svg" alt="四月小聚報名 QR Code" width="120" height="120">
+    <a href="https://forms.gle/4Mn5kCaK1uFk2m9W6" target="_blank">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://forms.gle/4Mn5kCaK1uFk2m9W6&bgcolor=000000&color=ffffff&format=svg" alt="五月小聚報名 QR Code" width="120" height="120">
     </a>
-    <div class="cover-qr-label">我還沒有報名，但我超級想參加（點我或掃QRCODE）</div>
+    <div class="cover-qr-label">我還沒有報名，但我超級想參加（預約五月小聚席次）</div>
   </div>
   <div class="cover-scroll-hint">↓ SCROLL</div>
 </section>
@@ -905,11 +905,51 @@
     <div class="domain-card" onclick="openDrawer('drawer-why-qa')">
       <span class="domain-card-icon">✅</span>
       <div class="domain-card-label">系統性檢討</div>
-      <div class="domain-card-sub">QA 五階段 · MEP 接頭 · 管帽安裝<br>2 個 Domain · 5 個工具</div>
+      <div class="domain-card-sub">QA 六階段 · MEP 接頭 · 管帽安裝<br>2 個 Domain · 5 個工具</div>
+    </div>
+    <div class="domain-card" onclick="openDrawer('drawer-why-stair')" style="border:1px solid rgba(74,222,128,0.4);box-shadow:0 0 12px rgba(74,222,128,0.15);">
+      <span style="position:absolute;top:-8px;right:-8px;background:#4ade80;color:#000;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:0.5px;">NEW</span>
+      <span class="domain-card-icon">🪜</span>
+      <div class="domain-card-label">樓梯法規</div>
+      <div class="domain-card-sub">級高級深 · 淨高 · 無障礙樓梯<br>1 個 Domain · 4 個工具</div>
     </div>
   </div>
 
-  <div class="why-footer">以上 8 大系統、<strong>30 個 Domain</strong>、<strong>76 個工具</strong>已上線驗證。<br>你的專業領域，就是第 9 個、第 10 個按鈕。</div>
+  <div class="why-footer">以上 <strong style="color:#4ade80;">9</strong> 大系統、<strong style="color:#4ade80;">32 個 Domain</strong>、<strong>82 個工具</strong>已上線驗證。<br>你的專業領域，就是第 10 個、第 11 個按鈕。</div>
+</section>
+
+<!-- ===== KARPATHY WIKI GATEWAY PAGE ===== -->
+<section class="slide" id="slide-karpathy-gateway" style="justify-content:center;text-align:center;padding:80px 40px;">
+  <div style="max-width:860px;margin:0 auto;">
+    <div style="display:inline-block;margin-bottom:20px;padding:6px 18px;background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.35);border-radius:100px;font-size:11px;letter-spacing:3px;color:#60a5fa;font-weight:600;">
+      FIELD NOTES · NO. 02 · 2026-04-21
+    </div>
+    <h1 style="font-size:52px;font-weight:800;line-height:1.2;letter-spacing:-1px;margin-bottom:20px;">
+      Karpathy 的 LLM Wiki<br>
+      <span style="color:#60a5fa;">剛好是我們在做的事</span>
+    </h1>
+    <p style="font-size:19px;color:rgba(255,255,255,0.55);font-weight:300;line-height:1.7;margin-bottom:36px;max-width:720px;margin-left:auto;margin-right:auto;">
+      2026 年初，Karpathy 提出讓 LLM 長期維護會自我交叉引用、偵測矛盾的 markdown 知識庫。<br>
+      本專案已落地：<strong style="color:#4ade80">三層 log 防線、Anthropic-compliant frontmatter、/handoff session 交接機制</strong>。
+    </p>
+
+    <div style="display:inline-block;margin-bottom:40px;padding:10px 22px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.3);border-radius:100px;font-size:13px;letter-spacing:1px;color:#4ade80;">
+      ✓ 研討完成 · 建議的四招已全部落地 · 6 個 commit 已推送到 main
+    </div>
+
+    <div>
+      <a href="0425-karpathy-wiki.html" style="display:inline-flex;align-items:center;gap:12px;padding:18px 40px;background:#60a5fa;color:#000;text-decoration:none;font-size:17px;font-weight:700;letter-spacing:0.5px;border-radius:100px;transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 30px rgba(96,165,250,0.35)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        閱讀完整導讀（~18 min）
+        <span style="font-size:20px;">→</span>
+      </a>
+    </div>
+
+    <div style="margin-top:40px;font-size:12px;color:rgba(255,255,255,0.3);letter-spacing:1px;">
+      原文：<a href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f" target="_blank" style="color:rgba(96,165,250,0.7);border-bottom:1px solid rgba(96,165,250,0.25);text-decoration:none;">karpathy / gist</a>
+      &nbsp;·&nbsp;
+      鏡像：<a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" style="color:rgba(96,165,250,0.7);border-bottom:1px solid rgba(96,165,250,0.25);text-decoration:none;">shuotao / REVIT_MCP_study</a>
+    </div>
+  </div>
 </section>
 
 <!-- ===== SETUP PAGE ===== -->
@@ -1068,7 +1108,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content">
       <div class="slide-number">1-3</div>
       <div class="slide-title">三次迭代的演進</div>
-      <p class="slide-summary">從 25 個工具到 55 個，從零 Skill 到 18 個，從只支援 Revit 2024 到 2022-2026 全版本。</p>
+      <p class="slide-summary">從 25 個工具到 82 個，從零 Skill 到 19 個，從只支援 Revit 2024 到 2022-2026 全版本。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-1-3')">展開演進對照</button>
     </div>
   </div>
@@ -1080,7 +1120,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content" style="max-width:100%;flex:1">
       <div class="slide-number">1-4</div>
       <div class="slide-title">斜線指令總覽</div>
-      <p class="slide-summary">7 個斜線指令，覆蓋從知識記錄到品質驗證的完整開發週期。點擊白色圓點跳到實作說明。</p>
+      <p class="slide-summary">8 個斜線指令，覆蓋從知識記錄、品質驗證到 session 交接的完整開發週期。點擊白色圓點跳到實作說明。</p>
       <div class="cmd-grid">
         <div class="cmd-card" onclick="toggleCmd(this)">
           <div class="cmd-card-top">
@@ -1118,12 +1158,12 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
         <div class="cmd-card" onclick="toggleCmd(this)">
           <div class="cmd-card-top">
             <code>/qaqc</code>
-            <span class="cmd-card-desc">五階段品質驗證</span>
+            <span class="cmd-card-desc">六階段品質驗證</span>
             <a class="cmd-card-link" title="跳到 4-3 實作" onclick="event.stopPropagation();document.getElementById('slide-4-3').scrollIntoView({behavior:'smooth'})"></a>
           </div>
           <div class="cmd-card-detail">
             <span class="cmd-who">開發者</span>
-            <p>你改了一些東西，但不確定有沒有弄壞別的地方。打 <code>/qaqc</code>，它會像體檢一樣掃描整個專案——五個階段、二十幾項檢查，每個問題都附修復步驟。安心交付。</p>
+            <p>你改了一些東西，但不確定有沒有弄壞別的地方。打 <code>/qaqc</code>，它會像體檢一樣掃描整個專案——六個階段（<strong>新增 Phase 6 Content Quality Lint 驗證 domain frontmatter</strong>）、三十多項檢查，每個問題都附修復步驟。安心交付。</p>
           </div>
         </div>
         <div class="cmd-card" onclick="toggleCmd(this)">
@@ -1159,6 +1199,17 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
             <p>CLAUDE.md 不知不覺已經 300 多行了，你擔心裡面有過時的路徑或重複的規則。打 <code>/review</code>，它會幫你審計整份文件，告訴你哪些該刪、哪些該更新。</p>
           </div>
         </div>
+        <div class="cmd-card" onclick="toggleCmd(this)" style="border-color:rgba(74,222,128,0.25);">
+          <div class="cmd-card-top">
+            <code>/handoff</code>
+            <span class="cmd-card-desc">Session 交接（跨機器 / 跨 AI）<span style="margin-left:6px;font-size:10px;background:#4ade80;color:#000;padding:1px 6px;border-radius:6px;font-weight:700;">NEW</span></span>
+            <a class="cmd-card-link" title="閱讀 Karpathy 導讀" onclick="event.stopPropagation();document.getElementById('slide-karpathy-gateway').scrollIntoView({behavior:'smooth'})"></a>
+          </div>
+          <div class="cmd-card-detail">
+            <span class="cmd-who">所有人</span>
+            <p>重要 session 告一段落（多主題研討完成、MVP 落地、或你明天要換電腦繼續）。打 <code>/handoff</code>，它會產出 <code>session-summary</code> 五段落（完成／對齊概念／Pending／拒絕選項／起手式）到 <code>log/YYYY-MM.md</code>。下次任何 AI 在任何機器啟動都能直接接上，不用你重講脈絡。</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1174,7 +1225,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content">
       <div class="slide-number">2-1</div>
       <div class="slide-title">工具越多，AI 越笨</div>
-      <p class="slide-summary">76 個工具定義 = 每輪對話都佔用 context 的固定成本。工具越多，AI 選錯的機率越高。</p>
+      <p class="slide-summary">82 個工具定義 = 每輪對話都佔用 context 的固定成本。工具越多，AI 選錯的機率越高。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-2-1')">展開數據分析</button>
     </div>
   </div>
@@ -1338,7 +1389,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content">
       <div class="slide-number">3-6</div>
       <div class="slide-title">Profile：角色篩選</div>
-      <p class="slide-summary">設定一行 MCP_PROFILE，結構工程師只看 20 個工具，不再被 76 個不相關的工具淹沒。</p>
+      <p class="slide-summary">設定一行 MCP_PROFILE，結構工程師只看 20 個工具，不再被 82 個不相關的工具淹沒。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-3-6')">展開 Profile 設定</button>
     </div>
   </div>
@@ -1671,7 +1722,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
   <p>Skill：<strong>qa-review</strong>（MEP 工具已上線）</p>
   <h3>涵蓋 Domain</h3>
   <ul>
-    <li><code>qa-checklist.md</code> — 五階段品質驗證（結構→參照→設定→建構→部署）</li>
+    <li><code>qa-checklist.md</code> — 六階段品質驗證（結構→參照→設定→建構→部署→內容 Lint）</li>
     <li>MEP 管線接頭檢查（已有工具）</li>
   </ul>
   <h3>呼叫的 MCP 工具</h3>
@@ -1682,6 +1733,26 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <tr><td><code>add_pipe_cap</code></td><td>管端安裝管帽 / 法蘭</td></tr>
     <tr><td><code>get_element_info</code></td><td>元素詳細參數檢查</td></tr>
     <tr><td><code>get_project_info</code></td><td>專案基本資訊驗證</td></tr>
+  </table>
+</div>
+
+<div class="drawer" id="drawer-why-stair">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2>🪜 樓梯法規檢討系統 <span style="background:#4ade80;color:#000;font-size:12px;padding:2px 10px;border-radius:10px;margin-left:8px;font-weight:700;">NEW</span></h2>
+  <p>Domain：<strong>stair-compliance-check</strong></p>
+  <h3>涵蓋法規</h3>
+  <ul>
+    <li><code>stair-compliance-check.md</code> — 建技規 §33~§36 + 無障礙規範 §167</li>
+    <li>一般樓梯：級高級深、平台寬度、垂直淨高 ≥ 190cm</li>
+    <li>無障礙樓梯：梯寬、突鼻、扶手、防滑</li>
+  </ul>
+  <h3>呼叫的 MCP 工具</h3>
+  <table>
+    <tr><th>工具</th><th>用途</th></tr>
+    <tr><td><code>check_stair_headroom</code></td><td>樓梯淨高自動檢測 + 上色標示</td></tr>
+    <tr><td><code>get_stair_actual_width</code></td><td>扣除扶手後實際淨寬</td></tr>
+    <tr><td><code>create_stair_section_view</code></td><td>建立樓梯剖面檢討視圖</td></tr>
+    <tr><td><code>create_stair_text_note_with_leader</code></td><td>自動標註檢討結果（含引線）</td></tr>
   </table>
 </div>
 
@@ -1772,8 +1843,8 @@ npm run build</code><button class="copy-btn" onclick="copyCode(this)">複製</bu
   </table>
   <h3>本次四個關鍵變化</h3>
   <ol>
-    <li><strong>Skills 出現</strong> — 18 個 Skill，自動觸發對應 Domain</li>
-    <li><strong>工具模組化</strong> — 拆成 8 個模組 + Profile 角色篩選</li>
+    <li><strong>Skills 出現</strong> — 19 個 Skill，自動觸發對應 Domain</li>
+    <li><strong>工具模組化</strong> — 拆成 15 個模組 + Profile 角色篩選</li>
     <li><strong>跨版本支援</strong> — Revit 2022 到 2026</li>
     <li><strong>社群貢獻爆發</strong> — 帷幕牆、排煙窗、明細表等新功能</li>
   </ol>
@@ -1786,9 +1857,9 @@ npm run build</code><button class="copy-btn" onclick="copyCode(this)">複製</bu
   <h3>Token 數字</h3>
   <table>
     <tr><th>項目</th><th>Token 成本</th></tr>
-    <tr><td>76 個工具定義</td><td>~22,800 tokens</td></tr>
+    <tr><td>82 個工具定義</td><td>~24,600 tokens</td></tr>
     <tr><td>CLAUDE.md 全文</td><td>~5,000 tokens</td></tr>
-    <tr><td><strong>每輪固定成本</strong></td><td><strong>~27,800 tokens</strong></td></tr>
+    <tr><td><strong>每輪固定成本</strong></td><td><strong>~29,600 tokens</strong></td></tr>
     <tr><td>如果到 100 個工具</td><td>~35,000 tokens</td></tr>
   </table>
   <h3>為什麼這是問題</h3>
@@ -2051,7 +2122,7 @@ description: "消防安全檢討：防火時效視覺化、走廊防火分析、
 │       │   └── SKILL.md
 │       ├── element-query/
 │       │   └── SKILL.md
-│       └── ... 共 18 個</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+│       └── ... 共 19 個</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
   <p>路徑：<span class="copyable-path" onclick="copyText('.claude/skills/')">.claude/skills/</span></p>
 
   <h3>重要限制</h3>
@@ -2287,7 +2358,7 @@ npm --version   # 需要 v8+</code><button class="copy-btn" onclick="copyCode(th
 
   <div class="cmd-tip">
     <div class="cmd-tip-title">斜線指令快捷</div>
-    <code>/qaqc</code> — 一鍵執行五階段品質驗證（檔案結構→交叉參照→建構設定→Build→部署）
+    <code>/qaqc</code> — 一鍵執行六階段品質驗證（檔案結構→交叉參照→建構設定→Build→部署→<strong>內容 Lint</strong>）
     <p>情境：不確定自己的環境有沒有問題？跑一次 <code>/qaqc</code> 就能全面體檢，每個 FAIL 項目都會附上修復步驟。</p>
   </div>
 </div>
@@ -2418,7 +2489,7 @@ git push origin add/parking-check
     <tr><th>項目</th><th>負責</th><th>狀態</th></tr>
     <tr><td>Issue #16：帷幕牆+排煙窗 C# 實作</td><td>Alex</td><td>✅ 已完成</td></tr>
     <tr><td>Issue #18：lessons.md 觸發機制</td><td>maintainer</td><td>✅ 已完成（/dev-guide）</td></tr>
-    <tr><td>Domain → Skill 全面升級</td><td>maintainer</td><td>✅ 已完成（18 個 Skill）</td></tr>
+    <tr><td>Domain → Skill 全面升級</td><td>maintainer</td><td>✅ 已完成（19 個 Skill）</td></tr>
     <tr><td>CONTRIBUTING.md 更新</td><td>maintainer</td><td>規劃中</td></tr>
   </table>
   <p>追蹤連結：<a href="https://github.com/shuotao/REVIT_MCP_study/issues" target="_blank" style="color:#60a5fa">GitHub Issues</a></p>
@@ -2590,7 +2661,17 @@ git clone https://github.com/shuotao/REVIT_MCP_study.git</div>
     <div class="ending-preview">
       <div class="ending-eyebrow">NEXT MEETUP</div>
       <h2 class="ending-title">五月小聚</h2>
-      <div class="ending-date">敬請期待</div>
+      <div class="ending-date">2026.05.30 (Sat) 暫定</div>
+      <div style="margin-top:24px;">
+        <a href="https://forms.gle/4Mn5kCaK1uFk2m9W6" target="_blank" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.4);padding:12px 24px;border-radius:100px;font-weight:700;transition:all 0.3s;" onmouseover="this.style.background='rgba(96,165,250,0.25)';this.style.borderColor='#60a5fa'" onmouseout="this.style.background='rgba(96,165,250,0.15)';this.style.borderColor='rgba(96,165,250,0.4)'">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="17" y1="11" x2="23" y2="11"/></svg>
+          立即報名五月小聚
+        </a>
+      </div>
+      <div style="margin-top:32px;display:flex;align-items:center;gap:16px;">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://forms.gle/4Mn5kCaK1uFk2m9W6&bgcolor=000000&color=ffffff&format=svg" alt="五月小聚報名 QR Code" width="100" height="100" style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;">
+        <div style="font-size:13px;color:rgba(255,255,255,0.3);line-height:1.5;">掃描 QR Code<br>搶先預約五月席次</div>
+      </div>
       <p class="ending-desc">
         持續擴充法規模組（綠建築、無障礙、結構）<br>
         Profile 自動偵測 + 送審報告匯出<br>
@@ -2630,6 +2711,7 @@ lesleyliuke</textarea>
 const sections = [
   { id: 'slide-cover', label: '封面' },
   { id: 'slide-why', label: '為什麼你需要參加' },
+  { id: 'slide-karpathy-gateway', label: 'Karpathy LLM Wiki 導讀' },
   { id: 'slide-setup', label: '系統更新' },
   { id: 'slide-1-1', label: '回顧與複習' },
   { id: 'slide-2-1', label: '問題與挑戰' },
@@ -2644,10 +2726,11 @@ const sections = [
 const slideToSection = {};
 slideToSection['slide-cover'] = 0;
 slideToSection['slide-why'] = 1;
-slideToSection['slide-setup'] = 2;
+slideToSection['slide-karpathy-gateway'] = 2;
+slideToSection['slide-setup'] = 3;
 document.querySelectorAll('[data-section]').forEach(el => {
   const sec = parseInt(el.dataset.section);
-  slideToSection[el.id] = sec + 2; // offset by 2 (cover, why, setup)
+  slideToSection[el.id] = sec + 3; // offset by 3 (cover, why, karpathy-gateway, setup)
 });
 
 // Build nav dots (10 sections)

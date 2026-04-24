@@ -1,9 +1,16 @@
 ---
 name: session-context-guard
-description: 互動式會話中的上下文守衛協議，防止 AI 在環境切換後產生錯誤操作
-tags: [視圖, 樓層, 階段, 門, 連結模型, 上下文, Context Guard]
-revit_versions: [2022, 2023, 2024, 2025, 2026]
-guard_levels: [L1-passive, L2-active, L3-full]
+description: "互動式會話中的上下文守衛協議，定義 L1-passive / L2-active / L3-full 三級環境感知機制，防止 AI 在使用者切換視圖、樓層或專案後產生錯誤操作。當使用者提到視圖、樓層、階段、連結模型、上下文、Context Guard 時觸發。"
+metadata:
+  version: "1.0"
+  updated: "2026-03-10"
+  created: "2026-03-10"
+  contributors:
+    - "Admin"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  tags: [視圖, 樓層, 階段, 門, 連結模型, 上下文, Context Guard]
 ---
 
 # 互動式會話上下文守衛 (Session Context Guard)

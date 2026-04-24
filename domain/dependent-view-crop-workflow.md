@@ -1,5 +1,18 @@
 ---
-description: 從屬視圖依網格裁剪批次建立流程
+name: dependent-view-crop-workflow
+description: "從屬視圖批次裁剪：依網格線為邊界，批次建立從屬視圖並設定裁剪範圍。適用於大型專案分區出圖。當使用者提到從屬視圖、dependent view、分區出圖、網格裁剪、視圖分割時觸發。"
+metadata:
+  version: "1.0"
+  updated: "2026-04-02"
+  created: "2026-03-16"
+  contributors:
+    - "unknown"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by:
+    - dependent-view-crop
+    - sheet-management
+  tags: [從屬視圖, dependent view, 網格裁剪, 分區出圖, batch crop]
 ---
 
 # 從屬視圖依網格裁剪批次建立流程 (Dependent View Crop by Grids)

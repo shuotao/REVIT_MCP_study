@@ -1,17 +1,16 @@
 ---
-title: MCP 工具能力邊界定義表
-version: "1.0"
-created: 2025-03-10
-trigger_keywords:
-  - 連結模型
-  - linked model
-  - 結構
-  - structural
-  - 邊界
-  - 能力
-  - boundary
-  - 找不到元素
-  - 0 結果
+name: tool-capability-boundary
+description: "MCP 工具能力邊界定義表：定義目前 MCP 工具的不可達邊界（如連結模型元素不可查詢等），讓 AI 在收到相關請求時立即告知使用者限制而非反覆嘗試。當使用者提到連結模型、linked model、結構、能力邊界、boundary、找不到元素、0 結果時觸發。"
+metadata:
+  version: "1.0"
+  updated: "2026-03-10"
+  created: "2026-03-10"
+  contributors:
+    - "Admin"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  tags: [連結模型, linked model, 結構, structural, 邊界, 能力, boundary, 找不到元素]
 ---
 
 # MCP 工具能力邊界定義表

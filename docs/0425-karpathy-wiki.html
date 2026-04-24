@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>什麼知識，值得變成 Wiki · Karpathy LLM Wiki 導讀</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
+  @media (max-width: 900px) { html { scroll-snap-type: none !important; } }
+  body {
+    background: #000; color: #fff;
+    font-family: 'Helvetica Neue', 'Inter', 'Noto Sans TC', sans-serif;
+    line-height: 1.6; overflow-x: hidden;
+  }
+  ::selection { background: #fff; color: #000; }
+
+  /* ===== NAV DOTS ===== */
+  .nav-dots {
+    position: fixed; right: 24px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 10px; z-index: 100;
+  }
+  .nav-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(255,255,255,0.3); border: none; cursor: pointer;
+    transition: all 0.3s ease; padding: 0; position: relative;
+  }
+  .nav-dot.active { background: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.8); transform: scale(1.4); }
+  .nav-dot::before {
+    content: attr(data-label);
+    position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
+    background: rgba(0,0,0,0.9); color: #fff;
+    padding: 6px 14px; border-radius: 6px; font-size: 12px;
+    white-space: nowrap; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease;
+    border: 1px solid rgba(255,255,255,0.1); letter-spacing: 1px;
+  }
+  .nav-dot:hover::before { opacity: 1; }
+
+  /* ===== SLIDES ===== */
+  .slide, .cover {
+    min-height: 100vh; display: flex; align-items: center;
+    padding: 60px 80px; position: relative;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    scroll-snap-align: start; scroll-snap-stop: always;
+  }
+
+  /* ===== COVER ===== */
+  .cover { justify-content: center; text-align: center; flex-direction: column; }
+  .cover-eyebrow { font-size: 13px; letter-spacing: 6px; text-transform: uppercase; color: #666; margin-bottom: 32px; }
+  .cover-title { font-size: 64px; font-weight: 800; line-height: 1.1; letter-spacing: -2px; margin-bottom: 24px; }
+  .cover-subtitle { font-size: 20px; color: #888; font-weight: 300; margin-bottom: 60px; line-height: 1.6; max-width: 800px; margin-left: auto; margin-right: auto; }
+  .cover-tldr { margin-top: 40px; padding: 32px; background: rgba(96,165,250,0.03); border: 1px solid rgba(96,165,250,0.15); border-radius: 4px; max-width: 800px; margin-left: auto; margin-right: auto; }
+  .cover-tldr-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 4px; color: #60a5fa; margin-bottom: 12px; }
+  .cover-tldr-text { font-size: 16px; color: #ccc; line-height: 1.8; }
+  .cover-scroll-hint { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #444; letter-spacing: 3px; animation: pulse 2s infinite; }
+
+  /* ===== SLIDE INNER ===== */
+  .slide-inner { display: flex; align-items: center; gap: 80px; max-width: 1400px; width: 100%; margin: 0 auto; }
+  .slide-visual { flex: 0 0 45%; }
+  .slide-content { flex: 1; }
+  .slide-number { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #444; letter-spacing: 2px; margin-bottom: 16px; }
+  .slide-title { font-size: 40px; font-weight: 700; line-height: 1.2; margin-bottom: 20px; }
+  .slide-summary { font-size: 18px; color: #888; line-height: 1.7; margin-bottom: 32px; }
+  .drawer-trigger { display: inline-flex; align-items: center; gap: 12px; background: #fff; color: #000; padding: 12px 28px; border-radius: 2px; cursor: pointer; font-size: 14px; font-weight: 700; border: none; transition: opacity 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+  .drawer-trigger:hover { opacity: 0.8; }
+
+  /* ===== DRAWER ===== */
+  .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; backdrop-filter: blur(4px); }
+  .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 75%; max-width: 1100px; background: #050505; border-left: 1px solid #222; z-index: 201; transform: translateX(100%); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); overflow-y: auto; padding: 100px 80px; }
+  .drawer.open { transform: translateX(0); }
+  .drawer-close { position: sticky; top: 0; float: right; background: none; border: 1px solid #444; color: #fff; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; z-index: 10; margin-top: -60px; margin-right: -40px; }
+  .drawer h2 { font-size: 48px; font-weight: 800; margin: 0 0 60px; color: #fff; letter-spacing: -2px; line-height: 1.1; }
+  .drawer h3 { font-size: 22px; font-weight: 700; margin: 56px 0 20px; color: #fff; }
+  .drawer p, .drawer li { font-size: 17px; color: #888; line-height: 1.9; margin-bottom: 24px; }
+  .drawer strong { color: #fff; }
+  .drawer ul { padding-left: 24px; margin-bottom: 32px; list-style-type: square; }
+
+  /* VV Box */
+  .how-tech-box { margin: 60px 0; padding: 40px; background: #0a0a0a; border: 1px solid #1a1a1a; }
+  .how-tech-item { display: flex; gap: 32px; margin-bottom: 24px; }
+  .how-tech-item:last-child { margin-bottom: 0; }
+  .how-tech-label { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 11px; letter-spacing: 3px; color: #60a5fa; min-width: 120px; text-transform: uppercase; padding-top: 5px; }
+  .how-tech-content { font-size: 16px; color: #eee; flex: 1; }
+  .how-tech-content.technique { color: #666; font-style: italic; }
+
+  /* Visual Block */
+  .visual-block { border: 1px solid #222; padding: 60px; background: #000; min-height: 300px; display: flex; align-items: center; justify-content: center; margin-bottom: 40px; position: relative; }
+  
+  /* Animations */
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+  .floating { animation: float 6s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.7; } }
+
+  /* Section Divider */
+  .section-divider { padding: 100px 80px; text-align: left; border-bottom: 1px solid #111; }
+  .section-divider h2 { font-size: 13px; letter-spacing: 8px; text-transform: uppercase; color: #444; font-weight: 400; }
+</style>
+</head>
+<body>
+
+  <nav class="nav-dots" id="navDots"></nav>
+
+  <!-- ===== COVER ===== -->
+  <section class="cover" id="slide-cover">
+    <div class="cover-eyebrow">The Physics of Insight · Revit MCP</div>
+    <h1 class="cover-title">什麼知識，值得變成 Wiki</h1>
+    <p class="cover-subtitle">讀 Karpathy 的 LLM Wiki，與我們這 18 週來的黑暗摸索。</p>
+    <div class="cover-tldr">
+      <div class="cover-tldr-label">CORE ARCHITECTURE</div>
+      <div class="cover-tldr-text"><strong>Wiki is the product, Chat is ephemeral.</strong><br>我們不是在優化 Prompt，是在編寫一套會自行演化的 BIM 專業 DNA。</div>
+    </div>
+    <div class="cover-scroll-hint">SCROLL TO BEGIN</div>
+  </section>
+
+  <!-- ===== PREFACE ===== -->
+  <section class="slide" id="slide-preface">
+    <div class="slide-inner">
+      <div class="slide-visual"><div class="visual-block floating" style="border-radius:50%;"><div style="font-size:120px;">✉️</div></div></div>
+      <div class="slide-content">
+        <div class="slide-number">INTRODUCTION</div>
+        <h2 class="slide-title">前言 · 給老師的一封信</h2>
+        <p class="slide-summary">讀完 Karpathy 的 gist 時，我感到的不是新奇，而是戰慄。原來我們爭論已久的架構，正是矽谷最頂尖工程師眼中的標準路徑。</p>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-preface')">OPEN LETTER</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"><h2>上篇 · 讀 Karpathy</h2></div>
+
+  <!-- 1. Not Instruction -->
+  <section class="slide" id="slide-1">
+    <div class="slide-inner">
+      <div class="slide-visual"><div class="visual-block"><div style="width:120px; height:160px; border:3px solid #fff; position:relative;"><div style="position:absolute; top:30px; left:20px; right:20px; height:3px; background:#fff;"></div><div style="position:absolute; top:60px; left:20px; right:20px; height:3px; background:#333;"></div><div style="position:absolute; top:90px; left:20px; right:20px; height:3px; background:#333;"></div></div></div></div>
+      <div class="slide-content">
+        <div class="slide-number">CHAPTER 01</div>
+        <h2 class="slide-title">一、他說的不是教學</h2>
+        <p class="slide-summary">Instruction 是死的手冊，Idea File 是活的基因。這份 gist 描述的是如何建立一套讓 AI 自我維護知識的 Schema。</p>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-1')">DEEP DIVE</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Layers -->
+  <section class="slide" id="slide-2">
+    <div class="slide-inner">
+      <div class="slide-visual"><div class="visual-block" style="flex-direction:column; gap:15px;"><div style="width:160px; height:30px; background:#fff;"></div><div style="width:160px; height:30px; background:#888;"></div><div style="width:160px; height:30px; background:#333;"></div></div></div>
+      <div class="slide-content">
+        <div class="slide-number">CHAPTER 02</div>
+        <h2 class="slide-title">二、三層架構：Raw／Wiki／Schema</h2>
+        <p class="slide-summary">你不直接編寫 Wiki，你定義的是 DNA (Schema)。當規則對了，知識庫就會在每次與 AI 的互動中自動重編與演化。</p>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-2')">DNA EVOLUTION</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Operations -->
+  <section class="slide" id="slide-3">
+    <div class="slide-inner">
+      <div class="slide-visual"><div class="visual-block" style="gap:20px;"><div style="width:50px; height:50px; border:2px solid #fff;"></div><div style="width:50px; height:50px; border:2px solid #fff; border-radius:50%;"></div><div style="width:0; height:0; border-left:30px solid transparent; border-right:30px solid transparent; border-bottom:50px solid #fff;"></div></div></div>
+      <div class="slide-content">
+        <div class="slide-number">CHAPTER 03</div>
+        <h2 class="slide-title">三、三種動作：Ingest／Query／Lint</h2>
+        <p class="slide-summary">動作的基元。特別是不分片 (No Chunk) 的全量讀取，讓 AI 具備了真正的跨頁推理與摘要能力。</p>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-3')">PRIMITIVE OPS</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Index/Log -->
+  <section class="slide" id="slide-4">
+    <div class="slide-inner">
+      <div class="slide-visual"><div class="visual-block"><div style="position:relative; width:200px; height:200px;"><div style="position:absolute; inset:0; border:1px solid #333; border-radius:50%;"></div><div style="position:absolute; top:20px; left:50%; transform:translateX(-50%); width:10px; height:10px; background:#fff; border-radius:50%;"></div><div style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); width:10px; height:10px; background:#60a5fa; border-radius:50%;"></div></div></div></div>
+      <div class="slide-content">
+        <div class="slide-number">CHAPTER 04</div>
+        <h2 class="slide-title">四、index 與 log：小規模的反叛</h2>
+        <p class="slide-summary">拋棄複雜的向量搜尋。在 100 份文件內，清晰的索引地圖與時序日誌，才是知識庫最穩固的座標。</p>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-4')">COORDINATES</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"><h2>中篇 · 一個更重要的問題</h2></div>
+
+  <!-- 5. Boundary -->
+  <section class="slide" id="slide-5">
+    <div class="slide-inner">
+      <div class="slide-visual"><div class="visual-block"><div style="width:180px; height:2px; background:#fff; position:relative;"><div style="position:absolute; top:-10px; left:30%; height:20px; width:2px; background:#fff;"></div></div></div></div>
+      <div class="slide-content">
+        <div class="slide-number">CHAPTER 05</div>
+        <h2 class="slide-title">五、真的都要變 Wiki 嗎？</h2>
+        <p class="slide-summary">過度的維護是浪費，缺失的維護是負債。我們必須定義知識的邊界與「活性知識」的範疇。</p>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-5')">THE BOUNDARY</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Criteria (BIM Lifecycle) -->
+  <section class="slide" id="slide-6">
+    <div class="slide-inner">
+      <div class="slide-visual"><div class="visual-block" style="gap:20px;"><div style="width:80px; height:80px; border:2px solid #60a5fa;"></div><div style="font-size:24px;">→</div><div style="width:80px; height:80px; border:2px solid #fff; border-radius:50%;"></div></div></div>
+      <div class="slide-content">
+        <div class="slide-number">CHAPTER 06</div>
+        <h2 class="slide-title">六、四條判準：決策模型</h2>
+        <p class="slide-summary">以 BIM 生命週期數據分鏡為例。為什麼營造現場讀設計 Wiki 是一種「數據負債」？我們如何決定知識的流向。</p>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-6')">DECISION MODEL</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"><h2>下篇 · 照鏡子</h2></div>
+
+  <!-- 7. Same Map -->
+  <section class="slide" id="slide-7">
+    <div class="slide-inner">
+      <div class="slide-visual"><div class="visual-block"><div style="font-size:32px; font-weight:800; border-bottom:4px solid #4ade80; padding-bottom:10px;">90% MATCH</div></div></div>
+      <div class="slide-content">
+        <div class="slide-number">CHAPTER 07</div>
+        <h2 class="slide-title">七、REVIT_MCP 是同一張地圖</h2>
+        <p class="slide-summary">逐條對照 Karpathy 的模式。我們在 18 週前埋下的種子，如今開出了與矽谷頂尖架構完全一致的花朵。</p>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-7')">MAPPING</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Differences -->
+  <section class="slide" id="slide-8">
+    <div class="slide-inner">
+      <div class="slide-visual"><div class="visual-block"><div style="position:relative; width:120px; height:120px;"><div style="position:absolute; inset:0; border:3px solid #fff;"></div><div style="position:absolute; inset:25px; border:1px dashed #60a5fa;"></div></div></div></div>
+      <div class="slide-content">
+        <div class="slide-number">CHAPTER 08</div>
+        <h2 class="slide-title">八、我們刻意不一樣的<br>三個地方</h2>
+        <p class="slide-summary">為了 BIM 的專業權威性。我們堅持「人類是作者」，並增加了驅動模型操作的「工具執行層」。</p>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-8')">DIFFERENCES</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. Four Steals -->
+  <section class="slide" id="slide-9">
+    <div class="slide-inner">
+      <div class="slide-visual"><div class="visual-block" style="gap:10px;"><div style="width:30px; height:10px; background:#fff;"></div><div style="width:60px; height:10px; background:#fff;"></div><div style="width:40px; height:10px; background:#60a5fa;"></div><div style="width:20px; height:10px; background:#fff;"></div></div></div>
+      <div class="slide-content">
+        <div class="slide-number">CHAPTER 09</div>
+        <h2 class="slide-title">九、可以偷回來的四個成果</h2>
+        <p class="slide-summary">已落地至 main 的四項資產：三層 Log、/handoff 協議、Nested Metadata 與 AI-agnostic 保底設計。</p>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-9')">THE ASSETS</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ENDING ===== -->
+  <section class="slide" id="slide-ending">
+    <div class="slide-inner">
+      <div class="slide-visual"><div class="visual-block floating" style="border-radius:12px; width:220px; height:220px;"><div style="font-size:100px;">🌙</div></div></div>
+      <div class="slide-content">
+        <div class="slide-number">CONCLUSION</div>
+        <h2 class="slide-title">你的專業，<br>就是下一個按鈕</h2>
+        <p class="slide-summary">這是一場跨越時空的對話。我們寫下的每一行，都是在減少未來的焦慮。讓我們用「放大」來放大你的潛力。</p>
+        <div style="margin-top:32px; display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
+          <a href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f" target="_blank" style="text-decoration:none; background:#fff; color:#000; padding:16px 32px; font-weight:800; border-radius:4px; font-size:15px; transition:opacity 0.3s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">KARPATHY GIST 原文</a>
+          <a href="./karpathy-gist-zh-tw.html" style="text-decoration:none; background:rgba(96,165,250,0.1); color:#60a5fa; padding:16px 32px; font-weight:800; border-radius:4px; font-size:15px; border:1px solid rgba(96,165,250,0.3); transition:all 0.3s;" onmouseover="this.style.background='rgba(96,165,250,0.2)'" onmouseout="this.style.background='rgba(96,165,250,0.1)'">繁體中文深度譯本</a>
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=https://forms.gle/4Mn5kCaK1uFk2m9W6&bgcolor=000000&color=ffffff&format=svg" alt="QR" width="70" height="70" style="border:1px solid #333; border-radius:4px;" title="預約五月小聚">
+        </div>
+        <button class="drawer-trigger" onclick="openDrawer('drawer-ending')" style="margin-top:32px; background:none; color:#fff; border:1px solid #444;">閱讀最後感悟</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+  <!-- ===== DRAWERS CONTENT ===== -->
+  
+  <!-- Preface -->
+  <div class="drawer" id="drawer-preface">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <h2>前言 · 一封給老師的信</h2>
+    <p>親愛的老師：</p>
+    <p>這 18 週來，我們在黑暗中摸索出的路，原來與 Karpathy 的思考殊途同歸。</p>
+    <p>讀完 Karpathy 的 gist 時，我感到的不是新奇，而是戰慄。原來這三個月我們不斷爭論的「Domain 為什麼要獨立」、「Log 為什麼要 session 級」，在最頂尖的 AI 工程師眼裡，正是通往 AGI 知識管理的標準路徑。</p>
+    <p>這不是一篇筆記，是我們架構的「認證書」。它告訴我們，在 BIM 這個極度碎片化、法律權威至上的領域，我們選擇的路徑是正確的。我們不再只是在用工具，我們是在建立「知識的自愈系統」。</p>
+    <div class="how-tech-box">
+      <div class="how-tech-item"><span class="how-tech-label">HOW</span><span class="how-tech-content">將知識從易逝的對話 (Chat) 中剝離，存入持久化的 Wiki (Codebase)。</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">TRANSFORM</span><span class="how-tech-content">從「AI 使用者」晉升為「AI 專業直覺的 DNA 編寫者」。</span></div>
+    </div>
+  </div>
+
+  <!-- Drawer 1 -->
+  <div class="drawer" id="drawer-1">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <h2>一、他說的不是教學：Idea File</h2>
+    <p>大多數人要求 AI 摘要，把牛排打成肉泥。Karpathy 要求 AI 寫代碼來管理知識庫。</p>
+    <h3>核心哲學：Obsidian 是 IDE，LLM 是 Programmer</h3>
+    <p>Karpathy 的觀點非常明確：Wiki 就是 <strong>Codebase</strong>。Instruction 是死的手冊，而 Idea File 是活的基因。它不告訴 AI 具體步驟，而是告訴 AI「如果你是我，你會怎麼建立這套維護系統」。</p>
+    <p>在 BIM 應用中，不要寫「如何標註磁磚」，而要寫「磁磚標註的幾何邏輯與偏移規則」。讓 AI 學會「思考」標註與牆體的關係，而非模仿畫線動作。</p>
+    <div class="how-tech-box">
+      <div class="how-tech-item"><span class="how-tech-label">HOW</span><span class="how-tech-content">利用 Entropy Control 抑制 LLM 的「過度泛化」天性，強制保留原始語義的顆粒感。</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">TECHNIQUE</span><span class="how-tech-content">Idea-driven Schema Projection & Recursive Context Alignment.</span></div>
+    </div>
+  </div>
+
+  <!-- Drawer 2 -->
+  <div class="drawer" id="drawer-2">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <h2>二、三層架構：DNA 的演化邏輯</h2>
+    <p>你不直接編寫 Wiki，你編寫的是「Wiki 怎麼寫」的規則。DNA 對了，Wiki 自己就會長對。</p>
+    <p>這就像參數化設計：你定義的是「參數關係」，而不是「最終幾何」。當法規更新時，你只需要修改 <strong>Schema (CLAUDE.md)</strong>，整個 Wiki 知識庫會自動完成「知識重編 (Refactoring)」。</p>
+    <div class="how-tech-box">
+      <div class="how-tech-item"><span class="how-tech-label">HOW</span><span class="how-tech-content">將 CLAUDE.md 定義為系統的 DNA，規定所有 domain 文件的生命週期與交叉引用規則。</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">LAYERS</span><span class="how-tech-content">Raw (地基) → Wiki (建物) → Schema (設計規範)。</span></div>
+    </div>
+  </div>
+
+  <!-- Drawer 3 -->
+  <div class="drawer" id="drawer-3">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <h2>三、三種動作：不 Chunk 的全量推理</h2>
+    <p>傳統 RAG 每次都在拼湊碎片，像是在垃圾堆裡找零件。Karpathy 主張<strong>全量讀取 (No Chunk)</strong>。</p>
+    <p>在 BIM 領域，一條走廊寬度的判準可能跟防火區劃、建蔽率有關。如果進行分片 (Chunk)，AI 會失去跨章節的邏輯鏈結。我們追求的是「全量關係的交叉引用」。</p>
+    <div class="how-tech-box">
+      <div class="how-tech-item"><span class="how-tech-label">HOW</span><span class="how-tech-content">利用長上下文建立全量語義圖譜，讓 AI 能在 100 份文件內進行無損推理。</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">TECHNIQUE</span><span class="how-tech-content">Full-context Semantic Mapping & Zero-Omission Ingestion.</span></div>
+    </div>
+  </div>
+
+  <!-- Drawer 4 -->
+  <div class="drawer" id="drawer-4">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <h2>四、index 與 log：空間與時序的座標</h2>
+    <p>index.md 是空間性的地圖。log.md 是時序性的日誌。這兩者結合，構成了知識庫的完整座標系。</p>
+    <p>Karpathy 的小規模反叛：當文件在 100 份以內時，一個清晰的人類可讀 index.md 比任何 Embedding 系統都更可靠。Log 不是流水帳，是 append-only 的時間線保險。</p>
+    <div class="how-tech-box">
+      <div class="how-tech-item"><span class="how-tech-label">HOW</span><span class="how-tech-content">回歸結構化的索引與結構化日誌，放棄黑盒子的語義搜尋。</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">TECHNIQUE</span><span class="how-tech-content">Deterministic Retrieval via Manual Indexing.</span></div>
+    </div>
+  </div>
+
+  <!-- Drawer 5 -->
+  <div class="drawer" id="drawer-5">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <h2>五、真的，什麼都要變成 Wiki 嗎？</h2>
+    <p>過度的維護是浪費，缺失的維護是負債。Wiki 應承載的是「活性知識」：那些會隨專案演化，但具備長期價值的專業 SOP。</p>
+    <p>如果資訊能指導下一個專案，它就該進 Wiki；如果只是解決當下的 Bug，它該進 Chat 或 Log。</p>
+  </div>
+
+  <!-- Drawer 6 -->
+  <div class="drawer" id="drawer-6">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <h2>六、四條判準：BIM 生命週期的數據分鏡</h2>
+    <p><strong>BIM 的全生命週期陷阱：</strong> 為了所謂的延續，我們總是將前階段所有數據塞進模型，結果造成數據肥大且充斥垃圾邏輯。</p>
+    <h3>設計 Wiki vs. 營造 Wiki 的衝突</h3>
+    <ul>
+      <li><strong>設計階段</strong>：關注「法規檢討」。Wiki 必須記錄「逃生走廊最小 1.2m」的法規依據。</li>
+      <li><strong>營造階段</strong>：關注「現場放樣」。營造現場不量逃生寬度，而是量「磁磚起點定位、偏移牆心 5cm、材料收邊尺寸」。</li>
+    </ul>
+    <p>如果營造現場還在讀設計 Wiki，那是負債。這就是為什麼我們需要 <strong>Purpose-driven Wiki Forking</strong>。知識必須與當前的執行階段「接面」對接。</p>
+    <div class="how-tech-box">
+      <div class="how-tech-item"><span class="how-tech-label">判準 1</span><span class="how-tech-content"><strong>權威性</strong>：是否涉及法律條文或執業權威？</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">判準 2</span><span class="how-tech-content"><strong>頻率</strong>：是否為本月被問超過 3 次的痛點？</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">判準 3</span><span class="how-tech-content"><strong>穩定性</strong>：這項共識是否能維持超過一個月？</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">判準 4</span><span class="how-tech-content"><strong>跨度</strong>：是否需要跨多個 Skill 共享知識？</span></div>
+    </div>
+  </div>
+
+  <!-- Drawer 7 -->
+  <div class="drawer" id="drawer-7">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <h2>七、REVIT_MCP 是同一張地圖</h2>
+    <p>我們與 Karpathy 的重合度高達 90%。這證明了我們這 18 週來的黑暗摸索，是知識工程演化的必然路徑。</p>
+    <div class="how-tech-box">
+      <div class="how-tech-item"><span class="how-tech-label">DNA</span><span class="how-tech-content">CLAUDE.md 完美對應其 Schema 層。</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">WIKI</span><span class="how-tech-content">domain/ 目錄對應其 Wiki 層。</span></div>
+      <div class="how-tech-item"><span class="how-tech-label">OPS</span><span class="how-tech-content">/lessons 與 /qaqc 對應 Ingest 與 Lint。</span></div>
+    </div>
+  </div>
+
+  <!-- Drawer 8 -->
+  <div class="drawer" id="drawer-8">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <h2>八、我們刻意不一樣的三個地方</h2>
+    <p>為了 BIM 實戰而生的特化設計：</p>
+    <h3>1. 人類作者權威</h3>
+    <p>法律裁量權不可交給 LLM 盲目萃取，避免產生公安幻覺。我們堅持「人類是作者」。</p>
+    <h3>2. 增加工具執行層 (Skills & Tools)</h3>
+    <p>知識必須驅動 76 個 MCP Tools 在 Revit 裡劃出那道牆。不轉化為動作的知識，對我們而言沒有價值。</p>
+    <h3>3. 團隊共用架構</h3>
+    <p>多入口保底設計，跨 client (Claude/Gemini) 共享一套 Wiki。</p>
+  </div>
+
+  <!-- Drawer 9 -->
+  <div class="drawer" id="drawer-9">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <h2>九、可以偷回來的四個小東西</h2>
+    <ul>
+      <li><strong>三層 Log 防線</strong>：Git Hook 保底 + Protocol + /handoff 摘要。</li>
+      <li><strong>/handoff 協議</strong>：解決 AI 「記憶斷層」問題。</li>
+      <li><strong>Nested Metadata</strong>：對齊 Anthropic 官方 spec。</li>
+      <li><strong>AI-agnostic 保底設計</strong>：不依賴特定 AI Client。</li>
+    </ul>
+  </div>
+
+  <!-- Ending -->
+  <div class="drawer" id="drawer-ending">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <h2>尾聲 · 給下一個月的自己</h2>
+    <p>親愛的自己：當你在未來重新打開這個專案，看到當初留下的每一個 domain/ 與 log 摘要時，你會感謝現在的自己。</p>
+    <p>我們不僅是在蓋房子，我們在建立智慧系統。我們寫下的每一行，都是在減少未來的焦慮。</p>
+    <p><strong>要有意識地去理解：省掉的每一個字元，伴隨著怎樣的惋惜。</strong></p>
+    <div class="how-tech-box">
+      <h3 style="margin-top:0; color:#f87171;">⚠ 3 個不要踩的雷</h3>
+      <ul style="padding-left:20px; color:#aaa;">
+        <li>不要說「幫我摘要」：會觸發 AI 偷懶，失去專業細節。</li>
+        <li>不要期待一次到位：長內容需分段處理（30 分鐘切片）。</li>
+        <li>不要忽略字數檢查：輸出比輸入短，就是失敗。</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const sections = [
+      { id: 'slide-cover', label: '封面' },
+      { id: 'slide-preface', label: '前言' },
+      { id: 'slide-1', label: '一、不是教學' },
+      { id: 'slide-2', label: '二、三層架構' },
+      { id: 'slide-3', label: '三、三種動作' },
+      { id: 'slide-4', label: '四、index 與 log' },
+      { id: 'slide-5', label: '五、Wiki 邊界' },
+      { id: 'slide-6', label: '六、四條判準' },
+      { id: 'slide-7', label: '七、同一張地圖' },
+      { id: 'slide-8', label: '八、核心差異' },
+      { id: 'slide-9', label: '九、四個成果' },
+      { id: 'slide-ending', label: '尾聲' },
+    ];
+    const nav = document.getElementById('navDots');
+    sections.forEach(s => {
+      const dot = document.createElement('button');
+      dot.className = 'nav-dot';
+      dot.dataset.label = s.label;
+      dot.onclick = () => document.getElementById(s.id).scrollIntoView({ behavior: 'smooth' });
+      nav.appendChild(dot);
+    });
+    const sectionDots = nav.querySelectorAll('.nav-dot');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const idx = sections.findIndex(s => s.id === entry.target.id);
+          if (idx >= 0) {
+            sectionDots.forEach(d => d.classList.remove('active'));
+            sectionDots[idx].classList.add('active');
+          }
+        }
+      });
+    }, { threshold: 0.5 });
+    sections.forEach(s => {
+      const el = document.getElementById(s.id);
+      if (el) observer.observe(el);
+    });
+
+    function openDrawer(id) {
+      document.getElementById(id).classList.add('open');
+      document.getElementById('drawerOverlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeDrawer() {
+      document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open'));
+      document.getElementById('drawerOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+  </script>
+</body>
+</html>

@@ -7,7 +7,7 @@
 
 ## Domain ↔ Skill 對照表
 
-### 已有對應 Skill 的 Domain（18 個）
+### 已有對應 Skill 的 Domain（20 個）
 
 | Domain 文件 | 對應 Skill | 觸發關鍵字 |
 |------------|-----------|-----------|
@@ -25,13 +25,14 @@
 | `detail-component-sync.md` | detail-component-sync | 詳圖同步、detail header |
 | `sheet-viewport-management.md` | sheet-management | 圖紙、viewport、編號 |
 | `stair-hidden-line-workflow.md` | stair-hidden-line | 樓梯、隱藏線、stair |
+| `stair-compliance-check.md` | building-compliance | 樓梯法規、淨高、級高級深 |
 | `qa-checklist.md` | qa-review | QA、驗證、檢查 |
 | `parking-clearance-check.md` | parking-check | 停車場、車位淨空、parking |
 | `parking-space-review.md` | parking-check | 停車位、數量、法定車位 |
 | `wall-check.md` | wall-orientation-check | 牆壁方向、內外側 |
 | `dependent-view-crop-workflow.md` | dependent-view-crop | 從屬視圖、分區出圖 |
 
-### 不需要成為 Skill 的 Domain（6 個）
+### 不需要成為 Skill 的 Domain（11 個，含 README）
 
 | Domain 文件 | 類型 | 不成為 Skill 的原因 |
 |------------|------|-------------------|
@@ -40,6 +41,11 @@
 | `session-context-guard.md` | AI 內部守衛 | 定義 AI 互動安全等級（L1-L3），是所有 Skill 的通用行為規範，不由使用者觸發 |
 | `tool-capability-boundary.md` | 工具邊界定義 | 定義 MCP 工具「不能做的事」（L1-L5 能力等級），防止 AI 嘗試超出能力的操作，是 meta-reference |
 | `path-maintenance-qa.md` | 內部維護指南 | 目錄重構後的路徑交叉參照檢查清單，是開發者維護用文件 |
+| `skill-authoring-standard.md` | Skill 品質規範 | 定義 Skill 編寫標準與品質要求，是 meta-reference |
+| `parking-auto-numbering.md` | 輔助工作流程 | 停車位自動編號邏輯，被 `parking-check` Skill 引用 |
+| `revit-fill-pattern-conversion.md` | 技術參考 | 填充圖案轉換規則，被多個 Skill 引用 |
+| `room-numbering-workflow.md` | 輔助工作流程 | 房間自動編號邏輯，被其他 Skill 引用 |
+| `room-surface-area-review.md` | 輔助工作流程 | 房間表面積與粉刷檢討，可被 `building-compliance` Skill 引用 |
 | `README.md` | 目錄導航 | 本檔案，不是工作流程 |
 
 ---

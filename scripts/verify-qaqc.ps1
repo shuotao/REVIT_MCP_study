@@ -131,8 +131,16 @@ $stalePatterns = @(
     @("fix_addin_path", "Deleted script")
 )
 
-# Excluded files (historical/migration docs)
-$excludedFiles = @("CHANGELOG.md", "MIGRATION_GUIDE.md", "Recent_Update_Review.md")
+# Excluded files (historical/migration docs + 規範性提及)
+$excludedFiles = @(
+    "CHANGELOG.md",
+    "MIGRATION_GUIDE.md",
+    "Recent_Update_Review.md",
+    ".claude/commands/qaqc.md",        # /qaqc 命令定義本身列舉「禁止檔名」
+    "domain/lessons.md",                # 開發經驗檔，保留 legacy 教訓作為前車之鑑
+    "domain/path-maintenance-qa.md",    # 路徑維護 QA，引用舊 nested dir 作為歷史修正紀錄
+    "docs/0328的課程討論.md"            # 歷史教材，保留當時上下文
+)
 
 $mdFiles = Get-ChildItem -Path $projectRoot -Filter "*.md" -Recurse -ErrorAction SilentlyContinue |
     Where-Object { $_.FullName -notmatch "node_modules|\.claude[\\/]plugins" }
@@ -142,11 +150,15 @@ foreach ($pattern in $stalePatterns) {
     foreach ($file in $mdFiles) {
         $relativePath = $file.FullName.Replace("$projectRoot\", "").Replace("$projectRoot/", "")
 
-        # Skip excluded files
+        # Skip excluded files — 標準化路徑分隔符為 / 後比對（兼容 Windows 反斜線）
+        $normalizedPath = $relativePath.Replace("\", "/")
         $skip = $false
         foreach ($ex in $excludedFiles) {
-            if ($relativePath -like "*$ex") { $skip = $true; break }
+            $normalizedEx = $ex.Replace("\", "/")
+            if ($normalizedPath -like "*$normalizedEx") { $skip = $true; break }
         }
+        # 額外排除 docs/0328 開頭的歷史教材檔（避免中文檔名 encoding 問題）
+        if ($normalizedPath -like "docs/0328*") { $skip = $true }
         if ($skip) { continue }
 
         $content = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
@@ -198,7 +210,7 @@ $csproj = Join-Path $projectRoot "MCP\RevitMCP.csproj"
 if (Test-Path $csproj) {
     $content = Get-Content $csproj -Raw
     Write-Check "Nice3point.Revit.Sdk reference" ($content -match "Nice3point\.Revit\.Sdk") "Missing SDK reference"
-    Write-Check "DeployAddin enabled" ($content -match "<DeployAddin>true</DeployAddin>") "Auto-deploy not enabled"
+    Write-Check "DeployAddin disabled" ($content -match "<DeployAddin>false</DeployAddin>") "DeployAddin must be false (Nice3point SDK 會自動產生 RevitMCP.{version}.addin 與手動 addin 衝突)"
     Write-Check "Release.R22 config" ($content -match "Release\.R22") "Missing Revit 2022 config"
     Write-Check "Release.R24 config" ($content -match "Release\.R24") "Missing Revit 2024 config"
     Write-Check "Release.R25 config" ($content -match "Release\.R25") "Missing Revit 2025 config"
@@ -214,7 +226,8 @@ Write-Host "  3-2. addin settings:" -ForegroundColor Cyan
 $addin = Join-Path $projectRoot "MCP\RevitMCP.addin"
 if (Test-Path $addin) {
     $content = Get-Content $addin -Raw
-    Write-Check "Relative assembly path" ($content -match "<Assembly>RevitMCP\.dll</Assembly>") "Assembly path should be relative"
+    # Assembly 路徑應為相對路徑 — 接受 "RevitMCP.dll" 或 "RevitMCP\RevitMCP.dll"（Nice3point SDK 子資料夾）
+    Write-Check "Relative assembly path" ($content -match "<Assembly>RevitMCP[\\/]?(RevitMCP\.dll|\.dll)</Assembly>|<Assembly>RevitMCP\\RevitMCP\.dll</Assembly>") "Assembly path should be relative (RevitMCP.dll or RevitMCP\RevitMCP.dll)"
     Write-Check "No absolute path in addin" (-not ($content -match "[A-Z]:\\")) "Absolute path found in addin file"
     Write-Check "FullClassName correct" ($content -match "RevitMCP\.Application") "FullClassName should be RevitMCP.Application"
 
@@ -356,16 +369,17 @@ else {
             $duplicateFound = $true
         }
         elseif ($addinFiles.Count -eq 1) {
-            # Verify DLL exists
+            # Verify DLL exists — 從 .addin 讀 Assembly 路徑，支援根目錄或子資料夾部署
             $addinContent = Get-Content $addinFiles[0].FullName -Raw -ErrorAction SilentlyContinue
             $dllDir = $addinFiles[0].DirectoryName
-            $dllPath = Join-Path $dllDir "RevitMCP.dll"
+            $assemblyPath = if ($addinContent -match "<Assembly>([^<]+)</Assembly>") { $matches[1] } else { "RevitMCP.dll" }
+            $dllPath = Join-Path $dllDir $assemblyPath
             if (Test-Path $dllPath) {
                 $dll = Get-Item $dllPath
                 Write-Check "Revit $ver DLL present ($($dll.Length) bytes)" $true
             }
             else {
-                Write-Check "Revit $ver DLL present" $false "DLL missing at $dllPath"
+                Write-Check "Revit $ver DLL present" $false "DLL missing at $dllPath (from .addin Assembly: $assemblyPath)"
             }
         }
     }

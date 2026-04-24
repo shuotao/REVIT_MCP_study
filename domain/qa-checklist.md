@@ -1,7 +1,18 @@
 ---
 name: qa-checklist
 description: 專案品質檢查流程。當用戶提到「QA」「檢查」「驗證」「確認一致性」時啟用。
-tags: [QA, 品質, 檢查, 驗證]
+metadata:
+  version: "1.0"
+  updated: "2026-03-10"
+  created: "2026-01-04"
+  contributors:
+    - "Admin"
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by:
+    - qa-review
+  tags: [QA, 品質, 檢查, 驗證]
 ---
 
 # 專案品質檢查清單 (QA Checklist)

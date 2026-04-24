@@ -1,5 +1,17 @@
 ---
-description: 剖面圖中繪製樓梯被遮擋部分虛線的標準工作流程
+name: stair-hidden-line-workflow
+description: "剖面隱藏樓梯可視化：在剖面視圖中自動為組合樓梯被側板遮擋的梯級繪製虛線詳圖線。當使用者提到樓梯隱藏線、stair hidden line、剖面樓梯、虛線、梯級、stair visualization、組合式樓梯時觸發。"
+metadata:
+  version: "1.0"
+  updated: "2026-03-16"
+  created: "2026-03-16"
+  contributors:
+    - "unknown"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by:
+    - stair-hidden-line
+  tags: [樓梯, stair, hidden line, 虛線, 剖面, 組合樓梯]
 ---
 
 # 樓梯被遮擋部分虛線自動產生 SOP

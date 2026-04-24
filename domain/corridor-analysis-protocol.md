@@ -1,12 +1,19 @@
 ---
-description: 走廊防火分析與標註標準流程 (SOP)
-trigger_keywords:
-  - 走廊
-  - 廊道
-  - 寬度分析
-  - 防火分析
-  - 比對法規
-version: 2026-02-13
+name: corridor-analysis-protocol
+description: "走廊防火分析與標註標準流程 (SOP)：自動偵測 Revit 走廊元素、計算淨寬、比對法規並建立標註。當使用者提到走廊、廊道、寬度分析、逃生通道時觸發。"
+metadata:
+  version: "1.0"
+  updated: "2026-03-10"
+  created: "2026-01-02"
+  contributors:
+    - "Admin"
+    - "Gemini"
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by:
+    - fire-safety-check
+  tags: [走廊, corridor, 廊道, 寬度分析, 防火分析, 比對法規]
 ---
 
 # 走廊防火分析與標註策略 (Corridor Analysis Protocol)

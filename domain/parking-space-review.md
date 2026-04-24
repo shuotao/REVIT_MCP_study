@@ -1,3 +1,21 @@
+---
+name: parking-space-review
+description: "建築設計中需要針對不同類型的停車位進行數量檢討，確保："
+metadata:
+  version: "1.0"
+  updated: "2026-04-05"
+  created: "2026-02-10"
+  contributors:
+    - "Revit MCP User"
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by:
+    - building-compliance
+    - parking-check
+  tags: []  # TODO: 月小聚補分類關鍵字
+---
+
 # 停車位數量檢討
 
 ## 法規依據

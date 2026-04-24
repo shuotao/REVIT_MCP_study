@@ -1,3 +1,20 @@
+---
+name: smoke-exhaust-review
+description: "在 Revit 中自動檢討建築物排煙窗是否符合法規要求，涵蓋無開口樓層判定、無窗居室判定、排煙窗有效面積計算、改善建議、視覺化標註、Excel 報告匯出。"
+metadata:
+  version: "1.0"
+  updated: "2026-04-05"
+  created: "2026-03-18"
+  contributors:
+    - "Alex Huang"
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by:
+    - smoke-exhaust
+  tags: []  # TODO: 月小聚補分類關鍵字
+---
+
 # 排煙窗檢討 Domain
 
 ## 概述

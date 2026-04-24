@@ -76,7 +76,7 @@
 ### 3-1. csproj 設定
 讀取 `MCP/RevitMCP.csproj`，確認：
 - 包含 `Nice3point.Revit.Sdk` 套件引用
-- 包含 `<DeployAddin>true</DeployAddin>`
+- 包含 `<DeployAddin>false</DeployAddin>`
 - Configurations 包含：`Release.R22;Release.R23;Release.R24;Release.R25;Release.R26`
 
 ### 3-2. addin 設定
@@ -143,6 +143,48 @@ node -e "const ws = new (require('ws'))('ws://localhost:8964'); ws.on('open', ()
 
 ---
 
+## Phase 6：內容品質 Lint（任何 OS）
+
+驗證 `domain/*.md` 的 frontmatter 完整性與交叉引用一致性。規範詳見 `domain/frontmatter-standard.md`。
+
+### 掃描範圍
+- 所有 `domain/*.md`
+- **排除**：`domain/README.md`、`domain/frontmatter-standard.md`（meta 文件）
+
+### 6-1 Frontmatter 存在性
+每份檔案必須以 `---\n` 開頭（YAML frontmatter 分隔符）。
+> 若否 → 執行 `python3 scripts/backfill-domain-metadata.py` 可自動補齊。
+
+### 6-2 必填欄位完整性
+Frontmatter 必須包含：
+- `name`（對應檔名，不含副檔名）
+- `description`（1-1024 字元，非空）
+
+### 6-3 metadata 完整性
+`metadata:` nested map 必須包含：
+- `metadata.version`
+- `metadata.updated`
+
+### 6-4 `related` 指向驗證
+`metadata.related` 列出的每個檔名，必須在 `domain/` 真實存在。
+
+### 6-5 `referenced_by` 反向驗證
+`metadata.referenced_by` 列出的每個 skill 名，對應的 `.claude/skills/{name}/SKILL.md` 必須存在，且其 `## Reference` 段落必須引用本 domain。
+
+### 6-6 Staleness 警告（informational）
+`metadata.updated` 距今 > 12 個月 → 在報告中標記為 ⚠️ 警告（**非 FAIL**，僅提醒月小聚時檢視是否需翻修）。
+
+### 執行方式
+- 手動：AI 執行本指令時，Read 每個 domain/*.md 的 frontmatter 部分（前 ~30 行），逐項核對
+- 自動：未來可擴充為獨立 script（本 MVP 暫不做）
+
+### 失敗類型
+- **6-1 ~ 6-3 失敗** → FAIL（需要立即補 frontmatter）
+- **6-4 ~ 6-5 失敗** → FAIL（交叉引用壞掉，資料一致性問題）
+- **6-6 觸發** → ⚠️ WARN（不是 FAIL，但建議月小聚審視）
+
+---
+
 ## 報告輸出格式
 
 完成所有檢查後，輸出結構化報告：
@@ -158,10 +200,13 @@ node -e "const ws = new (require('ws'))('ws://localhost:8964'); ws.on('open', ()
 ║  Phase 3 — 建構設定    : ✅ X/X PASS       ║
 ║  Phase 4 — 建構驗證    : ⏳ 需要 Windows   ║
 ║  Phase 5 — 部署驗證    : ⏳ 需要 Windows   ║
+║  Phase 6 — 內容品質    : ⚠️ A/B PASS (C⚠️) ║
 ╠══════════════════════════════════════════════╣
 ║  Total: XX/XX PASS | X FAIL | X PENDING     ║
 ╚══════════════════════════════════════════════╝
 ```
+
+Phase 6 欄位說明：A = 通過 6-1 ~ 6-5 的檔數、B = 總檔數、C = 觸發 staleness 警告的檔數。
 
 如有 FAIL 項目，每個都必須附上：
 1. 失敗的具體檢查項

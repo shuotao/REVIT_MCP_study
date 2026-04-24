@@ -42,12 +42,14 @@ Then stop.
 1. **Check source DLL**: Verify `MCP/bin/Release.R{YY}/RevitMCP.dll` exists (where `{YY}` matches the target version, e.g. `Release.R24` for Revit 2024).
    - If missing → tell user to run `/build-revit --version {version}` first, then stop.
 
-2. **Warn before copy**: Display:
-   ```
-   ⚠️  Close Revit before continuing.
-       The DLL cannot be overwritten while Revit is running.
-   ```
-   Ask: `Ready to deploy? (y/n)` — stop if user says no.
+2. **Check if Revit is running**: Run `tasklist | grep -i revit` to detect Revit process.
+   - **Revit NOT running** → Skip warning, proceed directly to step 3.
+   - **Revit IS running** → Display:
+     ```
+     ⚠️  Revit is currently running. The DLL cannot be overwritten while Revit is open.
+         Please close Revit before continuing.
+     ```
+     Ask: `Ready to deploy? (y/n)` — stop if user says no.
 
 3. **Create target directory** if it doesn't exist:
    ```powershell

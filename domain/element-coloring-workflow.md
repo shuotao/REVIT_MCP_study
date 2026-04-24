@@ -1,5 +1,18 @@
 ---
-description: 元素上色工作流程 - 根據參數值對 Revit 元素進行顏色標記
+name: element-coloring-workflow
+description: "元素上色工作流程：根據參數值對 Revit 元素進行顏色標記與視覺化。當使用者提到上色、顏色標示、colorize、視覺化標記、圖形覆寫時觸發。"
+metadata:
+  version: "1.0"
+  updated: "2025-12-17"
+  created: "2025-12-17"
+  contributors:
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by:
+    - element-coloring
+    - element-query
+  tags: [上色, 顏色標示, colorize, 視覺化, 圖形覆寫, override]
 ---
 
 # 元素上色工作流程

@@ -1,7 +1,17 @@
 ---
 name: fire-rating-check
 description: 執行建築防火等級檢查流程。當用戶提到「防火」「耐燃」「消防」「防火時效」時啟用。
-tags: [防火, 消防, 法規, 材質]
+metadata:
+  version: "1.0"
+  updated: "2026-01-04"
+  created: "2026-01-04"
+  contributors:
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by:
+    - fire-safety-check
+  tags: [防火, 消防, 法規, 材質]
 ---
 
 # 防火等級檢查流程

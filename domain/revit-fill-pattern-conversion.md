@@ -1,7 +1,16 @@
 ---
-title: Revit 填滿圖案：製圖轉模型樣式 (Drafting to Model)
-category: Revit API / BIM Workflow
-tags: [Revit, FillPattern, Drafting, Model, Automation]
+name: revit-fill-pattern-conversion
+description: "Revit 填滿圖案：製圖轉模型樣式 (Drafting to Model) 工作流程。解決 Drafting Pattern 在視圖旋轉時紋理方向不跟隨模型旋轉的問題，將其轉為 Model Pattern。當使用者提到填充圖案、fill pattern、製圖樣式、模型樣式、drafting、model pattern、磁磚紋理時觸發。"
+metadata:
+  version: "1.0"
+  updated: "2026-04-02"
+  created: "2026-04-02"
+  contributors:
+    - "unknown"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  tags: [Revit, FillPattern, Drafting, Model, Automation, 填充圖案, 製圖樣式, 模型樣式]
 ---
 
 # Revit 填滿圖案：製圖轉模型樣式 (Drafting to Model)

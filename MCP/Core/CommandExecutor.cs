@@ -360,6 +360,25 @@ namespace RevitMCP.Core
                         result = TraceStairGeometry(parameters);
                         break;
 
+                    case "get_linked_models":
+                        result = GetLinkedModels();
+                        break;
+                    case "query_linked_elements":
+                        result = QueryLinkedElements(parameters);
+                        break;
+                    case "get_element_geometry":
+                        result = GetElementGeometry(parameters);
+                        break;
+                    case "detect_clashes":
+                        result = DetectClashes(parameters);
+                        break;
+                    case "colorize_clashes":
+                        result = ColorizeClashes(parameters);
+                        break;
+                    case "export_clash_report":
+                        result = ExportClashReport(parameters);
+                        break;
+
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
                 }
@@ -3538,6 +3557,43 @@ namespace RevitMCP.Core
                     Message = $"成功在 {pipe.Name} 安裝 {symbol.Name}"
                 };
             }
+        }
+
+        #endregion
+
+        #region Clash Detection (MEP vs CSA)
+
+        private object GetLinkedModels()
+        {
+            return new LinkedModelHelper(_uiApp).GetLinkedModels();
+        }
+
+        private object QueryLinkedElements(JObject parameters)
+        {
+            return new LinkedModelHelper(_uiApp).QueryLinkedElements(parameters);
+        }
+
+        private object GetElementGeometry(JObject parameters)
+        {
+            return new LinkedModelHelper(_uiApp).GetElementGeometry(parameters);
+        }
+
+        private object DetectClashes(JObject parameters)
+        {
+            var linkHelper = new LinkedModelHelper(_uiApp);
+            return new ClashDetector(_uiApp, linkHelper).DetectClashes(parameters);
+        }
+
+        private object ColorizeClashes(JObject parameters)
+        {
+            var linkHelper = new LinkedModelHelper(_uiApp);
+            return new ClashDetector(_uiApp, linkHelper).ColorizeClashes(parameters);
+        }
+
+        private object ExportClashReport(JObject parameters)
+        {
+            var linkHelper = new LinkedModelHelper(_uiApp);
+            return new ClashDetector(_uiApp, linkHelper).ExportClashReport(parameters);
         }
 
         #endregion
