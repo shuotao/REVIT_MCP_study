@@ -20,21 +20,23 @@ namespace RevitMCP.Commands
         {
             try
             {
-                // 檢查目前狀態
-                bool isConnected = Application.IsServiceConnected();
+                // 以 IsServiceRunning() 判斷開關狀態（而非 IsServiceConnected，
+                // 後者依賴外部 MCP Server 已連線，會導致需按兩次才生效）
+                bool isRunning = Application.IsServiceRunning();
 
-                if (isConnected)
+                if (isRunning)
                 {
-                    // 如果已連線，則停止
+                    // 如果服務執行中，則停止
                     Application.StopMCPService();
                     Logger.Info("使用者手動停止 MCP 服務");
                     TaskDialog.Show("MCP 服務", "🔴 服務已停止");
                 }
                 else
                 {
-                    // 如果未連線，則啟動
+                    // 如果服務未執行，則啟動
                     Logger.Info("使用者手動啟動 MCP 服務");
                     Application.StartMCPService(commandData.Application);
+                    TaskDialog.Show("MCP 服務", "🟢 服務已啟動");
                 }
 
                 return Result.Succeeded;

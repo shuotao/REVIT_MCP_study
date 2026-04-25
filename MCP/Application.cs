@@ -10,6 +10,8 @@ namespace RevitMCP
     {
         private static CoreRuntimeManager _runtimeManager;
         private static UIApplication _uiApp;
+        private static ExternalEvent _reloadExternalEvent;
+        private static ReloadCoreEventHandler _reloadEventHandler;
 
         public static CoreRuntimeManager RuntimeManager => _runtimeManager;
         public static UIApplication UIApp => _uiApp;
@@ -22,6 +24,10 @@ namespace RevitMCP
                 _ = ConfigManager.Instance;
                 _runtimeManager = new CoreRuntimeManager();
                 
+                // 建立 Core Reload 的 ExternalEvent（必須在 Startup/UI 執行緒建立）
+                _reloadEventHandler = new ReloadCoreEventHandler();
+                _reloadExternalEvent = ExternalEvent.Create(_reloadEventHandler);
+
                 // 記錄啟動
                 Logger.Info("RevitMCP Plugin 正在啟動...");
 
@@ -181,6 +187,21 @@ namespace RevitMCP
             }
         }
 
+        /// <summary>
+        /// 從背景執行緒安全地觸發 Core Reload。
+        /// 只呼叫 ExternalEvent.Raise()，實際 ReloadCore() 在 Revit UI 執行緒執行。
+        /// </summary>
+        public static void RequestReloadCoreFromBackground()
+        {
+            if (_reloadExternalEvent == null)
+            {
+                Logger.Error("ReloadExternalEvent 尚未初始化");
+                return;
+            }
+            _reloadEventHandler.SetRuntimeManager(_runtimeManager, _uiApp);
+            _reloadExternalEvent.Raise();
+        }
+
         public static bool IsServiceConnected()
         {
             try
@@ -216,5 +237,38 @@ namespace RevitMCP
                 return false;
             }
         }
+    }
+
+    /// <summary>
+    /// ExternalEvent handler for reloading CoreRuntime from a background thread.
+    /// Execute() runs on the Revit UI thread, which satisfies ExternalEvent.Create() requirements.
+    /// </summary>
+    internal class ReloadCoreEventHandler : IExternalEventHandler
+    {
+        private CoreRuntimeManager _runtimeManager;
+        private UIApplication _uiApp;
+
+        public void SetRuntimeManager(CoreRuntimeManager runtimeManager, UIApplication uiApp)
+        {
+            _runtimeManager = runtimeManager;
+            _uiApp = uiApp;
+        }
+
+        public void Execute(UIApplication app)
+        {
+            try
+            {
+                if (_runtimeManager == null) return;
+                _runtimeManager.SetUIApplication(_uiApp ?? app);
+                _runtimeManager.ReloadCore();
+                Logger.Info("CoreRuntime 熱重載完成（ExternalEvent UI 執行緒）");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"ReloadCoreEventHandler.Execute 失敗: {ex.Message}", ex);
+            }
+        }
+
+        public string GetName() => "RevitMCP CoreRuntime Reload";
     }
 }

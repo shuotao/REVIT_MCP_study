@@ -10,6 +10,7 @@ namespace RevitMCP.CoreRuntime
     {
         private SocketService _socketService;
         private UIApplication _uiApplication;
+        private Action _reloadCallback;
 
         public bool IsRunning => _socketService != null && _socketService.IsRunning;
         public bool IsConnected => _socketService != null && _socketService.IsConnected;
@@ -70,8 +71,47 @@ namespace RevitMCP.CoreRuntime
             StopService();
         }
 
+        public void SetReloadCallback(Action reloadCallback)
+        {
+            _reloadCallback = reloadCallback;
+        }
+
         private void OnCommandReceived(object sender, Models.RevitCommandRequest request)
         {
+            // reload_core 由 Loader 負責執行，CoreRuntime 透過 callback 回呼
+            if (request.CommandName == "reload_core")
+            {
+                if (_reloadCallback == null)
+                {
+                    var errResp = new Models.RevitCommandResponse
+                    {
+                        Success = false,
+                        Error = "ReloadCallback 尚未設定（Loader 版本過舊？）",
+                        RequestId = request.RequestId
+                    };
+                    _socketService?.SendResponseAsync(errResp).ConfigureAwait(false);
+                    return;
+                }
+
+                // 先送回 ACK，再非同步觸發 reload
+                // reload 會呼叫 StopService()，必須等 response 送出後才能執行
+                var ackResp = new Models.RevitCommandResponse
+                {
+                    Success = true,
+                    Data = new { Message = "CoreRuntime 熱重載已觸發，請稍後確認版本" },
+                    RequestId = request.RequestId
+                };
+                _socketService?.SendResponseAsync(ackResp).GetAwaiter().GetResult();
+
+                var cb = _reloadCallback;
+                System.Threading.Tasks.Task.Run(async () =>
+                {
+                    await System.Threading.Tasks.Task.Delay(200);
+                    try { cb(); } catch { }
+                });
+                return;
+            }
+
             ExternalEventManager.Instance.ExecuteCommand((uiApp) =>
             {
                 try
