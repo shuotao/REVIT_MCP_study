@@ -38,6 +38,13 @@ npm-debug.log*
 # Agent/workflow files
 .agent/
 
+# AI client 本機設定
+.claude/settings.local.json
+.gemini/
+
+# 開發暫存腳本（非穩定，不該共享）
+MCP-Server/scratch/
+
 # Private User Guide (Excluded from Push)
 PRIVATE_INSTRUCTIONS.md
 
@@ -49,10 +56,6 @@ MCP/obj/
 
 # MCP 編譯輸出
 MCP/bin/
-MCP.Contracts/bin/
-MCP.Contracts/obj/
-MCP.CoreRuntime/bin/
-MCP.CoreRuntime/obj/
 
 # Result 資料夾（與此專案無關）
 result/
