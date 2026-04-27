@@ -81,3 +81,8 @@ MCP-Server/scripts/rooms_output.txt
 MCP-Server/scripts/exterior_wall_check_report.json
 MCP-Server/far_report.txt
 Recent_Update_Review.md
+
+# 個人 IDE / Obsidian workspace（不入庫）
+REVIT_MCP.code-workspace
+domain/MCP knowledge/
+
