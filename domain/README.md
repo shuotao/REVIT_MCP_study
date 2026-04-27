@@ -41,6 +41,7 @@
 | `session-context-guard.md` | AI 內部守衛 | 定義 AI 互動安全等級（L1-L3），是所有 Skill 的通用行為規範，不由使用者觸發 |
 | `tool-capability-boundary.md` | 工具邊界定義 | 定義 MCP 工具「不能做的事」（L1-L5 能力等級），防止 AI 嘗試超出能力的操作，是 meta-reference |
 | `path-maintenance-qa.md` | 內部維護指南 | 目錄重構後的路徑交叉參照檢查清單，是開發者維護用文件 |
+| `core-reload-boundary.md` | 開發流程知識 | 定義 Loader/Core 的熱重載邊界、重啟條件與效率估算，供日常開發與流程設計引用 |
 | `skill-authoring-standard.md` | Skill 品質規範 | 定義 Skill 編寫標準與品質要求，是 meta-reference |
 | `parking-auto-numbering.md` | 輔助工作流程 | 停車位自動編號邏輯，被 `parking-check` Skill 引用 |
 | `revit-fill-pattern-conversion.md` | 技術參考 | 填充圖案轉換規則，被多個 Skill 引用 |

@@ -53,7 +53,7 @@ else {
 Write-Host ""
 Write-Host "[Check 2b] Duplicate .addin Check (All Installed Versions)..." -ForegroundColor Cyan
 $appDataPath = $env:APPDATA
-$supportedVersions = @("2022", "2023", "2024", "2025", "2026")
+$supportedVersions = @("2020", "2021", "2022", "2023", "2024", "2025", "2026")
 $duplicateFound = $false
 foreach ($ver in $supportedVersions) {
     $addinsDir = Join-Path $appDataPath "Autodesk\Revit\Addins\$ver"
@@ -81,20 +81,31 @@ if (-not $duplicateFound) {
 Write-Host ""
 Write-Host "[Check 3] Built DLL..." -ForegroundColor Cyan
 $foundDll = $false
-if (Test-Path "$projectRoot\MCP\bin\Release\RevitMCP.dll") {
-    $dll = Get-Item "$projectRoot\MCP\bin\Release\RevitMCP.dll"
-    Write-Host "  FOUND: RevitMCP.dll (Unified Release)" -ForegroundColor Green
-    Write-Host "    Size: $($dll.Length) bytes" -ForegroundColor Gray
-    Write-Host "    Modified: $($dll.LastWriteTime)" -ForegroundColor Gray
-    $foundDll = $true
+$versionConfigMap = @{
+    "2020" = "Release.R20"
+    "2021" = "Release.R21"
+    "2022" = "Release.R22"
+    "2023" = "Release.R23"
+    "2024" = "Release.R24"
+    "2025" = "Release.R25"
+    "2026" = "Release.R26"
 }
-elseif (Test-Path "$projectRoot\MCP\bin\Release.2024\RevitMCP.dll") {
-    Write-Host "  FOUND: RevitMCP.dll (Legacy 2024 Release)" -ForegroundColor Yellow
-    $foundDll = $true
+
+foreach ($entry in $versionConfigMap.GetEnumerator() | Sort-Object Key) {
+    $dllPath = Join-Path $projectRoot "MCP\bin\$($entry.Value)\RevitMCP.dll"
+    if (Test-Path $dllPath) {
+        $dll = Get-Item $dllPath
+        Write-Host "  FOUND: Revit $($entry.Key) DLL ($($entry.Value))" -ForegroundColor Green
+        Write-Host "    Path: $dllPath" -ForegroundColor Gray
+        Write-Host "    Size: $($dll.Length) bytes" -ForegroundColor Gray
+        Write-Host "    Modified: $($dll.LastWriteTime)" -ForegroundColor Gray
+        $foundDll = $true
+    }
 }
-else {
+
+if (-not $foundDll) {
     Write-Host "  WARNING: DLL not built yet" -ForegroundColor Yellow
-    Write-Host "    Need to run: dotnet build -c Release.R24 RevitMCP.csproj" -ForegroundColor Gray
+    Write-Host "    Need to run: dotnet build -c Release.R20 RevitMCP.csproj" -ForegroundColor Gray
 }
 
 # Check 4: Install Script
@@ -120,6 +131,8 @@ Write-Host ""
 if (-not $foundDll) {
     Write-Host "1. Build the project (choose your Revit version):" -ForegroundColor Yellow
     Write-Host "   cd `"$projectRoot\MCP`"" -ForegroundColor Gray
+    Write-Host "   dotnet build -c Release.R20 RevitMCP.csproj   # Revit 2020" -ForegroundColor Gray
+    Write-Host "   dotnet build -c Release.R21 RevitMCP.csproj   # Revit 2021" -ForegroundColor Gray
     Write-Host "   dotnet build -c Release.R22 RevitMCP.csproj   # Revit 2022" -ForegroundColor Gray
     Write-Host "   dotnet build -c Release.R24 RevitMCP.csproj   # Revit 2024" -ForegroundColor Gray
     Write-Host "   dotnet build -c Release.R25 RevitMCP.csproj   # Revit 2025" -ForegroundColor Gray
@@ -128,7 +141,7 @@ if (-not $foundDll) {
 }
 
 Write-Host "2. Run installation:" -ForegroundColor Yellow
-Write-Host "   .\scripts\install-addon-bom.ps1" -ForegroundColor Gray
+Write-Host "   .\scripts\install-addon.ps1" -ForegroundColor Gray
 Write-Host ""
 
 Write-Host "3. Verify in Revit:" -ForegroundColor Yellow

@@ -97,20 +97,46 @@ function Release-HttpSysPort {
             # Requires Administrator
             $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
             if (-not $isAdmin) {
-                Write-Host "  [!!] Administrator privileges required to restart HTTP service" -ForegroundColor Red
-                Write-Host "  [!!] Please re-run as Administrator, or manually execute:" -ForegroundColor Red
-                Write-Host "       net stop http /y && net start http" -ForegroundColor Cyan
+                Write-Host "  [!!] Administrator privileges required to release HTTP.sys port" -ForegroundColor Red
+                Write-Host "  [!!] Please re-run as Administrator, or manually execute (one line at a time):" -ForegroundColor Red
+                Write-Host "       netsh http show urlacl url=http://+:$Port/" -ForegroundColor Cyan
+                Write-Host "       netsh http delete urlacl url=http://+:$Port/" -ForegroundColor Cyan
+                Write-Host "       (If above shows no reservation, try: netsh http delete urlacl url=http://localhost:$Port/)" -ForegroundColor Cyan
                 return $false
             }
 
+            # Strategy 1: Try netsh urlacl deletion first (precise, no service restart needed)
+            try {
+                $urlVariants = @("http://+:$Port/", "http://localhost:$Port/", "http://*:$Port/")
+                foreach ($url in $urlVariants) {
+                    $showResult = netsh http show urlacl url=$url 2>&1
+                    if ($showResult -match "Reserved URL") {
+                        if (-not $Silent) {
+                            Write-Host "  [..] Found URL reservation: $url - deleting..." -ForegroundColor Yellow
+                        }
+                        $null = netsh http delete urlacl url=$url 2>&1
+                        Start-Sleep -Milliseconds 500
+                        if (-not (Test-PortInUse -Port $Port)) {
+                            if (-not $Silent) {
+                                Write-Host "  [OK] URL reservation removed, Port $Port released" -ForegroundColor Green
+                            }
+                            return $true
+                        }
+                    }
+                }
+            } catch { }
+
+            # Strategy 2: Restart HTTP service (stop dependent services first)
             try {
                 # Stop HTTP service (/y auto-confirms dependent services)
                 $null = net stop http /y 2>&1
-                Start-Sleep -Seconds 1
+                Start-Sleep -Seconds 2
 
                 # Restart HTTP service
                 $null = net start http 2>&1
-                Start-Sleep -Milliseconds 500
+                Start-Sleep -Seconds 1
+                # Restart Print Spooler if it was stopped
+                $null = net start spooler 2>&1
 
                 if (-not (Test-PortInUse -Port $Port)) {
                     if (-not $Silent) {
@@ -127,7 +153,7 @@ function Release-HttpSysPort {
             }
             catch {
                 if (-not $Silent) {
-                    Write-Host "  [!!] Failed to restart HTTP service: $_" -ForegroundColor Red
+                    Write-Host "  [!!] Failed to release port: $_" -ForegroundColor Red
                 }
                 return $false
             }
