@@ -10,8 +10,8 @@
     <DeployAddin>false</DeployAddin>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <Configurations>
-      Debug.R22;Debug.R23;Debug.R24;Debug.R25;Debug.R26;
-      Release.R22;Release.R23;Release.R24;Release.R25;Release.R26
+      Debug.R20;Debug.R21;Debug.R22;Debug.R23;Debug.R24;Debug.R25;Debug.R26;
+      Release.R20;Release.R21;Release.R22;Release.R23;Release.R24;Release.R25;Release.R26
     </Configurations>
   </PropertyGroup>
 
@@ -21,5 +21,25 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="ClosedXML" Version="0.102.3" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MCP.Contracts\MCP.Contracts.csproj" />
+  </ItemGroup>
+
+  <Target Name="BuildCoreRuntime" BeforeTargets="Build">
+    <MSBuild
+      Projects="..\MCP.CoreRuntime\MCP.CoreRuntime.csproj"
+      Targets="Restore;Build"
+      Properties="Configuration=$(Configuration)" />
+  </Target>
+
+  <Target Name="CopyCoreRuntimeArtifacts" AfterTargets="Build">
+    <MakeDir Directories="$(OutDir)runtime" />
+    <Delete Files="$(OutDir)runtime\MCP.Contracts.dll" ContinueOnError="true" />
+    <Copy
+      SourceFiles="..\MCP.CoreRuntime\bin\$(Configuration)\RevitMCP.CoreRuntime.dll"
+      DestinationFiles="$(OutDir)runtime\RevitMCP.CoreRuntime.dll"
+      SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>

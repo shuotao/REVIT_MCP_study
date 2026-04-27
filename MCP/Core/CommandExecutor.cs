@@ -360,6 +360,14 @@ namespace RevitMCP.Core
                         result = TraceStairGeometry(parameters);
                         break;
 
+                    case "get_recent_logs":
+                        result = GetRecentLogs(parameters);
+                        break;
+
+                    case "get_revit_version":
+                        result = GetRevitVersion();
+                        break;
+
                     case "get_linked_models":
                         result = GetLinkedModels();
                         break;
@@ -402,6 +410,61 @@ namespace RevitMCP.Core
         }
 
         #region 命令實作
+
+        /// <summary>
+        /// 取得目前執行的 Revit 版本資訊
+        /// </summary>
+        private object GetRevitVersion()
+        {
+            var app = _uiApp.Application;
+            return new
+            {
+                VersionNumber = app.VersionNumber,   // e.g. "2021"
+                VersionName   = app.VersionName,     // e.g. "Autodesk Revit 2021"
+                VersionBuild  = app.VersionBuild,    // e.g. "20201210_1515(x64)"
+            };
+        }
+
+        /// <summary>
+        /// 取得最近 N 行日誌（供測試腳本確認 Log Viewer 訊息）
+        /// </summary>
+        private object GetRecentLogs(JObject parameters)
+        {
+            int lines = parameters["lines"]?.Value<int>() ?? 50;
+            string since = parameters["since"]?.Value<string>();
+
+            string logPath = Logger.GetLogPath();
+            if (!System.IO.File.Exists(logPath))
+                return new { LogPath = logPath, Lines = new string[0] };
+
+            // 使用 FileShare.ReadWrite 以相容 Logger 正在寫入的狀況
+            string[] allLines;
+            using (var fs = new System.IO.FileStream(logPath, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite))
+            using (var reader = new System.IO.StreamReader(fs, System.Text.Encoding.UTF8))
+            {
+                allLines = reader.ReadToEnd().Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            }
+
+            // 過濾空行
+            var filtered = allLines.Where(l => !string.IsNullOrWhiteSpace(l)).ToArray();
+
+            // since: 只保留 timestamp 在此之後的行（格式 "yyyy-MM-dd HH:mm:ss"）
+            if (!string.IsNullOrEmpty(since) && DateTime.TryParse(since, out var sinceTime))
+            {
+                filtered = filtered
+                    .Where(l => l.Length > 21 &&
+                                DateTime.TryParse(l.Substring(1, 19), out var t) &&
+                                t >= sinceTime)
+                    .ToArray();
+            }
+
+            // 取最後 N 行
+            var result = filtered.Length > lines
+                ? filtered.Skip(filtered.Length - lines).ToArray()
+                : filtered;
+
+            return new { LogPath = logPath, Lines = result };
+        }
 
         /// <summary>
         /// 建立牆
@@ -621,7 +684,8 @@ namespace RevitMCP.Core
                     curveLoop.Append(Line.CreateBound(start, end));
                 }
 
-                // 使用 Floor.Create (適用於 Revit 2022+)
+#if REVIT2022_OR_GREATER
+                // Revit 2022+ 寫法
                 Floor floor = Floor.Create(doc, new List<CurveLoop> { curveLoop }, floorType.Id, level.Id);
 
                 trans.Commit();
@@ -632,6 +696,10 @@ namespace RevitMCP.Core
                     Level = level.Name,
                     Message = $"成功建立樓板，ID: {floor.Id.GetIdValue()}"
                 };
+#else
+                // Revit 2020-2021 暫時不支援此功能（API 差異較大）
+                throw new NotSupportedException("Revit 2020-2021 暫未支援創建樓板功能。請升級至 Revit 2022 或更高版本。");
+#endif
             }
         }
 
@@ -2506,8 +2574,14 @@ namespace RevitMCP.Core
                         isNumeric = true;
                         double val = (p.StorageType == StorageType.Double) ? p.AsDouble() : p.AsInteger();
                         
-                        // 轉換為 mm (如果適用，Revit 2024 寫法)
+                        // 轉換為 mm (如果適用，版本相容)
+#if REVIT2022_OR_GREATER
+                        // Revit 2022+ 使用 ForgeTypeId API
                         if (p.Definition.GetDataType() == SpecTypeId.Length) val *= 304.8;
+#else
+                        // Revit 2020-2021 使用舊 ParameterType API
+                        if (p.Definition.ParameterType == ParameterType.Length) val *= 304.8;
+#endif
                         
                         if (val < min) min = val;
                         if (val > max) max = val;

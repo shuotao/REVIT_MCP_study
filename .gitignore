@@ -63,10 +63,15 @@ result/
 # 建置與除錯暫存檔
 build_error*.txt
 build_log*.txt
+build_output*.txt
+build_r*.txt
 debug_*.txt
 debug_*.json
 daylight_report.txt
 exterior_wall_check_report.json
+
+# Core Reload 測試記錄（本機個人紀錄，不提交）
+MCP-Server/scripts/core-reload-results.jsonl
 
 # MCP-Server 暫存輸出
 MCP-Server/daylight_report.txt
