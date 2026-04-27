@@ -18,6 +18,17 @@ $passed = 0
 $warned = 0
 $failed = 0
 
+function Get-CommandPathOrNull {
+    param([string]$Name)
+    try {
+        $cmd = Get-Command $Name -ErrorAction Stop
+        return $cmd.Source
+    }
+    catch {
+        return $null
+    }
+}
+
 function Write-Check {
     param([string]$Name, [string]$Status, [string]$Detail = "")
     switch ($Status) {
@@ -51,7 +62,7 @@ Write-Host ""
 # ===== 1. Project Structure =====
 Write-Host "[1/8] Project Structure" -ForegroundColor White
 
-$projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$projectRoot = Split-Path -Parent $PSScriptRoot
 if (-not $projectRoot) { $projectRoot = (Get-Location).Path }
 
 $requiredPaths = @(
@@ -78,8 +89,20 @@ Write-Host ""
 Write-Host "[2/8] Node.js" -ForegroundColor White
 
 $nodeVersion = $null
+$nodeExe = Get-CommandPathOrNull -Name "node"
+if (-not $nodeExe) {
+    $nodeCandidates = @(
+        (Join-Path $env:ProgramFiles "nodejs\node.exe"),
+        (Join-Path $env:LOCALAPPDATA "Programs\nodejs\node.exe")
+    )
+    $nodeExe = $nodeCandidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+}
+
 try {
-    $nodeVersion = (node --version 2>$null)
+    if ($nodeExe) {
+        $nodeVersion = (& $nodeExe --version 2>$null)
+    }
+
     if ($nodeVersion) {
         $major = [int]($nodeVersion -replace 'v','').Split('.')[0]
         if ($major -ge 20) {
@@ -93,8 +116,20 @@ try {
 }
 
 $npmVersion = $null
+$npmExe = Get-CommandPathOrNull -Name "npm"
+if (-not $npmExe -and $nodeExe) {
+    $nodeDir = Split-Path -Parent $nodeExe
+    $npmCandidate = Join-Path $nodeDir "npm.cmd"
+    if (Test-Path $npmCandidate) {
+        $npmExe = $npmCandidate
+    }
+}
+
 try {
-    $npmVersion = (npm --version 2>$null)
+    if ($npmExe) {
+        $npmVersion = (& $npmExe --version 2>$null)
+    }
+
     if ($npmVersion) {
         Write-Check "npm" "PASS" "v$npmVersion"
     }
@@ -111,7 +146,20 @@ $hasFramework48 = $false
 $hasNet8 = $false
 
 try {
-    $dotnetVersions = (dotnet --list-sdks 2>$null)
+    $dotnetExe = Get-CommandPathOrNull -Name "dotnet"
+    if (-not $dotnetExe) {
+        $dotnetCandidates = @(
+            (Join-Path $env:ProgramFiles "dotnet\dotnet.exe"),
+            (Join-Path $env:USERPROFILE ".dotnet\dotnet.exe")
+        )
+        $dotnetExe = $dotnetCandidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+    }
+
+    $dotnetVersions = $null
+    if ($dotnetExe) {
+        $dotnetVersions = (& $dotnetExe --list-sdks 2>$null)
+    }
+
     if ($dotnetVersions) {
         Write-Check "dotnet CLI" "PASS" "可用"
 
@@ -167,19 +215,27 @@ Write-Host ""
 Write-Host "[5/8] Revit Add-ins 資料夾" -ForegroundColor White
 
 $addinsBase = Join-Path $env:APPDATA "Autodesk\Revit\Addins"
+$supportedVersions = @("2020", "2021", "2022", "2023", "2024", "2025", "2026")
 $detectedVersions = @()
+$unsupportedDetectedVersions = @()
 
 if (Test-Path $addinsBase) {
     $versionFolders = Get-ChildItem $addinsBase -Directory -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -match "^20(2[2-6])$" }
+        Where-Object { $_.Name -match "^20\d\d$" }
 
     foreach ($folder in $versionFolders) {
-        $detectedVersions += $folder.Name
-        Write-Check "Revit $($folder.Name) Addins 資料夾" "PASS" $folder.FullName
+        if ($folder.Name -in $supportedVersions) {
+            $detectedVersions += $folder.Name
+            Write-Check "Revit $($folder.Name) Addins 資料夾" "PASS" $folder.FullName
+        }
+        else {
+            $unsupportedDetectedVersions += $folder.Name
+            Write-Check "Revit $($folder.Name) Addins 資料夾" "WARN" "已偵測到，但目前腳本僅支援部署 2020-2026"
+        }
     }
 
-    if ($detectedVersions.Count -eq 0) {
-        Write-Check "Revit Addins" "WARN" "找到 Addins 根目錄但無 2022-2026 版本資料夾（Revit 可能未安裝）"
+    if ($detectedVersions.Count -eq 0 -and $unsupportedDetectedVersions.Count -eq 0) {
+        Write-Check "Revit Addins" "WARN" "找到 Addins 根目錄但無 Revit 版本資料夾（Revit 可能未安裝）"
     }
 } else {
     Write-Check "Revit Addins 資料夾" "WARN" "不存在：$addinsBase（Revit 可能未安裝在此電腦）"
@@ -211,15 +267,23 @@ Write-Host ""
 # ===== 7. Revit Add-in Build =====
 Write-Host "[7/8] Revit Add-in 建構狀態" -ForegroundColor White
 
-$dllRelease = Join-Path $projectRoot "MCP/bin/Release/RevitMCP.dll"
-$dllDebug = Join-Path $projectRoot "MCP/bin/Debug/RevitMCP.dll"
+$dllCandidates = @(
+    @{ Path = Join-Path $projectRoot "MCP/bin/Release.R20/RevitMCP.dll"; Label = "Release.R20" },
+    @{ Path = Join-Path $projectRoot "MCP/bin/Release.R21/RevitMCP.dll"; Label = "Release.R21" },
+    @{ Path = Join-Path $projectRoot "MCP/bin/Release.R22/RevitMCP.dll"; Label = "Release.R22" },
+    @{ Path = Join-Path $projectRoot "MCP/bin/Release.R23/RevitMCP.dll"; Label = "Release.R23" },
+    @{ Path = Join-Path $projectRoot "MCP/bin/Release.R24/RevitMCP.dll"; Label = "Release.R24" },
+    @{ Path = Join-Path $projectRoot "MCP/bin/Release.R25/RevitMCP.dll"; Label = "Release.R25" },
+    @{ Path = Join-Path $projectRoot "MCP/bin/Release.R26/RevitMCP.dll"; Label = "Release.R26" }
+)
 
-if (Test-Path $dllRelease) {
-    $buildTime = (Get-Item $dllRelease).LastWriteTime
-    Write-Check "RevitMCP.dll (Release)" "PASS" "已建構（$buildTime）"
-} elseif (Test-Path $dllDebug) {
-    $buildTime = (Get-Item $dllDebug).LastWriteTime
-    Write-Check "RevitMCP.dll (Debug)" "WARN" "僅有 Debug 版本（$buildTime）。建議用 Release 建構"
+$builtDlls = @($dllCandidates | Where-Object { Test-Path $_.Path })
+
+if ($builtDlls.Count -gt 0) {
+    foreach ($dll in $builtDlls) {
+        $buildTime = (Get-Item $dll.Path).LastWriteTime
+        Write-Check "RevitMCP.dll ($($dll.Label))" "PASS" "已建構（$buildTime）"
+    }
 } else {
     Write-Check "RevitMCP.dll" "FAIL" "未建構。請執行：cd MCP && dotnet build -c Release.R{YY} RevitMCP.csproj"
 }
@@ -237,6 +301,10 @@ if ($deployedTo.Count -gt 0) {
     Write-Check "已部署到 Revit" "PASS" "版本：$($deployedTo -join ', ')"
 } elseif ($detectedVersions.Count -gt 0) {
     Write-Check "已部署到 Revit" "WARN" "DLL 尚未部署到任何 Revit 版本"
+}
+
+if ($unsupportedDetectedVersions.Count -gt 0) {
+    Write-Check "不在支援矩陣的版本" "WARN" "已偵測：$($unsupportedDetectedVersions -join ', ')（目前僅支援部署 2020-2026）"
 }
 
 Write-Host ""
@@ -301,7 +369,7 @@ if ($failed -eq 0 -and $warned -eq 0) {
     if (-not (Test-Path (Join-Path $projectRoot "MCP-Server/node_modules"))) {
         Write-Host "    cd MCP-Server && npm install && npm run build" -ForegroundColor Gray
     }
-    if (-not (Test-Path $dllRelease) -and -not (Test-Path $dllDebug)) {
+    if ($builtDlls.Count -eq 0) {
         Write-Host "    cd MCP && dotnet build -c Release.R24 RevitMCP.csproj" -ForegroundColor Gray
     }
 }
