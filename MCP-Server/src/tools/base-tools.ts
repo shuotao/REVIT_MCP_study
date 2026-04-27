@@ -202,4 +202,21 @@ export const baseTools: Tool[] = [
             required: ["category"],
         },
     },
+    // === Revit 環境資訊 ===
+    {
+        name: "get_revit_version",
+        description: "取得目前執行中的 Revit 版本資訊（VersionNumber、VersionName、VersionBuild）。AI agent 應在工作開始前呼叫此工具，確認當前 Revit 版本，避免將資料部署到錯誤路徑。",
+        inputSchema: { type: "object", properties: {} },
+    },
+    {
+        name: "get_recent_logs",
+        description: "讀取 RevitMCP 今日日誌檔的最近 N 行，可用 since 時間戳篩選。適合測試腳本確認 CoreRuntime 熱重載訊息，或 AI 診斷 Revit 端錯誤。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                lines: { type: "number", description: "回傳最後 N 行（預設 50）", default: 50 },
+                since: { type: "string", description: "只回傳此時間之後的行，格式 'yyyy-MM-dd HH:mm:ss'" },
+            },
+        },
+    },
 ];
