@@ -9,7 +9,7 @@
 | **`domain/`** | 領域知識與工作流程 SOP | AI Agent |
 | **`教材/`** | 教學講義、投影片、學習筆記 | 學生 / 老師 |
 | **`.claude/commands/`** | 斜線命令定義（`/lessons`、`/domain`、`/qaqc` 等） | AI Agent + 貢獻者 |
-| **`.claude/skills/`** | AI 技能編排（18 個 Skill，關鍵字觸發） | AI Agent |
+| **`.claude/skills/`** | AI 技能編排（19 個 Skill，關鍵字觸發） | AI Agent |
 | **`log/`** | 事件日誌流水帳（跨 AI 自動維護） | AI Agent + 維護者 |
 
 ---
@@ -81,7 +81,7 @@
 | 子目錄 | 用途 | 觸發方式 |
 |--------|------|---------|
 | `.claude/commands/` | 斜線命令定義（`/lessons`、`/domain`、`/qaqc`、`/review`、`/dev-guide`） | 使用者**手動**打斜線觸發 |
-| `.claude/skills/` | AI 技能編排（18 個 Skill，例：`fire-safety-check`、`smoke-exhaust`） | 關鍵字**自動**觸發 |
+| `.claude/skills/` | AI 技能編排（19 個 Skill，例：`fire-safety-check`、`smoke-exhaust`） | 關鍵字**自動**觸發 |
 | `.claude/hooks/` | 自動化守衛（例：偵測 `git merge` 後自動提示 CLAUDE.md 同步驗證） | 事件**自動**觸發 |
 
 **與 `domain/` 的關係：**
