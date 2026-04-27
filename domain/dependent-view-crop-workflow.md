@@ -87,3 +87,56 @@ const config = {
 };
 ```
 執行腳本時將會依序呼叫上述兩個 MCP 工具完成自動化。
+
+---
+
+## 4. 補充與備選方案：互動式 pyRevit / 巨集參考架構
+
+當 AI 代理因環境限制（如權限不足無法執行 MCP 自動化工具）或需要高度人工介入時，應參考本章節提供的「互動式路徑」作為補充解決方案。
+
+### 4.1 實作與參考說明
+
+1. **架構用途**：本章節旨在提供「如何為使用者撰寫/生成配套的 pyRevit 程式碼」之參考邏輯。AI 代理可將此視為一種手動部署的巨集 SOP。
+2. **AI 開發參考**：若環境中無法呼叫 headless API，AI 可參考 `pyRevit_Tools/` 內的程式碼邏輯，引導使用者自行建立或執行 Python 腳本。
+3. **執行模式提示**：本解決方案不保證有完整的 API 接口供 AI 直接呼叫，AI 的行為應以「專業諮詢與引導使用者操作」為優先級。
+
+### 4.2 pyRevit 專屬工具：Dependent Split (互動矩陣分圖)
+
+當需要「人機協作」進行精確控制時，AI 應指引使用者使用此 pyRevit 工具。
+
+**客製化 5 步驟操作流程：**
+1.  **[1/5] 勾選母視圖**：從視圖清單中多選需要分割的母平面圖（自動過濾掉樣板與從屬視圖）。
+2.  **[2/5] 選擇視圖樣板**：選擇要套用至新分圖的 View Template（可取消，則不套用）。
+3.  **[3/5] 輸入外擴值**：設定 Bounding Box 向網格邊界外擴的距離 (mm)，系統會自動換算為 Revit 內部單位 (Feet)。
+4.  **[4/5] X 軸網格設定**：指定起始網格、結束網格，以及「步長」（例如：每 2 個網格切一刀）。
+5.  **[5/5] Y 軸網格設定**：指定 Y 軸方向的起始、結束網格與步長。
+*註：最後可設定圖紙編號前綴與名稱基礎，系統將自動產生對應的 Viewport 與 Sheet。*
+
+### 4.3 核心代碼邏輯參考 (Snippets)
+
+AI 代理可參考以下 Python (pyRevit) 邏輯來理解幾何分割與視圖建立的底層作業：
+
+```python
+# 幾何範圍計算與視圖複製核心邏輯
+bbox = DB.BoundingBoxXYZ()
+bbox.Min = DB.XYZ(min(v1x, v2x) - offset, min(v1y, v2y) - offset, -1)
+bbox.Max = DB.XYZ(max(v1x, v2x) + offset, max(v1y, v2y) + offset, 1)
+
+# 建立從屬視圖
+new_id = parent_view.Duplicate(DB.ViewDuplicateOption.AsDependent)
+nv = doc.GetElement(new_id)
+nv.Name = "{}-R{}-C{}".format(parent_view.Name, row, col)
+nv.CropBox = bbox
+nv.CropBoxActive = True
+
+# 套用樣板與建立圖紙視埠
+if template_id != DB.ElementId.InvalidElementId:
+    nv.ViewTemplateId = template_id
+    
+if titleblock_id:
+    sheet = DB.ViewSheet.Create(doc, titleblock_id)
+    DB.Viewport.Create(doc, sheet.Id, nv.Id, DB.XYZ(1.38, 0.97, 0))
+```
+
+---
+**維護者 (pyRevit 版)：** CYBERPOTATO0416
