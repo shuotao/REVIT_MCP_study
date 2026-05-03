@@ -396,6 +396,38 @@ namespace RevitMCP.Core
                     case "create_floor_plans_from_template":
                         result = CreateFloorPlansFromTemplate(parameters);
                         break;
+                    case "batch_apply_view_template":
+                        result = BatchApplyViewTemplate(parameters);
+                        break;
+
+                    // === ScopeBox 模組 ===
+                    case "set_scope_box_for_views":
+                        result = SetScopeBoxForViews(parameters);
+                        break;
+
+                    // === Viewport 定位模組 ===
+                    case "position_viewports_on_sheet":
+                        result = PositionViewportsOnSheet(parameters);
+                        break;
+                    case "debug_viewport_geometry":
+                        result = DebugViewportGeometry(parameters);
+                        break;
+
+                    // === 跨文件圖紙複製模組 ===
+                    case "read_source_file_sheets":
+                        result = ReadSourceFileSheets(parameters);
+                        break;
+                    case "copy_sheets_from_file":
+                        result = CopySheetsFromFile(parameters);
+                        break;
+                    case "sync_sheet_parameters_from_source":
+                        result = SyncSheetParametersFromSource(parameters);
+                        break;
+
+                    // === 詳圖項目複製模組 ===
+                    case "copy_detail_items_to_views":
+                        result = CopyDetailItemsToViews(parameters);
+                        break;
 
                     // === 材質批次修改模組 ===
                     case "get_types_by_category":
@@ -733,12 +765,33 @@ namespace RevitMCP.Core
                         success = param.Set(value);
                         break;
                     case StorageType.Double:
-                        if (double.TryParse(value, out double dVal))
-                            success = param.Set(dVal);
+                        // 先嘗試 SetValueString — 它會以專案的「顯示單位」(mm/cm/m) 解析，
+                        // 使用者送 "3800" 在 mm 顯示單位下會正確存成 3800mm。
+                        // 若 SetValueString 拒絕（少數參數不支援，會回 false），fallback 視為 mm 換算內部單位（feet）。
+                        if (param.SetValueString(value))
+                        {
+                            success = true;
+                        }
+                        else if (double.TryParse(value, out double mmVal))
+                        {
+                            // mm → ft (Revit internal unit for length)
+                            success = param.Set(mmVal / 304.8);
+                        }
                         break;
                     case StorageType.Integer:
                         if (int.TryParse(value, out int iVal))
                             success = param.Set(iVal);
+                        break;
+                    case StorageType.ElementId:
+                        // 例如 Base Constraint / Top Constraint：以 Level 名稱查 ElementId
+                        Element levelEl = new FilteredElementCollector(doc)
+                            .OfClass(typeof(Level))
+                            .Cast<Level>()
+                            .FirstOrDefault(l => l.Name == value);
+                        if (levelEl != null)
+                        {
+                            success = param.Set(levelEl.Id);
+                        }
                         break;
                     default:
                         throw new Exception($"不支援的參數類型: {param.StorageType}");

@@ -83,12 +83,22 @@ Monitor(
 5. 超時（300 秒無事件）→ 提示「網頁預覽逾時，請重新觸發 Skill 或在網頁按 OK / Redo」並結束
 
 ### 階段 4：建模參數詢問
+
 1. `mcp__revit-mcp__get_selected_elements` → 錨點
 2. 並行：
+   - `mcp__revit-mcp__get_active_view` → 取 `LevelName`（active view 的關聯樓層）
    - `mcp__revit-mcp__get_all_levels`
    - `mcp__revit-mcp__get_wall_types`
    - `mcp__revit-mcp__get_column_types`
-3. `AskUserQuestion` 一次問 4 題：RC15 牆型、磚12 牆型、柱型、bottom/top Level
+3. **由 active view 推導 bottom/top Level**：
+   - 從 `get_active_view` 拿 `LevelName`，那就是 `bottomLevel`
+   - 把 `get_all_levels` 結果依 `Elevation` 升冪排序，找到 `bottomLevel` 的下一個 → `topLevel`
+   - 若是頂樓（沒有下一個 level）→ fallback 到 4-題版（向使用者確認）
+   - 若 active view 沒有關聯 level（例如 3D / Drafting / Sheet view）→ `LevelName` 為空字串，fallback 到 4-題版
+4. **正常情況只問 3 題**（用 `AskUserQuestion`）：RC15 牆型、磚12 牆型、柱型
+5. **fallback 4-題版**：RC15 牆型、磚12 牆型、柱型、bottom/top Level
+
+> 為什麼這樣改：使用者通常已經把 active view 切到要建模的樓層，再問一次 level 是多餘的。從 active view 推導同時也避免「使用者選錯 level → 牆建錯地方」。
 
 ### 階段 5：座標換算 + 50mm snap
 讀 `output/sketch_geometry.json`：
@@ -100,7 +110,8 @@ Monitor(
    - `mm_y = -(py - cy_px) * mmPerPx + Cy`（**Y 翻轉**）
 5. 50mm snap（順序：錨點→柱心→牆端點共線分組→自由端點），詳見 domain doc §7
 
-### 階段 6：Revit 批次建立 + C# bug workaround
+### 階段 6：Revit 批次建立 + 牆參數修正
+
 ```
 for col in columns:
   create_column(x, y, columnType, bottomLevel, topLevel)
@@ -108,14 +119,22 @@ for col in columns:
 for wall in walls:
   create_wall(startX, startY, endX, endY, height, wallType)
 
-# 因 C# CreateWall 忽略 wallType 與 bottomLevel：
+# C# CreateWall 仍忽略 wallType — 用 change_element_type 修正：
 change_element_type(elementIds=[<RC15 wall ids>], typeId=<RC15 typeId>)
 change_element_type(elementIds=[<BRICK12 wall ids>], typeId=<BRICK12 typeId>)
+
+# 設定每道牆的 Base/Top Constraint 為從 active view 推導的 level，
+# Base Offset / Top Offset 歸零 — 讓牆精確介於兩個樓層之間。
 for wall_id in all_walls:
-  modify_element_parameter(wall_id, "Base Offset", str(<bottomLevel高度mm>))
+  modify_element_parameter(wall_id, "Base Constraint", "<bottomLevelName>")
+  modify_element_parameter(wall_id, "Top Constraint",  "<topLevelName>")
+  modify_element_parameter(wall_id, "Base Offset", "0")
+  modify_element_parameter(wall_id, "Top Offset",  "0")
 
 unjoin_element_joins(sourceCategory="Walls", elementIds=[...])
 ```
+
+> 不再用「Base Offset = bottomLevel高度mm」的 hack。`modify_element_parameter` 已修正單位 bug（用 `SetValueString` 解析顯示單位），且新增 ElementId 型別支援（透過 level 名稱查 ElementId 設定 Constraint）。
 
 ### 階段 7：報告
 - 建立 N 柱、M 牆
@@ -137,7 +156,9 @@ unjoin_element_joins(sourceCategory="Walls", elementIds=[...])
 | port 被佔 | fallback 10003→10004→10005 |
 | 使用者忘了點 OK | 5 分鐘 timeout |
 | Python 命令不存在 | fallback `python` → `python3` |
-| C# CreateWall bug | 階段 6 已包含 workaround（type fix + Base Offset） |
+| C# CreateWall 忽略 wallType | 階段 6 用 `change_element_type` 修正（spawned task 追蹤底層 fix） |
+| Active view 沒關聯 level（3D / Drafting / Sheet） | 階段 4 fallback 4-題版，向使用者確認 bottom/top Level |
+| Active view 是頂樓（沒有更高 level） | 階段 4 fallback 4-題版 |
 | DXF 寫成 AC1009 舊格式 | AutoCAD/Revit 都支援，無需修改 |
 
 ## 實作參考
