@@ -289,7 +289,7 @@ namespace RevitMCP.Core
             // === Phase 2a：建立/找到複本材質（Transaction）===
             // origMatId → duplicateMatId
             var duplicateMap = new Dictionary<long, ElementId>();
-            using (Transaction t2a = new Transaction(doc, "複製原材質"))
+            using (Transaction t2a = TransactionHelper.Begin(doc, "複製原材質"))
             {
                 t2a.Start();
                 foreach (var kvp in planPerOrigMat)
@@ -329,7 +329,7 @@ namespace RevitMCP.Core
             var duplicatedMaterialsReport = new List<object>();
             int successCount = 0;
 
-            using (Transaction t3 = new Transaction(doc, "套用複本材質"))
+            using (Transaction t3 = TransactionHelper.Begin(doc, "套用複本材質"))
             {
                 t3.Start();
                 foreach (var kvp in planPerOrigMat)
@@ -596,7 +596,7 @@ namespace RevitMCP.Core
             if (mat == null)
                 throw new Exception($"找不到名為 '{matName}' 的材質");
 
-            using (Transaction trans = new Transaction(doc, "套用既有材質"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "套用既有材質"))
             {
                 trans.Start();
 
@@ -771,7 +771,7 @@ namespace RevitMCP.Core
         /// </summary>
         private void UpdateAppearanceAsset(Document doc, Material mat, Color color, double? roughness = null)
         {
-            using (Transaction t = new Transaction(doc, "更新 Appearance Asset"))
+            using (Transaction t = TransactionHelper.Begin(doc, "更新 Appearance Asset"))
             {
                 t.Start();
 

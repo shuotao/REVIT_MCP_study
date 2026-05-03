@@ -506,7 +506,7 @@ namespace RevitMCP.Core
             XYZ start = new XYZ(startX / 304.8, startY / 304.8, 0);
             XYZ end = new XYZ(endX / 304.8, endY / 304.8, 0);
 
-            using (Transaction trans = new Transaction(doc, "建立牆"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "建立牆"))
             {
                 trans.Start();
 
@@ -638,7 +638,7 @@ namespace RevitMCP.Core
             Document doc = _uiApp.ActiveUIDocument.Document;
             IdType elementId = parameters["elementId"]?.Value<IdType>() ?? 0;
 
-            using (Transaction trans = new Transaction(doc, "刪除元素"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "刪除元素"))
             {
                 trans.Start();
 
@@ -673,7 +673,7 @@ namespace RevitMCP.Core
                 throw new Exception("需要至少 3 個點來建立樓板");
             }
 
-            using (Transaction trans = new Transaction(doc, "建立樓板"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "建立樓板"))
             {
                 trans.Start();
 
@@ -743,7 +743,7 @@ namespace RevitMCP.Core
                 throw new Exception($"找不到元素 ID: {elementId}");
             }
 
-            using (Transaction trans = new Transaction(doc, "修改參數"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "修改參數"))
             {
                 trans.Start();
 
@@ -830,7 +830,7 @@ namespace RevitMCP.Core
                 throw new Exception($"找不到牆 ID: {wallId}");
             }
 
-            using (Transaction trans = new Transaction(doc, "建立門"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "建立門"))
             {
                 trans.Start();
 
@@ -888,7 +888,7 @@ namespace RevitMCP.Core
                 throw new Exception($"找不到牆 ID: {wallId}");
             }
 
-            using (Transaction trans = new Transaction(doc, "建立窗"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "建立窗"))
             {
                 trans.Start();
 
@@ -1048,7 +1048,7 @@ namespace RevitMCP.Core
             // 轉換座標（公釐 → 英尺）
             XYZ location = new XYZ(x / 304.8, y / 304.8, 0);
 
-            using (Transaction trans = new Transaction(doc, "建立柱子"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "建立柱子"))
             {
                 trans.Start();
 
@@ -1170,7 +1170,7 @@ namespace RevitMCP.Core
             // 轉換座標（公釐 → 英尺）
             XYZ location = new XYZ(x / 304.8, y / 304.8, 0);
 
-            using (Transaction trans = new Transaction(doc, "放置家具"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "放置家具"))
             {
                 trans.Start();
 
@@ -1881,7 +1881,7 @@ namespace RevitMCP.Core
                 throw new Exception($"找不到視圖 ID: {viewId}");
             }
 
-            using (Transaction trans = new Transaction(doc, "建立尺寸標註"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "建立尺寸標註"))
             {
                 trans.Start();
 
@@ -2039,7 +2039,7 @@ namespace RevitMCP.Core
             var measurements = new List<object>();
             var widthValues = new List<double>();
 
-            using (Transaction trans = new Transaction(doc, "走廊寬度標註"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "走廊寬度標註"))
             {
                 trans.Start();
 
@@ -2683,7 +2683,7 @@ namespace RevitMCP.Core
                                  view.ViewType == ViewType.EngineeringPlan);
             }
 
-            using (Transaction trans = new Transaction(doc, "Override Element Graphics"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "Override Element Graphics"))
             {
                 trans.Start();
 
@@ -2807,7 +2807,7 @@ namespace RevitMCP.Core
                 throw new Exception("請提供至少一個元素 ID");
             }
 
-            using (Transaction trans = new Transaction(doc, "Clear Element Override"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "Clear Element Override"))
             {
                 trans.Start();
 
@@ -2873,7 +2873,7 @@ namespace RevitMCP.Core
             if (validIds.Count == 0)
                 throw new Exception("沒有可隱藏的元素");
 
-            using (Transaction trans = new Transaction(doc, "Hide Elements"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "Hide Elements"))
             {
                 trans.Start();
                 view.HideElements(validIds);
@@ -2928,7 +2928,7 @@ namespace RevitMCP.Core
             if (validIds.Count == 0)
                 throw new Exception("找不到任何有效元素");
 
-            using (Transaction trans = new Transaction(doc, "Unhide Elements"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "Unhide Elements"))
             {
                 trans.Start();
                 view.UnhideElements(validIds);
@@ -2984,7 +2984,7 @@ namespace RevitMCP.Core
             }
             string resolvedName = category?.Name ?? categoryName;
 
-            using (Transaction trans = new Transaction(doc, hidden ? "Hide Category" : "Show Category"))
+            using (Transaction trans = TransactionHelper.Begin(doc, hidden ? "Hide Category" : "Show Category"))
             {
                 trans.Start();
                 view.SetCategoryHidden(categoryId, hidden);
@@ -3096,7 +3096,7 @@ namespace RevitMCP.Core
             int unjoinedCount = 0;
             _unjoinedPairs.Clear();
 
-            using (Transaction trans = new Transaction(doc, "Unjoin Wall Geometry"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "Unjoin Wall Geometry"))
             {
                 trans.Start();
 
@@ -3175,7 +3175,7 @@ namespace RevitMCP.Core
 
             int rejoinedCount = 0;
 
-            using (Transaction trans = new Transaction(doc, "Rejoin Wall Geometry"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "Rejoin Wall Geometry"))
             {
                 trans.Start();
 
@@ -3381,7 +3381,7 @@ namespace RevitMCP.Core
             var checker = new ExteriorWallOpeningChecker(doc);
             var allResults = new List<object>();
 
-            using (Transaction trans = new Transaction(doc, "外牆開口檢討"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "外牆開口檢討"))
             {
                 // 使用防禦性交易處理
                 bool isTransactionStarted = false;
@@ -3656,7 +3656,7 @@ namespace RevitMCP.Core
             string categoryName = parameters["category"]?.Value<string>();
             var fieldNames = parameters["fields"]?.ToObject<List<string>>() ?? new List<string>();
 
-            using (Transaction trans = new Transaction(doc, "建立明細表"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "建立明細表"))
             {
                 trans.Start();
 
@@ -3800,7 +3800,7 @@ namespace RevitMCP.Core
             Element pipe = doc.GetElement(new ElementId(pipeIdValue));
             if (pipe == null) throw new Exception("找不到管件");
 
-            using (Transaction trans = new Transaction(doc, "安裝管帽"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "安裝管帽"))
             {
                 trans.Start();
 

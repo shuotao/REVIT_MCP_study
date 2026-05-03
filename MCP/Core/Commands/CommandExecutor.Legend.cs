@@ -76,7 +76,7 @@ namespace RevitMCP.Core
 
             var results = new List<object>();
 
-            using (Transaction trans = new Transaction(doc, "批次建立 Legend"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "批次建立 Legend"))
             {
                 trans.Start();
 
@@ -583,7 +583,7 @@ namespace RevitMCP.Core
                 .Where(v => !v.IsTemplate)
                 .ToList();
 
-            using (Transaction trans = new Transaction(doc, "匯入 Excel 至 Drafting Views"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "匯入 Excel 至 Drafting Views"))
             {
                 trans.Start();
 

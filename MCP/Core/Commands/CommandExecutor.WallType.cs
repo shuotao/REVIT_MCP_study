@@ -73,7 +73,7 @@ namespace RevitMCP.Core
             if (elementIds.Count == 0)
                 throw new Exception("請提供至少一個元素 ID");
 
-            using (Transaction trans = new Transaction(doc, "變更元素類型"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "變更元素類型"))
             {
                 trans.Start();
 

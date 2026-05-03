@@ -240,7 +240,7 @@ namespace RevitMCP.Core
             byte b = Convert.ToByte(colorHex.Substring(4, 2), 16);
             Color revitColor = new Color(r, g, b);
 
-            using (Transaction trans = new Transaction(doc, "建立帷幕面板類型"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "建立帷幕面板類型"))
             {
                 trans.Start();
 
@@ -451,7 +451,7 @@ namespace RevitMCP.Core
             int failCount = 0;
             var failedPanels = new List<object>();
 
-            using (Transaction trans = new Transaction(doc, "套用帷幕面板排列"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "套用帷幕面板排列"))
             {
                 trans.Start();
 
@@ -610,7 +610,7 @@ namespace RevitMCP.Core
             double halfWallThickness = wall.Width / 2.0; // 已經是 feet
             XYZ wallExteriorStart = wallLine.GetEndPoint(0) + wallNormal * halfWallThickness;
 
-            using (Transaction trans = new Transaction(doc, $"建立立面面板: {panelName}"))
+            using (Transaction trans = TransactionHelper.Begin(doc, $"建立立面面板: {panelName}"))
             {
                 trans.Start();
 
@@ -1226,7 +1226,7 @@ namespace RevitMCP.Core
             var createdPanels = new List<object>();
             var failedPanels = new List<object>();
 
-            using (Transaction trans = new Transaction(doc, "建立立面面板組"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "建立立面面板組"))
             {
                 trans.Start();
 

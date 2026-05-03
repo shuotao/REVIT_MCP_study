@@ -113,7 +113,7 @@ namespace RevitMCP.Core
 
             List<object> results = new List<object>();
 
-            using (Transaction trans = new Transaction(doc, "批次建立從屬視圖"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "批次建立從屬視圖"))
             {
                 trans.Start();
 

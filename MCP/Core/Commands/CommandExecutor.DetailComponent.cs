@@ -146,7 +146,7 @@ namespace RevitMCP.Core
                     string typeKey = $"{currentSymbol.FamilyName}:{currentSymbol.Name}";
                     if (processedTypes.Contains(typeKey)) continue;
 
-                    using (Transaction t = new Transaction(doc, "同步元件類型"))
+                    using (Transaction t = TransactionHelper.Begin(doc, "同步元件類型"))
                     {
                         t.Start();
 
@@ -241,7 +241,7 @@ namespace RevitMCP.Core
                 };
             }
 
-            using (Transaction t = new Transaction(doc, "建立詳圖元件類型"))
+            using (Transaction t = TransactionHelper.Begin(doc, "建立詳圖元件類型"))
             {
                 t.Start();
 

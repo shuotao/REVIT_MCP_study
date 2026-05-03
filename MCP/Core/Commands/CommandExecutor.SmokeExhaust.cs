@@ -655,7 +655,7 @@ namespace RevitMCP.Core
                     .Cast<TextNoteType>()
                     .FirstOrDefault();
 
-                using (Transaction trans = new Transaction(doc, "排煙檢討四向立面"))
+                using (Transaction trans = TransactionHelper.Begin(doc, "排煙檢討四向立面"))
                 {
                     trans.Start();
 
@@ -1079,7 +1079,7 @@ namespace RevitMCP.Core
                 View activeView = _uiApp.ActiveUIDocument.ActiveView;
                 ElementId solidPatternId = GetSolidFillPatternId(doc);
 
-                using (Transaction trans = new Transaction(doc, "無開口樓層檢討上色"))
+                using (Transaction trans = TransactionHelper.Begin(doc, "無開口樓層檢討上色"))
                 {
                     trans.Start();
                     foreach (var (elementId, isEffective) in colorizeList)
@@ -1207,7 +1207,7 @@ namespace RevitMCP.Core
             sectionBox.Max = new XYZ(halfLength, wallHeight + topMargin, wall.Width + 2.0);
 
             IdType viewIdResult;
-            using (Transaction trans = new Transaction(doc, "建立排煙檢討剖面"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "建立排煙檢討剖面"))
             {
                 trans.Start();
 
@@ -1257,7 +1257,7 @@ namespace RevitMCP.Core
 
             var createdLines = new List<object>();
 
-            using (Transaction trans = new Transaction(doc, "繪製詳圖線"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "繪製詳圖線"))
             {
                 trans.Start();
 
@@ -1372,7 +1372,7 @@ namespace RevitMCP.Core
             }
 
             IdType regionId;
-            using (Transaction trans = new Transaction(doc, "建立填充區域"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "建立填充區域"))
             {
                 trans.Start();
 
@@ -1440,7 +1440,7 @@ namespace RevitMCP.Core
             });
 
             IdType textNoteId;
-            using (Transaction trans = new Transaction(doc, "建立文字標註"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "建立文字標註"))
             {
                 trans.Start();
 

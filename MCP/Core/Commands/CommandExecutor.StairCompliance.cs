@@ -68,7 +68,7 @@ namespace RevitMCP.Core
             ViewSection sectionView = null;
             string finalViewName = $"{viewNamePrefix}_{stairId}_{DateTime.Now:HHmm}";
 
-            using (Transaction trans = new Transaction(doc, "建立樓梯專用剖面"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "建立樓梯專用剖面"))
             {
                 trans.Start();
                 sectionView = ViewSection.CreateSection(doc, viewfamilyId, sectionBox);
@@ -140,7 +140,7 @@ namespace RevitMCP.Core
                 BuiltInCategory.OST_Walls, BuiltInCategory.OST_GenericModel, BuiltInCategory.OST_Stairs
             };
 
-            using (Transaction trans = new Transaction(doc, "樓梯淨高 2D 檢核"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "樓梯淨高 2D 檢核"))
             {
                 trans.Start();
                 ClearExistingMarkers(doc, stairId);
@@ -192,7 +192,7 @@ namespace RevitMCP.Core
                 if (failCount > 0)
                 {
                     try {
-                        using (Transaction transSection = new Transaction(doc, "建立標註剖面"))
+                        using (Transaction transSection = TransactionHelper.Begin(doc, "建立標註剖面"))
                         {
                             transSection.Start();
                             CreateDetailedSection(doc, stairs, failures, headroomLimitCm);
@@ -378,7 +378,7 @@ namespace RevitMCP.Core
             View view = doc.GetElement(new ElementId(viewId)) as View;
             if (view == null) throw new Exception("找不到視圖");
 
-            using (Transaction trans = new Transaction(doc, "建立帶引線標註"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "建立帶引線標註"))
             {
                 trans.Start();
                 TextNote tn = TextNote.Create(doc, view.Id, new XYZ(x, y, 0), text, doc.GetDefaultElementTypeId(ElementTypeGroup.TextNoteType));

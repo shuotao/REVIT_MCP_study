@@ -64,7 +64,7 @@ namespace RevitMCP.Core
                 Transform = cropTransform
             };
 
-            using (Transaction trans = new Transaction(doc, "對齊 CropBox 到元素"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "對齊 CropBox 到元素"))
             {
                 trans.Start();
                 view.CropBoxActive = true;
@@ -128,7 +128,7 @@ namespace RevitMCP.Core
                 Transform = oldCropBox.Transform
             };
 
-            using (Transaction trans = new Transaction(doc, "平移 CropBox"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "平移 CropBox"))
             {
                 trans.Start();
                 view.CropBoxActive = true;

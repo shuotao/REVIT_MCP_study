@@ -75,7 +75,7 @@ namespace RevitMCP.Core
             var existingPairs = new HashSet<string>(
                 _unjoinedPairs.Select(p => PairKey(p.Item1, p.Item2)));
 
-            using (Transaction trans = new Transaction(doc, "Unjoin Column Geometry"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "Unjoin Column Geometry"))
             {
                 trans.Start();
 
@@ -261,7 +261,7 @@ namespace RevitMCP.Core
             var existingPairs = new HashSet<string>(
                 _unjoinedPairs.Select(p => PairKey(p.Item1, p.Item2)));
 
-            using (Transaction trans = new Transaction(doc, $"Unjoin {sourceCategoryStr} Geometry"))
+            using (Transaction trans = TransactionHelper.Begin(doc, $"Unjoin {sourceCategoryStr} Geometry"))
             {
                 trans.Start();
 

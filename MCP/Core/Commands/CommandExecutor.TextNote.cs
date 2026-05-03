@@ -99,7 +99,7 @@ namespace RevitMCP.Core
                     }
                     else
                     {
-                        using (Transaction trans = new Transaction(doc, $"移動 TextNote in {view.Name}"))
+                        using (Transaction trans = TransactionHelper.Begin(doc, $"移動 TextNote in {view.Name}"))
                         {
                             trans.Start();
 

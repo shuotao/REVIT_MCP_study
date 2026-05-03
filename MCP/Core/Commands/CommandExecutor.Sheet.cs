@@ -93,7 +93,7 @@ namespace RevitMCP.Core
 
             List<object> results = new List<object>();
 
-            using (Transaction trans = new Transaction(doc, "批次建立圖紙"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "批次建立圖紙"))
             {
                 trans.Start();
 
@@ -195,7 +195,7 @@ namespace RevitMCP.Core
 
             if (fixSheets.Count > 0)
             {
-                using (Transaction tFix = new Transaction(doc, "還原_MCPFIX"))
+                using (Transaction tFix = TransactionHelper.Begin(doc, "還原_MCPFIX"))
                 {
                     tFix.Start();
                     foreach (var s in fixSheets)
@@ -275,7 +275,7 @@ namespace RevitMCP.Core
                 {
                     tg.Start();
 
-                    using (Transaction t1 = new Transaction(doc, "Step1:暫存"))
+                    using (Transaction t1 = TransactionHelper.Begin(doc, "Step1:暫存"))
                     {
                         t1.Start();
                         foreach (var id in finalMoves.Keys)
@@ -290,7 +290,7 @@ namespace RevitMCP.Core
                         t1.Commit();
                     }
 
-                    using (Transaction t2 = new Transaction(doc, "Step2:最終"))
+                    using (Transaction t2 = TransactionHelper.Begin(doc, "Step2:最終"))
                     {
                         t2.Start();
                         foreach (var kvp in finalMoves)
@@ -600,7 +600,7 @@ namespace RevitMCP.Core
 
                 if (namesToPlace.Count > 0)
                 {
-                    using (Transaction tPlace = new Transaction(doc, "放置視圖到圖紙"))
+                    using (Transaction tPlace = TransactionHelper.Begin(doc, "放置視圖到圖紙"))
                     {
                         tPlace.Start();
                         XYZ tempCenter = new XYZ(0, 0, 0);
@@ -672,7 +672,7 @@ namespace RevitMCP.Core
 
             var results = new List<object>();
 
-            using (Transaction trans = new Transaction(doc, "排列視埠"))
+            using (Transaction trans = TransactionHelper.Begin(doc, "排列視埠"))
             {
                 trans.Start();
 
@@ -883,7 +883,7 @@ namespace RevitMCP.Core
                     var viewWarnings = new List<string>();
 
                     // Per-view transaction to avoid giant commit
-                    using (Transaction trans = new Transaction(doc, $"縮放 {view.Name} 寬度"))
+                    using (Transaction trans = TransactionHelper.Begin(doc, $"縮放 {view.Name} 寬度"))
                     {
                         trans.Start();
 
@@ -1089,7 +1089,7 @@ namespace RevitMCP.Core
                     int curveCount = 0, textCount = 0;
                     var viewWarnings = new List<string>();
 
-                    using (Transaction trans = new Transaction(doc, $"縮放 {view.Name} 行高"))
+                    using (Transaction trans = TransactionHelper.Begin(doc, $"縮放 {view.Name} 行高"))
                     {
                         trans.Start();
 
