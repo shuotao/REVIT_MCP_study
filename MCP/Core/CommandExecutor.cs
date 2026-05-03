@@ -392,6 +392,11 @@ namespace RevitMCP.Core
                         result = ShiftViewCropBox(parameters);
                         break;
 
+                    // === 視圖建立模組 ===
+                    case "create_floor_plans_from_template":
+                        result = CreateFloorPlansFromTemplate(parameters);
+                        break;
+
                     // === 材質批次修改模組 ===
                     case "get_types_by_category":
                         result = GetTypesByCategory(parameters);
