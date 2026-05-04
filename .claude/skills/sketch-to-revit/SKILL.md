@@ -33,7 +33,7 @@ description: "彩色手稿 → DXF 預覽 → Revit 牆/柱（V2 確定性管線
 
 ### 階段 1：Python 向量化
 
-> **禁止 shell-out 給 `codex` / `codex exec` 跑 Python pipeline。** Claude Code 直接用 Bash 工具呼叫 Python，不要把這步外包給其他 AI agent。
+> **呼叫 MCP 工具的 AI agent 自己跑 Python，不要繞去另一個 agent。** 例如：Claude Code 觸發本 Skill → 用 Bash 工具直接跑 `python ...`；Codex CLI 觸發 → Codex 自己用 shell 跑。重點是同一個 agent 從手稿到 Revit 一路走完，避免跨 agent 的 context handoff 失準。
 
 ```bash
 python .claude/skills/plan-sketch-to-dxf/scripts/vectorize_plan_to_dxf.py <sketch_path> \
