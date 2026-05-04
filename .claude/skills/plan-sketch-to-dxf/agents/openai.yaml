@@ -1,0 +1,3 @@
+interface:
+  display_name: "Plan Sketch To DXF"
+  short_description: "Convert color-coded floor plan sketches into clean DXF centerlines."

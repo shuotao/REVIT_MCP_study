@@ -25,8 +25,12 @@ export async function executeRevitTool(
     // 如果是 query_elements_with_filter，映射到 C# 的 query_elements
     const commandName = toolName === "query_elements_with_filter" ? "query_elements" : toolName;
 
+    // Cross-document commands need longer timeout (opening .rvt files takes time)
+    const CROSS_DOC_COMMANDS = new Set(["read_source_file_sheets", "copy_sheets_from_file", "sync_sheet_parameters_from_source"]);
+    const timeoutMs = CROSS_DOC_COMMANDS.has(commandName) ? 120000 : 30000;
+
     // 發送命令到 Revit
-    const response = await client.sendCommand(commandName, args);
+    const response = await client.sendCommand(commandName, args, timeoutMs);
 
     if (!response.success) {
         throw new Error(response.error || "命令執行失敗");

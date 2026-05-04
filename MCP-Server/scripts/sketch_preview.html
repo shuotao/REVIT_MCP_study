@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<title>Sketch → DXF 預覽</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; font-family: -apple-system, system-ui, "Segoe UI", "PingFang TC", sans-serif; background: #0e1014; color: #d8dde6; }
+  header { padding: 16px 24px; border-bottom: 1px solid #1f242c; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  header h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  header .meta { font-size: 13px; color: #8b95a5; }
+  main { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px 24px 120px; }
+  figure { margin: 0; background: #161a21; border: 1px solid #232830; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+  figcaption { padding: 10px 14px; font-size: 13px; font-weight: 500; color: #c8d0dc; background: #1c2129; border-bottom: 1px solid #232830; display: flex; justify-content: space-between; align-items: center; }
+  figcaption .layer { font-size: 11px; color: #788292; }
+  .img-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px; background: #0a0c10; min-height: 480px; position: relative; }
+  .img-wrap img { max-width: 100%; max-height: 75vh; display: block; border-radius: 4px; background: #fff; }
+  .img-wrap .measure-overlay { position: absolute; pointer-events: none; left: 0; top: 0; }
+  .img-wrap.measuring { cursor: crosshair; }
+  .img-wrap.measuring img { cursor: crosshair; }
+  .img-wrap.measuring .measure-overlay { pointer-events: auto; cursor: crosshair; }
+  .stats { padding: 12px 16px; background: #11151b; border-top: 1px solid #232830; font-size: 13px; color: #a4adbb; display: flex; flex-wrap: wrap; gap: 16px; }
+  .stats span b { color: #e7ecf4; font-weight: 600; }
+  footer { position: fixed; bottom: 0; left: 0; right: 0; background: #11151b; border-top: 1px solid #232830; padding: 16px 24px; display: flex; gap: 12px; align-items: center; justify-content: flex-end; }
+  footer .hint { flex: 1; font-size: 13px; color: #8b95a5; }
+  button { font: inherit; padding: 10px 20px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; transition: background .15s, border-color .15s; }
+  button.primary { background: #2563eb; color: #fff; border-color: #1d4ed8; }
+  button.primary:hover { background: #1d4ed8; }
+  button.ghost { background: transparent; color: #c8d0dc; border-color: #2a3140; }
+  button.ghost:hover { background: #1a1f27; }
+  button.measure { background: #4c1d95; color: #fff; border-color: #6d28d9; }
+  button.measure:hover { background: #5b21b6; }
+  button.measure.active { background: #ef4444; border-color: #dc2626; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .modal { position: fixed; inset: 0; background: rgba(0, 0, 0, .65); display: none; align-items: center; justify-content: center; z-index: 10; }
+  .modal.show { display: flex; }
+  .modal .box { background: #161a21; border: 1px solid #2a3140; border-radius: 10px; padding: 20px 24px; min-width: 360px; max-width: 480px; }
+  .modal h3 { margin: 0 0 12px; font-size: 16px; }
+  .modal label { display: block; margin: 12px 0 6px; font-size: 13px; color: #a4adbb; }
+  .modal select, .modal input { width: 100%; box-sizing: border-box; padding: 8px 10px; background: #0a0c10; color: #e7ecf4; border: 1px solid #2a3140; border-radius: 4px; }
+  .modal .actions { margin-top: 18px; display: flex; gap: 8px; justify-content: flex-end; }
+  .modal .tabs { display: flex; gap: 4px; border-bottom: 1px solid #2a3140; margin-bottom: 12px; }
+  .modal .tab-btn { padding: 8px 14px; font-size: 13px; background: transparent; color: #8b95a5; border: none; border-bottom: 2px solid transparent; border-radius: 0; cursor: pointer; }
+  .modal .tab-btn.active { color: #e7ecf4; border-bottom-color: #2563eb; }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+  .meta-row { font-size: 12px; color: #8b95a5; margin-top: 6px; }
+  .meta-row b { color: #c8d0dc; }
+  .toast { position: fixed; top: 16px; right: 16px; background: #1c2129; border: 1px solid #2a3140; padding: 12px 16px; border-radius: 8px; color: #d8dde6; font-size: 13px; opacity: 0; transform: translateY(-6px); transition: opacity .2s, transform .2s; max-width: 360px; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .ok-banner { background: #103a28; border-color: #1a5c40; color: #b6f0c8; }
+  .err-banner { background: #3a1010; border-color: #5c1a1a; color: #f0b6b6; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Sketch → DXF 預覽（Vectorized Geometry Review）</h1>
+  <span class="meta" id="meta">載入中…</span>
+</header>
+
+<main>
+  <figure>
+    <figcaption>原始 sketch <span class="layer">作為對照</span></figcaption>
+    <div class="img-wrap"><img src="/original" alt="original sketch"></div>
+  </figure>
+  <figure>
+    <figcaption>向量化結果 <span class="layer">粉=WALL_MAGENTA · 藍=WALL_CYAN · 黑框=COLUMN</span></figcaption>
+    <div class="img-wrap" id="preview-wrap">
+      <img id="preview-img" src="/preview" alt="vectorized preview">
+      <canvas class="measure-overlay" id="measure-canvas"></canvas>
+    </div>
+    <div class="stats" id="stats">統計載入中…</div>
+  </figure>
+</main>
+
+<footer>
+  <span class="hint" id="hint">確認偵測結果合理嗎？OK 後 Skill 會繼續到 Revit 建模流程；不對的話可以調參數重跑。建議先用「標尺寸」校正比例尺再 OK。</span>
+  <button class="measure" id="btn-measure">📏 標尺寸</button>
+  <button class="ghost" id="btn-redo">不對，重跑</button>
+  <button class="primary" id="btn-ok">OK 建模</button>
+</footer>
+
+<div class="modal" id="modal-redo">
+  <div class="box">
+    <h3>調整參數重跑</h3>
+    <label for="mode">Mode（線條清理強度）</label>
+    <select id="mode">
+      <option value="basic">basic — 不做正交化，最忠實</option>
+      <option value="aligned" selected>aligned — 直線校正 + 端點 snap（推薦）</option>
+      <option value="strong-ortho">strong-ortho — 強制全部正交</option>
+    </select>
+    <label for="column-side">Column side (px)</label>
+    <input type="number" id="column-side" value="40" min="10" max="120" step="2" />
+    <div class="actions">
+      <button class="ghost" id="btn-cancel-redo">取消</button>
+      <button class="primary" id="btn-confirm-redo">送出</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal-rescale">
+  <div class="box">
+    <h3>校正比例尺</h3>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="two_points">兩點實際距離</button>
+      <button class="tab-btn" data-tab="width">整圖寬度</button>
+      <button class="tab-btn" data-tab="height">整圖高度</button>
+    </div>
+    <div class="tab-pane active" data-pane="two_points">
+      <div class="meta-row">已量得像素距離：<b id="rescale-px">—</b> px（natural）</div>
+      <label for="rescale-cm-2p">兩點實際距離（cm）</label>
+      <input type="number" id="rescale-cm-2p" placeholder="例：1000（= 10 m）" min="1" step="0.1" />
+    </div>
+    <div class="tab-pane" data-pane="width">
+      <div class="meta-row">目前 bbox 寬度：<b id="rescale-bbox-w">—</b> cm</div>
+      <label for="rescale-cm-w">整圖元素實際寬度（cm，X 軸）</label>
+      <input type="number" id="rescale-cm-w" placeholder="例：1180" min="1" step="0.1" />
+    </div>
+    <div class="tab-pane" data-pane="height">
+      <div class="meta-row">目前 bbox 高度：<b id="rescale-bbox-h">—</b> cm</div>
+      <label for="rescale-cm-h">整圖元素實際高度（cm，Y 軸）</label>
+      <input type="number" id="rescale-cm-h" placeholder="例：1387" min="1" step="0.1" />
+    </div>
+    <div class="actions">
+      <button class="ghost" id="btn-cancel-rescale">取消</button>
+      <button class="primary" id="btn-confirm-rescale">套用</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+function toast(msg, kind) {
+  const el = $("toast");
+  el.textContent = msg;
+  let cls = "toast show";
+  if (kind === "ok") cls += " ok-banner";
+  if (kind === "err") cls += " err-banner";
+  el.className = cls;
+  setTimeout(() => { el.className = "toast"; }, 3200);
+}
+function fmt(n) {
+  if (n == null || isNaN(n)) return "—";
+  return Math.round(n).toLocaleString("en-US");
+}
+
+// ---------- geometry / stats ----------
+let _geometry = null;
+async function loadGeometry() {
+  try {
+    const r = await fetch("/api/geometry?_=" + Date.now());
+    if (!r.ok) throw new Error("no geometry");
+    const g = await r.json();
+    _geometry = g;
+    const cols = (g.columns || []).length;
+    const m = (g.magenta_segments || []).length;
+    const c = (g.cyan_segments || []).length;
+    const ref = g.scale ? `${(g.scale.refPxDistance).toFixed(1)} px → ${g.scale.refMmDistance} mm（${g.scale.refPair.join(" / ")}）` : "n/a";
+    const mmpp = g.scale && g.scale.mmPerPx ? ` · mmPerPx=${g.scale.mmPerPx.toFixed(4)}` : "";
+    $("meta").textContent = `mode=${g.mode} · column_side=${g.column_side_px}px · 比例尺：${ref}${mmpp}`;
+
+    // bbox in cm
+    const bb = computeBboxPx(g);
+    let bboxStr = "";
+    if (bb && g.scale) {
+      const mmPerPx = g.scale.mmPerPx || (g.scale.refMmDistance / g.scale.refPxDistance);
+      const wCm = (bb.width * mmPerPx) / 10;
+      const hCm = (bb.height * mmPerPx) / 10;
+      bboxStr = `<span>bbox：<b>${fmt(wCm)} × ${fmt(hCm)} cm</b></span>`;
+      $("rescale-bbox-w").textContent = fmt(wCm);
+      $("rescale-bbox-h").textContent = fmt(hCm);
+    }
+    $("stats").innerHTML = `<span>柱：<b>${cols}</b></span><span>粉色牆段：<b>${m}</b></span><span>藍色牆段：<b>${c}</b></span><span>影像：<b>${g.image.width}×${g.image.height}</b></span>${bboxStr}`;
+  } catch (e) {
+    $("meta").textContent = "geometry.json 未提供";
+    $("stats").textContent = "無統計資料";
+  }
+}
+function computeBboxPx(g) {
+  const xs = [], ys = [];
+  for (const c of (g.columns || [])) { xs.push(+c.px); ys.push(+c.py); }
+  for (const arr of [g.magenta_segments || [], g.cyan_segments || []]) {
+    for (const s of arr) { xs.push(+s.sx, +s.ex); ys.push(+s.sy, +s.ey); }
+  }
+  if (!xs.length) return null;
+  const minx = Math.min(...xs), maxx = Math.max(...xs);
+  const miny = Math.min(...ys), maxy = Math.max(...ys);
+  return { minx, maxx, miny, maxy, width: maxx - minx, height: maxy - miny };
+}
+
+// ---------- decision ----------
+async function postDecision(payload) {
+  const r = await fetch("/api/decision", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return r.ok;
+}
+
+$("btn-ok").addEventListener("click", async () => {
+  $("btn-ok").disabled = true;
+  const ok = await postDecision({ action: "ok" });
+  if (ok) {
+    toast("已送出 OK，回到 Skill 視窗繼續", "ok");
+    $("hint").textContent = "✅ 已送出。請回到 Skill / 終端機，建模會自動繼續。可以關掉此分頁。";
+  } else {
+    toast("送出失敗", "err");
+    $("btn-ok").disabled = false;
+  }
+});
+
+$("btn-redo").addEventListener("click", () => { $("modal-redo").classList.add("show"); });
+$("btn-cancel-redo").addEventListener("click", () => { $("modal-redo").classList.remove("show"); });
+$("btn-confirm-redo").addEventListener("click", async () => {
+  const mode = $("mode").value;
+  const cs = parseInt($("column-side").value, 10);
+  const ok = await postDecision({ action: "redo", mode: mode, column_side: cs });
+  if (ok) {
+    $("modal-redo").classList.remove("show");
+    toast(`已要求重跑（mode=${mode}, column_side=${cs}）`, "ok");
+    $("hint").textContent = "✅ 已送出重跑指令。請回到 Skill / 終端機等候新的 preview。";
+  } else {
+    toast("送出失敗", "err");
+  }
+});
+
+// ---------- measure mode ----------
+const measureWrap = $("preview-wrap");
+const measureImg = $("preview-img");
+const canvas = $("measure-canvas");
+const ctx = canvas.getContext("2d");
+let measureActive = false;
+let pickedPoints = []; // [{xDisp, yDisp, xNat, yNat}]
+
+function syncCanvasToImage() {
+  const rect = measureImg.getBoundingClientRect();
+  const wrapRect = measureWrap.getBoundingClientRect();
+  canvas.width = Math.round(rect.width);
+  canvas.height = Math.round(rect.height);
+  canvas.style.width = rect.width + "px";
+  canvas.style.height = rect.height + "px";
+  canvas.style.left = (rect.left - wrapRect.left) + "px";
+  canvas.style.top = (rect.top - wrapRect.top) + "px";
+  redrawOverlay();
+}
+function clearOverlay() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+function redrawOverlay() {
+  clearOverlay();
+  if (!pickedPoints.length) return;
+  // markers
+  for (let i = 0; i < pickedPoints.length; i++) {
+    const p = pickedPoints[i];
+    ctx.beginPath();
+    ctx.arc(p.xDisp, p.yDisp, 6, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(239, 68, 68, 0.95)";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#fff";
+    ctx.stroke();
+    // label
+    ctx.font = "bold 13px system-ui, sans-serif";
+    ctx.fillStyle = "#fff";
+    ctx.strokeStyle = "rgba(0,0,0,0.85)";
+    ctx.lineWidth = 3;
+    const label = "P" + (i + 1);
+    ctx.strokeText(label, p.xDisp + 9, p.yDisp - 9);
+    ctx.fillText(label, p.xDisp + 9, p.yDisp - 9);
+  }
+  if (pickedPoints.length === 2) {
+    const [a, b] = pickedPoints;
+    ctx.beginPath();
+    ctx.moveTo(a.xDisp, a.yDisp);
+    ctx.lineTo(b.xDisp, b.yDisp);
+    ctx.strokeStyle = "rgba(239, 68, 68, 0.95)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // distance label (natural px)
+    const dx = b.xNat - a.xNat;
+    const dy = b.yNat - a.yNat;
+    const distNat = Math.sqrt(dx * dx + dy * dy);
+    const mx = (a.xDisp + b.xDisp) / 2;
+    const my = (a.yDisp + b.yDisp) / 2;
+    const txt = `${distNat.toFixed(1)} px`;
+    ctx.font = "bold 13px system-ui, sans-serif";
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "rgba(0,0,0,0.9)";
+    ctx.fillStyle = "#fff";
+    ctx.strokeText(txt, mx + 8, my - 8);
+    ctx.fillText(txt, mx + 8, my - 8);
+  }
+}
+function setMeasureMode(on) {
+  measureActive = on;
+  if (on) {
+    measureWrap.classList.add("measuring");
+    $("btn-measure").classList.add("active");
+    $("btn-measure").textContent = "✕ 取消測量";
+    $("hint").textContent = "測量模式：在預覽圖點兩個基準點（已知實際距離的兩點，例如柱中心 C1↔C2 或牆角）。Esc 取消。";
+    pickedPoints = [];
+    syncCanvasToImage();
+  } else {
+    measureWrap.classList.remove("measuring");
+    $("btn-measure").classList.remove("active");
+    $("btn-measure").textContent = "📏 標尺寸";
+    $("hint").textContent = "確認偵測結果合理嗎？OK 後 Skill 會繼續到 Revit 建模流程；不對的話可以調參數重跑。建議先用「標尺寸」校正比例尺再 OK。";
+    pickedPoints = [];
+    clearOverlay();
+  }
+}
+$("btn-measure").addEventListener("click", () => setMeasureMode(!measureActive));
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    if (measureActive) setMeasureMode(false);
+    document.querySelectorAll(".modal.show").forEach(m => m.classList.remove("show"));
+  }
+});
+window.addEventListener("resize", syncCanvasToImage);
+measureImg.addEventListener("load", syncCanvasToImage);
+
+canvas.addEventListener("click", (e) => {
+  if (!measureActive) return;
+  const rect = canvas.getBoundingClientRect();
+  const xDisp = e.clientX - rect.left;
+  const yDisp = e.clientY - rect.top;
+  // map displayed pixel → natural pixel
+  const sx = measureImg.naturalWidth / rect.width;
+  const sy = measureImg.naturalHeight / rect.height;
+  const xNat = xDisp * sx;
+  const yNat = yDisp * sy;
+  if (pickedPoints.length >= 2) pickedPoints = [];
+  pickedPoints.push({ xDisp, yDisp, xNat, yNat });
+  redrawOverlay();
+  if (pickedPoints.length === 2) {
+    const [a, b] = pickedPoints;
+    const dx = b.xNat - a.xNat;
+    const dy = b.yNat - a.yNat;
+    const distNat = Math.sqrt(dx * dx + dy * dy);
+    $("rescale-px").textContent = distNat.toFixed(2);
+    // open modal on two_points tab
+    switchRescaleTab("two_points");
+    $("modal-rescale").classList.add("show");
+    setTimeout(() => $("rescale-cm-2p").focus(), 50);
+  }
+});
+
+// ---------- rescale modal ----------
+function switchRescaleTab(name) {
+  document.querySelectorAll("#modal-rescale .tab-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.tab === name);
+  });
+  document.querySelectorAll("#modal-rescale .tab-pane").forEach(p => {
+    p.classList.toggle("active", p.dataset.pane === name);
+  });
+}
+document.querySelectorAll("#modal-rescale .tab-btn").forEach(b => {
+  b.addEventListener("click", () => switchRescaleTab(b.dataset.tab));
+});
+$("btn-cancel-rescale").addEventListener("click", () => {
+  $("modal-rescale").classList.remove("show");
+});
+$("btn-confirm-rescale").addEventListener("click", async () => {
+  const activeTab = document.querySelector("#modal-rescale .tab-btn.active").dataset.tab;
+  let payload;
+  if (activeTab === "two_points") {
+    const cm = parseFloat($("rescale-cm-2p").value);
+    const pxStr = $("rescale-px").textContent;
+    const px = parseFloat(pxStr);
+    if (!isFinite(cm) || cm <= 0) { toast("請輸入有效的距離（cm）", "err"); return; }
+    if (!isFinite(px) || px <= 0) { toast("尚未量得像素距離，請先在圖上點兩點", "err"); return; }
+    payload = { mode: "two_points", px_distance: px, actual_cm: cm };
+  } else if (activeTab === "width") {
+    const cm = parseFloat($("rescale-cm-w").value);
+    if (!isFinite(cm) || cm <= 0) { toast("請輸入有效的寬度（cm）", "err"); return; }
+    payload = { mode: "width", actual_cm: cm };
+  } else {
+    const cm = parseFloat($("rescale-cm-h").value);
+    if (!isFinite(cm) || cm <= 0) { toast("請輸入有效的高度（cm）", "err"); return; }
+    payload = { mode: "height", actual_cm: cm };
+  }
+  const btn = $("btn-confirm-rescale");
+  btn.disabled = true;
+  btn.textContent = "處理中…";
+  try {
+    const r = await fetch("/api/rescale", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+    $("modal-rescale").classList.remove("show");
+    setMeasureMode(false);
+    const wCm = data.bbox_cm ? fmt(data.bbox_cm.width) : "?";
+    const hCm = data.bbox_cm ? fmt(data.bbox_cm.height) : "?";
+    toast(`已校正比例尺：mmPerPx=${data.mmPerPx.toFixed(4)}，新 bbox = ${wCm} × ${hCm} cm`, "ok");
+    $("hint").textContent = `✅ 比例尺已校正（mmPerPx=${data.mmPerPx.toFixed(4)}，新 bbox = ${wCm} × ${hCm} cm）。確認無誤後按 OK 建模。`;
+    await loadGeometry();
+  } catch (err) {
+    toast("校正失敗：" + err.message, "err");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "套用";
+  }
+});
+
+loadGeometry();
+</script>
+</body>
+</html>

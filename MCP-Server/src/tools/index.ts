@@ -25,13 +25,17 @@ import { dependentViewTools } from "./dependent-view-tools.js";
 import { legendTools } from "./legend-tools.js";
 import { viewCropBoxTools } from "./view-cropbox-tools.js";
 import { viewCreationTools } from "./view-creation-tools.js";
+import { crossDocumentTools } from "./cross-document-tools.js";
+import { scopeBoxTools } from "./scope-box-tools.js";
+import { viewportPositionTools } from "./viewport-position-tools.js";
+import { detailCopyTools } from "./detail-copy-tools.js";
 
 /**
  * Profile 對照表：每個 profile 包含哪些模組
  */
 const PROFILE_MODULES: Record<string, Tool[][]> = {
-    full: [baseTools, wallTools, roomTools, visualizationTools, scheduleTools, mepTools, curtainWallTools, smokeExhaustTools, STAIR_COMPLIANCE_TOOLS, sheetTools, detailComponentTools, dimensionTools, dependentViewTools, legendTools, viewCropBoxTools, viewCreationTools],
-    architect: [baseTools, wallTools, roomTools, visualizationTools, scheduleTools, curtainWallTools, STAIR_COMPLIANCE_TOOLS, sheetTools, detailComponentTools, dimensionTools, dependentViewTools, legendTools, viewCropBoxTools, viewCreationTools],
+    full: [baseTools, wallTools, roomTools, visualizationTools, scheduleTools, mepTools, curtainWallTools, smokeExhaustTools, STAIR_COMPLIANCE_TOOLS, sheetTools, detailComponentTools, dimensionTools, dependentViewTools, legendTools, viewCropBoxTools, viewCreationTools, crossDocumentTools, scopeBoxTools, viewportPositionTools, detailCopyTools],
+    architect: [baseTools, wallTools, roomTools, visualizationTools, scheduleTools, curtainWallTools, STAIR_COMPLIANCE_TOOLS, sheetTools, detailComponentTools, dimensionTools, dependentViewTools, legendTools, viewCropBoxTools, viewCreationTools, crossDocumentTools, scopeBoxTools, viewportPositionTools, detailCopyTools],
     mep: [baseTools, mepTools, scheduleTools, visualizationTools, smokeExhaustTools],
     structural: [baseTools, wallTools, visualizationTools],
     "fire-safety": [baseTools, roomTools, visualizationTools, smokeExhaustTools],
