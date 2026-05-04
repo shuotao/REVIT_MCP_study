@@ -1,80 +1,96 @@
 ---
 name: sketch-to-revit
-description: "彩色手稿 → DXF 預覽 → Revit 牆/柱（V2 確定性管線）。委派 OpenAI Codex CLI 跑 Python OpenCV+Hough 向量化 + 本地網頁預覽 + OK/Redo 決策循環，主 session 收到 codex 結果後驅動 Revit 建模（階段 4-7）。粉色=RC15 牆、藍色=12cm 磚牆、黑點=柱。觸發條件：使用者上傳彩色手繪平面圖並提到「先轉 DXF」「網頁預覽」「sketch to revit」「確定性建模」「不要 dryrun」「視覺化預覽」等。執行前讀 domain/sketch-color-convention.md。"
+description: "彩色手稿 → DXF 預覽 → Revit 牆/柱（V2 確定性管線）。用 Python OpenCV+Hough 把手繪平面圖向量化成 DXF + PNG，啟動 localhost 網頁讓使用者視覺化檢查（取代文字版 dryrun），確認後再驅動 Revit 建模。粉色=RC15 牆、藍色=12cm 磚牆、黑點=柱。觸發條件：使用者上傳彩色手繪平面圖並提到「先轉 DXF」「網頁預覽」「sketch to revit」「確定性建模」「不要 dryrun」「視覺化預覽」等。若顏色不純或線條斷裂建議改用 /sketch-to-walls (V1 Vision 版本)。執行前讀 domain/sketch-color-convention.md。"
 ---
 
-# Sketch-to-Revit V2 — Codex 委派 + Revit 建模
+# Sketch-to-Revit V2 — DXF 預覽取代 dryrun
 
 執行前必讀：`domain/sketch-color-convention.md`（顏色約定、Y 軸翻轉、50mm snap 規則）。
 
 ## 適用條件
 
-需要顏色清楚（螢光筆飽和度足夠）、線條乾淨。手稿太潦草時 codex 階段可能反覆 Redo，請使用者先整理圖面再丟進來。
+| 情境 | 適用版本 |
+|------|---------|
+| 顏色清楚（螢光筆飽和度足夠）、線條乾淨 | **V2（本 Skill）** |
+| 顏色不純、手繪潦草、線條斷裂多 | V1 `/sketch-to-walls` |
 
-## 架構
+## V2 vs V1 差異
 
-| 階段 | 執行者 |
-|------|--------|
-| 階段 1：圖 → DXF → 使用者決策 | OpenAI Codex CLI（讀 `plan-sketch-to-dxf` SKILL.md） |
-| 階段 4-7：Revit 建模 | 本 Skill 主 session |
+| 項目 | V2（本 Skill） | V1 `/sketch-to-walls` |
+|------|----------------|----------------------|
+| 圖形辨識 | Python OpenCV+Hough（確定性） | Claude Vision（多模態） |
+| 預覽形式 | localhost 網頁 PNG（圖形） | Markdown mm 座標表（文字） |
+| 中間產物 | DXF + PNG + JSON | 無 |
+| Revit dryrun | 不需要（網頁已視覺確認） | 需要 |
 
-> 階段編號從 4 開始是有意的：codex 那邊跑完 plan-sketch-to-dxf 的 4 個內部階段（向量化 / rescale / server / Monitor / decision），主 session 從 Revit 建模相關的階段 4 接手，編號連續可讀。
+## 七階段 Workflow
 
-## Workflow
+### 階段 0：環境檢查
+- `python --version` 確認 ≥ 3.8（fallback `python3`）
+- 確認 `cv2`、`numpy`、`skimage` 可 import
+- 確認 port 10003 未佔用（fallback 10004 / 10005）
+- 建立 `output/` 暫存目錄
 
-### 階段 1：委派 Codex CLI 跑向量化 + 預覽決策
+### 階段 1：Python 向量化
 
-主 session 不直接跑 Python / node server / Monitor。改呼叫 OpenAI Codex CLI（已 `npm install -g @openai/codex`），由 codex 自行讀 `.claude/skills/plan-sketch-to-dxf/SKILL.md`，跑完整個「圖→DXF→使用者決策」循環。
-
-#### 前置檢查
-- `which codex` 確認指令存在；不存在則告知使用者：`npm install -g @openai/codex`
-- 確認 `.claude/skills/plan-sketch-to-dxf/SKILL.md` 存在
-- `mkdir -p output/`（codex 需要這個目錄）
-
-#### 呼叫指令（用 Bash，**不要 run_in_background**）
-
-```bash
-codex exec --full-auto --cd "$(pwd)" --skip-git-repo-check \
-  "讀取 .claude/skills/plan-sketch-to-dxf/SKILL.md 並完整執行『圖→DXF→使用者決策』流程。
-輸入手稿路徑：<sketch_path>
-輸出目錄：output/
-要求：
-1. 跑 vectorize_plan_to_dxf.py（mode=aligned, column-side=40），產出 output/sketch.dxf、output/sketch_preview.png、output/sketch_geometry.json
-2. 計算 bbox，問使用者是否需要 rescale_geometry.py 校正尺寸
-3. 啟動 node MCP-Server/scripts/sketch_preview_server.cjs（port 10003，被佔則 fallback 10004→10005），把 stdout 重導 output/sketch_server.log，把 http://localhost:<port> URL 給使用者
-4. 自行處理 OK/Redo 循環：tail log 偵測 [sketch_preview] decision written:；redo 時讀 output/decision.json 取 mode/column_side 重跑階段 1
-5. 收到 OK 後確認 output/decision.json 內容齊全（action/mode/column_side），kill server，正常結束
-失敗回報：vectorize 失敗或 server 啟動失敗時，把錯誤寫入 output/decision.json 的 error 欄位後結束。"
-```
-
-> **Flag 不確定性備案**：若 `codex exec --full-auto --cd ... --skip-git-repo-check` 報「unknown flag」，先跑 `codex --help` 確認當前版本支援的 flag，至少要保留 `--full-auto`（自動批准 file edits + shell）。`--cd` 與 `--skip-git-repo-check` 是 codex CLI 0.x 後加入的，舊版可能要靠 `cd "$(pwd)" && codex ...` workaround。
-
-#### Handoff Contract — codex 必須產生
-
-| 檔案 | 必要 | 用途 |
-|------|------|------|
-| `output/sketch_geometry.json` | ✅ | 階段 5 座標換算讀此檔 |
-| `output/decision.json` | ✅ | 主 session 驗證 action == "ok" |
-| `output/sketch.dxf` | 選用 | 給使用者下載 |
-| `output/sketch_preview.png` | 選用 | codex 已用過 |
-
-#### 主 session 驗證（codex 返回後立刻跑）
+> **禁止 shell-out 給 `codex` / `codex exec` 跑 Python pipeline。** Claude Code 直接用 Bash 工具呼叫 Python，不要把這步外包給其他 AI agent。
 
 ```bash
-test -f output/decision.json     || abort "codex 沒寫 decision.json"
-test -f output/sketch_geometry.json || abort "幾何檔遺失"
-jq -e '.action == "ok"' output/decision.json \
-  || abort "decision.action != ok，codex 沒處理完循環"
+python .claude/skills/plan-sketch-to-dxf/scripts/vectorize_plan_to_dxf.py <sketch_path> \
+  --out output/sketch.dxf \
+  --preview output/sketch_preview.png \
+  --json output/sketch_geometry.json \
+  --mode aligned \
+  --column-side 40
 ```
 
-#### 錯誤處理
+預設 mode = `aligned`（中等清理：直線校正 + 端點 snap，不強制全部正交）。
+- 顏色純、要求乾淨 CAD：改 `--mode strong-ortho`
+- 想保留原始斜率：改 `--mode basic`
 
-| 失敗情境 | 對策 |
-|---------|------|
-| `codex` 不存在 | 提示 `npm install -g @openai/codex`，中止 Skill |
-| codex 非 0 退出 | 讀 `output/decision.json` 的 `.error` 欄位回報；若連檔案都沒有，告知使用者 codex 自身崩潰 |
-| `decision.json` 缺 `action` 或 `action == "redo"` | 表示 codex 沒處理完循環，視為失敗，建議使用者重跑 |
-| `sketch_geometry.json` 缺 | 向量化失敗，建議使用者檢查手稿顏色 |
+驗證輸出：
+- `columns N == 0` → **警告**使用者：純牆面平面圖無柱可作為比例尺基準，預覽頁的「📏 標尺寸」是唯一校正方式；`scale: null` 屬正常，繼續但提醒使用者必須手動標尺寸再按 OK
+- `magenta_segments + cyan_segments` ≥ 4，否則回報「牆段太少，可能顏色閾值不匹配」
+
+### 階段 2：啟動預覽 server
+```bash
+node MCP-Server/scripts/sketch_preview_server.cjs \
+  --original <sketch_path> \
+  --preview output/sketch_preview.png \
+  --geometry output/sketch_geometry.json \
+  --decision output/decision.json \
+  --port 10003
+```
+
+用 Bash 工具帶 `run_in_background: true` 啟動，**記住回傳的 task_id**（後續 Monitor 不需要它，但若要 KillBash 用得到）。
+
+**server 起來後立刻自動開瀏覽器**（不要只把 URL 貼給使用者，要實際幫他打開）：
+- Windows：`start http://localhost:10003`
+- macOS：`open http://localhost:10003`
+- Linux：`xdg-open http://localhost:10003`
+
+仍把 `http://localhost:10003` 也貼給使用者作為文字備援，請對方按 OK 或 Redo。
+
+### 階段 3：等待使用者決策（Monitor 串流，**不要輪詢**）
+
+> 不能用 `while`/`Bash sleep` 輪詢 — 那會讓 turn 結束、要等使用者再輸入才會醒。改用 `Monitor` 工具串流 server stdout：server 寫入 decision.json 時會印 `[sketch_preview] decision written: ok` 或 `... redo`（見 `MCP-Server/scripts/sketch_preview_server.cjs` 第 137 行）。
+
+呼叫 Monitor，例如：
+```
+Monitor(
+  description: "sketch preview decision",
+  command: "tail -f output/sketch_server.log 2>/dev/null | grep --line-buffered -E '\\[sketch_preview\\] decision written:|listen failed|EADDRINUSE'",
+  timeout_ms: 300000,
+  persistent: false
+)
+```
+
+實作要點：
+1. 階段 2 啟動 server 時把 stdout 重導到 `output/sketch_server.log`（例：`node ... > output/sketch_server.log 2>&1`），這樣 Monitor 才有檔案可 tail
+2. Monitor 也要監聽 `listen failed` / `EADDRINUSE`，避免 port 被佔卻沒人通知
+3. 收到 `decision written: ok` → Read `output/decision.json` 確認 action，進階段 4
+4. 收到 `decision written: redo` → Read `output/decision.json` 取 `mode` / `column_side`，回階段 1 用新參數重跑
+5. 超時（300 秒無事件）→ 提示「網頁預覽逾時，請重新觸發 Skill 或在網頁按 OK / Redo」並結束
 
 ### 階段 4：建模參數詢問
 
@@ -89,99 +105,81 @@ jq -e '.action == "ok"' output/decision.json \
    - 把 `get_all_levels` 結果依 `Elevation` 升冪排序，找到 `bottomLevel` 的下一個 → `topLevel`
    - 若是頂樓（沒有下一個 level）→ fallback 到 4-題版（向使用者確認）
    - 若 active view 沒有關聯 level（例如 3D / Drafting / Sheet view）→ `LevelName` 為空字串，fallback 到 4-題版
-4. **正常情況只問 3 題**（用 `AskUserQuestion`）：RC15 牆型、磚12 牆型、柱型
-5. **fallback 4-題版**：RC15 牆型、磚12 牆型、柱型、bottom/top Level
+4. **正常 3 題（columns ≥ 1）**（用 `AskUserQuestion`）：RC15 牆型、磚12 牆型、柱型
+   **只問 2 題（columns = 0，無柱型）**：RC15 牆型、磚12 牆型（無柱可建，跳過柱型）
+5. **fallback 4-題版**：RC15 牆型、磚12 牆型、柱型、bottom/top Level（columns = 0 時為 3 題：RC15 牆型、磚12 牆型、bottom/top Level）
 
 > 為什麼這樣改：使用者通常已經把 active view 切到要建模的樓層，再問一次 level 是多餘的。從 active view 推導同時也避免「使用者選錯 level → 牆建錯地方」。
 
 ### 階段 5：座標換算 + 50mm snap
 讀 `output/sketch_geometry.json`：
-1. 比例尺：`scale.refMmDistance / scale.refPxDistance`，或直接讀 `scale.mmPerPx`（若階段 1.5 已校正則存在）
+1. 比例尺：用 `scale.refPxDistance`（最近兩柱），對應 10000mm（或使用者指定）
 2. `mmPerPx = refMmDistance / refPxDistance`
 3. 幾何中心 `(cx_px, cy_px)` = 所有柱平均
 4. 對每個 px 座標：
    - `mm_x = (px - cx_px) * mmPerPx + Cx`
    - `mm_y = -(py - cy_px) * mmPerPx + Cy`（**Y 翻轉**）
-5. 50mm snap（順序:錨點→柱心→牆端點共線分組→自由端點），詳見 domain doc §7
+5. 50mm snap（順序：錨點→柱心→牆端點共線分組→自由端點），詳見 domain doc §7
 
-### 階段 6：Revit 批次建立
+**0 columns fallback（columns = 0）**：
+- 步驟 1 比例尺：JSON 的 `scale` 為 `null`。**只能**讀使用者在預覽頁透過「📏 標尺寸」存到 JSON 的 `scale.mmPerPx`。若 `scale.mmPerPx` 仍為 null/undefined → 中止建模並提示使用者：「沒有比例尺資料，請回網頁用標尺寸校正後再按 OK」。`refMmDistance / refPxDistance` 路徑不可用（refPxDistance 沒有柱心可量）。
+- 步驟 3 幾何中心：`(cx_px, cy_px)` 改用所有 wall segment 端點集合的 bbox 中心（`(min_x+max_x)/2, (min_y+max_y)/2`）。
+- 其他步驟（4、5）邏輯不變。
+
+### 階段 6：Revit 批次建立 + 牆參數修正
 
 ```
 for col in columns:
   create_column(x, y, columnType, bottomLevel, topLevel)
 
 for wall in walls:
-  create_wall(
-    startX, startY, endX, endY,
-    height,
-    wallType=<RC15 或 BRICK12 名稱>,
-    bottomLevel=<bottomLevelName>,
-    topLevel=<topLevelName>,
-  )
+  create_wall(startX, startY, endX, endY, height, wallType)
 
-# C# CreateWall 已支援 wallType / bottomLevel / topLevel，並把 Base/Top Offset 預設 0
-# （見 domain/sketch-color-convention.md §11）。
-# 萬一 wallType 名稱查找失敗（例：拼字錯）會 fallback 到 active type，
-# 此時可用 change_element_type 補救：
-# change_element_type(elementIds=[<出錯的 wall ids>], typeId=<目標 typeId>)
+# C# CreateWall 仍忽略 wallType — 用 change_element_type 修正：
+change_element_type(elementIds=[<RC15 wall ids>], typeId=<RC15 typeId>)
+change_element_type(elementIds=[<BRICK12 wall ids>], typeId=<BRICK12 typeId>)
+
+# 設定每道牆的 Base/Top Constraint 為從 active view 推導的 level，
+# Base Offset / Top Offset 歸零 — 讓牆精確介於兩個樓層之間。
+for wall_id in all_walls:
+  modify_element_parameter(wall_id, "Base Constraint", "<bottomLevelName>")
+  modify_element_parameter(wall_id, "Top Constraint",  "<topLevelName>")
+  modify_element_parameter(wall_id, "Base Offset", "0")
+  modify_element_parameter(wall_id, "Top Offset",  "0")
 
 unjoin_element_joins(sourceCategory="Walls", elementIds=[...])
 ```
 
-> **驗證提醒**：建完任意一道牆後，用 `get_element_info` 確認 `Base Constraint` 等於指定的 `bottomLevelName`。若仍顯示 GL（或 Level 1 等第一個 Level），代表 Revit 載入的還是舊版 DLL — 提醒使用者關掉 Revit、跑 `/deploy-addon` 或 `scripts/install-addon.ps1`、再重新啟動 Revit。
-
-### 階段 6.5：自動標尺寸（預設執行，可關閉）
-
-蓋完牆後呼叫一次 `auto_dimension_walls` 補上總尺寸：
-
-```
-auto_dimension_walls(
-  viewId=<active view ID>,
-  wallIds=[<剛建立的 wall IDs>],
-  mode="overall_bbox",   # 預設：top 邊沿 X + right 邊沿 Y 兩條總長串
-  offsetMm=1500
-)
-```
-
-模式選擇（使用者可指定）：
-- **`overall_bbox`（預設）** — 兩條外圍總長串。一眼看到建築總尺寸。
-- **`chained`** — 同列／同排牆段串接。要做正式平面圖時用。
-- **`per_wall`** — 每道牆獨立標長度。debug 用。
-
-> **行為提醒**：dimension 直接綁牆面 reference，牆**移動時會跟著走、刪除時會自動消失**。對「先建出來看，不對就刪掉重來」的 sketch iteration 流程是正確的（不會留下孤兒標註）。代價是牆移動後標註值會更新 — 若需要凍結值，用 hard-coded text 註解而不是 dimension。
-
-使用者明確說「不要標尺寸」時跳過階段 6.5。
+> 不再用「Base Offset = bottomLevel高度mm」的 hack。`modify_element_parameter` 已修正單位 bug（用 `SetValueString` 解析顯示單位），且新增 ElementId 型別支援（透過 level 名稱查 ElementId 設定 Constraint）。
 
 ### 階段 7：報告
 - 建立 N 柱、M 牆
 - 修正 N 個牆型、M 個 Base Offset
 - 解除接合 K 對
-- 自動標註 K 條尺寸（mode、總寬 mm × 總高 mm）
 
 ## 執行範圍模式
 
 支援只跑部分階段（使用者明確要求）：
-- **只到階段 1**：「先看 DXF 偵測對不對」（codex 跑完即停，不進建模）
-- **跳過階段 1，直接從階段 4 開始**：當 `output/sketch_geometry.json` 與 `output/decision.json (action=ok)` 已存在且使用者確認過，直接進入 Revit 建模
+- **只到階段 1**：「先看 DXF 偵測對不對」
+- **只到階段 3**：「等我看完網頁再決定要不要建」
+- **跳過階段 1-3，直接從階段 4 開始**：當 `output/sketch_geometry.json` 已存在且使用者確認過，直接進入 Revit 建模
 
 ## Edge Cases
 
 | 風險 | 對策 |
 |------|------|
-| codex 不存在或版本不符 | `npm install -g @openai/codex`；檢查 `codex --version` |
-| codex flag 不被識別 | `codex --help` 對照當前版本，至少保留 `--full-auto` |
-| codex 跑太久（使用者開著網頁不按 OK） | server 端不設 timeout；codex 自身 timeout 由 OpenAI Codex CLI 預設處理 |
-| port 被佔 | codex 內 fallback 10003→10004→10005 |
-| 使用者忘了點 OK | codex 會持續等待；使用者可關掉 codex CLI process 中止 |
-| C# `CreateWall` 收到 wallType 但找不到（拼字錯 / 未載入） | 自動 fallback 到 active type 並 log warning，階段 6 註解中的 `change_element_type` 可手動補救 |
-| 牆建在 GL 而非 active view level | 通常代表 Revit 還在用舊版 DLL（修正前的版本）— 關掉 Revit、redeploy、重啟 |
+| 顏色閾值不匹配 | preview.png 漏線使用者一眼看出，重跑換 mode 或調 mask |
+| port 被佔 | fallback 10003→10004→10005 |
+| 使用者忘了點 OK | 5 分鐘 timeout |
+| Python 命令不存在 | fallback `python` → `python3` |
+| C# CreateWall 忽略 wallType | 階段 6 用 `change_element_type` 修正（spawned task 追蹤底層 fix） |
 | Active view 沒關聯 level（3D / Drafting / Sheet） | 階段 4 fallback 4-題版，向使用者確認 bottom/top Level |
 | Active view 是頂樓（沒有更高 level） | 階段 4 fallback 4-題版 |
 | DXF 寫成 AC1009 舊格式 | AutoCAD/Revit 都支援，無需修改 |
 
 ## 實作參考
-- 委派工具（codex 學習這份）：[plan-sketch-to-dxf/SKILL.md](../plan-sketch-to-dxf/SKILL.md)
-- Python 向量化管線：[plan-sketch-to-dxf/scripts/vectorize_plan_to_dxf.py](../plan-sketch-to-dxf/scripts/vectorize_plan_to_dxf.py)
+- Python 管線：[plan-sketch-to-dxf/scripts/vectorize_plan_to_dxf.py](../plan-sketch-to-dxf/scripts/vectorize_plan_to_dxf.py)
 - 預覽 server：[MCP-Server/scripts/sketch_preview_server.cjs](../../../MCP-Server/scripts/sketch_preview_server.cjs)（注意：MCP-Server 為 ESM 專案，必須用 `.cjs` 副檔名）
 - 預覽頁：[MCP-Server/scripts/sketch_preview.html](../../../MCP-Server/scripts/sketch_preview.html)
+- V1 fallback：[sketch-to-walls/SKILL.md](../sketch-to-walls/SKILL.md)
 - C# CreateWall bug 紀錄：[domain/sketch-color-convention.md](../../../domain/sketch-color-convention.md) §11
