@@ -37,5 +37,60 @@ export const viewCreationTools: Tool[] = [
             },
             required: ["templateViewId", "creations"]
         }
+    },
+    {
+        name: "batch_apply_view_template",
+        description: "批次將指定的 ViewTemplate 套用到多個 views。支援透過圖紙（sheets）、view ID、view 名稱或名稱子字串來選取目標 views。可搭配 viewTypeFilter 篩選特定視圖類型。dryRun 模式可預覽變更內容而不實際修改。觸發條件：使用者提到批次修改 view template、套用視圖樣版、sheet 中的 view 改 template。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                viewTemplateId: {
+                    type: "number",
+                    description: "目標 ViewTemplate 的 ElementId（與 viewTemplateName 二擇一）"
+                },
+                viewTemplateName: {
+                    type: "string",
+                    description: "目標 ViewTemplate 的名稱（與 viewTemplateId 二擇一；精確匹配）"
+                },
+                sheetIds: {
+                    type: "array",
+                    items: { type: "number" },
+                    description: "圖紙 ElementId 清單 — 套用到這些圖紙上所有 viewport 對應的 views"
+                },
+                sheetNumbers: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "圖紙編號清單（如 ['A101', 'A102']）— 套用到這些圖紙上所有 viewport 對應的 views"
+                },
+                viewIds: {
+                    type: "array",
+                    items: { type: "number" },
+                    description: "目標 view ElementId 清單（精確指定）"
+                },
+                viewNames: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "目標 view 名稱清單（精確匹配）"
+                },
+                viewNameContains: {
+                    type: "string",
+                    description: "view 名稱包含此字串（substring match，case-insensitive）"
+                },
+                viewTypeFilter: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "限定 view type，例: ['FloorPlan', 'CeilingPlan', 'Section', 'Elevation', 'ThreeD']"
+                },
+                dryRun: {
+                    type: "boolean",
+                    description: "設為 true 時僅預覽變更清單，不實際修改。預設 false"
+                },
+                skipIfSameTemplate: {
+                    type: "boolean",
+                    description: "若 view 已使用相同 template 則跳過。預設 true"
+                }
+            },
+            required: []
+        }
     }
 ];
