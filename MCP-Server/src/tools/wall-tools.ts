@@ -17,6 +17,8 @@ export const wallTools: Tool[] = [
                 endY: { type: "number", description: "終點 Y 座標（公釐）" },
                 height: { type: "number", description: "牆高度（公釐）", default: 3000 },
                 wallType: { type: "string", description: "牆類型名稱（選填）" },
+                bottomLevel: { type: "string", description: "底部樓層名稱（選填，預設使用 active view 的 level 或 Level 1）" },
+                topLevel: { type: "string", description: "頂部樓層名稱（選填，給定後使用 Top Constraint = Up to level；不給則使用 Unconnected Height）" },
             },
             required: ["startX", "startY", "endX", "endY"],
         },

@@ -375,6 +375,9 @@ namespace RevitMCP.Core
                     case "create_dimension_by_bounding_box":
                         result = CreateDimensionByBoundingBox(parameters);
                         break;
+                    case "auto_dimension_walls":
+                        result = AutoDimensionWalls(parameters);
+                        break;
 
                     // === 從屬視圖模組 ===
                     case "calculate_grid_bounds":
@@ -491,6 +494,11 @@ namespace RevitMCP.Core
 
         /// <summary>
         /// 建立牆
+        /// 接受參數：startX/Y、endX/Y（mm）、height（mm，未指定 topLevel 時生效）、
+        ///   wallType（名稱或 ElementId 數字；找不到 fallback active type）、
+        ///   bottomLevel（名稱或 ElementId 數字；找不到 fallback 第一個 Level）、
+        ///   topLevel（名稱或 ElementId 數字，選填；指定後 Top Constraint = Up to level）。
+        /// 預設 Base Offset = 0、Top Offset = 0。
         /// </summary>
         private object CreateWall(JObject parameters)
         {
@@ -513,25 +521,60 @@ namespace RevitMCP.Core
                 // 建立線
                 Line line = Line.CreateBound(start, end);
 
-                // 取得預設樓層
-                Level level = new FilteredElementCollector(doc)
-                    .OfClass(typeof(Level))
-                    .Cast<Level>()
-                    .FirstOrDefault();
-
-                if (level == null)
+                // 解析 bottomLevel（名稱或 ElementId）— 找不到 fallback 第一個 Level 並 log warning
+                Level bottomLevel = ResolveLevelParam(doc, parameters["bottomLevel"], "bottomLevel", fallbackToFirst: true);
+                if (bottomLevel == null)
                 {
                     throw new Exception("找不到樓層");
                 }
 
-                // 建立牆
-                Wall wall = Wall.Create(doc, line, level.Id, false);
-                
-                // 設定高度
-                Parameter heightParam = wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
-                if (heightParam != null && !heightParam.IsReadOnly)
+                // 建立牆（仍用最簡 overload，建完再改 wallType / topLevel / offsets — 跨版本最穩）
+                Wall wall = Wall.Create(doc, line, bottomLevel.Id, false);
+
+                // 解析 wallType（名稱或 ElementId）— 找不到 fallback active type 並 log warning
+                WallType resolvedType = ResolveWallTypeParam(doc, parameters["wallType"]);
+                if (resolvedType != null && wall.GetTypeId() != resolvedType.Id)
                 {
-                    heightParam.Set(height / 304.8);
+                    try
+                    {
+                        wall.ChangeTypeId(resolvedType.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error($"[CreateWall] ChangeTypeId 失敗，保留 active type", ex);
+                    }
+                }
+
+                // 設定 Top Constraint：有 topLevel 用 Up to level，否則維持 Unconnected + 用 height
+                Level topLevel = ResolveLevelParam(doc, parameters["topLevel"], "topLevel", fallbackToFirst: false);
+                if (topLevel != null)
+                {
+                    Parameter topTypeParam = wall.get_Parameter(BuiltInParameter.WALL_HEIGHT_TYPE);
+                    if (topTypeParam != null && !topTypeParam.IsReadOnly)
+                    {
+                        topTypeParam.Set(topLevel.Id);
+                    }
+                }
+                else
+                {
+                    // 無 topLevel → 使用顯式 height (Unconnected Height)
+                    Parameter heightParam = wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
+                    if (heightParam != null && !heightParam.IsReadOnly)
+                    {
+                        heightParam.Set(height / 304.8);
+                    }
+                }
+
+                // 預設 Base/Top Offset 歸零（壓掉 Revit 預設值）
+                Parameter baseOffsetParam = wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET);
+                if (baseOffsetParam != null && !baseOffsetParam.IsReadOnly)
+                {
+                    baseOffsetParam.Set(0.0);
+                }
+                Parameter topOffsetParam = wall.get_Parameter(BuiltInParameter.WALL_TOP_OFFSET);
+                if (topOffsetParam != null && !topOffsetParam.IsReadOnly)
+                {
+                    topOffsetParam.Set(0.0);
                 }
 
                 trans.Commit();
@@ -539,9 +582,96 @@ namespace RevitMCP.Core
                 return new
                 {
                     ElementId = wall.Id.GetIdValue(),
+                    WallType = wall.WallType?.Name,
+                    BaseLevel = bottomLevel.Name,
+                    TopLevel = topLevel?.Name,
                     Message = $"成功建立牆，ID: {wall.Id.GetIdValue()}"
                 };
             }
+        }
+
+        /// <summary>
+        /// 解析 level 參數：可為名稱字串或 ElementId 數字。找不到時依 fallbackToFirst
+        /// 決定回第一個 Level（順序依 Elevation 升冪）或 null。
+        /// </summary>
+        private Level ResolveLevelParam(Document doc, JToken token, string paramName, bool fallbackToFirst)
+        {
+            if (token == null || token.Type == JTokenType.Null)
+            {
+                if (!fallbackToFirst) return null;
+                return new FilteredElementCollector(doc)
+                    .OfClass(typeof(Level))
+                    .Cast<Level>()
+                    .OrderBy(l => l.Elevation)
+                    .FirstOrDefault();
+            }
+
+            // 數字 → 用 ElementId 查
+            if (token.Type == JTokenType.Integer || token.Type == JTokenType.Float)
+            {
+                IdType rawId = token.Value<IdType>();
+                Element elem = doc.GetElement(rawId.ToElementId());
+                if (elem is Level lvByid)
+                {
+                    return lvByid;
+                }
+                Logger.Info($"[CreateWall] {paramName}={rawId} 不是 Level ElementId，fallback 處理");
+            }
+            else if (token.Type == JTokenType.String)
+            {
+                string name = token.Value<string>();
+                if (!string.IsNullOrEmpty(name))
+                {
+                    Level lvByname = new FilteredElementCollector(doc)
+                        .OfClass(typeof(Level))
+                        .Cast<Level>()
+                        .FirstOrDefault(l => l.Name == name);
+                    if (lvByname != null) return lvByname;
+                    Logger.Info($"[CreateWall] 找不到 Level 名稱: {name}，fallback 處理");
+                }
+            }
+
+            if (!fallbackToFirst) return null;
+            return new FilteredElementCollector(doc)
+                .OfClass(typeof(Level))
+                .Cast<Level>()
+                .OrderBy(l => l.Elevation)
+                .FirstOrDefault();
+        }
+
+        /// <summary>
+        /// 解析 wallType 參數：可為名稱字串或 ElementId 數字。找不到回 null
+        /// （讓 caller 維持 active type 並決定是否 log warning）。
+        /// </summary>
+        private WallType ResolveWallTypeParam(Document doc, JToken token)
+        {
+            if (token == null || token.Type == JTokenType.Null) return null;
+
+            if (token.Type == JTokenType.Integer || token.Type == JTokenType.Float)
+            {
+                IdType rawId = token.Value<IdType>();
+                Element elem = doc.GetElement(rawId.ToElementId());
+                if (elem is WallType wtById)
+                {
+                    return wtById;
+                }
+                Logger.Info($"[CreateWall] wallType={rawId} 不是 WallType ElementId，fallback 用 active type");
+                return null;
+            }
+
+            if (token.Type == JTokenType.String)
+            {
+                string name = token.Value<string>();
+                if (string.IsNullOrEmpty(name)) return null;
+                WallType wtByName = new FilteredElementCollector(doc)
+                    .OfClass(typeof(WallType))
+                    .Cast<WallType>()
+                    .FirstOrDefault(wt => wt.Name == name);
+                if (wtByName != null) return wtByName;
+                Logger.Info($"[CreateWall] 找不到 WallType 名稱: {name}，fallback 用 active type");
+            }
+
+            return null;
         }
 
         /// <summary>
