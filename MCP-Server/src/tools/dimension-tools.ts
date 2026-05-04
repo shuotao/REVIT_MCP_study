@@ -43,4 +43,29 @@ export const dimensionTools: Tool[] = [
             required: ["viewId", "roomId", "axis"],
         },
     },
+    {
+        name: "auto_dimension_walls",
+        description: "批次自動標註牆段尺寸（不需要 Room）。三種模式：overall_bbox（外圍兩條總長串：top 邊沿 X、right 邊沿 Y，預設）/ chained（同列同排共線牆串成 string dimension）/ per_wall（每牆一條長度標註）。標註用 DetailCurve 當 reference，不抓牆面，但建模一次性場景剛好。常用於 sketch-to-revit 蓋完牆後自動補尺寸。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                viewId: { type: "number", description: "目標平面視圖 ID（必須是 ViewPlan）" },
+                wallIds: {
+                    type: "array",
+                    items: { type: "number" },
+                    description: "要標註的牆 ElementId 列表（選填，預設為 view 範圍內所有牆）",
+                },
+                mode: {
+                    type: "string",
+                    enum: ["overall_bbox", "chained", "per_wall"],
+                    description: "標註模式（預設 overall_bbox）",
+                },
+                offsetMm: {
+                    type: "number",
+                    description: "標註線偏移距離 (mm)，預設 1500",
+                },
+            },
+            required: ["viewId"],
+        },
+    },
 ];
