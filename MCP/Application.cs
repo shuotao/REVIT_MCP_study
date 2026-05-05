@@ -67,7 +67,7 @@ namespace RevitMCP
                 Logger.Info("RevitMCP Plugin 已成功載入");
 
                 TaskDialog.Show("RevitMCP", 
-                    "RevitMCP Plugin 已載入\n\n" +
+                    "RevitMCP Plugin 已載入 (版本: 2026.05.05.V2_LinkSupport)\n\n" +
                     "請點擊「MCP 服務 (開/關)」按鈕來啟用 AI 控制功能");
                 
                 return Result.Succeeded;
