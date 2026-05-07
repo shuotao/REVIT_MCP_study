@@ -321,14 +321,24 @@ if (skipNames.Contains(sourceParam.Definition.Name)) continue;
 
 **雪上加霜**：`position_viewports_on_sheet` 用 titleblock-top-left 當錨點；titleblock 位置不一致 → viewport 即使跑 align 也會跟著 titleblock 跑 → 列印一致但 Revit UI 上絕對位置不同。
 
-**MCP 沒有「移動 element」的工具**（只有 `move_text_notes_in_views`、`move_viewport_titles`、`position_viewports_on_sheet`，都不支援 titleblock instance）。**只能手動處理**：
+**SOP（換 titleblock type 後驗證+對齊）**：
 
-**SOP（換 titleblock type 後驗證）**：
 1. 用 `get_sheet_viewport_details(sheetId)` 對每張 sheet 抓 titleblock TL（從 `Outline.MinX, Outline.MaxY`）
 2. 比對所有 sheet 的 TL — 若有不一致 → titleblock instance origin 不齊
-3. 找出多數 sheet 的「正確位置」當基準
-4. 請使用者在 Revit **手動 Move** 偏離的 sheet 的 titleblock 到基準位置（最快：只動 1 張少數派、不動 N 張多數派）
-5. 完成後重跑 `position_viewports_on_sheet` 確認 viewport 一起對齊
+3. 找出多數 sheet 的「正確位置」當基準（或選任一張位置 OK 的 sheet 當 reference）
+4. **直接呼叫 `align_titleblocks_on_sheets`**（2026-05-07 新增工具）：
+   ```
+   align_titleblocks_on_sheets({
+     referenceSheetNumber: "A1-04",     # 任一張位置正確的 sheet
+     targetSheetNumbers: ["A1-01", ..., "A1-14"],  # 全部要對齊的
+     anchor: "top-left",
+     dryRun: true                        # 先預覽 delta
+   })
+   ```
+   或用絕對座標：`referencePositionMm: { x: -541.5, y: 592.0 }`
+5. dryRun 看 `Moved[].DeltaMm` — reference sheet 應該 ≈ (0, 0)，其他 sheet 顯示要平移多少
+6. 確認後拿掉 dryRun 正式跑
+7. 完成後重跑 `position_viewports_on_sheet` 確認 viewport 一起對齊
 
 **預防（首選）**：跨專案複製時，**讓目標檔的 titleblock family 和來源檔同名同族**，這樣就不需要換 type，instance origin 也保持一致。
 
