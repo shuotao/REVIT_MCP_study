@@ -421,6 +421,9 @@ namespace RevitMCP.Core
                     case "align_titleblocks_on_sheets":
                         result = AlignTitleblocksOnSheets(parameters);
                         break;
+                    case "move_viewport_titles":
+                        result = MoveViewportTitles(parameters);
+                        break;
 
                     // === 跨文件圖紙複製模組 ===
                     case "read_source_file_sheets":

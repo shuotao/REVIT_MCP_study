@@ -364,5 +364,196 @@ namespace RevitMCP.Core
         }
 
         #endregion
+
+        #region Viewport 標題位置（LabelOffset）
+
+        /// <summary>
+        /// 批次移動 viewport 標題（label line + text）的位置。
+        /// 模式:
+        ///   - below-view-center: 將標題置中放在 cropbox 正下方 + gapMm 距離
+        ///   - reset: LabelOffset 還原為 XYZ.Zero（Revit 預設位置）
+        /// </summary>
+        private object MoveViewportTitles(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+
+            string mode = parameters["mode"]?.Value<string>() ?? "below-view-center";
+            double gapMm = parameters["gapMm"]?.Value<double>() ?? 5.0;
+            bool dryRun = parameters["dryRun"]?.Value<bool>() ?? false;
+
+            var validModes = new HashSet<string> { "below-view-center", "reset" };
+            if (!validModes.Contains(mode))
+                throw new Exception($"不支援的 mode: '{mode}' (允許: below-view-center / reset)");
+
+            var targetViewports = ResolveTargetViewports(doc, parameters);
+            if (targetViewports.Count == 0)
+                throw new Exception("找不到任何符合的 viewport");
+
+            var moved = new List<object>();
+            var skipped = new List<object>();
+            var failed = new List<object>();
+
+            Transaction trans = null;
+            try
+            {
+                if (!dryRun)
+                {
+                    trans = TransactionHelper.Begin(doc, "批次移動 Viewport 標題");
+                    trans.Start();
+                }
+
+                foreach (var vp in targetViewports)
+                {
+                    try
+                    {
+                        var view = doc.GetElement(vp.ViewId) as View;
+                        var sheet = doc.GetElement(vp.SheetId) as ViewSheet;
+                        if (view == null)
+                        {
+                            skipped.Add(new { ViewportId = vp.Id.GetIdValue(), Reason = "找不到對應 view" });
+                            continue;
+                        }
+
+                        XYZ currentBoxCenter = vp.GetBoxCenter();
+                        XYZ currentLabelOffset = vp.LabelOffset ?? XYZ.Zero;
+
+                        // 取得 current label center (in sheet coords)
+                        XYZ currentLabelCenter = null;
+                        try
+                        {
+                            Outline labelOutline = vp.GetLabelOutline();
+                            if (labelOutline != null)
+                            {
+                                currentLabelCenter = new XYZ(
+                                    (labelOutline.MinimumPoint.X + labelOutline.MaximumPoint.X) / 2.0,
+                                    (labelOutline.MinimumPoint.Y + labelOutline.MaximumPoint.Y) / 2.0,
+                                    0);
+                            }
+                        }
+                        catch { }
+
+                        XYZ newLabelOffset = currentLabelOffset;
+                        XYZ targetLabelCenter = null;
+
+                        if (mode == "reset")
+                        {
+                            newLabelOffset = XYZ.Zero;
+                        }
+                        else if (mode == "below-view-center")
+                        {
+                            if (currentLabelCenter == null)
+                            {
+                                skipped.Add(new
+                                {
+                                    ViewportId = vp.Id.GetIdValue(),
+                                    ViewName = view.Name,
+                                    Reason = "無法取得 LabelOutline（標題可能不可見）"
+                                });
+                                continue;
+                            }
+
+                            // ─── 反推 cropbox 在 sheet 上的中心 + 底邊 ───
+                            BoundingBoxXYZ cb = view.CropBox;
+                            BoundingBoxUV viewOutline = null;
+                            try { viewOutline = view.Outline; } catch { }
+
+                            if (cb == null || viewOutline == null)
+                            {
+                                skipped.Add(new
+                                {
+                                    ViewportId = vp.Id.GetIdValue(),
+                                    ViewName = view.Name,
+                                    Reason = "無 CropBox 或 ViewOutline"
+                                });
+                                continue;
+                            }
+
+                            double scale = view.Scale > 0 ? view.Scale : 1;
+                            double cropHeightFt = Math.Abs(cb.Max.Y - cb.Min.Y) / scale;
+
+                            XYZ cropCenterLocal = new XYZ(
+                                (cb.Min.X + cb.Max.X) / 2.0,
+                                (cb.Min.Y + cb.Max.Y) / 2.0,
+                                (cb.Min.Z + cb.Max.Z) / 2.0);
+                            XYZ cropCenterModel = cb.Transform != null
+                                ? cb.Transform.OfPoint(cropCenterLocal)
+                                : cropCenterLocal;
+
+                            // 公式同 PositionViewportsOnSheet：用 viewOutline center 抵消 boxOutline padding
+                            double viewOutlineCenterU = (viewOutline.Min.U + viewOutline.Max.U) / 2.0;
+                            double viewOutlineCenterV = (viewOutline.Min.V + viewOutline.Max.V) / 2.0;
+                            double sheetOriginX = currentBoxCenter.X - viewOutlineCenterU;
+                            double sheetOriginY = currentBoxCenter.Y - viewOutlineCenterV;
+
+                            XYZ viewOrigin = view.Origin;
+                            double cropCenterSheetX = sheetOriginX + (cropCenterModel.X - viewOrigin.X) / scale;
+                            double cropCenterSheetY = sheetOriginY + (cropCenterModel.Y - viewOrigin.Y) / scale;
+                            double cropBottomSheetY = cropCenterSheetY - cropHeightFt / 2.0;
+
+                            double gapFt = gapMm / 304.8;
+                            targetLabelCenter = new XYZ(cropCenterSheetX, cropBottomSheetY - gapFt, 0);
+
+                            XYZ delta = targetLabelCenter - currentLabelCenter;
+                            newLabelOffset = currentLabelOffset + delta;
+                        }
+
+                        if (!dryRun)
+                        {
+                            vp.LabelOffset = newLabelOffset;
+                        }
+
+                        object oldCenterMm = currentLabelCenter != null
+                            ? (object)new { X = currentLabelCenter.X * 304.8, Y = currentLabelCenter.Y * 304.8 }
+                            : null;
+                        object newCenterMm = targetLabelCenter != null
+                            ? (object)new { X = targetLabelCenter.X * 304.8, Y = targetLabelCenter.Y * 304.8 }
+                            : null;
+
+                        moved.Add(new
+                        {
+                            ViewportId = vp.Id.GetIdValue(),
+                            ViewName = view.Name,
+                            ViewType = view.ViewType.ToString(),
+                            SheetNumber = sheet?.SheetNumber,
+                            SheetName = sheet?.Name,
+                            OldLabelOffsetMm = new { X = currentLabelOffset.X * 304.8, Y = currentLabelOffset.Y * 304.8 },
+                            NewLabelOffsetMm = new { X = newLabelOffset.X * 304.8, Y = newLabelOffset.Y * 304.8 },
+                            OldLabelCenterMm = oldCenterMm,
+                            NewLabelCenterMm = newCenterMm
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        failed.Add(new { ViewportId = vp.Id.GetIdValue(), Error = ex.Message });
+                    }
+                }
+
+                if (!dryRun && trans != null)
+                {
+                    trans.Commit();
+                }
+            }
+            finally
+            {
+                if (trans != null && trans.HasStarted() && !trans.HasEnded())
+                    trans.RollBack();
+                trans?.Dispose();
+            }
+
+            return new
+            {
+                DryRun = dryRun,
+                Mode = mode,
+                GapMm = gapMm,
+                MovedCount = moved.Count,
+                SkippedCount = skipped.Count,
+                FailedCount = failed.Count,
+                Moved = moved,
+                Skipped = skipped,
+                Failed = failed
+            };
+        }
+
+        #endregion
     }
 }

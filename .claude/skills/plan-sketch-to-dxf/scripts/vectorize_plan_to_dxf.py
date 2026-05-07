@@ -35,10 +35,10 @@ def add_lwpolyline(parts, layer, pts, h, scale, closed=False):
 def masks_from_image(img):
     b, g, r = cv2.split(img)
     mag = ((r > 145) & (b > 115) & (g < 145)).astype(np.uint8) * 255
-    cyan = ((b > 145) & (g > 95) & (r < 170)).astype(np.uint8) * 255
+    cyan = ((b > 120) & (g > 75) & (r < 185)).astype(np.uint8) * 255
     black = ((b < 85) & (g < 85) & (r < 85)).astype(np.uint8) * 255
     mag = cv2.morphologyEx(mag, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))
-    cyan = cv2.morphologyEx(cyan, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))
+    cyan = cv2.morphologyEx(cyan, cv2.MORPH_CLOSE, np.ones((2, 2), np.uint8))
     black = cv2.morphologyEx(black, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8), iterations=2)
     return mag, cyan, black
 
@@ -197,7 +197,50 @@ def snap_and_extend(segs, cols, mode):
             a, b = b, a
         snapped.append((o, round_half(c), round_half(a), round_half(b)))
     snapped = merge_same_line(snapped, coord_tol=0.25, gap_tol=40 if mode == "strong-ortho" else 32)
-    return extend_to_intersections(snapped, 26 if mode == "strong-ortho" else 18, 24 if mode == "strong-ortho" else 18)
+    extended = extend_to_intersections(snapped, 26 if mode == "strong-ortho" else 18, 24 if mode == "strong-ortho" else 18)
+    return stitch_across_columns(extended, cols)
+
+
+def stitch_across_columns(segs, cols, coord_tol=6, gap_max=160):
+    """合併同方向、coord 相近、且兩段之間正好有柱子穿過的線段。
+    柱子是合理的「斷裂點」（手繪時筆抬起或柱遮擋），這時兩段視為同一道牆。"""
+    if not cols:
+        return list(segs)
+    segs = [list(s) for s in segs]
+    changed = True
+    while changed:
+        changed = False
+        for i in range(len(segs)):
+            broken = False
+            for j in range(i + 1, len(segs)):
+                a, b = segs[i], segs[j]
+                if a[0] != b[0] or abs(a[1] - b[1]) > coord_tol:
+                    continue
+                lo, hi = (a, b) if a[2] <= b[2] else (b, a)
+                gap = hi[2] - lo[3]
+                if not (0 < gap < gap_max):
+                    continue
+                hit = False
+                for cx, cy, cw, ch in cols:
+                    half = max(cw, ch) * 0.6
+                    if a[0] == "H":
+                        if lo[3] <= cx <= hi[2] and abs(cy - lo[1]) <= half:
+                            hit = True; break
+                    else:
+                        if lo[3] <= cy <= hi[2] and abs(cx - lo[1]) <= half:
+                            hit = True; break
+                if hit:
+                    segs[i] = [a[0],
+                               round_half((a[1] + b[1]) / 2),
+                               round_half(min(a[2], b[2])),
+                               round_half(max(a[3], b[3]))]
+                    del segs[j]
+                    changed = True
+                    broken = True
+                    break
+            if broken:
+                break
+    return [tuple(s) for s in segs]
 
 
 def extend_to_intersections(segs, end_tol, cross_tol):
@@ -221,7 +264,7 @@ def extend_to_intersections(segs, end_tol, cross_tol):
             v[2] = min(top, key=lambda q: abs(q - y1))
         if bot:
             v[3] = min(bot, key=lambda q: abs(q - y2))
-    return merge_same_line([tuple(s) for s in hs + vs], coord_tol=0.25, gap_tol=40, min_span=14)
+    return merge_same_line([tuple(s) for s in hs + vs], coord_tol=0.25, gap_tol=32, min_span=14)
 
 
 def write_outputs(img, mag, cyan, cols, out_dxf, preview, column_side, scale):

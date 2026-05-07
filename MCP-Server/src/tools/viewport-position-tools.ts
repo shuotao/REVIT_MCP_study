@@ -86,5 +86,59 @@ export const viewportPositionTools: Tool[] = [
             },
             required: ["viewAnchor", "sheetReference"]
         }
+    },
+    {
+        name: "move_viewport_titles",
+        description: "批次移動 viewport 標題（label line + text）的位置。支援兩種模式：(1) below-view-center: 將標題置中放在 view 正下方（自動計算 cropbox 底邊中心 + gapMm 距離）；(2) reset: LabelOffset 還原為 XYZ.Zero（Revit 預設位置，通常在 viewport 左下角）。識別目標 viewports 與 position_viewports_on_sheet 相同：viewportIds / viewIds / viewNames / viewNameContains，可加 sheetNumbers / viewTypeFilter 過濾。觸發條件：使用者提到 viewport 標題位置、視埠標題、view title 對齊、把標題挪到視圖下方、reset title position。建議搭配 dryRun=true 先預覽。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                mode: {
+                    type: "string",
+                    enum: ["below-view-center", "reset"],
+                    description: "below-view-center: 標題置中於 view 正下方（透過 cropbox 計算）；reset: 還原預設位置",
+                    default: "below-view-center"
+                },
+                gapMm: {
+                    type: "number",
+                    description: "標題距離 view cropbox 底邊的距離（mm，僅 below-view-center 模式有效）",
+                    default: 5
+                },
+                viewportIds: {
+                    type: "array",
+                    items: { type: "number" },
+                    description: "目標 Viewport ElementId 清單（最精確識別方式）"
+                },
+                viewIds: {
+                    type: "array",
+                    items: { type: "number" },
+                    description: "目標 View ElementId 清單（會找對應的 viewport）"
+                },
+                viewNames: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "目標 view 名稱清單（精確匹配）"
+                },
+                viewNameContains: {
+                    type: "string",
+                    description: "view 名稱包含此字串（substring match, case-insensitive）"
+                },
+                sheetNumbers: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "限定 sheet 編號清單（與其他識別方式組合使用）"
+                },
+                viewTypeFilter: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "限定 view type, 例: ['FloorPlan', 'CeilingPlan']"
+                },
+                dryRun: {
+                    type: "boolean",
+                    description: "若 true 則只計算不實際移動，回傳預期 delta 供確認",
+                    default: false
+                }
+            }
+        }
     }
 ];
