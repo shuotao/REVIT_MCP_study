@@ -6,7 +6,7 @@
 
 ## 📊 綜合對比矩陣 (DCC & Production Matrix)
 
-| 維度 | 途徑 1: MCP 一鍵導出 (Potato，pyRevit 插件功能) | 途徑 2: guRoo 批次 (pyRevit 插件功能) | 途徑 3: Revit 原生匯出 | 途徑 4: Revit 原生列印 | 途徑 5: pyRevit 核心印表 (pyRevit 插件功能) |
+| 維度 | 途徑 1: Potato Print (pyRevit 插件功能) | 途徑 2: guRoo 批次 (pyRevit 插件功能) | 途徑 3: Revit 原生匯出 | 途徑 4: Revit 原生列印 | 途徑 5: pyRevit 核心印表 (pyRevit 插件功能) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **位置/模組** | `MCP_Tools` (Development) | `guRoo` (Export) | `File > Export > PDF` | `File > Print` | `pyRevit > Sheets > Print` |
 | **技術原理** | Native API (2022+ Export) | Native API (2022+ Export) | Native Engine (ODA) | Virtual Printer Driver | PrintManager Wrapper |
@@ -58,9 +58,9 @@
 當 Agent 收到 PDF 請求時，應依據以下邏輯判斷路徑：
 1.  **判斷數量與對象**：
     *   單張/少數 ➡️ 推薦途徑 3 (原生匯出)。
-    *   批次/大量 (零件圖/全套圖) ➡️ 調用 **途徑 1 (Potato)** 或 **途徑 2 (guRoo)**。
+    *   批次/大量 (零件圖/全套圖) ➡️ 調用 **途徑 1 (Potato Print)** 或 **途徑 2 (guRoo)**。
 2.  **判斷場景**：
-    *   加工發包 ➡️ 途徑 1 (Potato，pyRevit 插件功能，具備自動路徑邏輯)。
+    *   加工發包 ➡️ 途徑 1 (Potato Print，pyRevit 插件功能，具備自動路徑邏輯)。
     *   設計討論 ➡️ 途徑 2 (guRoo，pyRevit 插件功能，具備圖紙選取介面)。
 3.  **錯誤修復**：
     *   若 API 報錯 (如字體缺失) ➡️ 引導用戶使用 **途徑 4 (虛擬列印)**。
