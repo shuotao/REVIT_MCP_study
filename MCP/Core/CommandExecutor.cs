@@ -418,6 +418,9 @@ namespace RevitMCP.Core
                     case "debug_viewport_geometry":
                         result = DebugViewportGeometry(parameters);
                         break;
+                    case "align_titleblocks_on_sheets":
+                        result = AlignTitleblocksOnSheets(parameters);
+                        break;
 
                     // === 跨文件圖紙複製模組 ===
                     case "read_source_file_sheets":
