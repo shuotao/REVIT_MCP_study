@@ -4,6 +4,19 @@
 
 ---
 
+## 📚 前人研究與技術系譜 (Prior Art & Literature Review)
+
+在深入比較當前工具前，必須致敬社群在 Revit PDF 自動化領域的演進路徑，這也是 **Potato Print** 研發的邏輯起點：
+
+1.  **Cyril Waechter (pyRevitMEP)**：早期定義了透過 pyRevit 進行大規模圖紙管理的範式。其對 `PrintManager` 的深度封裝解決了自動化出圖的「從無到有」。
+2.  **Gui Talarico (RevitPythonWrapper)**：其推廣的 Pythonic API 封裝思維，為後來者使用原生 API 進行快速導出奠定了代碼美學基礎。
+3.  **Autodesk Native PDF API (2022+)**：這是技術分水嶺。Autodesk 棄用依賴作業系統虛擬印表機的舊模式，改採基於 ODA (Open Design Alliance) 引擎的原生轉換。本專案中的「Potato Print」即是基於此技術棧的延伸應用。
+4.  **guRoo (SheetsPDF)**：實踐了將 Revit 2022+ 原生導出邏輯轉化為 pyRevit 模組化工具的先驅，解決了 UI 交互與批次選取的痛點。
+
+**本研究的價值**：在上述前輩建立的「引擎」之上，進一步解決了 **DCC (文件管制)** 與 **加工下包** 場景中的自動命名、座標精確度、以及隱形物件干擾等「最後一公里」問題。
+
+---
+
 ## 📊 綜合對比矩陣 (DCC & Production Matrix)
 
 | 維度 | 途徑 1: Potato Print (pyRevit 插件功能) | 途徑 2: guRoo 批次 (pyRevit 插件功能) | 途徑 3: Revit 原生匯出 | 途徑 4: Revit 原生列印 | 途徑 5: pyRevit 核心印表 (pyRevit 插件功能) |
