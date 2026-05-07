@@ -54,6 +54,16 @@
 - **陷阱**：調整比例後，標題線長度不會自動重置。
 - **概念方案**：需透過 API 重設 `Viewport.LabelOffset` 與長度參數，或在零件圖中統一使用「無標題 (No Title)」類型。
 
+## PDF 輸出策略：原生引擎轉換 (Revit 2022+)
+
+本工具鏈採用 Revit 2024 原生 PDF 導出 API (`doc.Export`)，與傳統虛擬印表機列印有本質區別：
+
+*   **零依賴 (Zero Dependency)**：無需在 Windows 系統安裝任何 PDF 印表機驅動程式（如 Bluebeam, Adobe PDF）。即使是全新的電腦環境，只要有 Revit 2022+ 即可運行。
+*   **非虛擬列印，而是「轉換」**：直接將 Revit 向量幾何轉換為 PDF 格式，而非模擬列印。這消除了跳轉印表機視窗的步驟，實現真正的「背景導出」，速度極快。
+*   **精確 API 控制**：透過 `PDFExportOptions` 直接控制檔名、品質、超連結（View Links）等細節。
+    *   *技術細節*：設置 `ViewLinksInBlue = False` 可消除 PDF 中常見的藍色點擊框。
+    *   *技術細節*：隱藏參考平面需使用單數屬性 `HideReferencePlane` (Revit API 的命名不對稱陷阱)。
+
 ---
 
 ## 5. 環境清理與自動化收尾
