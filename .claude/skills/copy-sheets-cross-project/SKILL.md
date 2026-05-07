@@ -307,6 +307,31 @@ if (skipNames.Contains(sourceParam.Definition.Name)) continue;
 - 看 Properties 面板 / Project Browser 的 folder 結構
 - 若有大批失敗，立即 stop 並 debug 而非繼續批次跑
 
+### 13. ⚠️ change_element_type 不會搬動 instance origin（後處理 titleblock 換型常踩）
+
+**情境**：跨專案複製完成後，使用者通常希望把新 sheet 的 titleblock 換成目標專案的標準型（例如 `A_基設圖框_A1: A1_一般`）。直覺做法 = 對每張 sheet 的 titleblock instance 跑 `change_element_type`。
+
+**陷阱**：`change_element_type` 只改 type，**完全保留 instance origin（XYZ 位置）**。但不同 titleblock family 的「插入點 ↔ 圖框幾何」對應關係**通常不同**（有些插入點在外框左下角、有些在中心、有些在標題區）。
+
+**結果**：換完 type 後，雖然所有 sheet 用同一個 type，但**圖框在 sheet-coord 上的位置仍然不一致**：
+- 來源 family A 的插入點在外框左下 → 換 type 後外框 TL 在 sheet-coord (X1, Y1)
+- 目標 family B 的插入點在外框中心 → 換 type 後外框 TL 在 sheet-coord (X1 + width/2, Y1 + height/2)
+
+實際案例（2026-05-07）：13 張 sheet 換 titleblock type 後，A1-05 的 titleblock TL 在 (-41.38, 588.35)，其他 12 張在 (-541.5, 592.0)，差 500mm。
+
+**雪上加霜**：`position_viewports_on_sheet` 用 titleblock-top-left 當錨點；titleblock 位置不一致 → viewport 即使跑 align 也會跟著 titleblock 跑 → 列印一致但 Revit UI 上絕對位置不同。
+
+**MCP 沒有「移動 element」的工具**（只有 `move_text_notes_in_views`、`move_viewport_titles`、`position_viewports_on_sheet`，都不支援 titleblock instance）。**只能手動處理**：
+
+**SOP（換 titleblock type 後驗證）**：
+1. 用 `get_sheet_viewport_details(sheetId)` 對每張 sheet 抓 titleblock TL（從 `Outline.MinX, Outline.MaxY`）
+2. 比對所有 sheet 的 TL — 若有不一致 → titleblock instance origin 不齊
+3. 找出多數 sheet 的「正確位置」當基準
+4. 請使用者在 Revit **手動 Move** 偏離的 sheet 的 titleblock 到基準位置（最快：只動 1 張少數派、不動 N 張多數派）
+5. 完成後重跑 `position_viewports_on_sheet` 確認 viewport 一起對齊
+
+**預防（首選）**：跨專案複製時，**讓目標檔的 titleblock family 和來源檔同名同族**，這樣就不需要換 type，instance origin 也保持一致。
+
 ## 兩階段為什麼必要
 
 不要嘗試「一次跑完」。必須**先 read 再 copy**，原因：

@@ -277,6 +277,48 @@ grep "<RequestId>" "/c/Users/lesle/AppData/Roaming/RevitMCP/Logs/RevitMCP_YYYYMM
 
 **永遠不要假設「報告數字看起來對 = 實際位置就對」**，尤其是涉及 Revit 內部 transform 的工具。
 
+### 14. ⚠️ 對齊到「指定 sheet 的當前 viewport 位置」workflow（常見需求）
+
+使用者常說：「把所有 sheet 的 viewport 對齊到 A1-05 現在的位置」。這是**參考某張 sheet 的人工調整結果，把其他 sheet 都對齊過去**。
+
+**錯誤做法（常踩坑）**：直接用 `get_sheet_viewport_details` 拿 viewport `Center`，然後用 `viewAnchor: "center"` 配對應 offset。
+
+**為什麼錯**：`get_sheet_viewport_details` 回傳的 `Center` 是 **box outline center**，但 `position_viewports_on_sheet` 的 anchor 是 **cropbox 角落/中心**。兩者通常差 30-60mm（box 比 cropbox 大，且不對稱）。直接用 box center 算 offset → 結果會位移 ~53mm。
+
+**正確 SOP**：
+
+```
+1. get_active_view → 取得當前 sheet ElementId
+2. get_sheet_viewport_details(sheetId) → 取得目標 viewport 的 Outline (MinX/MaxY) 和 BoxWidth/BoxHeight
+3. 用 dryRun 跑一次「top-left + offset(10, 10)」反查 BoxCenter 與 CropboxCenter 的偏移量 d
+   （d.X = NewBoxCenter.X - DesiredCropboxTopLeftMm.X - cropboxWidth/2）
+4. 推算目標 cropbox TL 在 sheet-coord：
+   targetCropboxTL = (target.boxOutline.MinX + paddingLeft, target.boxOutline.MaxY - paddingTop)
+   其中 padding 從步驟 3 的 d 推導
+5. 算 offset：
+   offsetRight = targetCropboxTL.X - titleblockTL.X
+   offsetDown  = titleblockTL.Y - targetCropboxTL.Y
+6. dryRun 驗證：目標 viewport 的 Delta 應該 ≈ (0, 0)；其他 viewport 的 Delta 是要移動量
+7. 確認後 apply
+```
+
+**簡化版**（已知 ScopeBox 範圍一致，所有 cropbox 同尺寸）：
+
+```
+從之前任一次「top-left + offset(X, Y)」的 dryRun 抓 NewBoxCenter（這是 box 對齊到 offset(X,Y) 的位置），
+比對目標 sheet 的 box center 差距 (dx, dy)。
+新 offset = (X + dx, Y - dy)
+```
+
+**實例（2026-05-07）**：
+- 已知 offset(10, 10) → 大部分 viewport NewBoxCenter = (-98.10, 345.64)
+- 目標 A1-05 box center = (-68.10, 320.64)
+- dx = -68.10 - (-98.10) = +30, dy = 320.64 - 345.64 = -25
+- 新 offset = (10 + 30, 10 - (-25)) = (40, 35)
+- 用 viewAnchor=top-left + offset(40, 35) → A1-05 Delta=0，其他 Delta=(+30, -25) ✅
+
+**驗證點**：dryRun 結果裡，目標 sheet 的 `DeltaMm` 應該 ≈ (0, 0)。如果不是，offset 算錯了，重算。
+
 ## 與 copy-sheets-cross-project 的關係
 
 跨專案複製剛建好新 view 後，新 view 通常需要：
