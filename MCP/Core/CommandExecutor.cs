@@ -364,6 +364,9 @@ namespace RevitMCP.Core
                     case "sync_detail_component_numbers":
                         result = SyncDetailComponentNumbers();
                         break;
+                    case "dedup_detail_elements_in_view":
+                        result = DedupDetailElementsInView(parameters);
+                        break;
                     case "list_family_symbols":
                         result = ListFamilySymbols(parameters);
                         break;
