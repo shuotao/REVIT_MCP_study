@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>0425 MCP 功能開發四月小聚</title>
-<meta property="og:title" content="MCP 功能開發四月小聚">
-<meta property="og:description" content="從工具堆砌到模組化架構 — 9 大專業系統、32 個 Domain、82 個工具已上線驗證。你的專業就是下一個按鈕。">
+<title>0523 MCP 功能開發五月小聚</title>
+<meta property="og:title" content="MCP 功能開發五月小聚">
+<meta property="og:description" content="從工具堆砌到模組化架構 — 9 大專業系統、35 個 Domain、86 個工具已上線驗證（snapshot 更新於 2026-05-12）。你的專業就是下一個按鈕。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://shuotao.github.io/REVIT_MCP_study/docs/0425-presentation.html">
 <meta name="twitter:card" content="summary">
@@ -809,7 +809,7 @@
 <section class="cover" id="slide-cover">
   <div class="cover-eyebrow">Revit MCP Study Group</div>
   <div style="display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap;">
-    <h1 class="cover-title" style="margin:0;">MCP 功能開發<br>四月小聚</h1>
+    <h1 class="cover-title" style="margin:0;">MCP 功能開發<br>五月小聚</h1>
     <div style="display:flex;flex-direction:column;gap:12px;padding-top:8px;">
       <a href="https://luma.com/claudecommunity" target="_blank" title="Claude Community — Anthropic 官方社群" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:rgba(255,255,255,0.6);font-size:13px;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px 14px;transition:all 0.3s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.4)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='rgba(255,255,255,0.6)'">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
@@ -833,7 +833,7 @@
   <div class="cover-meta">
     <div class="cover-meta-item">
       <div class="cover-meta-label">Date</div>
-      <div class="cover-meta-value">2026.04.25 (Sat)</div>
+      <div class="cover-meta-value">2026.05.23 (Sat)</div>
     </div>
     <div class="cover-meta-item">
       <div class="cover-meta-label">Format</div>
@@ -920,7 +920,7 @@
     </div>
   </div>
 
-  <div class="why-footer">以上 <strong style="color:#4ade80;">9</strong> 大系統、<strong style="color:#4ade80;">32 個 Domain</strong>、<strong>82 個工具</strong>已上線驗證。<br>你的專業領域，就是第 10 個、第 11 個按鈕。</div>
+  <div class="why-footer">以上 <strong style="color:#4ade80;">9</strong> 大系統、<strong style="color:#4ade80;">35 個 Domain</strong>、<strong>86 個工具</strong>已上線驗證（snapshot 更新於 2026-05-12）。<br>你的專業領域，就是第 10 個、第 11 個按鈕。</div>
 </section>
 
 <!-- ===== KARPATHY WIKI GATEWAY PAGE ===== -->
@@ -1113,7 +1113,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content">
       <div class="slide-number">1-3</div>
       <div class="slide-title">三次迭代的演進</div>
-      <p class="slide-summary">從 25 個工具到 82 個，從零 Skill 到 19 個，從只支援 Revit 2024 到 2022-2026 全版本。</p>
+      <p class="slide-summary">從 25 個工具到 86 個（snapshot 2026-05-12，4/25 為 82 個），從零 Skill 到 19 個，從只支援 Revit 2024 到 2022-2026 全版本。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-1-3')">展開演進對照</button>
     </div>
   </div>
@@ -1230,7 +1230,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content">
       <div class="slide-number">2-1</div>
       <div class="slide-title">工具越多，AI 越笨</div>
-      <p class="slide-summary">82 個工具定義 = 每輪對話都佔用 context 的固定成本。工具越多，AI 選錯的機率越高。</p>
+      <p class="slide-summary">86 個工具定義 = 每輪對話都佔用 context 的固定成本。工具越多，AI 選錯的機率越高。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-2-1')">展開數據分析</button>
     </div>
   </div>
@@ -1394,7 +1394,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content">
       <div class="slide-number">3-6</div>
       <div class="slide-title">Profile：角色篩選</div>
-      <p class="slide-summary">設定一行 MCP_PROFILE，結構工程師只看 20 個工具，不再被 82 個不相關的工具淹沒。</p>
+      <p class="slide-summary">設定一行 MCP_PROFILE，結構工程師只看 20 個工具，不再被 86 個不相關的工具淹沒。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-3-6')">展開 Profile 設定</button>
     </div>
   </div>
@@ -1522,7 +1522,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
     <div class="slide-content">
       <div class="slide-number">6-1</div>
       <div class="slide-title">目前進行中</div>
-      <p class="slide-summary">Issue #16：13 個工具的 TypeScript 端已完成，C# 端由 Alex 進行跨版本修正中。</p>
+      <p class="slide-summary">Issue #16：13 個工具的 TypeScript 端已完成，C# 端由 Alex 進行跨版本修正中。<br><strong>更新 2026-05-12：</strong>Issue #16 已 close，PR #17 合並。當前 9 OPEN PR 進度詳見 <a href="https://github.com/shuotao/REVIT_MCP_study/pulls" target="_blank" style="color:#60a5fa">GitHub PR 清單</a>。</p>
       <button class="drawer-trigger" onclick="openDrawer('drawer-6-1')">展開進度表</button>
     </div>
   </div>
@@ -1862,9 +1862,9 @@ npm run build</code><button class="copy-btn" onclick="copyCode(this)">複製</bu
   <h3>Token 數字</h3>
   <table>
     <tr><th>項目</th><th>Token 成本</th></tr>
-    <tr><td>82 個工具定義</td><td>~24,600 tokens</td></tr>
+    <tr><td>86 個工具定義</td><td>~25,800 tokens</td></tr>
     <tr><td>CLAUDE.md 全文</td><td>~5,000 tokens</td></tr>
-    <tr><td><strong>每輪固定成本</strong></td><td><strong>~29,600 tokens</strong></td></tr>
+    <tr><td><strong>每輪固定成本</strong></td><td><strong>~30,800 tokens</strong></td></tr>
     <tr><td>如果到 100 個工具</td><td>~35,000 tokens</td></tr>
   </table>
   <h3>為什麼這是問題</h3>
@@ -2181,7 +2181,7 @@ description: "消防安全檢討：防火時效視覺化、走廊防火分析、
     <li><strong>檢討步驟</strong> — step by step 流程</li>
     <li><strong>呼叫的工具</strong> — 明確列出 MCP 工具名稱</li>
   </ol>
-  <h3>現有 23 個 Domain 文件</h3>
+  <h3>現有 35 個 Domain 文件 + 1 reference（snapshot 2026-05-12）</h3>
   <p>位置：<span class="copyable-path" onclick="copyText('domain/')">domain/</span></p>
   <pre><code>domain/
 ├── smoke-exhaust-review.md       ← 排煙窗（§101）
@@ -2192,7 +2192,12 @@ description: "消防安全檢討：防火時效視覺化、走廊防火分析、
 ├── parking-clearance-check.md    ← 停車場淨空
 ├── curtain-wall-pattern.md       ← 帷幕牆
 ├── qa-checklist.md               ← QA 驗證
-└── ... 共 23 個</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
+├── mep-csa-clash-detection.md    ← MEP/CSA 碰撞偵測（5/12 新增至表）
+├── pdf-export-comparison.md      ← PDF 輸出 6 路徑決策（5/12 新增）
+├── mechanical-part-doc.md        ← 機械組件出圖 SOP（5/12 新增）
+├── mep-extension-guide.md        ← pyRevit 大神研究指南（5/12 新增）
+├── references/building-code-tw.md ← 台灣建築法規條號（5/12 新串入工作流）
+└── ... 共 35 個 + 1 reference</code><button class="copy-btn" onclick="copyCode(this)">複製</button></pre>
   <p><strong>最重要的是第 4 點——明確寫出工具名稱。</strong>AI 就不會自己亂寫 API 呼叫，而是使用預建工具。</p>
 
   <div class="cmd-tip">
@@ -2354,7 +2359,7 @@ Remove-Item "$env:APPDATA\Autodesk\Revit\Addins\2024\RevitMCP.2024.addin"</code>
   </ol>
 
   <h3>問題 4：NotImplementedException</h3>
-  <p>帷幕牆和排煙窗共 13 個工具的 C# 端還是 stub。等 <a href="https://github.com/shuotao/REVIT_MCP_study/issues/16" target="_blank" style="color:#60a5fa">Issue #16</a> 完成後就能用。其他 42 個工具正常。</p>
+  <p><s>帷幕牆和排煙窗共 13 個工具的 C# 端還是 stub。等 <a href="https://github.com/shuotao/REVIT_MCP_study/issues/16" target="_blank" style="color:#60a5fa">Issue #16</a> 完成後就能用。其他 42 個工具正常。</s><br><strong>更新（2026-05-12）：</strong>Issue #16 已合並（PR #17, 2026-03-18），帷幕牆 + 排煙窗 C# 實作完成。當前 86 個工具全部正常運作。若仍遇到 NotImplementedException，請開新 issue 報告。</p>
 
   <h3>問題 5：npm run build 失敗</h3>
   <pre><code>node --version  # 需要 v18+
@@ -2490,12 +2495,19 @@ git push origin add/parking-check
 <div class="drawer" id="drawer-6-1">
   <button class="drawer-close" onclick="closeDrawer()">✕</button>
   <h2>目前進行中</h2>
+  <p style="color:#60a5fa; font-size:14px;">📅 更新於 2026-05-12 — 距 4/25 已過 17 天，新增 4 個 domain SOP / 4 個 MCP 工具 / 1 reference 串入工作流</p>
   <table>
     <tr><th>項目</th><th>負責</th><th>狀態</th></tr>
     <tr><td>Issue #16：帷幕牆+排煙窗 C# 實作</td><td>Alex</td><td>✅ 已完成</td></tr>
     <tr><td>Issue #18：lessons.md 觸發機制</td><td>maintainer</td><td>✅ 已完成（/dev-guide）</td></tr>
     <tr><td>Domain → Skill 全面升級</td><td>maintainer</td><td>✅ 已完成（19 個 Skill）</td></tr>
     <tr><td>CONTRIBUTING.md 更新</td><td>maintainer</td><td>規劃中</td></tr>
+    <tr><td>Issue #41：building-code-tw 串入工作流</td><td>maintainer</td><td>✅ 已完成（commit 897cac8, 3 Skills 加 references）</td></tr>
+    <tr><td>PR #42/#43：Loader/Core 熱重載架構</td><td>ChimingLu</td><td>🔁 build R24/R25/R26 全 PASS，等 owner 開 Revit 2024 人工驗證 Core 重載按鈕</td></tr>
+    <tr><td>PR #30：lesleyliuke 17+ Skills 套餐</td><td>lesleyliuke</td><td>💬 已建 preview/lesley-pr30-snapshot 鏡像，待作者選 6 group 拆分方式</td></tr>
+    <tr><td>PR #36：finish-legend MCP 工具</td><td>916kevin-gif</td><td>💬 退回，等作者補 ~900 行 C# 實作</td></tr>
+    <tr><td>Issue #45：analyze_floor_slopes</td><td>yunchen-kt</td><td>💬 fork 已有 commit `2b9750aa`，等作者開 PR</td></tr>
+    <tr><td>thank.md：致謝靜默貢獻者</td><td>maintainer</td><td>✅ 已完成（SEven777-a 結構穿梁 / taiwanbanana 重命名 / Poison-sam Roslyn）</td></tr>
   </table>
   <p>追蹤連結：<a href="https://github.com/shuotao/REVIT_MCP_study/issues" target="_blank" style="color:#60a5fa">GitHub Issues</a></p>
 
