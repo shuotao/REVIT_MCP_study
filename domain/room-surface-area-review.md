@@ -1,7 +1,18 @@
 ---
-trigger: [表面積, surface area, 牆面面積, 塗裝面積, 材料估算, 室內表面, interior surface, wall area, ceiling area, 粉刷, 貼磚]
-tools: [get_room_surface_areas, get_rooms_by_level, get_room_info]
-version: 1.1
+name: room-surface-area-review
+description: "計算 Revit 房間內部表面積（牆面、地板、天花板），支援門窗開口扣除與粉刷層偵測；輸出 14 欄 Excel 明細並合併同材質面積。適用於材料估算、塗裝面積計算、聲學分析、裝修報價。當使用者提到表面積、粉刷面積、塗裝面積、材料估算、surface area 時觸發。"
+metadata:
+  version: "1.1"
+  updated: "2026-04-22"
+  created: "2026-03-24"
+  contributors:
+    - "Gemini"
+    - "916kevin-gif"
+  references: []
+  related: []
+  referenced_by: []
+  tools: [get_room_surface_areas, get_rooms_by_level, get_room_info]
+  tags: [表面積, surface area, 牆面面積, 塗裝面積, 材料估算, 室內表面, interior surface, wall area, ceiling area, 粉刷, 貼磚]
 ---
 
 # 房間內部表面積檢討
