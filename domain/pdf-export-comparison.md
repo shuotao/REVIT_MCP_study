@@ -1,3 +1,21 @@
+---
+name: pdf-export-comparison
+description: Revit PDF 輸出技術決策矩陣 — 比較 5 種 PDF 輸出途徑（Potato Print / guRoo / Revit 原生匯出 / 原生列印 / pyRevit 核心印表）的技術原理、送審適用度（DCC）、適合角色與可擴充性，含台灣六都建管送審法規節錄與 Agent 決策邏輯。
+metadata:
+  version: "1.0"
+  updated: "2026-05-07"
+  references:
+    - "https://building-apply.publicwork.ntpc.gov.tw/upload/download.html"
+    - "Autodesk Revit 2022+ Native PDF API (PDFExportOptions)"
+    - "guRoo (SheetsPDF)"
+    - "pyRevit (Sheets > Print)"
+  related:
+    - mechanical-part-doc.md
+    - lessons.md
+  referenced_by: []
+  tags: [PDF, 出圖, 送審, DCC, 文管, 加工發包, ODA, PDFExportOptions, PrintManager, Potato Print, guRoo]
+---
+
 # Revit PDF 輸出技術決策矩陣 (專業送審與生產力版)
 
 本文件定義了 6 種 PDF 輸出途徑的技術特性、適用場景與角色定位。旨在協助團隊在不同專案階段（從建照送審到加工發包）選擇最優路徑。

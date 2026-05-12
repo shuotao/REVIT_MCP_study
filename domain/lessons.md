@@ -147,9 +147,11 @@ metadata:
 - **核心經驗**：`View.get_BoundingBox()` 回傳的是裁切框範圍。若視圖剛生成且裁切框未收縮，其邊界通常遠大於實際零件。
 - **陷阱**：使用視圖邊界計算自適應比例會導致算出過小的比例（如 1:200），使零件在圖紙上變成小點；在佈置視圖時，巨大的裁切框會導致視埠重疊或超出圖紙。
 - **正確邏輯**：應以「組件成員幾何聯集」作為比例計算基準，並在後處理階段透過 API 將裁切框 (CropBox) 強制收縮至該幾何邊界。
-### [L020] [2026/05/07] Revit 2024 原生 PDF 導出 API 的陷阱與優勢
-*   **技術突破**：拋棄 `PrintManager` 轉向 `doc.Export`。這讓 PDF 輸出實現了「零依賴」，不需安裝任何印表機驅動。
-*   **API 命名陷阱**：Revit API 在 `PDFExportOptions` 中存在不對稱命名。`HideCropBoundaries` (複數), `HideScopeBoxes` (複數)，但隱藏參考平面必須使用 **`HideReferencePlane` (單數)**，否則會觸發 `AttributeError`。
-*   **物件層干擾 (Hyperlinks)**：PDF 導出預設會在每個視埠 (Viewport) 範圍建立「視圖超連結」物件。這會導致在 PDF 閱讀器中點擊時，整個視圖區域被視為一個可選取的「藍色大方塊」，干擾文字選取與標註閱讀。
-*   **視覺優化**：設置 `ViewLinksInBlue = False` 可讓這些連結物件在靜態下透明，但無法完全移除其作為 PDF 互動對象的存在（這是目前原生 API 的限制）。
-*   **考古重要性**：當遇到 API 報錯時，參考 `guRoo` 或 `pyRevitMEP` 等大神庫能快速定位是版本差異還是命名錯誤。
+
+## [L-020] Revit 2024 原生 PDF 導出 API 的陷阱與優勢
+
+- **技術突破**：拋棄 `PrintManager` 轉向 `doc.Export`。這讓 PDF 輸出實現了「零依賴」，不需安裝任何印表機驅動。
+- **API 命名陷阱**：Revit API 在 `PDFExportOptions` 中存在不對稱命名。`HideCropBoundaries` (複數), `HideScopeBoxes` (複數)，但隱藏參考平面必須使用 **`HideReferencePlane` (單數)**，否則會觸發 `AttributeError`。
+- **物件層干擾 (Hyperlinks)**：PDF 導出預設會在每個視埠 (Viewport) 範圍建立「視圖超連結」物件。這會導致在 PDF 閱讀器中點擊時，整個視圖區域被視為一個可選取的「藍色大方塊」，干擾文字選取與標註閱讀。
+- **視覺優化**：設置 `ViewLinksInBlue = False` 可讓這些連結物件在靜態下透明，但無法完全移除其作為 PDF 互動對象的存在（這是目前原生 API 的限制）。
+- **考古重要性**：當遇到 API 報錯時，參考 `guRoo` 或 `pyRevitMEP` 等大神庫能快速定位是版本差異還是命名錯誤。

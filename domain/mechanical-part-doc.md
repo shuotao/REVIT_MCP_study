@@ -1,3 +1,19 @@
+---
+name: mechanical-part-doc
+description: 機械組件自動化出圖 SOP — 定義 Revit Assembly 三視圖+3D 圖之視圖生成、自適應比例計算（級距 1:1/1:2/1:5/...）、佈置與後處理（裁切框收縮、樓層線/軸網隱藏、視覺表現標準）等完整生命週期。
+metadata:
+  version: "1.0"
+  updated: "2026-05-07"
+  references:
+    - "domain/lessons.md (L-015 ~ L-019)"
+    - "MCP/Core/Commands/CommandExecutor.Assembly.cs"
+  related:
+    - lessons.md
+    - pdf-export-comparison.md
+  referenced_by: []
+  tags: [機械出圖, mechanical, assembly, 組件, 視圖生成, 比例計算, 後處理, BIP, BuiltInParameter]
+---
+
 # 機械組件自動化出圖 (Mechanical Assembly Documentation)
 
 本文件定義了自動生成「機械零件圖/組件圖」的核心邏輯與技術標準，涵蓋從視圖生成到最終圖面後處理的完整生命週期。
