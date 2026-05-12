@@ -1,8 +1,18 @@
 ---
 name: mep-extension-guide
-description: 全球 pyRevit 大神擴展資源索引與機電自動化研究指南 (完整版)
-tags: [MEP, pyRevit, Research, Guide]
-version: 1.2
+description: 全球 pyRevit 大神擴展資源索引與機電自動化研究指南 — 整理 pyRevitMEP / pyrevitplus / OpenMEP / EF-Tools / guRoo 五大專案的核心價值與研究路徑，供 MEP 自動化開發參考。
+metadata:
+  version: "1.2"
+  updated: "2026-04-22"
+  references:
+    - "https://github.com/CyrilWaechter/pyRevitMEP"
+    - "https://github.com/gtalarico/pyrevitplus"
+    - "https://github.com/chuongmep/OpenMEP"
+    - "https://github.com/ErikFrits/EF-Tools"
+    - "https://github.com/aussieBIMguru/guRoo"
+  related: []
+  referenced_by: []
+  tags: [MEP, pyRevit, Research, Guide, 機電, 擴展, 研究指南]
 ---
 
 # 📚 全球 pyRevit 大神擴展資源索引 (機電自動化專題)
