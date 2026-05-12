@@ -1,3 +1,27 @@
+---
+name: building-code-tw
+description: "台灣建築法規（建築技術規則、消防法）摘要與條號對照表 — 供 AI 輔助建築法規檢討時的參考標準。涵蓋容積率、防火構造、走廊寬度、樓梯寬度、無障礙、耐燃材料分級等。被 fire-safety-check / building-compliance / smoke-exhaust 三個 Skill 引用。"
+metadata:
+  version: "1.1"
+  updated: "2026-05-12"
+  created: "2026-01-04"
+  references:
+    - "建築技術規則建築設計施工編"
+    - "建築技術規則總則編"
+    - "各類場所消防安全設備設置標準"
+  related:
+    - fire-rating-check.md
+    - corridor-analysis-protocol.md
+    - exterior-wall-opening-check.md
+    - daylight-area-check.md
+    - smoke-exhaust-review.md
+  referenced_by:
+    - fire-safety-check
+    - building-compliance
+    - smoke-exhaust
+  tags: [建築技術規則, 建築法, 消防法, building code, 法規條號, 容積率, 防火構造, 走廊寬度, 樓梯寬度, 無障礙, 耐燃材料]
+---
+
 # 台灣建築法規摘要
 
 本文件提供 AI 輔助建築法規檢討時的參考標準。
