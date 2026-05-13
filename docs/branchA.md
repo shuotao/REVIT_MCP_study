@@ -483,14 +483,11 @@ Branch A patch 完整 7/7 驗證:Name 守門 4/4 + else 子路徑 4/4 全綠。*
 
 ---
 
-## 附錄 A：相關 commit / branch
+## 附錄 A：相關 commit / 歸屬
 
-- Branch：`feature/taiwanbanana-name-rename`（local + origin）
-- Commit：`4649625` — 「fix: modify_element_parameter 支援 Element.Name 重命名（採納 taiwanbanana fork）」
 - 來源 fork：[taiwanbanana/REVIT_MCP_study](https://github.com/taiwanbanana/REVIT_MCP_study) commit `2e463400` (2026-04-24)
-- 致謝：`thank.md` §2
-- POC 計畫：`~/.claude/plans/thank-md-fork-pr-revit2024-poc-ethereal-harp.md` Branch A
-- main 狀態：**未合併**（曾誤合入 commit `cd21bab`，已 revert at `0ab786f`）
+- 上游正式合入：commit `1ac2485`（2026-05-13 squash-merge 到 main，含本技術文件 + patch + 測試紀錄）
+- 歷史軌跡：曾誤合入 `cd21bab` 後 revert (`0ab786f`)，再經 7/7 補測後正式合入。完整審計軌跡留在 `git log`
 
 ## 附錄 B：實際 diff（22 行淨改）
 
