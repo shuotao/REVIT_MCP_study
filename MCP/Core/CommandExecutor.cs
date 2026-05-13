@@ -661,33 +661,45 @@ namespace RevitMCP.Core
             {
                 trans.Start();
 
-                Parameter param = element.LookupParameter(parameterName);
-                if (param == null)
-                {
-                    throw new Exception($"找不到參數: {parameterName}");
-                }
-
-                if (param.IsReadOnly)
-                {
-                    throw new Exception($"參數 {parameterName} 是唯讀的");
-                }
-
                 bool success = false;
-                switch (param.StorageType)
+
+                // Element.Name 是 Revit API 的特殊 property，LookupParameter("Name") 會回 null。
+                // 攔截四種重命名意圖（含中英與 BuiltInParameter ALL_MODEL_TYPE_NAME=-1002001），直接寫 element.Name。
+                if (parameterName == "Name" || parameterName == "名稱"
+                    || parameterName == "類型名稱" || parameterName == "-1002001")
                 {
-                    case StorageType.String:
-                        success = param.Set(value);
-                        break;
-                    case StorageType.Double:
-                        if (double.TryParse(value, out double dVal))
-                            success = param.Set(dVal);
-                        break;
-                    case StorageType.Integer:
-                        if (int.TryParse(value, out int iVal))
-                            success = param.Set(iVal);
-                        break;
-                    default:
-                        throw new Exception($"不支援的參數類型: {param.StorageType}");
+                    element.Name = value;
+                    success = true;
+                }
+                else
+                {
+                    Parameter param = element.LookupParameter(parameterName);
+                    if (param == null)
+                    {
+                        throw new Exception($"找不到參數: {parameterName}");
+                    }
+
+                    if (param.IsReadOnly)
+                    {
+                        throw new Exception($"參數 {parameterName} 是唯讀的");
+                    }
+
+                    switch (param.StorageType)
+                    {
+                        case StorageType.String:
+                            success = param.Set(value);
+                            break;
+                        case StorageType.Double:
+                            if (double.TryParse(value, out double dVal))
+                                success = param.Set(dVal);
+                            break;
+                        case StorageType.Integer:
+                            if (int.TryParse(value, out int iVal))
+                                success = param.Set(iVal);
+                            break;
+                        default:
+                            throw new Exception($"不支援的參數類型: {param.StorageType}");
+                    }
                 }
 
                 if (!success)
