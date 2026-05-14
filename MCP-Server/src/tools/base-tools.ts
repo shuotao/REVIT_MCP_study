@@ -202,4 +202,30 @@ export const baseTools: Tool[] = [
             required: ["category"],
         },
     },
+    {
+        name: "move_element",
+        description: "移動指定的 Revit 元素（依 dx, dy, dz 指定位移量）。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                elementId: { type: "number", description: "要移動的元素 ID" },
+                dx: { type: "number", description: "X 軸移動距離 (mm)", default: 0 },
+                dy: { type: "number", description: "Y 軸移動距離 (mm)", default: 0 },
+                dz: { type: "number", description: "Z 軸移動距離 (mm)", default: 0 },
+            },
+            required: ["elementId"],
+        },
+    },
+    {
+        name: "flip_element",
+        description: "翻轉指定的 Revit 建築元素（例如門或窗）。可以選擇翻轉面向(facing)或開向(hand)。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                elementId: { type: "number", description: "要翻轉的元素 ID" },
+                flipType: { type: "string", description: "翻轉類型: 'facing' (預設，依牆為軸翻轉) 或是 'hand' (左右翻轉)", default: "facing" },
+            },
+            required: ["elementId"],
+        },
+    },
 ];

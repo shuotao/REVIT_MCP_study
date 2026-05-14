@@ -378,6 +378,12 @@ namespace RevitMCP.Core
                     case "export_clash_report":
                         result = ExportClashReport(parameters);
                         break;
+                    case "move_element":
+                        result = MoveElement(parameters);
+                        break;
+                    case "flip_element":
+                        result = FlipElement(parameters);
+                        break;
 
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
@@ -720,7 +726,9 @@ namespace RevitMCP.Core
         }
 
         /// <summary>
-        /// 建立門
+        /// 建立門。支援 doorType 篩選與 sourceElementId 來源複製（poisonsam fork 擴寫）
+        /// 4 級類型 fallback：doorType → sourceElement type → 任意第一個
+        /// 來源 fork: poisonsam/main:MCP/Core/Commands/CommandExecutor.Architecture.cs:217-318
         /// </summary>
         private object CreateDoor(JObject parameters)
         {
@@ -728,6 +736,8 @@ namespace RevitMCP.Core
             IdType wallId = parameters["wallId"]?.Value<IdType>() ?? 0;
             double locationX = parameters["locationX"]?.Value<double>() ?? 0;
             double locationY = parameters["locationY"]?.Value<double>() ?? 0;
+            string doorType = parameters["doorType"]?.Value<string>();
+            IdType? sourceElementId = parameters["sourceElementId"]?.Value<IdType>();
 
             Wall wall = doc.GetElement(new ElementId(wallId)) as Wall;
             if (wall == null)
@@ -739,12 +749,40 @@ namespace RevitMCP.Core
             {
                 trans.Start();
 
-                // 取得門類型
-                FamilySymbol doorSymbol = new FilteredElementCollector(doc)
-                    .OfClass(typeof(FamilySymbol))
-                    .OfCategory(BuiltInCategory.OST_Doors)
-                    .Cast<FamilySymbol>()
-                    .FirstOrDefault();
+                FamilySymbol doorSymbol = null;
+                Element sourceElement = null;
+
+                // 1. 若有來源 ID，先取得來源元素以供後續複製
+                if (sourceElementId.HasValue && sourceElementId.Value > 0)
+                {
+                    sourceElement = doc.GetElement(new ElementId(sourceElementId.Value));
+                }
+
+                // 2. 優先使用指定類型名稱
+                if (!string.IsNullOrEmpty(doorType))
+                {
+                    doorSymbol = new FilteredElementCollector(doc)
+                        .OfClass(typeof(FamilySymbol))
+                        .OfCategory(BuiltInCategory.OST_Doors)
+                        .Cast<FamilySymbol>()
+                        .FirstOrDefault(fs => fs.Name == doorType || (fs.FamilyName + ": " + fs.Name) == doorType);
+                }
+
+                // 3. 如果沒指定名稱或找不到，則使用來源元素的類型
+                if (doorSymbol == null && sourceElement != null)
+                {
+                    doorSymbol = doc.GetElement(sourceElement.GetTypeId()) as FamilySymbol;
+                }
+
+                // 4. 最後回退到預設（第一個）
+                if (doorSymbol == null)
+                {
+                    doorSymbol = new FilteredElementCollector(doc)
+                        .OfClass(typeof(FamilySymbol))
+                        .OfCategory(BuiltInCategory.OST_Doors)
+                        .Cast<FamilySymbol>()
+                        .FirstOrDefault();
+                }
 
                 if (doorSymbol == null)
                 {
@@ -762,8 +800,20 @@ namespace RevitMCP.Core
                 XYZ location = new XYZ(locationX / 304.8, locationY / 304.8, level?.Elevation ?? 0);
 
                 FamilyInstance door = doc.Create.NewFamilyInstance(
-                    location, doorSymbol, wall, level, 
+                    location, doorSymbol, wall, level,
                     Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
+
+                // 若有來源，複製 instance parameters 與 Facing/Hand 朝向
+                if (sourceElement != null)
+                {
+                    CopyInstanceParameters(sourceElement, door);
+
+                    if (sourceElement is FamilyInstance sourceFI)
+                    {
+                        if (sourceFI.FacingFlipped != door.FacingFlipped) door.flipFacing();
+                        if (sourceFI.HandFlipped != door.HandFlipped) door.flipHand();
+                    }
+                }
 
                 trans.Commit();
 
@@ -772,13 +822,16 @@ namespace RevitMCP.Core
                     ElementId = door.Id.GetIdValue(),
                     DoorType = doorSymbol.Name,
                     WallId = wallId,
+                    SourceElementId = sourceElement?.Id.GetIdValue(),
                     Message = $"成功建立門，ID: {door.Id.GetIdValue()}"
                 };
             }
         }
 
         /// <summary>
-        /// 建立窗
+        /// 建立窗。支援 windowType 篩選與 sourceElementId 來源複製（poisonsam fork 擴寫）
+        /// 4 級類型 fallback：windowType → sourceElement type → 任意第一個
+        /// 來源 fork: poisonsam/main:MCP/Core/Commands/CommandExecutor.Architecture.cs:320-420
         /// </summary>
         private object CreateWindow(JObject parameters)
         {
@@ -786,6 +839,8 @@ namespace RevitMCP.Core
             IdType wallId = parameters["wallId"]?.Value<IdType>() ?? 0;
             double locationX = parameters["locationX"]?.Value<double>() ?? 0;
             double locationY = parameters["locationY"]?.Value<double>() ?? 0;
+            string windowType = parameters["windowType"]?.Value<string>();
+            IdType? sourceElementId = parameters["sourceElementId"]?.Value<IdType>();
 
             Wall wall = doc.GetElement(new ElementId(wallId)) as Wall;
             if (wall == null)
@@ -797,12 +852,40 @@ namespace RevitMCP.Core
             {
                 trans.Start();
 
-                // 取得窗類型
-                FamilySymbol windowSymbol = new FilteredElementCollector(doc)
-                    .OfClass(typeof(FamilySymbol))
-                    .OfCategory(BuiltInCategory.OST_Windows)
-                    .Cast<FamilySymbol>()
-                    .FirstOrDefault();
+                FamilySymbol windowSymbol = null;
+                Element sourceElement = null;
+
+                // 1. 若有來源 ID，先取得來源元素
+                if (sourceElementId.HasValue && sourceElementId.Value > 0)
+                {
+                    sourceElement = doc.GetElement(new ElementId(sourceElementId.Value));
+                }
+
+                // 2. 優先使用指定類型名稱
+                if (!string.IsNullOrEmpty(windowType))
+                {
+                    windowSymbol = new FilteredElementCollector(doc)
+                        .OfClass(typeof(FamilySymbol))
+                        .OfCategory(BuiltInCategory.OST_Windows)
+                        .Cast<FamilySymbol>()
+                        .FirstOrDefault(fs => fs.Name == windowType || (fs.FamilyName + ": " + fs.Name) == windowType);
+                }
+
+                // 3. 如果沒指定名稱或找不到，則使用來源元素的類型
+                if (windowSymbol == null && sourceElement != null)
+                {
+                    windowSymbol = doc.GetElement(sourceElement.GetTypeId()) as FamilySymbol;
+                }
+
+                // 4. 最後回退到預設（第一個）
+                if (windowSymbol == null)
+                {
+                    windowSymbol = new FilteredElementCollector(doc)
+                        .OfClass(typeof(FamilySymbol))
+                        .OfCategory(BuiltInCategory.OST_Windows)
+                        .Cast<FamilySymbol>()
+                        .FirstOrDefault();
+                }
 
                 if (windowSymbol == null)
                 {
@@ -823,6 +906,18 @@ namespace RevitMCP.Core
                     location, windowSymbol, wall, level,
                     Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
 
+                // 若有來源，複製 instance parameters 與 Facing/Hand 朝向
+                if (sourceElement != null)
+                {
+                    CopyInstanceParameters(sourceElement, window);
+
+                    if (sourceElement is FamilyInstance sourceFI)
+                    {
+                        if (sourceFI.FacingFlipped != window.FacingFlipped) window.flipFacing();
+                        if (sourceFI.HandFlipped != window.HandFlipped) window.flipHand();
+                    }
+                }
+
                 trans.Commit();
 
                 return new
@@ -830,6 +925,7 @@ namespace RevitMCP.Core
                     ElementId = window.Id.GetIdValue(),
                     WindowType = windowSymbol.Name,
                     WallId = wallId,
+                    SourceElementId = sourceElement?.Id.GetIdValue(),
                     Message = $"成功建立窗，ID: {window.Id.GetIdValue()}"
                 };
             }
@@ -1750,6 +1846,9 @@ namespace RevitMCP.Core
             Parameter heightParam = wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
             double height = heightParam != null ? heightParam.AsDouble() * 304.8 : 0;
 
+            // Stage 3.5：補 Wall.Flipped + Wall.Orientation 兩個 native property
+            // Wall.Flipped = bool（是否被 flip 過）
+            // Wall.Orientation = XYZ 單位向量，指向 exterior side
             return new
             {
                 ElementId = wallId,
@@ -1762,7 +1861,10 @@ namespace RevitMCP.Core
                 StartY = Math.Round(startPoint.Y * 304.8, 2),
                 EndX = Math.Round(endPoint.X * 304.8, 2),
                 EndY = Math.Round(endPoint.Y * 304.8, 2),
-                Level = doc.GetElement(wall.LevelId)?.Name
+                Level = doc.GetElement(wall.LevelId)?.Name,
+                Flipped = wall.Flipped,
+                OrientationX = Math.Round(wall.Orientation.X, 4),
+                OrientationY = Math.Round(wall.Orientation.Y, 4)
             };
         }
 

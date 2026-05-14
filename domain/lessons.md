@@ -155,3 +155,34 @@ metadata:
 - **物件層干擾 (Hyperlinks)**：PDF 導出預設會在每個視埠 (Viewport) 範圍建立「視圖超連結」物件。這會導致在 PDF 閱讀器中點擊時，整個視圖區域被視為一個可選取的「藍色大方塊」，干擾文字選取與標註閱讀。
 - **視覺優化**：設置 `ViewLinksInBlue = False` 可讓這些連結物件在靜態下透明，但無法完全移除其作為 PDF 互動對象的存在（這是目前原生 API 的限制）。
 - **考古重要性**：當遇到 API 報錯時，參考 `guRoo` 或 `pyRevitMEP` 等大神庫能快速定位是版本差異還是命名錯誤。
+
+## [L-021] Revit API 特殊 property 不可走 LookupParameter
+
+- **規則**：`Element.Name` 是 Revit API 的直屬 property，**不在** Parameter 集合內。任何 `LookupParameter("Name")` 或對應中文／英文／BIP 整數值的呼叫，永遠回 `null`，導致重命名類型／視圖／樓層／類別等操作靜默失敗。
+- **實踐**：在 `modify_element_parameter` 的 `LookupParameter` 流程**之前**加守門，攔截 `{Name, 名稱, 類型名稱, -1002001}` 四個 alias 鍵，直接寫 `element.Name = newValue`。其他 parameterName 維持原本 `LookupParameter` 路徑（backward compatible）。實作見 `MCP/Core/CommandExecutor.cs:660`（Branch A patch，commit `1ac2485`）。
+- **警告**：跨語言介面（中文「名稱」／英文「Name」／BIP 整數值「-1002001」／類型語境「類型名稱」）必須一併支援，否則 AI 在不同語系 Revit 上會表現不一致。Wall instance 在 Revit API 上 `IsValidObject = true` 但寫 `element.Name` 會直接 throw——守門邏輯需 try/catch 並回傳明確錯誤訊息。
+
+## [L-022] 「沒動 ≠ 沒驗證」—— PR review 與 acceptance test 是兩件事
+
+- **規則**：PR review 看 **diff 範圍**（哪幾行改了），acceptance test 必須覆蓋 **全路徑**（所有 caller 可能進入的分支）。即使 patch 在 `if` 守門前加邏輯、完全沒動 `else` 分支的程式碼，仍必須跑 else 分支的全部子路徑才算驗證完整。
+- **實踐**：Branch A 第一次只測 Name 守門 4/4 就要 merge，被使用者要求補完 else 分支三條子路徑（B：Double 正常寫入 / C：IsReadOnly 守衛 / D：TryParse 失敗），達 7/7 才正式 squash-merge。`docs/branchA.md §10` 紀錄了完整 7/7 表格。
+- **警告**：「我沒動這段，應該不會壞」是工程直覺，但合入主幹的責任是「我證明這段確實沒壞」。直覺與證明的差距正是 PR 退回的主因。
+
+## [L-023] Auto-push 與 Merge 是兩個授權層級
+
+- **規則**：`feedback_auto_push.md` 授權「修正完成後自動 commit + push 到 **feature 分支**」，**不**授權「squash-merge 到 main」。merge 是另一個決策層級，必須等使用者明確確認。
+- **實踐**：Branch A 第一次擅自 squash-merge（`cd21bab`）被使用者糾正後 revert（`118d069` + `0ab786f`），保留審計軌跡而非 force-push 抹除。第二次走完 7/7 acceptance test 並等待使用者「可以 merge 了」才正式合入（`1ac2485`）。
+- **警告**：feature 分支 push 失敗最多重來，merge 到 main 影響所有下游 pull 的人——授權邊界必須在動作前判斷，不是動作後解釋。
+
+## [L-024] Revit 既有功能優先於自寫工具
+
+- **規則**：當 Revit 軟體本身已有功能時，AI 的價值是「**指導使用者操作既有工具**」而不是「**寫新工具取代既有功能**」。遇到「該寫工具」的衝動時，必須先問三題：
+  1. **Revit UI 已有同樣功能嗎？** 若 UI 一鍵能達成，寫 tool 就是 1:1 包裝，marginal value = 0
+  2. **BIM 設計師工作流真的需要嗎？** 還是 AI/腳本自造的需求？（建模初期、精修階段、AI-only workflow 各有不同判斷）
+  3. **這工具能跟其他工具形成 workflow chain 嗎？** Single-shot tool 沒有下游接續 = 無意義
+- **實踐（Branch C 三拒收案例）**：
+  - `update_wall_curve`（拒收）：fork 老師寫來「微調牆 endpoint」，但 BIM 設計師根本不會這樣工作——對方自己 `draw_wall_from_col.mjs` 也是用 `create_wall` 從零建。**反模式：AI 為自己腳本失誤造的問題自寫解藥**
+  - `auto_place_rooms`（拒收）：Revit UI 本來就有「自動置放房間」按鈕，tool 是 1:1 包裝。**反模式：UI 按鈕 1:1 包裝**
+  - `update_category_line_weight`（拒收）：Revit 已有完整 Visibility 三層機制（Object Styles / Filter VG Overrides / Element-level override），對方只實作 Layer 1。**反模式：對 Revit 不熟導致的 redundant tool**
+- **警告**：fork 老師若不熟 Revit 軟體本身，會反覆寫出 redundant tools。**遇到能力缺口時應先上報 issue 給 maintainer 評估，而不是直接寫工具進來**。詳細的「能力缺口 ≠ 必須寫工具」判斷流程見 `domain/tool-capability-boundary.md` 之「能力缺口 vs Revit 既有功能」一節。
+- **對照**：與 L-Branch A 的 Tool Call Data Honesty 是同一哲學的兩面——AI 不該用 LM 接龍生成 number（**誠實**）；AI 不該寫新工具取代 UI 功能（**節制**）。共通邏輯：認清自己能力邊界 + 對應正確的工具/教學選擇。
