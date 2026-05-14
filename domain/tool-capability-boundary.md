@@ -23,15 +23,16 @@ metadata:
 
 ## 分級
 
-### L1: 連結模型元素不可查詢
+### L1: 連結模型元素不可查詢（**Branch B Wave 1 部分解除**）
 
 | 項目 | 詳細說明 |
 |------|------|
-| **限制** | 目前 `query_elements`、`get_element_info`、`query_elements_with_filter` 等工具僅可查詢 **host document**，無法穿透 `RevitLinkInstance` 查詢連結模型內的元素 |
-| **典型場景** | 結構模型（如 `*Structural.rvt` 等）掛在主機模型下；MEP 模型（`*MEP.rvt`、`*Plumbing.rvt`、`*HVAC.rvt`、`*Electrical.rvt`）的元素都不可查詢 |
-| **辨識方式** | 使用 `query_elements({ category: 'RvtLinks' })` 確認有已載入連結模型存在，但在 host document 中以 0 筆結構構件、連結模型名稱包含 "Structural" 等特徵來判斷該元素屬於連結模型 |
-| **AI 應對策略** | 回覆：目前連結模型 [名稱] 內的元素超出 MCP 工具的直接查詢範圍。建議使用者 (a) 在 Revit 中直接開啟連結模型進行查詢，或 (b) 開發 C# 擴充透過 RevitLinkInstance 查詢 |
-| **未來方案** | 開發 `query_linked_elements` C# 擴充：使用 `FilteredElementCollector(doc, linkInstance.GetLinkDocument())` |
+| **限制** | ~~目前 `query_elements`、`get_element_info`、`query_elements_with_filter` 等工具僅可查詢 host document~~。**2026-05-14 Branch B Wave 1 後**：`get_element_info` 已支援 `linkInstanceId` 參數可查詢連結模型內元素；`query_elements`、`query_elements_with_filter` **仍未支援** |
+| **典型場景** | 結構模型（如 `*Structural.rvt` 等）掛在主機模型下；MEP 模型（`*MEP.rvt`、`*Plumbing.rvt`、`*HVAC.rvt`、`*Electrical.rvt`）的元素 |
+| **辨識方式** | 使用 `query_elements({ category: 'RvtLinks' })` 確認有已載入連結模型；或用 `scan_penetrated_beams_in_view` 等專用工具（自帶跨連結模型 query）取得 `{BeamId, LinkId}` 配對 |
+| **AI 應對策略** | (a) **單一元素查詢**：用 `get_element_info(elementId, linkInstanceId)` 直接讀；(b) **列表式 query**：仍需使用者 (i) 在 Revit 開啟連結模型查詢，或 (ii) 用專用工具如 `scan_penetrated_beams_in_view` 自帶跨 link query |
+| **已採用模式** | `get_element_info` 加 optional `linkInstanceId`：若有值則從主文件取 `RevitLinkInstance` 並切換 `doc = linkInstance.GetLinkDocument()` 再執行後續操作。Backward compatible（既有呼叫不傳 linkInstanceId 行為不變）。同款模式可未來複用到 `query_elements*` |
+| **未來方案** | 把 `linkInstanceId` 擴展模式套用到 `query_elements` / `query_elements_with_filter`，完整解除 L1 |
 
 ### L2: QueryElements 類別解析限制
 

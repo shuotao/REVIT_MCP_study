@@ -384,6 +384,18 @@ namespace RevitMCP.Core
                     case "flip_element":
                         result = FlipElement(parameters);
                         break;
+                    case "scan_penetrated_beams_in_view":
+                        result = ScanPenetratedBeamsInView(parameters);
+                        break;
+                    case "analyze_beam_penetration":
+                        result = AnalyzeBeamPenetration(parameters);
+                        break;
+                    case "visualize_penetration":
+                        result = VisualizePenetration(parameters);
+                        break;
+                    case "get_src_beam_mapping":
+                        result = GetSrcBeamMapping(parameters);
+                        break;
 
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
@@ -518,6 +530,20 @@ namespace RevitMCP.Core
         {
             Document doc = _uiApp.ActiveUIDocument.Document;
             IdType elementId = parameters["elementId"]?.Value<IdType>() ?? 0;
+
+            // [Branch B Wave 1] linkInstanceId 支援：跨連結模型查詢
+            // 來源 fork: seven777/main:MCP/Core/CommandExecutor.cs (GetElementInfo)
+            // 解除 domain/tool-capability-boundary.md L1「連結模型元素不可查詢」對 GetElementInfo 的限制
+            IdType linkInstanceId = parameters["linkInstanceId"]?.Value<IdType>() ?? 0;
+            if (linkInstanceId != 0)
+            {
+                var linkInstance = doc.GetElement(new ElementId(linkInstanceId)) as RevitLinkInstance;
+                if (linkInstance != null)
+                {
+                    doc = linkInstance.GetLinkDocument();
+                }
+            }
+            if (doc == null) throw new Exception("目標文件為空 (null)");
 
             Element element = doc.GetElement(new ElementId(elementId));
             if (element == null)
