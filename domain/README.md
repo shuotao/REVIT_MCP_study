@@ -31,6 +31,8 @@
 | `parking-space-review.md` | parking-check | 停車位、數量、法定車位 |
 | `wall-check.md` | wall-orientation-check | 牆壁方向、內外側 |
 | `dependent-view-crop-workflow.md` | dependent-view-crop | 從屬視圖、分區出圖 |
+| `beam-penetration-base.md` | detect-clashes | 穿梁、穿孔、套管、penetration |
+| `sleeve-classification-protocol.md` | detect-clashes | 套管識別、分類、穿牆、穿梁、穿板 |
 
 ### 不需要成為 Skill 的 Domain（11 個，含 README）
 

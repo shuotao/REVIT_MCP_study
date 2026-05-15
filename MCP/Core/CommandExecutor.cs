@@ -64,6 +64,10 @@ namespace RevitMCP.Core
         {
             try
             {
+                // [診斷訊息] 協助確認版本
+                if (request.CommandName == "scan_penetrated_beams_in_view") {
+                    // TaskDialog.Show("MCP Debug", "正在執行 scan_penetrated_beams_in_view (V2.2)");
+                }
                 var parameters = request.Parameters as JObject ?? new JObject();
                 object result = null;
 
@@ -379,6 +383,20 @@ namespace RevitMCP.Core
                         result = ExportClashReport(parameters);
                         break;
 
+                    // === 穿梁檢核模組 (PR#20) ===
+                    case "analyze_beam_penetration":
+                        result = AnalyzeBeamPenetration(parameters);
+                        break;
+                    case "get_src_beam_mapping":
+                        result = GetSrcBeamMapping(parameters);
+                        break;
+                    case "scan_penetrated_beams_in_view":
+                        result = ScanPenetratedBeamsInView(parameters);
+                        break;
+                    case "visualize_penetration": result = VisualizePenetration(parameters); break;
+                    case "test_dimension": result = TestCreateDimension(parameters); break;
+                    case "advanced_analyze": result = AdvancedAnalyzeAndTag(parameters); break;
+
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
                 }
@@ -512,6 +530,18 @@ namespace RevitMCP.Core
         {
             Document doc = _uiApp.ActiveUIDocument.Document;
             IdType elementId = parameters["elementId"]?.Value<IdType>() ?? 0;
+            IdType linkInstanceId = parameters["linkInstanceId"]?.Value<IdType>() ?? 0;
+
+            if (linkInstanceId != 0)
+            {
+                var linkInstance = doc.GetElement(new ElementId(linkInstanceId)) as RevitLinkInstance;
+                if (linkInstance != null)
+                {
+                    doc = linkInstance.GetLinkDocument();
+                }
+            }
+
+            if (doc == null) throw new Exception("目標文件為空 (null)");
 
             Element element = doc.GetElement(new ElementId(elementId));
             if (element == null)

@@ -1,0 +1,225 @@
+{
+  "view": {
+    "Success": true,
+    "Data": {
+      "ElementId": 14397454,
+      "Name": "3FL-作業用 複製 1",
+      "ViewType": "FloorPlan",
+      "LevelName": "3FL",
+      "Scale": 100
+    },
+    "Error": null,
+    "RequestId": "req-1777952853824"
+  },
+  "selection": {
+    "Success": true,
+    "Data": {
+      "Count": 1,
+      "Elements": [
+        {
+          "Id": 14314654,
+          "Name": "3\"(80mm)",
+          "Category": "管附件"
+        }
+      ]
+    },
+    "Error": null,
+    "RequestId": "req-1777952854235"
+  },
+  "scan": {
+    "Success": true,
+    "Data": {
+      "Count": 20,
+      "Beams": [
+        {
+          "BeamId": 12703754,
+          "LinkId": 13671635,
+          "Name": "35 x 70 cm",
+          "SleeveCount": 2,
+          "SleeveIds": [
+            14291564,
+            14291571
+          ]
+        },
+        {
+          "BeamId": 12703539,
+          "LinkId": 13671635,
+          "Name": "35 x 70 cm",
+          "SleeveCount": 3,
+          "SleeveIds": [
+            14291787,
+            14317826,
+            14396180
+          ]
+        },
+        {
+          "BeamId": 12701124,
+          "LinkId": 13671635,
+          "Name": "35 x 70 cm",
+          "SleeveCount": 2,
+          "SleeveIds": [
+            14314459,
+            14314610
+          ]
+        },
+        {
+          "BeamId": 12700860,
+          "LinkId": 13671635,
+          "Name": "35 x 70 cm",
+          "SleeveCount": 1,
+          "SleeveIds": [
+            14314609
+          ]
+        },
+        {
+          "BeamId": 12703392,
+          "LinkId": 13671635,
+          "Name": "50 x 75 cm",
+          "SleeveCount": 1,
+          "SleeveIds": [
+            14314654
+          ]
+        },
+        {
+          "BeamId": 12700703,
+          "LinkId": 13671635,
+          "Name": "50 x 75 cm",
+          "SleeveCount": 1,
+          "SleeveIds": [
+            14314655
+          ]
+        },
+        {
+          "BeamId": 12700582,
+          "LinkId": 13671635,
+          "Name": "50 x 75 cm",
+          "SleeveCount": 1,
+          "SleeveIds": [
+            14314657
+          ]
+        },
+        {
+          "BeamId": 12702787,
+          "LinkId": 13671635,
+          "Name": "60 x 75 cm",
+          "SleeveCount": 1,
+          "SleeveIds": [
+            14314769
+          ]
+        },
+        {
+          "BeamId": 12703590,
+          "LinkId": 13671635,
+          "Name": "25 x 50 cm",
+          "SleeveCount": 1,
+          "SleeveIds": [
+            14314771
+          ]
+        },
+        {
+          "BeamId": 12729302,
+          "LinkId": 13671635,
+          "Name": "樑上方增打(280kgf/cm2)",
+          "SleeveCount": 1,
+          "SleeveIds": [
+            14317826
+          ]
+        },
+        {
+          "BeamId": 12700677,
+          "LinkId": 13671635,
+          "Name": "50 x 75 cm",
+          "SleeveCount": 1,
+          "SleeveIds": [
+            14317905
+          ]
+        },
+        {
+          "BeamId": 12721713,
+          "LinkId": 13671635,
+          "Name": "樑上方增打(280kgf/cm2)",
+          "SleeveCount": 1,
+          "SleeveIds": [
+            14317905
+          ]
+        },
+        {
+          "BeamId": 12706079,
+          "LinkId": 13671635,
+          "Name": "35 x 70 cm",
+          "SleeveCount": 1,
+          "SleeveIds": [
+            14321329
+          ]
+        },
+        {
+          "BeamId": 12706129,
+          "LinkId": 13671635,
+          "Name": "50 x 75 cm",
+          "SleeveCount": 1,
+          "SleeveIds": [
+            14322002
+          ]
+        },
+        {
+          "BeamId": 12708117,
+          "LinkId": 13671635,
+          "Name": "樑側增打(280kgf/cm2)",
+          "SleeveCount": 2,
+          "SleeveIds": [
+            14322002,
+            14377084
+          ]
+        },
+        {
+          "BeamId": 12708042,
+          "LinkId": 13671635,
+          "Name": "25 x 50 cm",
+          "SleeveCount": 2,
+          "SleeveIds": [
+            14322004,
+            14389092
+          ]
+        },
+        {
+          "BeamId": 12699317,
+          "LinkId": 13671635,
+          "Name": "35 x 70 cm",
+          "SleeveCount": 1,
+          "SleeveIds": [
+            14344038
+          ]
+        },
+        {
+          "BeamId": 12702298,
+          "LinkId": 13671635,
+          "Name": "35 x 70 cm",
+          "SleeveCount": 1,
+          "SleeveIds": [
+            14344217
+          ]
+        },
+        {
+          "BeamId": 12700627,
+          "LinkId": 13671635,
+          "Name": "50 x 75 cm",
+          "SleeveCount": 1,
+          "SleeveIds": [
+            14380017
+          ]
+        },
+        {
+          "BeamId": 12699796,
+          "LinkId": 13671635,
+          "Name": "50 x 75 cm",
+          "SleeveCount": 1,
+          "SleeveIds": [
+            14399603
+          ]
+        }
+      ]
+    },
+    "Error": null,
+    "RequestId": "req-1777952854239"
+  }
+}
