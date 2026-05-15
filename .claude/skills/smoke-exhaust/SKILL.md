@@ -1,6 +1,10 @@
 ---
 name: smoke-exhaust
 description: "排煙窗法規檢討：無窗居室判定、無開口樓層判定、排煙有效面積計算、剖面標註、Excel 報告匯出。觸發條件：使用者提到排煙、排煙窗、無窗居室、無開口樓層、建技規§101、消防§188、天花板下80cm、有效開口、煙層。工具：check_smoke_exhaust_windows、check_floor_effective_openings、create_section_view、create_detail_lines、create_filled_region、create_text_note、export_smoke_review_excel。"
+metadata:
+  references:
+    - domain/smoke-exhaust-review.md
+    - domain/references/building-code-tw.md
 ---
 
 # 排煙窗法規檢討

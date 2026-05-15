@@ -48,6 +48,10 @@ MCP-Server/scratch/
 # Private User Guide (Excluded from Push)
 PRIVATE_INSTRUCTIONS.md
 
+# 私人內容（電子郵件 / 內部文件，不公開閱覽）
+thank.md
+docs/newsletters/
+
 # 教材（已開放，供學生練習使用）
 # 教材/
 

@@ -1,0 +1,104 @@
+---
+name: pdf-export-comparison
+description: Revit PDF 輸出技術決策矩陣 — 比較 5 種 PDF 輸出途徑（Potato Print / guRoo / Revit 原生匯出 / 原生列印 / pyRevit 核心印表）的技術原理、送審適用度（DCC）、適合角色與可擴充性，含台灣六都建管送審法規節錄與 Agent 決策邏輯。
+metadata:
+  version: "1.0"
+  updated: "2026-05-07"
+  references:
+    - "https://building-apply.publicwork.ntpc.gov.tw/upload/download.html"
+    - "Autodesk Revit 2022+ Native PDF API (PDFExportOptions)"
+    - "guRoo (SheetsPDF)"
+    - "pyRevit (Sheets > Print)"
+  related:
+    - mechanical-part-doc.md
+    - lessons.md
+  referenced_by: []
+  tags: [PDF, 出圖, 送審, DCC, 文管, 加工發包, ODA, PDFExportOptions, PrintManager, Potato Print, guRoo]
+---
+
+# Revit PDF 輸出技術決策矩陣 (專業送審與生產力版)
+
+本文件定義了 6 種 PDF 輸出途徑的技術特性、適用場景與角色定位。旨在協助團隊在不同專案階段（從建照送審到加工發包）選擇最優路徑。
+
+---
+
+## 📚 前人研究與技術系譜 (Prior Art & Literature Review)
+
+在深入比較當前工具前，必須致敬社群在 Revit PDF 自動化領域的演進路徑，這也是 **Potato Print** 研發的邏輯起點：
+
+1.  **Cyril Waechter (pyRevitMEP)**：早期定義了透過 pyRevit 進行大規模圖紙管理的範式。其對 `PrintManager` 的深度封裝解決了自動化出圖的「從無到有」。
+2.  **Gui Talarico (RevitPythonWrapper)**：其推廣的 Pythonic API 封裝思維，為後來者使用原生 API 進行快速導出奠定了代碼美學基礎。
+3.  **Autodesk Native PDF API (2022+)**：這是技術分水嶺。Autodesk 棄用依賴作業系統虛擬印表機的舊模式，改採基於 ODA (Open Design Alliance) 引擎的原生轉換。本專案中的「Potato Print」即是基於此技術棧的延伸應用。
+4.  **guRoo (SheetsPDF)**：實踐了將 Revit 2022+ 原生導出邏輯轉化為 pyRevit 模組化工具的先驅，解決了 UI 交互與批次選取的痛點。
+
+**本研究的價值**：在上述前輩建立的「引擎」之上，進一步提出**DCC (文件管制)** 與 **加工下包** 場景中的自動命名、批次列印的特化解法。
+
+---
+
+## 📊 綜合對比矩陣 (DCC & Production Matrix)
+
+| 維度 | 途徑 1: Potato Print (pyRevit 插件功能) | 途徑 2: guRoo 批次 (pyRevit 插件功能) | 途徑 3: Revit 原生匯出 | 途徑 4: Revit 原生列印 | 途徑 5: pyRevit 核心印表 (pyRevit 插件功能) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **位置/模組** | `MCP_Tools` (Development) | `guRoo` (Export) | `File > Export > PDF` | `File > Print` | `pyRevit > Sheets > Print` |
+| **技術原理** | Native API (2022+ Export) | Native API (2022+ Export) | Native Engine (ODA) | Virtual Printer Driver | PrintManager Wrapper |
+| **送審適用度 (DCC)** | **高 (適合加工/文管歸檔)** | 中 (內部/技術協調) | **極高 (建照/官方送審標準)** | **中 (故障排除用最後防線)** | 中 |
+| **適合角色** | **營造下包 / 機械加工廠** | **高產出設計端 / BIM 協調** | **新手 / 新專案啟動 / 建築師** | **新手 / 故障排除人員** | **營造統包 (BIMer)** |
+| **可擴充性** | **極高 (Agent/Dev 友善)** | **極高 (可複製/自定義)** | **低 (僅限設定集)** | **低 (僅限預設值)** | **中 (維護成本高/易報錯)** |
+
+---
+
+## 🔍 深度分析與避坑指南
+
+### 🏛️ DCC / 送審適用度 (建照審核、科技廠文管)
+
+*   **途徑 3 (原生匯出) - 官方標準**：
+    *   **優勢**：符合台灣各縣市建管處「向量式、可檢索文字」的要求。字體嵌入最穩定。
+    *   **法規依據 (2022-2024 六都規範節錄)**：
+        *   **台北市 (E辦網)**：要求圖說必須為 PDF 格式，且需具備建築師電子簽章。原生匯出能確保 PDF 結構完整，不被虛擬印表機的 PostScript 轉換干擾簽章封裝。
+        *   **新北市 ([無紙化審查系統](https://building-apply.publicwork.ntpc.gov.tw/upload/download.html))**：建議安裝專用 PDF 工具，實測顯示原生匯出的「向量處理 (Vector Processing)」最能符合其對圖面精確度 (Precision) 的校核要求。
+        *   **台中市 (無紙審照 Go)**：強調圖說需具備「可檢索性」。原生匯出產出的文字層為真正的 PDF Text Object，完全符合系統自動化索引需求。
+        *   **桃園市 (電子化系統)** / **台南市 (線上送件系統)** / **高雄市 (電子送件系統)**：要求圖面解析度與座標一致性。原生匯出在處理大型圖紙 (A0/A1) 時，對比例尺的精確度優於傳統 Print 模式。
+    > [!NOTE]
+    > **網址有效性註記**：政府建管系統網址經常更新或進行週期性維護（如台北市、高雄市等系統入口），上述連結僅供技術背景參考。若發現連結失效，建議讀者自行檢索最新入口網址，亦歡迎後續貢獻者協助更新。
+    *   **缺點**：當圖框 (Title Block) 內含 CAD 匯入圖檔時，常出現文字位移或加粗等現象。
+*   **途徑 4 (原生列印) - 備援方案**：
+    *   **優勢**：當「原生匯出」出現幾何破碎或陰影渲染失敗時，透過 Bluebeam/Adobe 虛擬印表機通常能「強制修復」圖面。
+    *   **缺點**：無法自動生成「超連結導覽」，在科技廠大型圖冊查閱時不夠便利。
+*   **途徑 1 & 2 (API 導出) - 文管歸檔**：
+    *   **優勢**：能強制符合科技廠嚴格的「檔名編碼規範」，避免人為命名錯誤導致被文管退件。
+
+---
+
+### 👥 適合使用角色定位
+
+*   **大量產出單位 (下包/加工廠/高產出設計端)**：
+    *   **適用路徑**：**途徑 1 (Potato) & 途徑 2 (guRoo)** (均為 pyRevit 插件功能)。
+    *   **理由**：這類單位通常需要同時輸出數百張零件圖，手動調整設定是災難。這兩類工具能讓 Agent 根據零件類別自動「轉換」並分類儲存。
+*   **新手 / 新專案啟動者**：
+    *   **適用路徑**：**途徑 3 & 4 (原生功能)**。
+    *   **理由**：新手不需要理解 Code 或 API。原生功能提供可視化的設定介面，雖然效率低，但學習曲線最平緩。
+
+---
+
+### ⚙️ 可擴充性 (Extensibility) 與維護成本
+
+*   **途徑 1 & 2 (極高)**：
+    *   **Agent 友善**：這類腳本是完全開放的。Agent 只要 `clone` 下來就能針對特定角色的需求（如：自動加蓋電子印章、自動根據材料屬性分類 PDF）進行邏輯修改。
+*   **途徑 3 & 4 (低)**：
+    *   **限制**：只能改變設定集 (Presets)，無法透過邏輯判斷來動態改變輸出行為。無法與專案外部資料庫連動。
+*   **途徑 5 (pyRevit 插件功能)**：
+    *   **風險**：這是 pyRevit 的母模組。普通開發者難以修改且維護不易，版本更新（如從 Revit 2024 升級）時極容易產生全域報錯，不建議針對特定專案過度修改此模組。
+
+---
+
+## 🤖 Agent 決策指南 (決策邏輯)
+
+當 Agent 收到 PDF 請求時，應依據以下邏輯判斷路徑：
+1.  **判斷數量與對象**：
+    *   單張/少數 ➡️ 推薦途徑 3 (原生匯出)。
+    *   批次/大量 (零件圖/全套圖) ➡️ 調用 **途徑 1 (Potato Print)** 或 **途徑 2 (guRoo)**。
+2.  **判斷場景**：
+    *   加工發包 ➡️ 途徑 1 (Potato Print，pyRevit 插件功能，具備自動路徑邏輯)。
+    *   設計討論 ➡️ 途徑 2 (guRoo，pyRevit 插件功能，具備圖紙選取介面)。
+3.  **錯誤修復**：
+    *   若 API 報錯 (如字體缺失) ➡️ 引導用戶使用 **途徑 4 (虛擬列印)**。
