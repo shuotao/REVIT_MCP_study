@@ -172,7 +172,7 @@ $addonPath = $null
 $foundVersions = @()
 
 # 只檢查支援的版本（白名單方式，更安全）
-$supportedVersions = @("2026", "2025", "2024", "2023", "2022")
+$supportedVersions = @("2026", "2025", "2024", "2023", "2022", "2021", "2020")
 
 foreach ($version in $supportedVersions) {
     $testPath = Join-Path $appDataPath "Autodesk\Revit\Addins\$version"
@@ -193,7 +193,7 @@ if ($null -eq $revitVersion) {
     Write-Host ""
     Write-Host "可能的原因：" -ForegroundColor Yellow
     Write-Host "- 您的電腦沒有安裝 Revit" -ForegroundColor Yellow
-    Write-Host "- 支援的版本：2022、2023、2024、2025、2026" -ForegroundColor Yellow
+    Write-Host "- 支援的版本：2020、2021、2022、2023、2024、2025、2026" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "檢查的路徑：$appDataPath\Autodesk\Revit\Addins\" -ForegroundColor Yellow
     Read-Host "按 Enter 結束"
@@ -206,9 +206,15 @@ if ($foundVersions.Count -gt 1) {
     Write-Host ""
     
     do {
-        $userVersion = $revitVersion # Default to first found version for automation
-        if ($null -eq $userVersion) {
-            $userVersion = Read-Host "Enter Revit version (e.g. 2024)"
+        $userVersion = Read-Host "請輸入要安裝的版本號（例如 2020）"
+
+        if ($userVersion -notin $supportedVersions) {
+            Write-Host "❌ 錯誤：無效版本。請輸入 2020~2026 其中一個版本" -ForegroundColor Red
+            $userVersion = $null
+        }
+        elseif ($userVersion -notin $foundVersions) {
+            Write-Host "❌ 錯誤：Revit $userVersion 尚未偵測到安裝目錄" -ForegroundColor Red
+            $userVersion = $null
         }
     } while ($null -eq $userVersion)
     
@@ -228,15 +234,10 @@ Write-Host ""
 Write-Host "正在驗證來源檔案..." -ForegroundColor Yellow
 Write-Host ""
 
-# 定義來源檔案路徑 (統一建構：Nice3point.Revit.Sdk)
-# ⚠️ 本專案只使用 RevitMCP.csproj + RevitMCP.addin（統一多版本建構）
-# ⚠️ 禁止新增 RevitMCP.2024.csproj / RevitMCP.2024.addin 等版本特定檔案
-$sourceDllRelease = Join-Path $projectRoot "MCP\bin\$buildConfig\RevitMCP.dll"
-$sourceDllDebug = Join-Path $projectRoot "MCP\bin\Debug\RevitMCP.dll"
-$sourceAddin = Join-Path $projectRoot "MCP\RevitMCP.addin"
-
 # 版本→組態對應表（統一建構，所有版本使用同一個 csproj）
 $versionConfigMap = @{
+    "2020" = "Release.R20"
+    "2021" = "Release.R21"
     "2022" = "Release.R22"
     "2023" = "Release.R23"
     "2024" = "Release.R24"
@@ -244,6 +245,13 @@ $versionConfigMap = @{
     "2026" = "Release.R26"
 }
 $buildConfig = $versionConfigMap[$revitVersion]
+
+# 定義來源檔案路徑 (統一建構：Nice3point.Revit.Sdk)
+# ⚠️ 本專案只使用 RevitMCP.csproj + RevitMCP.addin（統一多版本建構）
+# ⚠️ 禁止新增 RevitMCP.2024.csproj / RevitMCP.2024.addin 等版本特定檔案
+$sourceDllRelease = Join-Path $projectRoot "MCP\bin\$buildConfig\RevitMCP.dll"
+$sourceDllDebug = Join-Path $projectRoot "MCP\bin\Debug.$($buildConfig.Substring($buildConfig.Length - 3))\RevitMCP.dll"
+$sourceAddin = Join-Path $projectRoot "MCP\RevitMCP.addin"
 
 # 決定使用哪個 DLL
 $sourceDll = $null
@@ -339,9 +347,15 @@ if (-not (Test-Path $addonPath)) {
     }
 }
 
+# RevitMCP.addin 會從 Addins\<year>\RevitMCP\RevitMCP.dll 載入主 DLL
+$addonBinPath = Join-Path $addonPath "RevitMCP"
+if (-not (Test-Path $addonBinPath)) {
+    New-Item -ItemType Directory -Path $addonBinPath -Force | Out-Null
+}
+
 # 複製 DLL
 try {
-    Copy-Item -Path $sourceDll -Destination (Join-Path $addonPath "RevitMCP.dll") -Force -ErrorAction Stop
+    Copy-Item -Path $sourceDll -Destination (Join-Path $addonBinPath "RevitMCP.dll") -Force -ErrorAction Stop
     Write-Host "✓ 已複製 RevitMCP.dll" -ForegroundColor Green
 }
 catch {
@@ -371,12 +385,51 @@ catch {
 $sourceJson = Join-Path $projectRoot "MCP\bin\$buildConfig\Newtonsoft.Json.dll"
 if (Test-Path $sourceJson) {
     try {
-        Copy-Item -Path $sourceJson -Destination (Join-Path $addonPath "Newtonsoft.Json.dll") -Force -ErrorAction Stop
+        Copy-Item -Path $sourceJson -Destination (Join-Path $addonBinPath "Newtonsoft.Json.dll") -Force -ErrorAction Stop
         Write-Host "✓ 已複製 Newtonsoft.Json.dll" -ForegroundColor Green
     }
     catch {
         Write-Host "⚠️  警告：無法複製 Newtonsoft.Json.dll（非關鍵檔案）" -ForegroundColor Yellow
     }
+}
+
+$sourceContracts = Join-Path $projectRoot "MCP\bin\$buildConfig\MCP.Contracts.dll"
+if (Test-Path $sourceContracts) {
+    try {
+        Copy-Item -Path $sourceContracts -Destination (Join-Path $addonBinPath "MCP.Contracts.dll") -Force -ErrorAction Stop
+        Write-Host "✓ 已複製 MCP.Contracts.dll" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "⚠️  警告：無法複製 MCP.Contracts.dll（Core 載入可能失敗）" -ForegroundColor Yellow
+    }
+}
+
+# 複製 CoreRuntime（Loader/Core 架構）
+$sourceRuntimeDir = Join-Path $projectRoot "MCP\bin\$buildConfig\runtime"
+$targetRuntimeDir = Join-Path $addonBinPath "runtime"
+if (Test-Path $sourceRuntimeDir) {
+    try {
+        if (-not (Test-Path $targetRuntimeDir)) {
+            New-Item -ItemType Directory -Path $targetRuntimeDir -Force | Out-Null
+        }
+
+        Copy-Item -Path (Join-Path $sourceRuntimeDir "*.dll") -Destination $targetRuntimeDir -Force -ErrorAction Stop
+
+        # Contracts must stay in loader root only; remove stale copy in runtime folder.
+        $staleRuntimeContracts = Join-Path $targetRuntimeDir "MCP.Contracts.dll"
+        if (Test-Path $staleRuntimeContracts) {
+            Remove-Item -Path $staleRuntimeContracts -Force -ErrorAction SilentlyContinue
+        }
+
+        Write-Host "✓ 已複製 runtime/*.dll (CoreRuntime)" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "⚠️  警告：無法複製 runtime 目錄（Core 重載將不可用）" -ForegroundColor Yellow
+        Write-Host "    錯誤詳情：$_" -ForegroundColor Yellow
+    }
+}
+else {
+    Write-Host "⚠️  警告：找不到 runtime 目錄，請先執行 dotnet build 產生 CoreRuntime" -ForegroundColor Yellow
 }
 
 Write-Host ""
@@ -392,6 +445,7 @@ Write-Host ""
 Write-Host "安裝摘要：" -ForegroundColor Cyan
 Write-Host "  - Revit 版本：$revitVersion" -ForegroundColor White
 Write-Host "  - 安裝路徑：$addonPath" -ForegroundColor White
+Write-Host "  - DLL 路徑：$addonBinPath" -ForegroundColor White
 Write-Host ""
 Write-Host "接下來的步驟：" -ForegroundColor Cyan
 Write-Host "  1. 完全關閉 Revit（如果正在執行）" -ForegroundColor White

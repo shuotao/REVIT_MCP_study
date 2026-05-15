@@ -1,4 +1,4 @@
-﻿# Revit MCP QA/QC Verification Script
+# Revit MCP QA/QC Verification Script
 # Usage: .\scripts\verify-qaqc.ps1 [-SkipBuild] [-SkipDeploy] [-Version 2024]
 #
 # Phases:
@@ -211,6 +211,8 @@ if (Test-Path $csproj) {
     $content = Get-Content $csproj -Raw
     Write-Check "Nice3point.Revit.Sdk reference" ($content -match "Nice3point\.Revit\.Sdk") "Missing SDK reference"
     Write-Check "DeployAddin disabled" ($content -match "<DeployAddin>false</DeployAddin>") "DeployAddin must be false (Nice3point SDK 會自動產生 RevitMCP.{version}.addin 與手動 addin 衝突)"
+    Write-Check "Release.R20 config" ($content -match "Release\.R20") "Missing Revit 2020 config"
+    Write-Check "Release.R21 config" ($content -match "Release\.R21") "Missing Revit 2021 config"
     Write-Check "Release.R22 config" ($content -match "Release\.R22") "Missing Revit 2022 config"
     Write-Check "Release.R24 config" ($content -match "Release\.R24") "Missing Revit 2024 config"
     Write-Check "Release.R25 config" ($content -match "Release\.R25") "Missing Revit 2025 config"
@@ -267,7 +269,7 @@ else {
         $versions += $Version
     }
     else {
-        $versions = @("22", "24", "25", "26")
+        $versions = @("20", "21", "22", "24", "25", "26")
     }
 
     Write-Host ""
@@ -282,7 +284,7 @@ else {
         $buildSuccess = $LASTEXITCODE -eq 0
 
         if ($buildSuccess) {
-            $dll = Get-Item "$projectRoot\MCP\bin\Release\RevitMCP.dll" -ErrorAction SilentlyContinue
+            $dll = Get-Item "$projectRoot\MCP\bin\Release.R$shortVer\RevitMCP.dll" -ErrorAction SilentlyContinue
             if ($dll) {
                 Write-Host "" # newline after -NoNewline
                 Write-Check "R$shortVer build ($($dll.Length) bytes)" $true
@@ -330,7 +332,7 @@ if ($SkipDeploy) {
 }
 else {
     $appDataPath = $env:APPDATA
-    $supportedVersions = @("2022", "2023", "2024", "2025", "2026")
+    $supportedVersions = @("2020", "2021", "2022", "2023", "2024", "2025", "2026")
 
     Write-Host ""
     Write-Host "  5-1. Installed addin locations:" -ForegroundColor Cyan
