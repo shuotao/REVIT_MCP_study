@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RevitAddIns>
   <AddIn Type="Application">
-    <Name>Revit MCP Plugin</Name>
-    <Assembly>RevitMCP\RevitMCP.dll</Assembly>
-    <FullClassName>RevitMCP.Application</FullClassName>
+    <Name>Revit MCP Plugin (Hot Reload)</Name>
+    <Assembly>c:\Users\sn698\Desktop\REVIT_MCP_study\MCP\bin\Debug\net48\RevitMCPLoader.dll</Assembly>
+    <FullClassName>RevitMCPLoader.App</FullClassName>
     <AddInId>090a4c8c-61dc-426d-87df-e4bae0f80ec1</AddInId>
     <VendorId>revit-mcp</VendorId>
-    <VendorDescription>MCP Connection for Revit</VendorDescription>
+    <VendorDescription>MCP Connection for Revit with Hot Reload Support</VendorDescription>
   </AddIn>
 </RevitAddIns>

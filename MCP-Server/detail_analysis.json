@@ -1,0 +1,219 @@
+{
+  "sleeveInfo": {
+    "Success": true,
+    "Data": {
+      "ElementId": 14314654,
+      "Name": "3\"(80mm)",
+      "Category": "管附件",
+      "Type": "3\"(80mm)",
+      "Level": "4FL",
+      "Parameters": [
+        {
+          "Name": "整體大小",
+          "Value": "",
+          "Type": "String"
+        },
+        {
+          "Name": "隔熱層厚度",
+          "Value": "0 mm",
+          "Type": "Double"
+        },
+        {
+          "Name": "品類",
+          "Value": "管附件",
+          "Type": "ElementId"
+        },
+        {
+          "Name": "品類",
+          "Value": "管附件",
+          "Type": "ElementId"
+        },
+        {
+          "Name": "系統類型",
+          "Value": "未定義",
+          "Type": "ElementId"
+        },
+        {
+          "Name": "大小",
+          "Value": "",
+          "Type": "String"
+        },
+        {
+          "Name": "耗損方法",
+          "Value": "使用類型定義",
+          "Type": "String"
+        },
+        {
+          "Name": "匯出為 IFC",
+          "Value": "依類型",
+          "Type": "Integer"
+        },
+        {
+          "Name": "IfcGUID",
+          "Value": "2aJ9VVCzjBbB4V9X5tvrhU",
+          "Type": "String"
+        },
+        {
+          "Name": "設計選項",
+          "Value": "-1",
+          "Type": "ElementId"
+        },
+        {
+          "Name": "體積",
+          "Value": "0.00 m³",
+          "Type": "Double"
+        },
+        {
+          "Name": "面積",
+          "Value": "0.07 m²",
+          "Type": "Double"
+        },
+        {
+          "Name": "拆除階段",
+          "Value": "無",
+          "Type": "ElementId"
+        },
+        {
+          "Name": "建立階段",
+          "Value": "新營造",
+          "Type": "ElementId"
+        },
+        {
+          "Name": "備註",
+          "Value": "穿梁",
+          "Type": "String"
+        },
+        {
+          "Name": "主體 ID",
+          "Value": "-1",
+          "Type": "ElementId"
+        },
+        {
+          "Name": "修改者",
+          "Value": "",
+          "Type": "String"
+        },
+        {
+          "Name": "樓層",
+          "Value": "4FL",
+          "Type": "ElementId"
+        },
+        {
+          "Name": "工作集",
+          "Value": "工作集 1",
+          "Type": "Integer"
+        },
+        {
+          "Name": "族群與類型",
+          "Value": "圓形開口: 3\"(80mm)",
+          "Type": "ElementId"
+        },
+        {
+          "Name": "族群",
+          "Value": "圓形開口",
+          "Type": "ElementId"
+        },
+        {
+          "Name": "類型",
+          "Value": "3\"(80mm)",
+          "Type": "ElementId"
+        },
+        {
+          "Name": "類型 ID",
+          "Value": "13744867",
+          "Type": "ElementId"
+        },
+        {
+          "Name": "與鄰近元素一同移動",
+          "Value": "否",
+          "Type": "Integer"
+        },
+        {
+          "Name": "距離樓層的高程",
+          "Value": "-407",
+          "Type": "Double"
+        },
+        {
+          "Name": "樓層",
+          "Value": "4FL",
+          "Type": "ElementId"
+        },
+        {
+          "Name": "標記",
+          "Value": "1138",
+          "Type": "String"
+        },
+        {
+          "Name": "開口長度",
+          "Value": "500",
+          "Type": "Double"
+        },
+        {
+          "Name": "開口系統",
+          "Value": "PW",
+          "Type": "String"
+        },
+        {
+          "Name": "開口類型",
+          "Value": "W.O.",
+          "Type": "String"
+        },
+        {
+          "Name": "管線ID",
+          "Value": "250cdfb8-5b5f-4150-96f0-14ea60f86a3c-00da18f5",
+          "Type": "String"
+        },
+        {
+          "Name": "開口子系統",
+          "Value": "VP",
+          "Type": "String"
+        }
+      ]
+    },
+    "Error": null,
+    "RequestId": "req-1777952880654"
+  },
+  "beamInfo": {
+    "Success": false,
+    "Data": null,
+    "Error": "找不到元素 ID: 12703392",
+    "RequestId": "req-1777952880661"
+  },
+  "sleeveGeom": {
+    "Success": true,
+    "Data": {
+      "ElementId": 14314654,
+      "Category": "管附件",
+      "TypeName": "3\"(80mm)",
+      "Centerline": {
+        "HasCenterline": false,
+        "Message": "此元素沒有中心線（非線性元素）"
+      }
+    },
+    "Error": null,
+    "RequestId": "req-1777952880665"
+  },
+  "beamGeom": {
+    "Success": true,
+    "Data": {
+      "ElementId": 12703392,
+      "Category": "結構構架",
+      "TypeName": "50 x 75 cm",
+      "Centerline": {
+        "HasCenterline": true,
+        "StartX": 14925,
+        "StartY": 5825,
+        "StartZ": 13700,
+        "EndX": 14925,
+        "EndY": 12175,
+        "EndZ": 13700,
+        "DirectionX": 0,
+        "DirectionY": 1,
+        "DirectionZ": 0,
+        "Length": 6350
+      }
+    },
+    "Error": null,
+    "RequestId": "req-1777952880680"
+  }
+}
