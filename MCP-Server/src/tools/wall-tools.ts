@@ -36,7 +36,7 @@ export const wallTools: Tool[] = [
     },
     {
         name: "create_door",
-        description: "在指定的牆上建立門。",
+        description: "在指定的牆上建立門。可指定 sourceElementId 來複製現有門的類型、instance 參數與 facing/hand 朝向。",
         inputSchema: {
             type: "object",
             properties: {
@@ -44,13 +44,14 @@ export const wallTools: Tool[] = [
                 locationX: { type: "number", description: "門在牆上的位置 X 座標（公釐）" },
                 locationY: { type: "number", description: "門在牆上的位置 Y 座標（公釐）" },
                 doorType: { type: "string", description: "門類型名稱（選填）" },
+                sourceElementId: { type: "number", description: "來源門 ID（選填，用於複製其類型、參數與朝向）" },
             },
             required: ["wallId", "locationX", "locationY"],
         },
     },
     {
         name: "create_window",
-        description: "在指定的牆上建立窗。",
+        description: "在指定的牆上建立窗。可指定 sourceElementId 來複製現有窗的類型、instance 參數與 facing/hand 朝向。",
         inputSchema: {
             type: "object",
             properties: {
@@ -58,6 +59,7 @@ export const wallTools: Tool[] = [
                 locationX: { type: "number", description: "窗在牆上的位置 X 座標（公釐）" },
                 locationY: { type: "number", description: "窗在牆上的位置 Y 座標（公釐）" },
                 windowType: { type: "string", description: "窗類型名稱（選填）" },
+                sourceElementId: { type: "number", description: "來源窗 ID（選填，用於複製其類型、參數與朝向）" },
             },
             required: ["wallId", "locationX", "locationY"],
         },

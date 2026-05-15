@@ -1438,6 +1438,7 @@ MIT License
 | [CLAUDE.md](./CLAUDE.md) | **專案唯一規範文件**：架構、建構指令、部署規則、程式碼慣例 |
 | [GEMINI.md](./GEMINI.md) | 重定向至 CLAUDE.md（供 Gemini CLI / Google AI 讀取） |
 | [AGENTS.md](./AGENTS.md) | 重定向至 CLAUDE.md（供 OpenAI / Copilot 讀取） |
+| [docs/ai-guard-rails-portable.md](./docs/ai-guard-rails-portable.md) | **Fork 維護者必讀**：可貼進你 fork 的 CLAUDE.md 的最小 Guard Rails snippet（AI Guard Rails + Tool Call Data Honesty + Domain Method Compliance 三段） |
 | **專案文件** | |
 | [CHANGELOG.md](./CHANGELOG.md) | 版本變更日誌（v1.0.0 ~ v1.5.1） |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | 貢獻指南：如何提交工作流程與經驗規則 |
