@@ -3,6 +3,20 @@
   function qsa(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
 
   // ============================================================
+  // MEETUP_SIGNUP_URL — 月小聚報名表單，每月更新一次
+  // ⚠ MONTHLY: 換月時只改這一行，所有 [data-meetup-link] 元素自動套用
+  // ============================================================
+  var MEETUP_SIGNUP_URL = "https://forms.gle/4Mn5kCaK1uFk2m9W6";
+
+  window.initMeetupLinks = function initMeetupLinks() {
+    qsa("[data-meetup-link]").forEach(function (el) {
+      el.href = MEETUP_SIGNUP_URL;
+      if (!el.getAttribute("target")) el.setAttribute("target", "_blank");
+      if (!el.getAttribute("rel")) el.setAttribute("rel", "noopener");
+    });
+  };
+
+  // ============================================================
   // initTOC — 自動產生 + IntersectionObserver active + 已讀標記
   // ============================================================
   window.initTOC = function initTOC() {
@@ -373,5 +387,6 @@
     window.initFooterPreview();
     window.initDrawer();
     window.initKeyNav(opts);
+    window.initMeetupLinks();
   };
 })();

@@ -113,6 +113,19 @@ a:hover { border-color: var(--accent); }
   color: var(--text-primary);
   background: rgba(255,255,255,0.08);
 }
+.bim-topnav-btn-primary {
+  background: rgba(96,165,250,0.12);
+  border-color: rgba(96,165,250,0.6);
+  color: var(--accent);
+}
+.bim-topnav-btn-primary:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #000;
+}
+.bim-topnav-btn-github svg {
+  width: 14px; height: 14px; fill: currentColor; display: block;
+}
 
 /* ===== PAGE HEADER ===== */
 .bim-hero {
