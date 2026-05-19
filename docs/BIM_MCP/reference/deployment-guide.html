@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
 <link rel="stylesheet" href="../styles.css">
-<link rel="stylesheet" href="../_nav.css">
+<link rel="stylesheet" href="../nav.css">
 <style>
   .bim-hero-figure{margin:var(--gap-lg) 0 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
   .bim-hero-figure img{display:block;width:100%;height:auto}
@@ -68,7 +68,7 @@
   <div class="bim-hero-eyebrow">DEPLOYMENT <span class="accent">5 Revit 版本 / 一條指令</span></div>
   <h1 class="bim-hero-title">一個 csproj，<span class="accent">五個 Revit 版本</span></h1>
   <p class="bim-hero-sub">本頁整理 CLAUDE.md 部署規則：保留<strong>單一</strong> <code>MCP/RevitMCP.csproj</code>、<strong>單一</strong> <code>MCP/RevitMCP.addin</code>，透過 Nice3point SDK 與 <code>Release.R{YY}</code> 組態輸出版本化 DLL。新機器跑 <code>scripts/setup.bat</code> 一條指令搞定。</p>
-  <figure class="bim-hero-figure"><img src="../_images/deployment__hero__one-cmd.svg" alt="One command fans out to five Revit versions" width="1600" height="900"></figure>
+  <figure class="bim-hero-figure"><img src="../images/deployment__hero__one-cmd.svg" alt="One command fans out to five Revit versions" width="1600" height="900"></figure>
 </header>
 
 <!-- ============================================ -->
@@ -126,7 +126,7 @@
   <p class="bim-section-desc">建議所有新機器走 <code>setup.bat</code>。它會：(1) 檢查 prerequisites (2) build 所有版本 (3) deploy DLL 到 Revit Add-ins 資料夾 (4) 給 Claude Desktop / Gemini CLI 寫 MCP config (5) 檢查 port 8964。</p>
 
   <figure class="bim-figure">
-    <img src="../_images/deployment__s02__arch.svg" alt="Setup script builds and deploys into the Revit addins folder" width="800" height="600" loading="lazy">
+    <img src="../images/deployment__s02__arch.svg" alt="Setup script builds and deploys into the Revit addins folder" width="800" height="600" loading="lazy">
   </figure>
 
   <ol class="bim-steps">
@@ -326,5 +326,5 @@ dotnet build -c Release.R24 RevitMCP.csproj</code></pre>
   <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-05-18 · 含一鍵安裝、手動 4 步、5 版 matrix、4 client 設定、5 階段 smoke test。</p>
 </footer>
 
-<script src="../_shared.js"></script><script>initAll();</script>
+<script src="../shared.js"></script><script>initAll();</script>
 </body></html>
