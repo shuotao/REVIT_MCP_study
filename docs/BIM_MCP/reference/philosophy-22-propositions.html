@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>限制顯現器 — 22 條命題完整宣言 · BIM_MCP</title>
+<meta property="og:title" content="限制顯現器：22 條命題完整宣言">
+<meta property="og:description" content="MCP × Revit 人機協作的核心哲學體系，22 條命題完整論述，含使用者原文 quote 與業界對標。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../_nav.css">
+</head>
+<body>
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">限制顯現器哲學</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="three-constitutions.html" class="bim-topnav-btn">三憲法 →</a>
+    <a href="../index.html" class="bim-topnav-btn">回首頁</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">CORE PHILOSOPHY <span class="accent">22 命題</span></div>
+  <h1 class="bim-hero-title">MCP 是<span class="accent">限制顯現器</span><br>不是另一個自動化工具</h1>
+  <p class="bim-hero-sub">22 條命題構成從「為什麼 MCP 重要」到「會議場景延伸」的完整思想體系。每一條都來自實際開發的反思——使用者 6 輪論述 + 業界研究（BEP/LOD/IDS/Stage-Gate）的交叉驗證。本頁是 0523 五月小聚的哲學中軸，可單獨閱讀（不依賴簡報 context）。</p>
+</header>
+<figure style="max-width:1100px;margin:32px auto 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:#000;">
+  <img src="../_images/philosophy__hero__22-stars.svg" alt="Twenty two propositions as ordered dots" width="1600" height="900" style="display:block;width:100%;height:auto;">
+</figure>
+
+<!-- ============================================ -->
+<!-- 22 命題網格 — 點擊跳到對應錨點 -->
+<!-- ============================================ -->
+<section class="bim-section">
+  <div class="bim-section-eyebrow">QUICK INDEX · 22 命題網格</div>
+  <h2 class="bim-section-title">完整命題清單</h2>
+  <p class="bim-section-desc">點擊任一命題卡片跳到對應段落看完整論述。P20 標為半透明（曾考慮但拒收的紀錄）。</p>
+
+  <p class="bim-section-desc" style="margin-top:-8px;font-size:13px;color:var(--text-faint);">22 命題依 6 群組排列。★ 為中軸命題（P4 / P8 / P13）。P20 為淘汰留紀錄。點任一格 → 抽屜開啟完整論述。</p>
+
+  <div class="ptable">
+
+    <div class="ptable-row">
+      <div class="ptable-label">
+        <span class="ptable-num">01</span>
+        <span class="ptable-group">為什麼 MCP 重要</span>
+      </div>
+      <button class="ptable-cell" data-drawer-open data-source="#p1" data-title="P1 · 突破執行工具" data-eyebrow="PROPOSITION 01 / 為什麼 MCP 重要">
+        <span class="ptable-p">P1</span><span class="ptable-name">突破執行工具</span>
+      </button>
+      <button class="ptable-cell" data-drawer-open data-source="#p2" data-title="P2 · 空間+限制兩半身" data-eyebrow="PROPOSITION 02 / 為什麼 MCP 重要">
+        <span class="ptable-p">P2</span><span class="ptable-name">空間+限制兩半身</span>
+      </button>
+      <button class="ptable-cell" data-drawer-open data-source="#p3" data-title="P3 · 越做越醜的時序錯誤" data-eyebrow="PROPOSITION 03 / 為什麼 MCP 重要">
+        <span class="ptable-p">P3</span><span class="ptable-name">越做越醜的時序錯誤</span>
+      </button>
+    </div>
+
+    <div class="ptable-row">
+      <div class="ptable-label">
+        <span class="ptable-num">02</span>
+        <span class="ptable-group">MCP 角色</span>
+      </div>
+      <button class="ptable-cell star" data-drawer-open data-source="#p4" data-title="P4 · 限制顯現器" data-eyebrow="PROPOSITION 04 / MCP 角色 · 中軸">
+        <span class="ptable-p">P4</span><span class="ptable-name">限制顯現器</span>
+      </button>
+      <button class="ptable-cell" data-drawer-open data-source="#p5" data-title="P5 · Domain 是本體" data-eyebrow="PROPOSITION 05 / MCP 角色">
+        <span class="ptable-p">P5</span><span class="ptable-name">Domain 是本體</span>
+      </button>
+      <button class="ptable-cell" data-drawer-open data-source="#p6" data-title="P6 · 人類追美學" data-eyebrow="PROPOSITION 06 / MCP 角色">
+        <span class="ptable-p">P6</span><span class="ptable-name">人類追美學</span>
+      </button>
+    </div>
+
+    <div class="ptable-row">
+      <div class="ptable-label">
+        <span class="ptable-num">03</span>
+        <span class="ptable-group">何時顯現</span>
+      </div>
+      <button class="ptable-cell" data-drawer-open data-source="#p7" data-title="P7 · 階段完成點" data-eyebrow="PROPOSITION 07 / 何時顯現">
+        <span class="ptable-p">P7</span><span class="ptable-name">階段完成點</span>
+      </button>
+      <button class="ptable-cell star" data-drawer-open data-source="#p8" data-title="P8 · 被動就緒" data-eyebrow="PROPOSITION 08 / 何時顯現 · 第三憲法源頭">
+        <span class="ptable-p">P8</span><span class="ptable-name">被動就緒</span>
+      </button>
+      <button class="ptable-cell" data-drawer-open data-source="#p9" data-title="P9 · 滾動式開源 Domain" data-eyebrow="PROPOSITION 09 / 何時顯現">
+        <span class="ptable-p">P9</span><span class="ptable-name">滾動式開源 Domain</span>
+      </button>
+    </div>
+
+    <div class="ptable-row">
+      <div class="ptable-label">
+        <span class="ptable-num">04</span>
+        <span class="ptable-group">糾正美學迷思</span>
+      </div>
+      <button class="ptable-cell" data-drawer-open data-source="#p10" data-title="P10 · 設計=解決問題" data-eyebrow="PROPOSITION 10 / 糾正美學迷思">
+        <span class="ptable-p">P10</span><span class="ptable-name">設計=解決問題</span>
+      </button>
+      <button class="ptable-cell" data-drawer-open data-source="#p11" data-title="P11 · 光譜在設計師端" data-eyebrow="PROPOSITION 11 / 糾正美學迷思">
+        <span class="ptable-p">P11</span><span class="ptable-name">光譜在設計師端</span>
+      </button>
+      <button class="ptable-cell" data-drawer-open data-source="#p12" data-title="P12 · 死局求助更多人" data-eyebrow="PROPOSITION 12 / 糾正美學迷思">
+        <span class="ptable-p">P12</span><span class="ptable-name">死局求助更多人</span>
+      </button>
+      <button class="ptable-cell star" data-drawer-open data-source="#p13" data-title="P13 · MCP 是 0/1 執行器" data-eyebrow="PROPOSITION 13 / 糾正美學迷思 · 中軸">
+        <span class="ptable-p">P13</span><span class="ptable-name">MCP 是 0/1 執行器</span>
+      </button>
+    </div>
+
+    <div class="ptable-row">
+      <div class="ptable-label">
+        <span class="ptable-num">05</span>
+        <span class="ptable-group">實作層</span>
+      </div>
+      <button class="ptable-cell" data-drawer-open data-source="#p14" data-title="P14 · 會議是終極目標" data-eyebrow="PROPOSITION 14 / 實作層">
+        <span class="ptable-p">P14</span><span class="ptable-name">會議是終極目標</span>
+      </button>
+      <button class="ptable-cell" data-drawer-open data-source="#p15" data-title="P15 · 排程死線第一限制" data-eyebrow="PROPOSITION 15 / 實作層">
+        <span class="ptable-p">P15</span><span class="ptable-name">排程死線第一限制</span>
+      </button>
+      <button class="ptable-cell" data-drawer-open data-source="#p16" data-title="P16 · Work Breakdown" data-eyebrow="PROPOSITION 16 / 實作層">
+        <span class="ptable-p">P16</span><span class="ptable-name">Work Breakdown</span>
+      </button>
+      <button class="ptable-cell" data-drawer-open data-source="#p17" data-title="P17 · 自舉式 AI 審查" data-eyebrow="PROPOSITION 17 / 實作層">
+        <span class="ptable-p">P17</span><span class="ptable-name">自舉式 AI 審查</span>
+      </button>
+    </div>
+
+    <div class="ptable-row">
+      <div class="ptable-label">
+        <span class="ptable-num">06</span>
+        <span class="ptable-group">會議場景延伸</span>
+      </div>
+      <button class="ptable-cell" data-drawer-open data-source="#p18" data-title="P18 · 場域決定角色" data-eyebrow="PROPOSITION 18 / 會議場景">
+        <span class="ptable-p">P18</span><span class="ptable-name">場域決定角色</span>
+      </button>
+      <button class="ptable-cell" data-drawer-open data-source="#p19" data-title="P19 · 會議模式響應" data-eyebrow="PROPOSITION 19 / 會議場景">
+        <span class="ptable-p">P19</span><span class="ptable-name">會議模式響應</span>
+      </button>
+      <button class="ptable-cell muted" data-drawer-open data-source="#p20" data-title="P20 · 淘汰留紀錄" data-eyebrow="PROPOSITION 20 / 會議場景 · 已淘汰">
+        <span class="ptable-p">P20</span><span class="ptable-name">（淘汰留紀錄）</span>
+      </button>
+      <button class="ptable-cell" data-drawer-open data-source="#p21" data-title="P21 · 會議記錄者" data-eyebrow="PROPOSITION 21 / 會議場景">
+        <span class="ptable-p">P21</span><span class="ptable-name">會議記錄者</span>
+      </button>
+      <button class="ptable-cell" data-drawer-open data-source="#p22" data-title="P22 · ARCHI 優先" data-eyebrow="PROPOSITION 22 / 會議場景">
+        <span class="ptable-p">P22</span><span class="ptable-name">ARCHI 優先</span>
+      </button>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 群組 1：為什麼 MCP 重要（P1-P3） -->
+<!-- ============================================ -->
+<div class="bim-divider"><h2>群組 1 · 為什麼 MCP 重要</h2></div>
+
+<section class="bim-section bim-anchor" data-collapse id="p1">
+  <div class="bim-section-eyebrow">群組 1 · 為什麼 MCP 重要</div>
+  <h2 class="bim-section-title"><span class="prop-badge large">P1</span>突破執行工具</h2>
+  <p class="bim-section-desc"><strong>MCP 不是另一個畫圖工具</strong>——突破 Revit / ArchiCAD / 2D CAD / Rhino 等「作業執行」工具的範疇，回到「空間規劃」的本體。</p>
+
+  <div class="user-quote">
+    我們在 REVIT 的作業上，<strong>更專注在用現有的 BIM，也就是突破了 REVIT、ARCHICAD、2D CAD、Rhino 等等的各種設計的「作業執行」工具</strong>。而可以專注的把我們需要再「空間」的規劃上去完成。
+    <span class="user-quote-attr">— 使用者，2026-05-18（第一輪論述）</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">傳統 BIM 工具解決「<strong>怎麼把腦中方案畫出來</strong>」——畫得快、畫得準、畫得可協作。但它們不告訴你方案撞了哪些限制。MCP 補上 Revit 沒解決的另一半問題：<strong>讓限制變得可見</strong>。兩者協作，不是競爭。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">把規範、法條、檢核從「設計師腦中的隱性知識」抽出來，編碼成 40 個 <code>domain/*.md</code>，由 19 個 Skill 編排觸發，透過 88 個 MCP Tool 在 Revit 上即時呈現。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Domain-Driven Constraint Externalization · 三層架構 Skill / CLAUDE.md / Domain · Model Context Protocol over WebSocket</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">業界口訣 · 只有這行人懂</span>
+    <div class="empathy-quote-text">設計師畫 Revit 不是因為「<em>它好用</em>」，是因為「<em>沒得不畫</em>」。它是執行工具，不是思考工具。</div>
+    <span class="empathy-quote-context">所有用過 Revit 的設計師都知道——畫到一半發現走廊撞防火區劃，回頭改要兩小時；發現窗台撞 §41 採光，整個 facade 重來。Revit 沒讓你「先看見」這些，它只讓你「畫完才發現」。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀 · 進階參考</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Blog</span><a href="https://block.github.io/goose/blog/2025/12/22/agent-skills-vs-mcp/" target="_blank">Skills vs MCP — Block/Goose</a>
+          <span class="fr-desc">「說 Skill 殺死 MCP 就像說 GitHub Actions 殺死 Bash」——MCP 與 Skill 互補非取代</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Spec</span><a href="https://modelcontextprotocol.io/docs/concepts/tools" target="_blank">MCP Specification: Tools</a>
+          <span class="fr-desc">MCP Tools 官方定義：model-controlled 自動發現與呼叫</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Talk</span>Autodesk University — <em>The Future of Revit Design Workflow</em>
+          <span class="fr-desc">2024 keynote 提到「設計工具 vs 設計平台」的歷史分野，呼應 P1 突破論</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p2">
+  <h2 class="bim-section-title"><span class="prop-badge large">P2</span>空間+限制兩半身</h2>
+  <p class="bim-section-desc">設計師面對的不只是「畫圖」，是「<strong>空間規劃 + 設計限制</strong>」兩個半身。前者是美學願景，後者是生硬規範。</p>
+
+  <div class="user-quote">
+    把「空間」按照需求排出來，按照自己的美學排出來，按照設計的意象導入進去後<strong>有更多重要的事情在後面等著</strong>——但這些所謂更多重要的事情，其實就是<strong>設計的限制</strong>。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">設計訓練從美感培育開始（藝術學院 4 年），但實務工作 80% 是「滿足生硬規範」的問題求解。這個落差讓設計師永遠在兩個半身之間切換，且<strong>另一個半身（限制）幾乎從來不被同樣認真對待</strong>。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">把「限制」從 BIM 流程的<strong>事後檢核</strong>移到<strong>事中即時呈現</strong>——當設計師畫空間的時候，限制已在場，但不打斷思緒（呼應 <a href="#p8">P8 被動就緒</a>）。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Dual-Cognition Workflow · 空間規劃 (Spatial Cognition) + 限制檢核 (Constraint Cognition) 同步並行</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">業界口訣</span>
+    <div class="empathy-quote-text">建築不是純藝術，建築是「<em>能夠真的蓋起來、不會被退件、業主願意付錢</em>」的藝術。少了任何一個半身，都不是建築。</div>
+    <span class="empathy-quote-context">設計師圈長年的張力——「念書時老師教美感，畢業後老闆教規範」。這個落差沒解決，設計師就會在兩個半身之間搖擺，最後通常都是「美感讓給規範」。MCP 想做的是讓兩個半身能夠<span class="lingo">同步</span>，而不是輪流佔據設計師的腦容量。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Book</span><em>The Death and Life of Great American Cities</em> — Jane Jacobs
+          <span class="fr-desc">經典論「規範如何形塑空間品質」——P2 兩半身論的精神原型</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Paper</span>Schön, <em>The Reflective Practitioner</em> (1983)
+          <span class="fr-desc">設計師如何在「美學直覺」與「技術限制」之間做 reflective conversation 的經典論述</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Talk</span>Patrik Schumacher — <em>Parametricism as Style</em>
+          <span class="fr-desc">Zaha Hadid 事務所設計總監論「參數化（即限制化）反而解放美感」的辯論</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p3">
+  <h2 class="bim-section-title"><span class="prop-badge large">P3</span>越做越醜的時序錯誤</h2>
+  <p class="bim-section-desc">傳統設計教育從「美感培育」開始，但實務作業卻被「生硬限制」反噬——這是「<strong>越做越醜</strong>」現象的根因。</p>
+
+  <div class="user-quote">
+    所有的設計訓練是從美感的培育開始——也就是<strong>越來越多的人會認為做的設計越久，東西就越醜</strong>⋯⋯那麼原因是不是就是因為<strong>對於生硬的限制不夠熟悉的情況下，沒有辦法在前期的發想中，讓限制呈現，反到了後期的現實面介入時，成為了非得妥協的妥協</strong>。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">學生的方案大膽，不是因為他們有更高的美學品味——是因為他們<strong>還沒被限制壓過</strong>。資深設計師的保守，是被一次次「限制反噬」訓練出來的<strong>條件反射</strong>。「越做越醜」不是失去美感，是<strong>恐懼累積</strong>。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">解法不是「鼓勵大膽」，是<strong>讓限制變得早期可見</strong>。設計師敢大膽是因為他知道限制在哪、迴旋空間在哪。MCP 把「事後審判」變成「事中地圖」——降低嘗試成本，恢復實驗勇氣。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Early-Stage Constraint Surfacing · 將限制檢核從 LOD 300 提前到 LOD 100-200 · 鏈接 BEP / IDS 規格自動化判定</div>
+    <div class="how-tech-label">CHECKLIST</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>設計案前期是否有任何「限制檢核」流程？</li>
+        <li>檢核結果是否在「畫第一筆」之前就可見？</li>
+        <li>當限制改變時（業主變需求、法規更新），既有方案是否能<strong>自動 re-check</strong>？</li>
+        <li>是否能區分「真硬限制（法規）」 vs 「軟限制（業主偏好）」？</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">資深設計師的私密話</span>
+    <div class="empathy-quote-text">你說「我們事務所很重視美感」——但下次有人提出激進方案時，第一個說「<em>不行啦，這樣 §xx 條會卡</em>」的人會是誰？通常就是事務所最資深的那一位。</div>
+    <span class="empathy-quote-context">這不是抹黑資深設計師。是說明<span class="lingo">「保守」</span>的真實成因——他們不是不愛美感，他們是被法規退件、被業主退稿、被營造商說「這個做不出來」太多次了。如果限制能提前可見，那聲「不行啦」會變成「<strong>這樣可以，但要動 X 和 Y</strong>」——專業判斷而不是恐懼反射。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Paper</span>Boehm & Basili — <em>Software Defect Reduction Top 10</em>
+          <span class="fr-desc"><strong>100x 規則</strong>原始論文——晚一個階段才發現問題，成本暴增 100 倍。直接對應 P3 時序錯誤。詳見 <a href="industry-evidence.html">業界證據頁</a></span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Report</span>united-bim.com — <em>How Revit Clash Coordination Reduces Costly Rework</em>
+          <span class="fr-desc"><strong>70% 營建返工可避免</strong>——這 70% 都是設計階段就該抓到的錯誤</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Talk</span>Nigel Cross — <em>Designerly Ways of Knowing</em>
+          <span class="fr-desc">經典論「設計師思維」研究——為什麼「保守傾向」是經驗的副作用</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 群組 2：MCP 的角色（P4-P6） -->
+<!-- ============================================ -->
+<div class="bim-divider"><h2>群組 2 · MCP 的角色</h2></div>
+
+<section class="bim-section bim-anchor" data-collapse id="p4">
+  <h2 class="bim-section-title"><span class="prop-badge large">P4</span>限制顯現器 — MCP 的核心定位</h2>
+  <p class="bim-section-desc">這是整套哲學的<strong>中軸命題</strong>。MCP 真正的價值不是「自動化作業」，而是<strong>「限制顯現器」</strong>（Constraint Surface Revealer）。</p>
+
+  <div class="user-quote">
+    我認為 <strong>MCP 就是快速讓這些「限制」顯現</strong>，來讓設計者在企圖保有的需求、美學、意象等極大化的拉扯上，<strong>給出最少的退讓，獲得到最美與自己最喜愛的那個成果</strong>。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">「自動化」這個說法太膚淺也太危險——把決策權交給 AI，等於把「設計師之所以為設計師」交出去。但完全不用 AI 又錯過了 BIM 數據積累的價值。中道是「<strong>讓限制顯現，把選擇還給人</strong>」。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">在設計師「<strong>階段完成點</strong>」（<a href="#p7">P7</a>）被動就緒（<a href="#p8">P8</a>）——等他明示叫，再透過 Domain SOP（<a href="#p5">P5</a>）跑 0/1 檢核（<a href="#p13">P13</a>）、回報具體 PASS/FAIL + 為什麼，光譜決策還給設計師（<a href="#p11">P11</a>）。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Constraint Surface Revealer · Passive On-Demand Activation · 0/1 Binary Verdict + Spectrum Decision Offload · Multi-Tool Parallel Orchestration</div>
+    <div class="how-tech-label">CHECKLIST</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>關鍵字解析：<strong>「快速」</strong>— 早期、即時，不是事後</li>
+        <li><strong>「顯現」</strong>— 讓看不見的變看得見，但不替你決定</li>
+        <li><strong>「最少的退讓」</strong>— 拉扯中找到讓步最小的方案</li>
+        <li><strong>「最美與自己最喜愛」</strong>— 保住美學主權，不是接受平庸合規</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">設計倫理的分水嶺</span>
+    <div class="empathy-quote-text">自動化是「<em>我替你做</em>」。限制顯現器是「<em>我讓你看見</em>」。<br>差一個字，差的是設計師還是不是設計師。</div>
+    <span class="empathy-quote-context">這年頭很多 AI 工具都在搶「<span class="lingo">生成你的方案</span>」這個位置——Generative Design、Text-to-BIM、Auto-Layout。它們的價值都有，但全部繞過了一個核心問題：<strong>設計師之所以為設計師，是因為他做選擇</strong>。MCP 選擇站在「不搶這個位置」的這一邊——你的方案還是你的，我只負責讓你<strong>選得更有把握</strong>。</span>
+  </div>
+
+  <div class="pitfalls">
+    <div class="pitfalls-title">P4 容易被誤解的 3 件事</div>
+    <ul>
+      <li><strong>不是「禁止 AI 做決策」</strong>——而是「不在設計核心的決策上做」。Routine 排版、命名、整理可以；空間構想、美學取捨不行。</li>
+      <li><strong>不是「越多限制檢核越好」</strong>——是「越早、越精準、越被動」越好。亂彈窗會打斷思緒，違反 <a href="#p8">P8</a>。</li>
+      <li><strong>不是「Domain 越多越強」</strong>——是 Domain 要對。錯的 Domain SOP 比沒 Domain 更危險（違反 <a href="three-constitutions.html#constitution-3">第三憲法 Domain Method Compliance</a>）。</li>
+    </ul>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀 · P4 是 5/23 demo 的核心，建議全讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Talk</span>Andrew Anagnost — <em>AU 2024 Keynote: Augmentation / Automation / Analysis</em>
+          <span class="fr-desc">Autodesk CEO 對 AI 三柱定位的演講——P4 對應其「Augmentation」象限</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Paper</span>Latour, <em>Where Are the Missing Masses?</em> (1992)
+          <span class="fr-desc">經典 STS 文「技術物的道德責任」——限制顯現器把道德責任放在「顯現」而非「替你選」，是 Latour 命題的當代延伸</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Podcast</span>Lex Fridman × Karpathy — <em>The Future of LLMs as Augmenters</em>
+          <span class="fr-desc">Karpathy 論「AI 應該是 jet engine 給人類飛行員，不是 autopilot」——P4 哲學的科技界同調</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Case</span>Project Bernini (Autodesk Research)
+          <span class="fr-desc">Autodesk 內部「真自動化」實驗 PoC——可對比「自動化 vs 顯現器」兩條路的具體產出差異</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p5">
+  <h2 class="bim-section-title"><span class="prop-badge large">P5</span>Domain 是本體</h2>
+  <p class="bim-section-desc">MCP 的核心資產不是 tools，是 <strong>Domain Knowledge</strong>——因為它承載「不可協商的限制」。</p>
+
+  <div class="user-quote">
+    限制到底是啥，我覺得就是我們 MCP 的這些 <strong>DOMAIN KNOWLEDGE，他們大多是規範、生硬的法條、明確沒有辦法去改變的檢討等等</strong>。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">tools 是執行手段（API 改變、工具淘汰、技術換代很快），<strong>domain 是知識本體</strong>（法規 / 業界 SOP / 邊界案例的演化遠慢於工具）。把專案的「資產投資」放在 domain，是長遠正確的選擇。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">每個 domain 寫成 <code>domain/{name}.md</code>，含觸發關鍵字、法規條號、公式、邊界案例、被引用的 Skill 清單。<strong>多 Skill 共用同一 domain</strong>——例如 <code>fire-rating-check.md</code> 被 <code>/fire-safety-check</code>、<code>/corridor-analysis</code>、<code>/building-compliance</code> 三個 Skill 引用，規範改一次三個自動同步。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Domain-Driven Knowledge Layer · Single Source of Truth · Skill Composition over Skill Duplication · Frontmatter Lint (/qaqc Phase 6)</div>
+    <div class="how-tech-label">CHECKLIST</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>新增功能時：先問「能不能用既有 domain 拼？」再問「需要新 domain 嗎？」</li>
+        <li>同一個 domain 被多個 Skill 引用 → ✅ 設計正確</li>
+        <li>同一段知識散在多個 domain → ❌ 需重構抽出共用 domain</li>
+        <li>domain frontmatter 含 <code>references / referenced_by / tags</code> 三欄完整 → 通過 lint</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">資產投資 vs 一次性成本的差異</span>
+    <div class="empathy-quote-text">寫 5 個工具叫做「<em>勞力</em>」，寫一個 domain 叫做「<em>資產</em>」。<br>5 年後工具可能全被換掉，domain 還在被引用。</div>
+    <span class="empathy-quote-context">這是 BIM 工程界的長期問題——Dynamo script、Revit Python、現在的 AI workflow，每隔 3 年就換一套。但「<span class="lingo">§41 採光怎麼算</span>」這件事 30 年沒變過。把知識存在「工具裡」會跟工具一起死，把知識存在「<strong>規範化的 domain 文件</strong>」會被下一代工具繼承。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Book</span>Eric Evans — <em>Domain-Driven Design</em> (2003)
+          <span class="fr-desc">「Domain」概念的軟體工程經典——本專案「Domain 是本體」是 DDD 在 BIM 場域的特化</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Spec</span><a href="https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/" target="_blank">buildingSMART IDS (2024-06)</a>
+          <span class="fr-desc">「Information Delivery Specification」——把 domain knowledge 標準化為機器可讀格式的官方規範。我們的 <code>domain/*.md</code> 是 IDS 的人類友善版</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Index</span><a href="domain-index.html">40 Domain 完整索引</a>
+          <span class="fr-desc">看所有現有 domain 的觸發詞、被引用 Skill、檔案位置</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Guide</span><a href="contributor-template.html">Level 1 貢獻範本</a>
+          <span class="fr-desc">2 個檔案（domain + Skill）完成貢獻——不寫程式碼也能擴增 MCP 的限制顯現能力</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p6">
+  <h2 class="bim-section-title"><span class="prop-badge large">P6</span>人類在限制可視前提下放大膽追求美學</h2>
+  <p class="bim-section-desc">好的協作不是「AI 設計、人類審核」，是「<strong>AI 揭露限制邊界、人類在限制可視化的前提下放大膽追求美學</strong>」。</p>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">「AI 設計、人類審核」是 AI hype 帶來的偷懶模型——它假設 AI 能做「創意工作」，人類退到「品管」角色。<strong>實務上這個模型崩潰</strong>：AI 生出的設計品味平庸（訓練資料是業界平均），人類審核又被資訊淹沒（要看 100 個方案）。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">翻轉——「AI 揭露限制邊界，人類在限制可視化的前提下放大膽追美學」。AI 退到<strong>低姿態但高價值</strong>的角色（顯現），人類重新成為設計主導（決策）。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Inverted Human-AI Loop · AI as Constraint Visualizer · Human as Aesthetic Decider</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">為什麼這個翻轉很重要</span>
+    <div class="empathy-quote-text">當 AI 開始生方案，<em>設計師就只剩兩個下場</em>：被淘汰、或變成「100 個方案的審稿員」。<br>翻轉後，設計師回到「<em>知道限制在哪、敢大膽追美學</em>」的本職。</div>
+    <span class="empathy-quote-context">這也是為什麼 Generative Design 工具紅了 10 年但實際採用率還是低——設計師直覺上知道<span class="lingo">「我看 100 個方案的時間比我自己畫一個還久」</span>。MCP 不搶你的方案生成位置，而是讓你<strong>知道每個方案撞了哪幾個限制、能不能修</strong>。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Talk</span>Kaiwen Bian — <em>Why Generative Design Failed in AEC</em> (2024)
+          <span class="fr-desc">論「AI 設計」模型為何在 AEC 失敗——直接對應 P6 的舊模型批判</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Paper</span>Lubart, T. — <em>How Can Computers Be Partners in Creative Process?</em>
+          <span class="fr-desc">「Partner not Replacer」——創意夥伴關係的學術奠基</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Case</span>TestFit — <em>Real-time Feasibility Sketching</em>
+          <span class="fr-desc">業界對齊範例——AI 不出方案，AI 跑可行性，設計師畫</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 群組 3：何時 / 怎麼顯現（P7-P9） -->
+<!-- ============================================ -->
+<div class="bim-divider"><h2>群組 3 · 何時 / 怎麼顯現</h2></div>
+
+<section class="bim-section bim-anchor" data-collapse id="p7">
+  <h2 class="bim-section-title"><span class="prop-badge large">P7</span>階段完成點 — MCP 的時機</h2>
+  <p class="bim-section-desc">不是甘特圖上的里程碑，是「<strong>想法首次落地的剎那</strong>」——具象成果出現了、可以被思考可行性的瞬間。</p>
+
+  <div class="user-quote">
+    這個完成點不是我們說的主計畫里程碑，大多是在它們思維或者想法上被<strong>首次落地的那個剎那</strong>，所以稱為階段完成。
+    <span class="user-quote-attr">— 使用者，2026-05-18（第二輪論述）</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">在「想法尚未落地」之前，過多資訊會讓設計師<strong>思緒打轉</strong>。沒有具象成果可以被檢視，所有檢核都是抽象的——「假設你做 X 就會違反 Y」沒有實際幫助。必須等想法落地，MCP 才有東西可以檢，設計師才有東西可以決策。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">透過 <a href="#p16">P16 Work Breakdown</a> 把設計拆成小單元，每個單元有可交付物，每個交付物 = 一個階段完成點。設計師在每個點主動 invoke MCP（呼應 <a href="#p8">P8 被動就緒</a>）。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Stage Completion Point · Designer-Initiated Activation · Concrete Artifact as Prerequisite · 對應 IDS Information Delivery Specification 的階段觸發點</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">這跟「PM 排里程碑」不一樣</span>
+    <div class="empathy-quote-text">PM 排的里程碑是「<em>給業主交期的</em>」，階段完成點是「<em>給設計師自己交差的</em>」。<br>前者外部、後者內部；前者死板、後者流動。</div>
+    <span class="empathy-quote-context">設計師最反感的就是 PM 把里程碑變成「<span class="lingo">這天必須交什麼</span>」——這違背設計過程的真實節奏。真實節奏是「<strong>當我畫到這個地步就應該停下來檢查一次</strong>」——這個「應該」是設計師的本能判斷，不是 PM 的 timeline。MCP 尊重這個本能。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Spec</span><a href="https://nibs.org/nbims/v4/bep/" target="_blank">BEP — BIM Execution Plan (ISO 19650)</a>
+          <span class="fr-desc">業界對「階段交付點」的官方規範——每階段該交什麼、由誰檢核</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Spec</span><a href="https://bimforum.org/resource/lod-level-of-development-lod-specification/" target="_blank">LOD Specification (AIA / BIM Forum)</a>
+          <span class="fr-desc">100-500 階段完成度的量化標準——P7「階段完成點」的業界對標</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Paper</span>Cooper, R. — <em>Stage-Gate Idea-to-Launch System</em> (1986)
+          <span class="fr-desc">汽車業 40 年驗證的階段門控制——Go/Recycle/Kill 三元決策，對應 <a href="#p15">P15</a></span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p8">
+  <h2 class="bim-section-title"><span class="prop-badge large">P8</span>被動就緒（第三憲法）</h2>
+  <p class="bim-section-desc">MCP 限制顯現的正確姿態是「<strong>被動</strong>」——等設計師問才回應。主動跳出限制會壓死美學想像力。本命題已升級為<a href="three-constitutions.html">三憲法</a>之一。</p>
+
+  <div class="user-quote">
+    限制應該不是主動，而是在設計者製作工作的過程中⋯⋯在尚未到達<strong>階段完成點</strong>的時候，如果有過多的資訊進入或來討論，會造成設計者的<strong>思緒上陷入迴圈打轉</strong>，而無法完成工作！⋯⋯因此<strong>主動跳出限制我覺得很怪，被動反倒是個好的狀態</strong>。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">技術上 MCP 完全可以接 Webhook、watcher、可以做 fail-fast。但<strong>「能做」不等於「該做」</strong>——主動跳出會打斷設計師的「思維落地」過程。這是場域決定的姿態，不是技術限制。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">所有 MCP 工具設計為「<strong>request-response</strong>」而非「<strong>event-push</strong>」。沒有 watcher、沒有 polling、沒有自動觸發。設計師明示叫，工具才動。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Passive On-Demand Activation · Anti-Fail-Fast for Creative Domains · No Watchers / No Polling / No Auto-Trigger</div>
+    <div class="how-tech-label">CHECKLIST</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>每個 MCP tool 是否都是「呼叫才動」？</li>
+        <li>沒有 cron / watcher / event listener 主動觸發？</li>
+        <li>UI 上沒有彈窗 / popup / 中斷式 notification？</li>
+        <li>使用者沒打字之前，MCP 全程靜音？</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">場域決定姿態</span>
+    <div class="empathy-quote-text">IDE 寫 code 時 ESLint 紅線越早越好。<br>但設計師畫第一筆時跳「<em>⚠ 走廊寬度違反 §62</em>」會讓他想砸電腦。<br><strong>同一個 fail-fast 機制，在不同場域是好設計或是公敵</strong>。</div>
+    <span class="empathy-quote-context">這也是為什麼很多 BIM plug-in 死掉——它們是工程師寫給工程師的，把「<span class="lingo">即時警告</span>」當功能賣，但設計師需要的是「<strong>等我問了再說</strong>」的尊重。MCP 把「不打斷」當設計原則，不是次要 UX。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Paper</span><a href="https://martinfowler.com/ieeeSoftware/failFast.pdf" target="_blank">Fail-Fast Architecture — Martin Fowler</a>
+          <span class="fr-desc">軟體工程的 fail-fast 經典——P8 的反對標物（同樣機制在不同場域有不同道德性）</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Book</span>Mihaly Csikszentmihalyi — <em>Flow: The Psychology of Optimal Experience</em>
+          <span class="fr-desc">「Flow 心流」理論——設計師思緒被打斷的代價可量化（恢復需 23 分鐘）</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Article</span>Cal Newport — <em>Deep Work</em>
+          <span class="fr-desc">論「中斷文化」摧毀知識工作者的論述——P8 的職場心理學基礎</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Const</span><a href="three-constitutions.html#constitution-1">第一憲法 — 被動就緒完整版</a>
+          <span class="fr-desc">本命題已升級為憲法級規範</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p9">
+  <h2 class="bim-section-title"><span class="prop-badge large">P9</span>滾動式集眾人思維的 Domain 開源</h2>
+  <p class="bim-section-desc">Domain 不必一次補齊，<strong>集眾人之力的開源貢獻</strong>是達成「完整限制」最有效的路徑。</p>
+
+  <div class="user-quote">
+    這是一個滾動的課題，目前有的已經有部分的檢討能力。但我認為<strong>集合大家思維的知識力量會相對簡單而且快速</strong>，也因此成立這樣的專案開始作為<strong>開源來做為蒐集的知識</strong>。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">BIM 規範極廣（建技規 / 消防 / 結構 / MEP / 都計 / 環保 / 無障礙⋯⋯），任何單一團隊都不可能涵蓋。但<strong>每位資深設計師都有幾條「他特別熟」的規範</strong>——把這些「個人 know-how」貢獻給共享 domain，整個 MCP 系統的能力就指數成長。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">Level 1 貢獻不需要寫程式——只需寫 <code>domain/{name}.md</code>（法規條號 + 計算公式 + 邊界案例 + 觸發關鍵字）+ <code>.claude/skills/{name}/SKILL.md</code>（觸發描述 + 引用該 domain）。詳見 <a href="contributor-template.html">停車場範本</a>。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Rolling Open-Source Knowledge Accretion · GitHub PR Workflow for Non-Programmers · /domain Slash Command for Auto-Distillation</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">為什麼開源是唯一可行路徑</span>
+    <div class="empathy-quote-text">沒有任何<em>單一公司</em>有 1000 個資深建築師。<br>但開源社群有<em>幾萬個</em>——只要每個人貢獻自己最熟的那 1-2 條規範。</div>
+    <span class="empathy-quote-context">這是 Wikipedia 模型的 BIM 版——<span class="lingo">「我懂這條」</span>的人寫一條，整個社群就多一條。沒有人需要懂全部，但每個人都能補一點。Autodesk 自己做 100 條 domain 要 5 年，開源社群做 100 條 domain 可能 5 個月——這就是 MCP 選擇<strong>知識開源</strong>而非<strong>知識授權</strong>的根本理由。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Book</span>Eric Raymond — <em>The Cathedral and the Bazaar</em> (1999)
+          <span class="fr-desc">開源典範論述——「Given enough eyeballs, all bugs are shallow」對應「Given enough domain experts, all constraints are knowable」</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Case</span>OpenStreetMap
+          <span class="fr-desc">「群眾外包地圖知識」的成功案例——比任何單一公司製作的地圖更精準</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Guide</span><a href="contributor-template.html">Level 1 貢獻範本（停車場 SOP）</a>
+          <span class="fr-desc">2 個檔案完成貢獻，不寫程式碼——你的第一個 domain 從這裡開始</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Index</span><a href="domain-index.html">40 個 Domain 完整索引</a>
+          <span class="fr-desc">看現有 domain，找你能補的那幾條</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 群組 4：糾正美學迷思（P10-P13） -->
+<!-- ============================================ -->
+<div class="bim-divider"><h2>群組 4 · 糾正美學迷思</h2></div>
+
+<section class="bim-section bim-anchor" data-collapse id="p10">
+  <h2 class="bim-section-title"><span class="prop-badge large">P10</span>設計 = 解決問題，美學 = 手段</h2>
+  <p class="bim-section-desc">設計師不是「美學主義者」，是「解決問題者」。能在解決各方問題同時保持美感 = 設計師功力考驗。<strong>「悖逆項限制」是假命題</strong>。</p>
+
+  <div class="user-quote">
+    這件事情不該被強調。<strong>設計的真實重點叫做解決問題，美學是一個重要的手段</strong>，但是能夠解決各方問題同時保持美感的結果，就是設計者的功力考驗，因此沒有你說的悖逆項限制。
+    <span class="user-quote-attr">— 使用者，2026-05-18（第二輪論述，糾正 AI 設想）</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">這條是使用者明確<strong>糾正 AI 的設想</strong>。AI 容易把設計師描繪成「為美感對抗世界」的浪漫主義者——這是誤解。真實的設計師：業主要這個、預算只有那個、結構卡這條、法規不准那條——設計師的工作就是<strong>在這堆衝突裡找出能蓋的、能審過的、能讓業主簽字、又同時是好看的方案</strong>。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">MCP 不該假裝「在保護設計師的美學」——它的任務就是把限制呈現清楚，至於「保住多少美學」是設計師的本事。<strong>不要把 MCP 包裝成 AI 美學顧問</strong>，定位就是限制顯現器，乾淨清楚。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Reject Aesthetic Advocacy · No "Style Recommendation" Features · No "Save Your Beauty" Marketing</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">設計師的真實自我認知</span>
+    <div class="empathy-quote-text">沒有任何設計師會說「<em>我是來保護美感的</em>」。<br>他會說「<em>我是來解決問題的</em>」——美感是順便、是功力證明、是業主要不要再找你的關鍵，但不是核心使命。</div>
+    <span class="empathy-quote-context">這個區別超重要——很多 AI 工具把設計師當「<span class="lingo">浪漫主義者</span>」，所以做了一堆「保護你的創意」的功能。設計師看到都覺得：<strong>「拜託你別污辱我，我才不是這種人。」</strong>真實的設計師更接近「<span class="lingo">職業解題者</span>」——複雜問題的綜合解決者。MCP 服務的是這個身份。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Book</span>Donald Schön — <em>Educating the Reflective Practitioner</em> (1987)
+          <span class="fr-desc">經典「設計師作為反思實踐者」論述——強調「解決複雜問題」而非「追求美學純粹性」</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Article</span>Rem Koolhaas — <em>Bigness, or the Problem of Large</em>
+          <span class="fr-desc">普立茲克得主論「大尺度建築不是美學問題，是工程協同問題」——P10 的精神同調</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Talk</span>Bjarke Ingels — <em>Yes is More</em>
+          <span class="fr-desc">BIG 事務所論「美感是約束的副產物」——P10 的當代演繹</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p11">
+  <h2 class="bim-section-title"><span class="prop-badge large">P11</span>光譜在設計師端</h2>
+  <p class="bim-section-desc">真實設計場域<strong>不是 0/1 二元抉擇</strong>，是「<strong>維度與光譜的漸層</strong>」——找各方可犧牲的 win-win strategy。但這個光譜決策<strong>是設計師的工作</strong>，不是 MCP 的責任。</p>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">設計面對的衝突很少是「合規 vs 不合規」這種非黑即白——更常見是「<strong>採光多 5% 立面就要切掉一片 / 結構要多一根柱</strong>」這種光譜權衡。每個維度的權重涉及業主關係、預算、未來改建空間、營造商可行性⋯⋯<strong>這些變數 MCP 不知道</strong>。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">MCP 提供「<strong>FAIL 的原因 + 量化數據</strong>」，設計師進行「<strong>光譜在哪裡 + 應該選哪個</strong>」的決策。MCP 不假裝懂業主關係、不假裝懂預算敏感度、不假裝懂事務所內部政治——這些<strong>本來就不是工具該管的</strong>。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Spectrum Decision Offload · MCP returns Binary, Designer chooses Continuous · Refuse to Recommend "Best Option"</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">為什麼 AI 不該幫你選</span>
+    <div class="empathy-quote-text">AI 不知道<em>業主上次見面臉色多難看</em>、<em>結構技師為什麼這條死不讓</em>、<em>事務所老闆對立面美感的潛規則</em>。<br>這些<strong>不可言明的權重</strong>才是真正的設計判斷。</div>
+    <span class="empathy-quote-context">這也是為什麼 AI 的「<span class="lingo">最佳方案推薦</span>」永遠膚淺——它只能用「明面上的參數」算最佳。但設計師心裡有 50 個業主沒明說、規範沒寫、教科書沒教的<strong>隱性約束</strong>。MCP 把選擇還給設計師，不是不夠先進，是<strong>承認 AI 無法承擔這種判斷</strong>。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="spectrum-decision.html">光譜決策框架完整版</a>
+          <span class="fr-desc">A/B/C/D 四選項範本 + 採光 FAIL / 排煙 FAIL 兩個實案演示</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Paper</span>Herbert Simon — <em>The Sciences of the Artificial</em> (1969)
+          <span class="fr-desc">「satisficing」概念——設計不是「最佳化」是「夠好就好」。P11 的學術基礎</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Book</span>Stewart Brand — <em>How Buildings Learn</em>
+          <span class="fr-desc">論「建築物的真實複雜度遠超 AI 可模型」——光譜決策無可替代</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p12">
+  <h2 class="bim-section-title"><span class="prop-badge large">P12</span>死局時跳出人機互動，求助更多人</h2>
+  <p class="bim-section-desc">當設計遇到「限制 vs 美學」的死局，<strong>不應該繼續跟 AI 對話纏鬥</strong>——這是 MCP 的能力邊界。</p>
+
+  <div class="user-quote">
+    一旦被限制住，我認為人應該要<strong>跳脫與人機互動的死局</strong>，反而應該要去<strong>求助更多的【人】來進行腦力激盪</strong>。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">AI 對話有<strong>沉沒成本陷阱</strong>——你跟它聊了 30 分鐘，會本能覺得「再問一個應該就有答案了」。但其實在死局裡，<strong>問 100 次都是同樣的答案</strong>。早點關掉對話、打電話給人，省下的不只是時間，是你的判斷力。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">死局判定 — 當你發現：(1) 在問同一個問題的不同變形 (2) AI 一直給類似建議都沒解 (3) 感覺被困住——那就是死局。正確做法：<strong>關掉 AI、打電話給老闆 / 業主 / 結構技師 / 室內設計師</strong>。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Honest Capability Boundary Acknowledgment · Branch C Response Pattern from Tool Call Data Honesty · No "Try Harder" Sycophancy</div>
+    <div class="how-tech-label">CHECKLIST</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>過去 10 分鐘是否問過 AI 同一概念 3 次以上？→ 死局徵兆</li>
+        <li>AI 回答是否反覆出現「您可以試試 X 或 Y」？→ 死局確認</li>
+        <li>你是否開始覺得「再問一個應該就有答案」？→ 沉沒成本陷阱啟動</li>
+        <li>你身邊是否有真人能在 5 分鐘內聯絡到？→ 立刻打電話</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">AI 認輸 vs 硬掰</span>
+    <div class="empathy-quote-text">會說「<em>這超出我能解的範圍</em>」的 AI，比會「<em>我們可以試試看</em>」的 AI 好得多。<br>前者誠實，後者把你拖進死局還假裝有救。</div>
+    <span class="empathy-quote-context">這也是 GPT-style 的<span class="lingo">「過度討好」</span>反模式——AI 怕讓你不開心，所以永遠不說「我不行」。但建築專業的死局是真死局——再聊兩小時也沒結果。MCP 設計上接受「<strong>我這裡不行了，去找人</strong>」是專業判斷，不是失敗。設計師都懂這個——你問結構技師問不出來，會去找另一位資深的或回頭問業主重新議——這是人類專業協作的常識，AI 應該學的是這個。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Paper</span>Anthropic — <em>Constitutional AI: Harmlessness from AI Feedback</em>
+          <span class="fr-desc">AI 訓練「會說 No」的學術基礎——對應 P12「會認輸的 AI 是好 AI」</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Book</span>Annie Duke — <em>Quit: The Power of Knowing When to Walk Away</em>
+          <span class="fr-desc">「沉沒成本陷阱」實證——對應「跟 AI 纏鬥的死局時機判定」</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Article</span>NN/g — <em>Sycophancy in AI Assistants</em>
+          <span class="fr-desc">Nielsen Norman Group 論 AI「過度討好」反模式</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p13">
+  <h2 class="bim-section-title"><span class="prop-badge large">P13</span>MCP 是 0/1 執行器</h2>
+  <p class="bim-section-desc">MCP 的本質是「執行結果只有對/錯」。光譜思維是設計師接到結果後的人類決策，<strong>不是 MCP 該承擔的</strong>。</p>
+
+  <div class="user-quote">
+    我認為部分的檢討就是 2 元，而不是我講的光譜做法。光譜是解決辦法，<strong>MCP 是執行的結果，結果只有對錯</strong>，但不代表錯誤一旦被忽略則專案無法執行，這件事情你必須要先能夠同意。
+    <span class="user-quote-attr">— 使用者，2026-05-18（第三輪論述，糾正 AI 建議）</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">這條是使用者<strong>明確糾正 AI</strong>。AI 一度建議「Domain 應該重構為光譜回應，這樣更人性化」——使用者直接否決。理由：MCP 的本質就是「<strong>檢核出對/錯</strong>」。把 0/1 包裝成光譜會稀釋判定的清晰度，反而傷害決策。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">所有 <code>check_*</code> 工具回 binary <span class="pass-tag">PASS</span> / <span class="fail-tag">FAIL</span> + 量化數據（例：缺口 3.28 m² / 採光比 8.7%）。<strong>不回「建議怎麼修」</strong>。光譜決策由設計師接手（呼應 <a href="#p11">P11</a>）。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Binary Verdict + Quantitative Detail · No Recommendation Bloat · Trust Designer's Spectrum Decision</div>
+    <div class="how-tech-label">CHECKLIST</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>每個 check_* 工具是否只回 PASS/FAIL + 量化？</li>
+        <li>是否有 Recommendation / Suggestion 欄位混進去？→ 該砍</li>
+        <li>FAIL 結果是否含「為什麼 FAIL」（差距數據）？→ ✅ 該保留</li>
+        <li>是否有「建議方案 A/B/C」自動產生？→ ❌ 違反 P13</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">「對錯不代表無法執行」</span>
+    <div class="empathy-quote-text">很多送審圖也是「<em>妥協後通過</em>」的——<br>FAIL 不是 GAME OVER，是設計師決策的<strong>起點</strong>。</div>
+    <span class="empathy-quote-context">這是業界常識但 AI 容易誤解——「FAIL = 必須改」這個本能反應是<span class="lingo">工程師心態</span>，不是<span class="lingo">設計師心態</span>。設計師看到 FAIL 想的是「<strong>這條我能不能跟業主說值得保留 + 申請放寬，跟結構技師 / 機電 / 業主談談大家怎麼讓步</strong>」。AI 不該替你決定要不要 fix，AI 該做的是<strong>清楚告訴你 FAIL 在哪、差多少</strong>，剩下交給你的專業判斷。</span>
+  </div>
+
+  <div class="pitfalls">
+    <div class="pitfalls-title">P13 容易違反的 3 件事</div>
+    <ul>
+      <li><strong>Domain SOP 寫「建議改成 X」</strong> — Domain 只寫法規 + 計算公式，不寫「建議方案」。</li>
+      <li><strong>Skill body 主動 propose 修法</strong> — Skill 編排檢核流程，不編排「修法建議」。</li>
+      <li><strong>Tool response 加「Recommendations[]」陣列</strong> — 那不是 tool 該回的，那是設計師的工作。</li>
+    </ul>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Const</span><a href="three-constitutions.html#constitution-2">第二憲法 — Tool Call Data Honesty</a>
+          <span class="fr-desc">tool 回值純度——0/1 + 量化 = 誠實；硬塞建議 = 違規</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Talk</span>Bret Victor — <em>Inventing on Principle</em>
+          <span class="fr-desc">論「工具的回饋越乾淨，創作者的判斷越強」——P13 的設計工具哲學</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Spec</span>OGC SWE — <em>Sensor Observation Service</em>
+          <span class="fr-desc">業界對「機器只回事實、不回建議」的標準——感測器哲學的同調</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 群組 5：實作層（P14-P17） -->
+<!-- ============================================ -->
+<div class="bim-divider"><h2>群組 5 · 實作層</h2></div>
+
+<section class="bim-section bim-anchor" data-collapse id="p14">
+  <h2 class="bim-section-title"><span class="prop-badge large">P14</span>同步協作會議是 MCP 的終極目標</h2>
+  <p class="bim-section-desc">3 個設計師 + MCP 一起開會的中間態，是 MCP 專案的終極價值場域。</p>
+
+  <div class="user-quote">
+    這個討論我認為會是<strong>這個 MCP 專案的終極目標</strong>⋯⋯但⋯⋯<strong>大多的設計人員在思維的觀念內並沒有對於工作上的任務有盤點與排序的習慣</strong>。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">真實的設計決策不是<strong>1 人 + AI</strong>，而是<strong>3-5 人 design review + AI</strong>。當業主、結構技師、機電、設計師同桌時，MCP 能即時把<strong>每個提案撞到的限制</strong>呈現出來——這比事後再開會檢討高效 10 倍。但這需要先解決「會議流程模式」（<a href="#p18">P18</a>）、「響應風格」（<a href="#p19">P19</a>）、「會議記錄」（<a href="#p21">P21</a>）。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">目前還沒到——大多設計人員沒有「工作任務盤點與排序」的習慣（他們把全部時間用在「思維落地」達到 <a href="#p7">P7</a>）。MCP 終極要走的方向需要先<strong>培養使用者習慣 +  建立會議模式</strong>，這是 3-5 年的目標。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Multi-Stakeholder Live Coordination · Real-Time Constraint Surfacing in Group Setting · Future P14 Target State</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">為什麼是「終極目標」不是「現在的目標」</span>
+    <div class="empathy-quote-text">業界開 design review 時，講「採光不夠」要花 3 天回頭算。<br>未來 MCP 在會議桌上即時顯示「<em>這個方案的採光是 11.2%，差 1.3%</em>」——<br>決策從「<em>下次會議再說</em>」變成「<em>當場決定</em>」。</div>
+    <span class="empathy-quote-context">這是 BIM 工程業 20 年想做的事但一直沒做到——<span class="lingo">Live Coordination Meeting</span>。Autodesk 自己也在推（ACC Coordinate / Navisworks），但都還停在「碰撞檢測」這種<strong>已經畫完才能檢</strong>的層次。MCP 想做的是「<strong>方案還在白板上時就能檢</strong>」——這需要先把 P7 / P8 / P11 / P12 都做穩才能進這步。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Report</span><a href="https://eracore.com/bim-coordination-meetings/" target="_blank">Eracore — BIM Coordination Meetings</a>
+          <span class="fr-desc">業界統計：<strong>26% 返工來自會議溝通失敗</strong>——P14 終極目標的市場驅力</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Product</span>Autodesk Construction Cloud — Coordinate
+          <span class="fr-desc">業界當前最接近的解法——但仍是「事後檢核」，不是 P14 想的「會議桌即時」</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="#p18">P18 場域決定角色</a>
+          <span class="fr-desc">會議場景下 MCP 該用哪種模式（沉默 / 主持人 / 自主）的具體決策</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p15">
+  <h2 class="bim-section-title"><span class="prop-badge large">P15</span>排程死線是設計流程的第一限制</h2>
+  <p class="bim-section-desc">死線下，<strong>完成度 80 / 60 / 100 無差異</strong>——只要有交付物，下個動作就能啟動。0 才會卡死整條工作流。</p>
+
+  <div class="user-quote">
+    抵達死線下的完成度 <strong>80 和 60 和 100 的差異其實無差異</strong>，反而是 0 才是無法被判斷的狀態，那這樣的工作流程就可以開始轉動。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">設計師最大的隱性敵人不是規範、不是業主——是「<strong>追求完美而錯過死線</strong>」的個性傾向。死線下，60% 完成的方案能讓後續流程啟動（業主審、結構審、機電審），100% 完成沒提早交也是 0。<strong>有交付物比交付物完美重要</strong>。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">MCP 該支援「<strong>不完整的模型也跑檢核</strong>」——不堅持「沒畫完不能查」。當模型只有 60% 完成度時也能跑 ARCHI 5 工具批次（demo 演示了這個），讓設計師<strong>提早知道方向對不對</strong>，再用剩下時間修正。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Deadline-Aware Workflow · Incomplete-Model-Tolerant Checking · Stage-Gate Go/Recycle/Kill Decision · "Strategic Technical Debt" Acceptance</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">設計師的私密恐懼</span>
+    <div class="empathy-quote-text">「<em>我還沒做完，不想給人看</em>」是設計師最常見的死線殺手。<br>真實狀況是：<strong>60% 就給看比 100% 才給看好 100 倍</strong>——因為剩下 40% 可能根本沒人在意。</div>
+    <span class="empathy-quote-context">這是設計教育沒教好的事——學校給你 1 學期做一個 project，所以你習慣「<span class="lingo">做完才秀</span>」。但實務界 1 週要交 3 個 progress，這時候「<strong>提早秀、聽回饋、修方向</strong>」遠比「悶頭做完才驚動天地」高效。Agile 業界稱這個為 <strong>「Incompleteness is harnessed」</strong>——不完整不是缺陷，是策略。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Paper</span><a href="https://www.stage-gate.com/blog/the-stage-gate-model-an-overview/" target="_blank">Stage-Gate Model — Robert Cooper (1986)</a>
+          <span class="fr-desc">汽車業 40 年驗證的 Go/Recycle/Kill 三元決策——對應「80/60/100 無差異，0 才是 no-go」</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Article</span>Korte Company — <em>Design-Build: The Design Cannot Be Complete</em>
+          <span class="fr-desc">業界正式承認「建築與工程設計無法完整」——P15 的營造業官方對標</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Book</span>Jeff Sutherland — <em>Scrum: Doing Twice the Work in Half the Time</em>
+          <span class="fr-desc">Agile 經典——「Incompleteness as Strategy」的學術奠基</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="industry-evidence.html">業界證據完整版</a>
+          <span class="fr-desc">含 Boehm 100x 規則、70% 返工、$15-25K 誤差等量化證據</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p16">
+  <h2 class="bim-section-title"><span class="prop-badge large">P16</span>Work Breakdown 讓階段點可識別</h2>
+  <p class="bim-section-desc">沒拆分 = 沒節點。MCP 只能等「整塊完成」（可能要 1-2 週）才能介入。</p>
+
+  <div class="user-quote">
+    將設計工作給 <strong>BREAK DOWN 去做更細緻的拆分</strong>，來讓每個工作的成果都可以有，而不是一整塊的卡住。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">「我在做設計」是太大的工作單位——沒節點，MCP 只能等「整塊完成」才能介入。拆成「1F 平面 LOD 200」「外牆系統 LOD 300」「樓梯 LOD 250」——<strong>每個都是可識別的階段完成點</strong>，每個都可觸發 MCP 對應的檢查工具組。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">沿用業界 <a href="https://nibs.org/nbims/v4/bep/" target="_blank">BEP</a> + <a href="https://bimforum.org/resource/lod-level-of-development-lod-specification/" target="_blank">LOD</a> + <a href="https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/" target="_blank">IDS</a> 三套既有規範——不重新發明 WBS，而是<strong>orchestration 既有標準</strong>。每個 LOD 階段對應一組 ARCHI 工具組合。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Work Breakdown Structure for BIM · LOD-Aligned Checking Pipelines · IDS-Compliant Stage Triggers · 8/80 Rule Compliance</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">業界 SOP 早就有了，我們只是接通它</span>
+    <div class="empathy-quote-text">BEP 寫 30 年、LOD 寫 20 年、IDS 寫 5 年。<br>業界<strong>已經幫你想好怎麼拆設計工作</strong>了，<br>只是沒人把它串到 AI 自動檢核。MCP 做的是這個串接。</div>
+    <span class="empathy-quote-context">很多設計師覺得「<span class="lingo">BEP 是 PM 的事，我不用懂</span>」——但 MCP 上場後 BEP 變成<strong>「你每個階段交什麼，MCP 該檢什麼」</strong>的明確映射。一份你以前覺得空話的文件，突然變成「定義 AI 行為的設定檔」。這是 MCP 給 BIM 老法規的新生命。</span>
+  </div>
+
+  <div class="pitfalls">
+    <div class="pitfalls-title">反模式警告：8/80 Rule</div>
+    <ul>
+      <li><strong>工作包應 8-80 小時</strong>——過細變 micromanagement 反而拖垮整條流程</li>
+      <li><strong>警告：88 工具不該變成 500 個微任務</strong>——保持「設計師可一次完成的單元」尺度</li>
+      <li><strong>拆分到「每根牆都觸發一次檢核」是反人類設計</strong>——拆到「每個樓層平面完成觸發一組檢核」就對了</li>
+    </ul>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Spec</span><a href="https://nibs.org/nbims/v4/bep/" target="_blank">BEP — BIM Execution Plan (ISO 19650)</a>
+          <span class="fr-desc">業界拆分設計工作的官方標準</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Spec</span><a href="https://bimforum.org/resource/lod-level-of-development-lod-specification/" target="_blank">LOD 100-500 — AIA / BIM Forum</a>
+          <span class="fr-desc">完成度的量化分級——MCP 觸發點對應 LOD</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Guide</span><a href="https://www.projectmanager.com/guides/work-breakdown-structure" target="_blank">Work Breakdown Structure Guide</a>
+          <span class="fr-desc">WBS 跨產業通用指引——8/80 Rule 出處</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Spec</span><a href="https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/" target="_blank">IDS — Information Delivery Specification</a>
+          <span class="fr-desc">2024-06 buildingSMART 官方——機器可讀的「某階段該檢什麼」規格</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p17">
+  <h2 class="bim-section-title"><span class="prop-badge large">P17</span>自舉式 AI 審查分身</h2>
+  <p class="bim-section-desc">Domain 治理走「使用者短期親自審查 + 長期把審查邏輯透過對話訓練出 AI 審查分身」路線。</p>
+
+  <div class="user-quote">
+    這個課題，我可以來進行評估審查，<strong>未來我也會逐步地把我審查的邏輯在你我的互動下，產生出另一個有能力審查的 AI 分身</strong>，這個反而我不擔心。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">P9 開源讓 Domain 累積快——但<strong>誰把關品質</strong>？人工審查不可擴展（社群 100 個 PR / 月使用者審不完）。解法：把使用者「腦中的審查標準」逐步透過 AI 對話<strong>外化、形式化</strong>，最終訓練出一個能執行同樣判讀的 AI 分身。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">短期：使用者親自審查所有 Domain 貢獻（包含 fork 老師寫的、社群貢獻的）。長期：透過「使用者 + AI」對話互動，逐步把「<strong>Revit 既有功能優先 / 工具設計三問 / marginal value 評估</strong>」這些判讀邏輯記下、抽象化，最終生成 prompt-engineered 審查 agent。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Bootstrap AI Review Agent · Conversational Externalization of Review Heuristics · ultrareview / Multi-Agent Code Review as Technical Carrier</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">這是 AI 時代的「徒弟培養」</span>
+    <div class="empathy-quote-text">資深建築師帶徒弟 5 年，徒弟才學會「<em>什麼方案會被退、什麼可以推</em>」的判讀。<br>P17 是把這個師徒過程<strong>轉移給 AI</strong>——你跟 AI 對話 5 個月，AI 也能學會。</div>
+    <span class="empathy-quote-context">這比想像中可行——你問「<span class="lingo">為什麼這個 PR 該退？</span>」回答「因為違反工具設計三問第 2 條 marginal value 為 0」——這就是一筆訓練資料。累積 100 筆，AI 分身就有 80% 的判讀能力。再 200 筆，就能 95%。<strong>沒人能複製一位 20 年資深建築師的全部判斷，但 1000 筆「為什麼這個對 / 那個不對」可以模擬大部分</strong>。</span>
+  </div>
+
+  <p style="font-size:13px;color:var(--text-muted);"><em>⚠ 本命題為<strong>未來工程議題</strong>，已紀錄為 /handoff 候選項目，本場 5/23 小聚不展開實作。詳見 BIM_MCP 站點未來工程清單。</em></p>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Paper</span>Anthropic — <em>Specific versus General Principles for Constitutional AI</em>
+          <span class="fr-desc">「自我訓練 AI 把人類審查邏輯外化」的學術奠基</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Tool</span>Claude Code — <em>/ultrareview slash command</em>
+          <span class="fr-desc">多 agent 雲端 review 的技術載體——P17 可能架構在這上面</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Article</span>Karpathy — <em>Software 2.0</em>
+          <span class="fr-desc">論「程式碼從手寫變成由樣本訓練」——P17 的審查邏輯演化是同類典範</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 群組 6：會議場景延伸（P18-P22） -->
+<!-- ============================================ -->
+<div class="bim-divider"><h2>群組 6 · 會議場景延伸</h2></div>
+
+<section class="bim-section bim-anchor" data-collapse id="p18">
+  <h2 class="bim-section-title"><span class="prop-badge large">P18</span>場域決定 MCP 角色 — 3 模式</h2>
+  <p class="bim-section-desc">個人 IDE 場景：MCP 被動就緒（P8）；同步協作會議：可能需要不同模式。</p>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">P8 被動就緒是針對「<strong>1 人 + AI</strong>」的場景。在「<strong>5 人 + AI</strong>」的會議場景，<strong>誰來叫</strong>是個新問題：每個人都叫會吵架，全部不叫又失去 MCP 價值。需要場域特定的會議協議。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">提供 3 模式供會議選用（見下表）。推薦組合：<strong>默認沉默（c），主持人可切換 invoke（a）</strong>。完全禁用自主拋限制（b）——違反 P8 而且不可預測。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">3-Mode Meeting Protocol · (c) Silent default + (a) Moderator-Invoke switch · (b) Auto-Push BANNED</div>
+  </div>
+
+  <table>
+    <thead><tr><th>模式</th><th>UX 設計</th><th>適用情境</th></tr></thead>
+    <tbody>
+      <tr><td>(c) 沉默 <span class="pass-tag">推薦預設</span></td><td>全程旁聽不發言，會議結束自動產報告</td><td>多數會議的默認</td></tr>
+      <tr><td>(a) 主持人</td><td>會議指定 BIM Coordinator 有 invoke 權</td><td>正式 design review</td></tr>
+      <tr><td>(b) 自主拋限制 <span class="fail-tag">不建議</span></td><td>MCP 偵測「方案決議階段」主動拋限制</td><td>違反 P8 — 不採用</td></tr>
+    </tbody>
+  </table>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">會議主控權的潛規則</span>
+    <div class="empathy-quote-text">設計會議跟法庭一樣——<em>誰能發言、什麼時候、講多久</em>都是潛規則。<br>AI 突然「主動跳出」會像有人沒舉手就發言——不管你說什麼，大家都會討厭你。</div>
+    <span class="empathy-quote-context">這也是為什麼會議要設「<span class="lingo">主持人模式</span>」——讓主持人有「<strong>該問 AI 的時候叫 AI</strong>」的權限，其他人提案 AI 不會擅自跳出否決。這個簡單的權限設計把<strong>「AI 是會議參與者」</strong>這個棘手問題降級成「<strong>AI 是主持人的顧問</strong>」——熟悉的職位關係。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Article</span>HBR — <em>The Art of Running a Meeting</em>
+          <span class="fr-desc">會議主持人權力結構的經典——P18 主持人模式的職場心理學基礎</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="#p19">P19 會議模式響應風格</a>
+          <span class="fr-desc">會議模式被 invoke 後，MCP 該如何回應的具體規格</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="#p21">P21 會議記錄者</a>
+          <span class="fr-desc">沉默模式下 MCP 該如何自動產出會議紀錄</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p19">
+  <h2 class="bim-section-title"><span class="prop-badge large">P19</span>會議模式響應風格</h2>
+  <p class="bim-section-desc">會議死線壓力下，MCP 的「長答案」就是「死線殺手」。必須有「會議優化模式」。</p>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">個人 IDE 模式下 AI 可以慢慢想（extended thinking）、可以給 500 字深度分析——使用者願意等。但<strong>會議桌上 5 人盯著你看，30 秒沒答案就尷尬，2 分鐘沒答案會議死掉</strong>。同一個 MCP 工具在會議場域必須<strong>硬性截斷</strong>響應長度。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">會議模式 = system prompt 加 <code>meetingMode: true</code> flag → 強制：響應 &lt; 30 秒 / bullet point only / 禁 Extended thinking / 不反問。寧可少答也不要拖節奏。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Meeting-Optimized Response Mode · Sub-30s Response · Bullet-Only Format · No Reasoning Trace · Force-Concise System Prompt Flag</div>
+  </div>
+
+  <table>
+    <thead><tr><th>維度</th><th>個人 IDE 模式</th><th>會議模式</th></tr></thead>
+    <tbody>
+      <tr><td>響應時間</td><td>10 分鐘內可接受</td><td><strong>&lt; 30 秒</strong></td></tr>
+      <tr><td>響應長度</td><td>散文敘事可</td><td><strong>bullet point only / &lt; 200 字</strong></td></tr>
+      <tr><td>Extended thinking</td><td>可用</td><td><strong>禁用</strong></td></tr>
+      <tr><td>對話風格</td><td>反問澄清可</td><td><strong>不反問，最多請求 1 次澄清</strong></td></tr>
+    </tbody>
+  </table>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">會議節奏感是真的</span>
+    <div class="empathy-quote-text">「<em>讓我想一下喔</em>」——人類講這句話，會議桌大家都會給 30 秒。<br>但 AI 講這句話 30 秒沒回答，所有人會懷疑「<strong>這 AI 是不是壞了</strong>」。<br>場域對節奏的容忍度完全不同。</div>
+    <span class="empathy-quote-context">這也是為什麼 ChatGPT-style 的「<span class="lingo">慢慢生成 token</span>」UX 在會議場景失效——個人單獨用 AI 時看著文字一個個冒出來覺得很酷，會議桌上看著文字慢慢冒大家會覺得「<strong>等到天荒地老</strong>」。會議模式必須<strong>瞬間給整段</strong>，或者明確說「我這題答不出來，跳下一題」。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Article</span>Stripe — <em>Reducing Meeting Friction</em>
+          <span class="fr-desc">「會議時間就是金錢」工程文化——P19 響應風格規格的精神來源</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Book</span>Patrick Lencioni — <em>Death by Meeting</em>
+          <span class="fr-desc">論「會議節奏崩壞」的後果——P19 的反面教材</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Talk</span>Daily Standup Methodology
+          <span class="fr-desc">軟體業「每人 &lt; 1 分鐘」典範——對應「AI 在會議桌也要 &lt; 30 秒」</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p20" style="opacity:0.65;">
+  <h2 class="bim-section-title"><span class="prop-badge large muted">P20</span><span style="text-decoration:line-through;">多人決策對 MCP 報告格式提新要求</span> · 淘汰留紀錄</h2>
+  <p class="bim-section-desc">原構想：報告呈現「多方權衡」作為辯論素材。<strong>淘汰</strong>。留下紀錄是為了讓未來閱讀者知道：<strong>哪些設計選項曾經考慮但被刻意拒收</strong>，避免循環討論。</p>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY 淘汰</div>
+    <div class="how-tech-content"><a href="#p13">P13「MCP 是 0/1 執行器」</a>太核心，不能在會議場景被稀釋成「多方權衡」。會議辯論是<strong>設計師責任</strong>，不是 MCP 該承擔。保留 P13 純粹性 &gt; 為會議讓步。</div>
+    <div class="how-tech-label">為什麼留</div>
+    <div class="how-tech-content">設計討論常常會 loop 回原本拒絕過的選項——保留 P20「曾考慮但拒收」的紀錄能阻斷循環。這也呼應 Branch C「<strong>拒收的工具要留紀錄解釋為什麼拒</strong>」的精神。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Explicit "Considered but Rejected" Records · Anti-Pattern Documentation · Loop Prevention via Decision Trail</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">「拒絕的紀錄」的價值</span>
+    <div class="empathy-quote-text">設計團隊最怕的不是「<em>有人提出爛主意</em>」，是「<em>有人 6 個月後又提出同一個爛主意</em>」。<br>P20 留下紀錄，是讓未來閱讀者<strong>3 秒看出「這想法已死過一次」</strong>。</div>
+    <span class="empathy-quote-context">這也是 Architectural Decision Records（ADR）的核心精神——<span class="lingo">「<strong>拒絕了什麼跟採用了什麼一樣重要</strong>」</span>。22 條命題裡 P20 是唯一一條淘汰的——把它留下並標明「淘汰留紀錄」，是專案治理的成熟表現，不是缺陷。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Pattern</span>Architectural Decision Records (ADR)
+          <span class="fr-desc">「拒絕的方案要寫文件」的軟體工程典範——P20 的精神同調</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="#p13">P13 — MCP 是 0/1 執行器</a>
+          <span class="fr-desc">P20 拒收的根本原因——P13 的純粹性不可被會議場景稀釋</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p21">
+  <h2 class="bim-section-title"><span class="prop-badge large">P21</span>MCP 會議記錄者</h2>
+  <p class="bim-section-desc">會議結束後 MCP 自動產出會議紀錄。AI 即時對應「對話 ↔ 規範」是業界沒有的能力。</p>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">設計會議講「<strong>採光不夠</strong>」「<strong>走廊太窄</strong>」這類話時，會場沒人會即時翻書找 §41 / corridor-analysis-protocol。會議結束後寫紀錄的人也通常用「<strong>「採光不足，要確認</strong>」這種空話帶過。<strong>實際 26% 返工就來自這種紀錄模糊</strong>（Eracore 統計）。MCP 即時做「對話 ↔ 規範」對應，把空話變成可追蹤的 action item。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">沉默模式下 MCP 全程聽會議內容，識別關鍵詞 → 對應到 <code>domain/*.md</code>。會議結束自動產出三類清單：(1) 觸及的限制 (2) 未解決衝突 (3) 待後續決策項目（含負責人 + due date）。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Real-Time Conversation-to-Regulation Mapping · Auto-Generated Meeting Minutes · Three-Bucket Categorization (Touched / Unresolved / Action)</div>
+  </div>
+
+  <h3>三類自動產出</h3>
+  <ol>
+    <li><strong>觸及的限制清單</strong>：即時抓對話關鍵詞 → 對應到 domain/*.md
+      <ul>
+        <li>會議中有人說「採光不夠」→ MCP 標記「觸及 §41 / daylight-area-check.md」</li>
+        <li>「走廊太窄」→ 觸及「corridor-analysis-protocol.md」</li>
+      </ul>
+    </li>
+    <li><strong>未解決衝突</strong>：哪些方案還沒決定，為何卡住</li>
+    <li><strong>待後續決策項目</strong>：Action items + 負責人 + Due date（呼應 <a href="#p15">P15</a> 排程死線）</li>
+  </ol>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">會議記錄的真實困境</span>
+    <div class="empathy-quote-text">「<em>誰來寫會議紀錄</em>」是設計事務所的<strong>燙手山芋</strong>——資深的不想寫（太花時間）、資淺的寫不準（聽不懂行話）。<br>P21 接走這個工作，但寫得比資深的更精確。</div>
+    <span class="empathy-quote-context">這也是為什麼 P21 是 P14「終極目標」的關鍵子任務——<span class="lingo">真實會議的價值 50% 是當下討論，50% 是事後紀錄能否落實</span>。沒有精準紀錄的會議等於白開。MCP 能即時做「對話 → 法規 → action」三段映射，是<strong>業界目前沒有任何工具能做的事</strong>。Procore / ACC 都只能事後分類，做不到即時對應 domain。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Report</span><a href="https://eracore.com/bim-coordination-meetings/" target="_blank">Eracore — BIM Coordination Meetings</a>
+          <span class="fr-desc"><strong>26% 返工來自 miscommunication</strong>——紀錄精準化是直接 ROI</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Product</span>Otter.ai / Fireflies
+          <span class="fr-desc">當前 AI 會議紀錄業界標準——但都只做 transcription，沒做「對應到 domain 規範」</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="#p14">P14 — 終極目標</a>
+          <span class="fr-desc">P21 是 P14 的關鍵子任務</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" data-collapse id="p22">
+  <h2 class="bim-section-title"><span class="prop-badge large">P22</span>ARCHI 優先 — 大多設計師卡在建築模型階段</h2>
+  <p class="bim-section-desc">設計師在 ARCHI 模型階段就被限制壓住（採光、走廊、樓梯、外牆開口、面積），<strong>還沒走到結構 / MEP 階段就已經卡死</strong>。</p>
+
+  <div class="user-quote">
+    我不認為要卡死在這樣的整合邏輯上，<strong>MEP 模型的介入是在增加複雜程度，但事實上大多的人員往往在 ARCHI 的模型就已經先卡住了</strong>，所以這 9x 的工具在面對建築模型的邊界與限制的實作上我認為勢必可行。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">業界常推 BIM 多專業整合的願景——但現實是 80% 設計案<strong>連 ARCHI 自己都還沒搞定</strong>就死在規範。談 ARCHI × MEP × STRUC 整合是<strong>解決還沒成為問題的問題</strong>。MCP 應該優先服務「<strong>真實的最常見痛點</strong>」——ARCHI 自己的合規檢核。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">MCP 的 ARCHI 類工具（採光 / 排煙 / 樓梯 / 外牆開口 / 樓板開口）就足以解決多數痛點。<strong>不強推 MEP 整合的複雜情境</strong>——等 ARCHI 用穩了再說。簡化劇本：純 ARCHI 模型 + 6 個既有 ARCHI 類檢查工具。詳見 5/23 Live Demo。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">ARCHI-First Strategy · Decline Premature MEP Integration · Solve Common Problems Before Edge Cases · Pareto Principle in BIM Workflow</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">業界 BIM 願景 vs 真實痛點</span>
+    <div class="empathy-quote-text">每個 BIM 講座都在講「<em>多專業整合 + 4D + 5D + 6D</em>」。<br>但回到工作桌——大多設計師在「<em>採光夠不夠</em>」這關就卡了好幾天。<br><strong>先讓你過第一關，再聊第十關的事</strong>。</div>
+    <span class="empathy-quote-context">這是務實派 vs 願景派的張力——<span class="lingo">Autodesk Marketing</span> 喜歡講 6D BIM 完整整合，但設計事務所主管問員工「<strong>你做案花最多時間在哪</strong>」答案永遠是「<strong>規範檢核 + 修改</strong>」。MCP 選擇站在<strong>務實派</strong>這邊——5/23 demo 只演 5 個 ARCHI 工具，不演 MEP 碰撞，因為這才是受眾 80% 的真實工作場景。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="../2026-05/handson.html">5/23 Hands-on 練習頁</a>
+          <span class="fr-desc">P22 ARCHI 優先的具體實作——10 個 prompt 用日本 sample 跑 5 個 ARCHI 工具</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Stat</span>Dodge Data — <em>BIM Adoption Survey 2024</em>
+          <span class="fr-desc">業界統計：82% 設計師 BIM 主要用於 ARCHI 階段，只有 18% 達到多專業整合</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Principle</span>Pareto 80/20 Rule
+          <span class="fr-desc">解決 80% 場景的痛點 = ARCHI 階段——MCP 工具設計優先級的指導原則</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 命題彼此關係圖 -->
+<!-- ============================================ -->
+<section class="bim-section">
+  <div class="bim-section-eyebrow">SYNTHESIS · 體系結構</div>
+  <h2 class="bim-section-title">22 命題彼此關係圖</h2>
+  <pre style="font-family:var(--font-mono);font-size:13px;color:var(--text-secondary);line-height:1.8;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-md);padding:24px;overflow-x:auto;">P1 (突破執行工具) ─┐
+P2 (空間+限制兩半身) ─┤── 為什麼 MCP 重要
+P3 (越做越醜的時序錯誤) ─┘
+                            ↓
+P4 (限制顯現器定位) ─┐
+P5 (Domain 是本體) ─┼── MCP 的角色
+P6 (人類在限制可視化下追求美學) ─┘
+                            ↓
+P7 (階段完成點) ─┐
+P8 (被動就緒) ─┼── 何時 / 怎麼 顯現限制
+P9 (滾動式開源 Domain) ─┘
+                            ↓
+P10 (設計 = 解決問題) ─┐
+P11 (光譜漸層在設計師端) ─┼── 糾正「美學被限制反噬」迷思
+P13 (0/1 在 MCP 端) ─┤
+P12 (死局求助更多人) ─┘
+                            ↓
+P14 (同步協作會議 = 終極目標) ─┐
+P15 (排程死線是第一限制) ─┤
+P16 (Work Breakdown) ─┼── 實作層 / 未來路徑
+P17 (自舉式 AI 審查) ─┘
+                            ↓
+P18 (場域決定角色) ─┐
+P19 (會議模式響應) ─┼── 會議場景延伸
+P21 (會議記錄者) ─┤
+P22 (ARCHI 優先) ─┘
+P20 ❌ 淘汰留紀錄</pre>
+  <p>這 22 條命題形成<strong>從「為什麼」到「實作層」完整的思想體系</strong>，是 5/23 五月小聚的哲學中軸。</p>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="../index.html" class="bim-footer-btn">← 回 BIM_MCP 首頁</a>
+    <a href="three-constitutions.html" class="bim-footer-btn primary">三憲法 →</a>
+    <a href="spectrum-decision.html" class="bim-footer-btn">A/B/C/D 光譜決策</a>
+    <a href="industry-evidence.html" class="bim-footer-btn">業界證據</a>
+  </div>
+  <div>
+    BIM_MCP · 限制顯現器哲學 · 22 命題完整宣言<br>
+    最後更新：2026-05-18 · 來源：0523 五月小聚反思
+  </div>
+</footer>
+
+<script src="../_shared.js"></script>
+<script>initAll();</script>
+</body>
+</html>

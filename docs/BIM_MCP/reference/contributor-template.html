@@ -1,0 +1,363 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contributor Template · BIM_MCP</title>
+<meta property="og:title" content="BIM_MCP Contributor Template · Domain first / Skill second / Tool last">
+<meta property="og:description" content="新增 BIM compliance / workflow / 工具的撰寫順序。含三選一決策樹、Domain / Skill 撰寫骨架、6 步驟停車場淨高範例、review checklist。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../_nav.css">
+<style>
+  .bim-hero-figure{margin:var(--gap-lg) 0 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+  .bim-hero-figure img{display:block;width:100%;height:auto}
+  .choice-card{min-height:180px}
+  .step-line{
+    display:grid;grid-template-columns:repeat(6,1fr);gap:8px;
+    margin:var(--gap-lg) 0;
+  }
+  .step-line div{
+    border:1px solid var(--border);padding:14px 12px;border-radius:var(--radius-md);
+    font-family:var(--font-tech);font-size:11px;text-align:center;
+    background:var(--bg-card);position:relative;
+  }
+  .step-line div::before {
+    content: counter(step-line-counter);
+    counter-increment: step-line-counter;
+    position: absolute;
+    top: -10px; left: 50%;
+    transform: translateX(-50%);
+    width: 22px; height: 22px;
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+  }
+  .step-line { counter-reset: step-line-counter; }
+  .step-line div:last-child {
+    background: var(--accent);
+    color: #000;
+    font-weight: 700;
+  }
+  .step-line div:last-child::before { background: var(--accent); color: #000; }
+  .bim-steps{counter-reset:step;list-style:none;padding:0}
+  .bim-steps li{counter-increment:step;margin:0 0 14px;padding:18px 22px 18px 64px;border:1px solid var(--border);border-radius:var(--radius-md);position:relative;background:var(--bg-card)}
+  .bim-steps li:before{content:counter(step);position:absolute;left:20px;top:18px;width:28px;height:28px;display:grid;place-items:center;background:var(--accent);color:#000;border-radius:50%;font-family:var(--font-tech);font-weight:700}
+  .bim-steps li > strong { display:block; margin-bottom: 8px; color: var(--text-primary); font-size: 15px; }
+  .bim-steps li > p { font-size: 13px; margin: 4px 0 0 0; color: var(--text-secondary); }
+  .bim-steps li pre { margin: 8px 0 0 0; font-size: 11px; }
+  @media(max-width:800px){.step-line{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body data-prev="troubleshooting.html" data-next="../index.html">
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <a href="../index.html#reference" style="color:var(--text-secondary);border-bottom:none;">reference</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">Contributor Template</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="troubleshooting.html" class="bim-topnav-btn">← Troubleshooting</a>
+    <a href="../index.html" class="bim-topnav-btn">Hub →</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">CONTRIBUTOR TEMPLATE <span class="accent">domain first / skill second / tool last</span></div>
+  <h1 class="bim-hero-title">先寫<span class="accent">知識</span>，<br>再寫編排，最後才新增工具</h1>
+  <p class="bim-hero-sub">這份模板把新貢獻分三種：純 SOP / 既有工具的新 workflow / 真正缺工具的能力擴充。目標讓 BIM method <strong>可審、可維護、可被多個 AI client 共用</strong>。下方含三選一決策樹 + 撰寫骨架 + 6 步驟停車場淨高完整範例。</p>
+  <figure class="bim-hero-figure"><img src="../_images/contributor__hero__dual-write.svg" alt="Domain first then skill authoring" width="1600" height="900"></figure>
+</header>
+
+<!-- ============================================ -->
+<!-- ROUTE -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="route">
+  <div class="bim-section-eyebrow">SECTION 01 · ROUTE</div>
+  <h2 class="bim-section-title">三選一：先判斷你要貢獻哪一層</h2>
+  <p class="bim-section-desc">大多數新需求其實是「<strong>知識補完</strong>」不是「工具擴充」。先判斷對，省下重造輪子的時間。</p>
+
+  <div class="bim-grid bim-grid-3">
+    <div class="bim-card choice-card">
+      <h4>🟣 只有方法</h4>
+      <p>新法規條文、新計算公式、新例外處理 → 寫 <code>domain/*.md</code> 即可。<strong>不必</strong>建 Skill。</p>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">例：「《建技 §99》新增規定 X 條件下排煙窗計算改 Y」</p>
+    </div>
+    <div class="bim-card choice-card">
+      <h4>🟢 有 workflow</h4>
+      <p>跨多 tool 編排 + 觸發頻率高 → 寫 Skill 引用 Domain，不複製 SOP 到 Skill body。</p>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">例：「想自動跑採光→排煙→碰撞檢查並打包報告」</p>
+    </div>
+    <div class="bim-card choice-card">
+      <h4>🔴 工具不存在</h4>
+      <p>Revit API 沒有對應能力 → 先寫 RFC / issue 確認可行，才動 MCP tool 新增。</p>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">例：「想要工具直接回傳 IFC4 格式 schema」</p>
+    </div>
+  </div>
+
+  <div class="bim-card bim-card-warn">
+    <h4>判斷錯誤的代價</h4>
+    <p>把純 SOP 升 Skill → metadata 膨脹、context window 浪費。<br>把 workflow 寫死進 tool → 工具肥大、跨情境難複用。<br>沒先看 Revit API 能不能做就寫 tool → 寫到一半發現 API 不支援。</p>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- DOMAIN -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="domain">
+  <div class="bim-section-eyebrow">SECTION 02 · DOMAIN</div>
+  <h2 class="bim-section-title">Domain 撰寫骨架</h2>
+  <p class="bim-section-desc">所有 <code>domain/*.md</code> 都遵守這個結構。frontmatter 由 <code>/qaqc</code> Phase 6 lint 檢核。詳見 <a href="domain-index.html#frontmatter-standard">frontmatter-standard.md</a>。</p>
+
+<pre><code>---
+title: parking-clearance-check
+description: 停車位淨高與車道寬度檢核 SOP（建技 §60）
+type: compliance
+triggers:
+  - parking
+  - clearance
+  - 停車淨高
+  - >210cm
+inputs:
+  - element ids from get_field_values
+  - room types from get_rooms_by_level
+references:
+  - building-code-tw.md#article-60
+---
+
+# Goal
+明確定義本 SOP 的範圍與目的。
+
+# Method
+1. 列出需要的 tool fields（不要假設）
+2. 寫公式與閾值
+3. 列出例外（哪些情境不檢、哪些要替代條件）
+4. 多重條件時用決策樹清楚畫出來
+
+# Output
+回傳 PASS / FAIL / NEEDS_REVIEW 三態（不是只 PASS/FAIL）。
+含 evidence（用了哪些 element id、哪個欄位、套了哪個公式）。
+
+# Edge cases
+- 機車位的 clearance 規則不同
+- 無障礙車位有更高要求
+- 雙層機械停車位特殊計算
+</code></pre>
+
+  <div class="bim-card bim-card-accent">
+    <h4>三個關鍵紀律</h4>
+    <p><strong>1. 公式寫在 Domain 不寫在 Skill</strong>——法規修一次只改一份 SOP。</p>
+    <p><strong>2. 列出所需 tool fields</strong>——避免 LM 補不存在的欄位。</p>
+    <p><strong>3. 明確說「不檢什麼」</strong>——比說「檢什麼」更重要（防誤檢）。</p>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- SKILL -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="skill">
+  <div class="bim-section-eyebrow">SECTION 03 · SKILL</div>
+  <h2 class="bim-section-title">Skill 只負責 orchestration</h2>
+  <p class="bim-section-desc">Skill body 大多 ≤ 50 行。長 Skill 通常 = 把 SOP 重複寫進去 = 違反知識複用原則。</p>
+
+<pre><code>---
+name: parking-check
+description: 停車淨高與車位數量檢核。觸發於關鍵字「停車」「車位淨高」「parking」「clearance」「機車位」「無障礙車位」。
+trigger-keywords:
+  - 停車
+  - parking
+  - clearance
+---
+
+# Workflow
+
+1. 讀對應 Domain SOP（一定要讀，不要憑記憶套）
+   - 淨高檢查 → domain/parking-clearance-check.md
+   - 數量檢核 → domain/parking-space-review.md
+
+2. 查實際模型資料（用 tool 取，不要編造）
+   - get_rooms_by_level(level=X) 取停車空間
+   - query_elements_with_filter(category="Parking") 取車位
+
+3. 套 SOP 方法（domain 怎麼寫就怎麼算）
+   - 不要簡化、不要憑直覺、不要跳步驟
+
+4. 回報結果
+   - PASS / FAIL / NEEDS_REVIEW + 證據
+   - 若 FAIL → 建議套 A/B/C/D 框架（指向 spectrum-decision）
+</code></pre>
+
+  <div class="pitfalls">
+    <div class="pitfalls-title">Skill 常見錯誤</div>
+    <ul>
+      <li>❌ 把整個公式複製到 Skill body（重複，違反 SoT）</li>
+      <li>❌ 沒列出需要的 tool fields 就開始算</li>
+      <li>❌ 用 LM prior 補專案內元素、數量或 ID（違反<a href="three-constitutions.html#constitution-2">第二憲法</a>）</li>
+      <li>❌ Skill 描述（description）寫太長 → 觸發判斷會模糊</li>
+      <li>❌ 沒寫 trigger-keywords → AI 不知道何時叫</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- EXAMPLE -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="example">
+  <div class="bim-section-eyebrow">SECTION 04 · EXAMPLE</div>
+  <h2 class="bim-section-title">6 步驟範例：新增「停車淨高檢核」</h2>
+  <p class="bim-section-desc">從零開始建一個新 compliance SOP。<strong>用真實案例</strong>（這是 2025-Q4 實際做過的，現已上線）。</p>
+
+  <figure class="bim-figure">
+    <img src="../_images/contributor__s04__6-step.svg" alt="Six step contributor workflow from domain file to PR review" width="1200" height="600" loading="lazy">
+  </figure>
+
+  <div class="step-line">
+    <div>DOMAIN .MD</div>
+    <div>SKILL .MD</div>
+    <div>WRITE TEST</div>
+    <div>UPDATE CLAUDE</div>
+    <div>SYNC INDEX</div>
+    <div>PR REVIEW</div>
+  </div>
+
+  <ol class="bim-steps">
+    <li>
+      <strong>建立 <code>domain/parking-clearance-check.md</code></strong>
+      <p>依 Section 02 骨架填入。完整公式：<code>淨高 ≥ 2100mm</code>；機車位 <code>≥ 1800mm</code>；無障礙 <code>≥ 2400mm</code>。</p>
+      <pre><code># Method
+1. Get all rooms with type ∈ {駐車場, parking, 停車空間}
+2. For each room: measure ceiling height at room center
+3. Classify: regular / 機車 / 無障礙
+4. Apply threshold per class
+5. Output FAIL list with evidence</code></pre>
+    </li>
+    <li>
+      <strong>更新 <code>.claude/skills/parking-check/SKILL.md</code></strong>
+      <p>把 workflow 加上「淨高檢查」分支。若該 Skill 還不存在則新建。</p>
+    </li>
+    <li>
+      <strong>寫最小測試 / smoke script</strong>
+      <p>避免工具 schema 漂移。建一個 <code>tests/parking-clearance.smoke.ts</code>，跑一遍確認 round-trip 通過。</p>
+    </li>
+    <li>
+      <strong>更新 <code>CLAUDE.md</code> 觸發表</strong>
+      <p>加入這行到 Domain 表：</p>
+      <pre><code>| 停車, 車位淨高, clearance, &gt;210cm | `domain/parking-clearance-check.md` |</code></pre>
+    </li>
+    <li>
+      <strong>更新本 reference 索引</strong>
+      <p>在 <a href="domain-index.html#compliance">domain-index Section 02 Compliance</a> 加入新 card，含 trigger tags 與反查 Skill。在 <a href="skills-index.html">skills-index</a> 對應 Skill 加上 domain-link。</p>
+    </li>
+    <li>
+      <strong>PR Review · 跑 <code>/claude-md-sync</code> 與 <code>/qaqc</code></strong>
+      <p>同步驗證 CLAUDE.md 與作業檔雙向一致。qaqc Phase 6 會檢核 frontmatter 完整性。</p>
+    </li>
+  </ol>
+</section>
+
+<!-- ============================================ -->
+<!-- REVIEW -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="review">
+  <div class="bim-section-eyebrow">SECTION 05 · REVIEW</div>
+  <h2 class="bim-section-title">PR Review Checklist</h2>
+  <p class="bim-section-desc">CODEOWNERS 收到 PR 後對照這份檢核。沒過不 merge。</p>
+
+  <div class="how-tech">
+    <div class="how-tech-label">DOMAIN</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>Domain 是否能<strong>獨立</strong>描述方法（沒有引用 Skill body）？</li>
+        <li>frontmatter 是否完整（title / description / type / triggers / inputs）？</li>
+        <li>方法是否含<strong>例外與邊界</strong>條件？</li>
+        <li>是否引用了相關的 <code>references/building-code-tw.md</code> 條號？</li>
+      </ul>
+    </div>
+    <div class="how-tech-label">SKILL</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>Skill 是否<strong>只做流程</strong>（沒藏公式）？</li>
+        <li>trigger-keywords 是否清楚？</li>
+        <li>Workflow 步驟是否含「先讀 domain」？</li>
+        <li>有沒有列出需要的 tool calls？</li>
+      </ul>
+    </div>
+    <div class="how-tech-label">TOOL（如有）</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>新工具是否維持 <code>WebSocket contract</code>（CommandName / Parameters / RequestId）？</li>
+        <li>是否走 <code>ExternalEventManager</code> 在 UI thread？</li>
+        <li>所有 Revit 操作是否包進 <code>Transaction</code>？</li>
+        <li>大量 elements 輸出是否有 summary 預設（避免 context overflow）？</li>
+      </ul>
+    </div>
+    <div class="how-tech-label">SYSTEM</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>所有具體數字/ID 是否可追到 tool 或引用來源？</li>
+        <li>部署規則是否仍是 <strong>single csproj / single addin</strong>？</li>
+        <li>跑過 <code>/claude-md-sync</code> 確認雙向一致？</li>
+        <li>跑過 <code>/qaqc</code> 全綠？</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">為什麼要 review 這麼嚴</span>
+    <div class="empathy-quote-text">隨便收一個違反<strong>知識/編排分離</strong>的 PR，半年後變成「<em>採光 SOP 散在 5 個 Skill 內</em>」。<br>法規修一次要改 5 處 → 一定有人忘。<br>嚴格 review 是<strong>對未來自己的保護</strong>。</div>
+    <span class="empathy-quote-context">這也是為什麼 BIM 行業很多 plugin 死掉——不是技術不行，是<span class="lingo">知識耦合度</span>太高，沒人敢碰它了。本專案紀律就是保持<strong>耦合度低、知識複用</strong>。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Domain</span><a href="domain-index.html#skill-authoring-standard">skill-authoring-standard.md</a>
+          <div class="fr-desc">Skill 入門檻與反例。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Domain</span><a href="domain-index.html#frontmatter-standard">frontmatter-standard.md</a>
+          <div class="fr-desc">YAML 欄位規範。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Constitution</span><a href="three-constitutions.html">三條憲法（總覽）</a>
+          <div class="fr-desc">所有 PR 都不能違反的底線。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Index</span><a href="domain-index.html">Domain 索引（40 個 SOP）</a>
+          <div class="fr-desc">新 SOP 寫完記得加進索引。</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="troubleshooting.html" class="bim-footer-btn">← Troubleshooting</a>
+    <a href="domain-index.html" class="bim-footer-btn">Domain 索引</a>
+    <a href="../index.html" class="bim-footer-btn primary">回 BIM_MCP 首頁</a>
+  </div>
+  <p>BIM_MCP · reference / contributor-template</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-05-18 · 含三選一決策樹 + 撰寫骨架 + 6 步驟停車場淨高範例 + 4 區 PR review checklist。</p>
+</footer>
+
+<script src="../_shared.js"></script><script>initAll();</script>
+</body></html>

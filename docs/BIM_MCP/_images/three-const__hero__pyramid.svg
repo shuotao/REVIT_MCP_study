@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Three constitutions pyramid">
+  <rect width="1600" height="900" fill="#000"/>
+  <g stroke="#fff" stroke-width="4" fill="none">
+    <path d="M800 155 L1230 745 H370 Z"/>
+    <line x1="515" y1="550" x2="1085" y2="550"/>
+    <line x1="635" y1="385" x2="965" y2="385"/>
+  </g>
+  <rect x="700" y="315" width="200" height="140" fill="#60a5fa"/>
+  <g fill="#fff" font-family="JetBrains Mono,Consolas,monospace" text-anchor="middle">
+    <text x="800" y="260" font-size="28">PASSIVE CAPABILITY</text>
+    <text x="800" y="585" font-size="28">TOOL DATA HONESTY</text>
+    <text x="800" y="695" font-size="28">DOMAIN METHOD COMPLIANCE</text>
+    <text x="800" y="820" font-size="34" letter-spacing="3">THREE CONSTITUTIONS</text>
+  </g>
+</svg>

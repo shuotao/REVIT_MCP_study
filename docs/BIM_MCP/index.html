@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIM_MCP Reference Hub</title>
+<meta property="og:title" content="BIM_MCP Reference Hub">
+<meta property="og:description" content="BIM_MCP 的 reference、月度封存與 hands-on 入口。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="_nav.css">
+<style>
+  .bim-hero-figure,.bim-figure{margin:var(--gap-lg) 0 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:#000}
+  .bim-hero-figure img,.bim-figure img{display:block;width:100%;height:auto}
+  .hub-card{min-height:190px;display:flex;flex-direction:column;justify-content:space-between;border-bottom:none;color:inherit}
+  .hub-card:hover{border-color:var(--accent-border)}
+  .hub-card small{font-family:var(--font-tech);color:var(--text-faint);letter-spacing:2px;text-transform:uppercase}
+  .archive-row{display:grid;grid-template-columns:160px 1fr auto;gap:18px;padding:16px 0;border-bottom:1px solid var(--border);align-items:center}
+  .archive-row:last-child{border-bottom:none}
+  .archive-date{font-family:var(--font-tech);color:var(--accent);letter-spacing:1px}
+  @media(max-width:700px){.archive-row{grid-template-columns:1fr}.bim-topnav-actions{display:none}}
+</style>
+</head>
+<body data-next="reference/philosophy-22-propositions.html">
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">hub</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="reference/philosophy-22-propositions.html" class="bim-topnav-btn">22 propositions</a>
+    <a href="reference/domain-index.html" class="bim-topnav-btn">Domain</a>
+    <a href="reference/contributor-template.html" class="bim-topnav-btn">Contribute</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">BIM_MCP <span class="accent">reference / archive / latest</span></div>
+  <h1 class="bim-hero-title">把 Revit MCP 的知識、SOP、Demo 流程放在同一個入口</h1>
+  <p class="bim-hero-sub">這裡是 5/23 demo 前的文件總覽：reference 是長期基礎，月度封存保留簡報與閱讀材料，hands-on 入口放實作流程與現場演示素材。</p>
+  <figure class="bim-hero-figure">
+    <img src="_images/index__hero__three-layer.svg" alt="BIM_MCP three layer navigation mark" width="1600" height="900">
+  </figure>
+</header>
+
+<section class="bim-section bim-anchor" id="paths">
+  <div class="bim-section-eyebrow">SECTION 01 / ROUTES</div>
+  <h2 class="bim-section-title">三個入口，各自承擔不同節奏</h2>
+  <figure class="bim-figure">
+    <img src="_images/index__section01__site-map.svg" alt="Reference archive and latest route map" width="1600" height="600" loading="lazy">
+  </figure>
+  <div class="bim-grid bim-grid-3">
+    <a class="bim-card hub-card" href="#reference">
+      <small>reference</small>
+      <h4>穩定知識庫</h4>
+      <p>架構、哲學、三條憲法、產業證據、技能與 domain 索引。</p>
+    </a>
+    <a class="bim-card hub-card" href="#archive">
+      <small>archive</small>
+      <h4>月度材料</h4>
+      <p>依月份保存簡報、讀書材料與 demo 前後脈絡。</p>
+    </a>
+    <a class="bim-card hub-card" href="#latest">
+      <small>latest</small>
+      <h4>Hands-on</h4>
+      <p>用於現場操作的最新練習與流程入口。</p>
+    </a>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="reference">
+  <div class="bim-section-eyebrow">SECTION 02 / REFERENCE</div>
+  <h2 class="bim-section-title">Reference 頁面</h2>
+  <div class="bim-grid bim-grid-3">
+    <a class="bim-card hub-card" href="reference/architecture-v2.html"><small>architecture</small><h4>三層架構 V2</h4><p>Skill / CLAUDE.md / Domain 的分工。</p></a>
+    <a class="bim-card hub-card" href="reference/philosophy-22-propositions.html"><small>philosophy</small><h4>22 propositions</h4><p>Revit MCP 的設計命題。</p></a>
+    <a class="bim-card hub-card" href="reference/three-constitutions.html"><small>guard rails</small><h4>三條憲法</h4><p>工具資料誠實、被動式能力、Domain method。</p></a>
+    <a class="bim-card hub-card" href="reference/industry-evidence.html"><small>evidence</small><h4>產業證據</h4><p>成本曲線、返工、early mover 論述。</p></a>
+    <a class="bim-card hub-card" href="reference/spectrum-decision.html"><small>decision</small><h4>Spectrum Decision</h4><p>把 FAIL 從 0/1 改成可談判的 A/B/C/D。</p></a>
+    <a class="bim-card hub-card" href="reference/skills-index.html"><small>skills</small><h4>19 Skills</h4><p>AI workflow orchestration 索引。</p></a>
+    <a class="bim-card hub-card" href="reference/domain-index.html"><small>domain</small><h4>Domain SOP</h4><p>由 repo 內 domain/*.md 建出的 SOP 索引。</p></a>
+    <a class="bim-card hub-card" href="reference/deployment-guide.html"><small>deploy</small><h4>部署指南</h4><p>Nice3point、Release.R{YY}、setup.ps1。</p></a>
+    <a class="bim-card hub-card" href="reference/troubleshooting.html"><small>debug</small><h4>Troubleshooting</h4><p>5 個經典問題與 5/18 demo 4 個修復。</p></a>
+    <a class="bim-card hub-card" href="reference/contributor-template.html"><small>contribute</small><h4>Contributor Template</h4><p>新增 SOP、Skill、工具前的寫作順序。</p></a>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="archive">
+  <div class="bim-section-eyebrow">SECTION 03 / ARCHIVE</div>
+  <h2 class="bim-section-title">月度封存</h2>
+  <div class="archive-row"><div class="archive-date">2026-04</div><div><strong>Karpathy wiki reading</strong><br><span style="color:var(--text-muted)">AI agent 與工作流材料。</span></div><a class="bim-topnav-btn" href="2026-04/karpathy-wiki.html">Open</a></div>
+  <div class="archive-row"><div class="archive-date">2026-05</div><div><strong>Presentation / hands-on / live demo log</strong><br><span style="color:var(--text-muted)">交接文件標記為 pending，保留入口位置。</span></div><span class="fail-tag">pending</span></div>
+</section>
+
+<section class="bim-section bim-anchor" id="latest">
+  <div class="bim-section-eyebrow">SECTION 04 / LATEST</div>
+  <h2 class="bim-section-title">Hands-on 最新入口</h2>
+  <div class="bim-card bim-card-accent">
+    <h4>Demo flow</h4>
+    <p>建議順序：首頁 → 22 propositions → 三條憲法 → 產業證據 → Spectrum Decision → hands-on → skills/domain/deployment/troubleshooting。</p>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a class="bim-footer-btn primary" href="reference/philosophy-22-propositions.html">Start reference</a>
+    <a class="bim-footer-btn" href="reference/domain-index.html">Domain</a>
+    <a class="bim-footer-btn" href="reference/contributor-template.html">Contribute</a>
+  </div>
+  <p>BIM_MCP / hub / 2026-05-18</p>
+</footer>
+<script src="_shared.js"></script>
+<script>initAll({home:"index.html"});</script>
+</body>
+</html>

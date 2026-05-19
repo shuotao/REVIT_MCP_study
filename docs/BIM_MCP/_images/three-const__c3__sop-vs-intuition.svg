@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" role="img" aria-labelledby="title desc">
+  <title id="title">Domain SOP versus intuition</title>
+  <desc id="desc">The method comes from domain markdown files rather than internal intuition.</desc>
+  <rect width="800" height="400" fill="#000"/>
+  <path d="M400 45v280" stroke="#fff" stroke-width="2" stroke-dasharray="8 10"/>
+  <g fill="none" stroke="#fff" stroke-width="2">
+    <path d="M155 120c42-24 85-18 125 10v118c-40-28-83-34-125-10z"/>
+    <path d="M280 130c40-28 83-34 125-10v118c-42-24-85-18-125 10z"/>
+    <path d="M280 130v118"/>
+    <circle cx="84" cy="78" r="13" stroke-dasharray="4 5"/>
+    <circle cx="97" cy="305" r="13" stroke-dasharray="4 5"/>
+    <circle cx="360" cy="62" r="13" stroke-dasharray="4 5"/>
+    <circle cx="364" cy="314" r="13" stroke-dasharray="4 5"/>
+    <path d="M97 86l62 46M109 294l54-48M350 74l-54 44M352 303l-56-52"/>
+    <path d="M560 145c8-43 92-54 120 0 22 42-10 82-58 82-48 0-70-33-62-82z"/>
+    <path d="M578 230c22 34 80 34 104 0"/>
+    <path d="M598 160c40 0 58 18 58 45"/>
+  </g>
+  <path d="M560 72c58-34 125 4 125 66" fill="none" stroke="#fff" stroke-width="2"/>
+  <path d="M690 126l-5 18-16-10" fill="none" stroke="#fff" stroke-width="2"/>
+  <path d="M540 78l130 130M670 78L540 208" stroke="#ef4444" stroke-width="5" stroke-linecap="round"/>
+  <g font-family="JetBrains Mono, Consolas, monospace" text-anchor="middle" font-size="16" fill="#fff">
+    <text x="280" y="335">domain/*.md</text>
+    <text x="620" y="335">LM INTUITION</text>
+    <text x="400" y="373">METHOD COMES FROM THE FILE, NOT THE MIND</text>
+  </g>
+</svg>

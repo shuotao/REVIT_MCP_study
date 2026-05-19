@@ -19,6 +19,8 @@
 
 **🎥 示範影片：[Revit MCP - AI 驅動的 BIM 工作流程示範](https://youtu.be/YpAYF-GxrhA)**
 
+**📚 知識站：[docs/BIM_MCP](docs/BIM_MCP/index.html)** — 三層架構 / 22 命題 / 決策框架 / 全 40 Domain + 19 Skill + 88 Tool 視覺化索引
+
 ---
 
 > [!IMPORTANT]
@@ -48,6 +50,7 @@
 >
 > | 你的身份 | 先讀這個 | 再讀這個 |
 > |---|---|---|
+> | **想理解這個專案在做什麼** | [docs/BIM_MCP](docs/BIM_MCP/index.html)（知識站） | — |
 > | **想安裝使用 Revit MCP** | 本檔下方「一鍵安裝」段 | — |
 > | **想貢獻 domain 知識 / SOP / 規則** | [CONTRIBUTING.md](./CONTRIBUTING.md) | [domain/README.md](./domain/README.md) |
 > | **想開發新工具 / 修改程式碼** | [CLAUDE.md](./CLAUDE.md) | 執行 `/dev-guide` 命令 |

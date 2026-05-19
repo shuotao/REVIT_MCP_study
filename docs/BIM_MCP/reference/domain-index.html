@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domain 索引（40 個 SOP）· BIM_MCP</title>
+<meta property="og:title" content="BIM_MCP Domain SOP Index — 40 個知識層檔案">
+<meta property="og:description" content="依 domain/*.md 整理的 BIM compliance 與 workflow SOP 索引。五分類各自彩色，含觸發關鍵字、反查 Skill、5 個重點 domain 抽屜摘要。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../_nav.css">
+<style>
+  .bim-hero-figure,.bim-figure{margin:var(--gap-lg) 0 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:#000}
+  .bim-hero-figure img,.bim-figure img{display:block;width:100%;height:auto}
+  .domain-card{scroll-margin-top:130px;display:flex;flex-direction:column;justify-content:space-between;min-height:180px}
+  .domain-name{font-family:var(--font-tech);font-size:13px;color:var(--accent);word-break:break-word;margin-bottom:6px}
+  .domain-desc{font-size:13px;color:var(--text-secondary);line-height:1.55;flex:1}
+  /* 彩色分類強化 — 對應 _nav.css data-cat 染色 */
+  .bim-section[data-cat="compliance"] .domain-card { border-left: 3px solid #ef4444; }
+  .bim-section[data-cat="workflow"] .domain-card { border-left: 3px solid #60a5fa; }
+  .bim-section[data-cat="ops"] .domain-card { border-left: 3px solid #fbbf24; }
+  .bim-section[data-cat="mep"] .domain-card { border-left: 3px solid #4ade80; }
+  .bim-section[data-cat="ref"] .domain-card { border-left: 3px solid #a78bfa; }
+  .bim-section[data-cat="ref"] .bim-section-eyebrow { color: #a78bfa; }
+  .bim-section[data-cat="ref"] .bim-section-title::before { content:''; display:inline-block; width:10px; height:10px; border-radius:2px; background:#a78bfa; margin-right:12px; transform:translateY(-3px); }
+  .cat-summary {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--gap-sm);
+    margin: var(--gap-md) 0;
+  }
+  .cat-summary-item {
+    padding: 12px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    border-top: 3px solid var(--accent);
+    font-size: 12px;
+  }
+  .cat-summary-item .cat-num { font-family: var(--font-tech); font-size: 22px; font-weight: 800; color: var(--text-primary); display:block; }
+  .cat-summary-item .cat-label { font-family: var(--font-tech); font-size: 10px; letter-spacing: 1.5px; color: var(--text-faint); text-transform: uppercase; margin-top:4px; display:block; }
+  .cat-summary-item[data-cat="compliance"] { border-top-color: #ef4444; }
+  .cat-summary-item[data-cat="workflow"] { border-top-color: #60a5fa; }
+  .cat-summary-item[data-cat="ops"] { border-top-color: #fbbf24; }
+  .cat-summary-item[data-cat="mep"] { border-top-color: #4ade80; }
+  .cat-summary-item[data-cat="ref"] { border-top-color: #a78bfa; }
+  @media (max-width: 700px) {
+    .cat-summary { grid-template-columns: repeat(2, 1fr); }
+  }
+  /* drawer-opener overrides for highlighted domains */
+  .domain-card[data-drawer-open]::after { top: 22px; right: 14px; transform: none; }
+  .domain-card[data-drawer-open]:hover::after { transform: translateX(4px); }
+</style>
+</head>
+<body data-prev="skills-index.html" data-next="deployment-guide.html">
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <a href="../index.html#reference" style="color:var(--text-secondary);border-bottom:none;">reference</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">Domain 索引</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="skills-index.html" class="bim-topnav-btn">← Skills 索引</a>
+    <a href="contributor-template.html" class="bim-topnav-btn">如何貢獻 →</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">DOMAIN INDEX <span class="accent">40 個 SOP / 5 分類</span></div>
+  <h1 class="bim-hero-title">Domain · <span class="accent">知識層</span><br>方法寫一次，多個 Skill 共用</h1>
+  <p class="bim-hero-sub">Domain 是<strong>知識本身</strong>——法規條文、SOP、公式、例外。Skill 是<strong>編排</strong>（19 個）。Tool 是<strong>原子執行</strong>（88 個）。<strong>知識不應該重複在每個 Skill 裡</strong>——這是本專案核心架構原則。本頁列 40 個 <code>domain/*.md</code>，依五大類彩色標示，每張 card 含觸發關鍵字與反查 Skill。</p>
+  <figure class="bim-hero-figure"><img src="../_images/domain__hero__35-grains.svg" alt="Domain SOP grid" width="1200" height="900"></figure>
+</header>
+
+<section data-collapse class="bim-section bim-anchor" data-cat="frame" id="frame">
+  <div class="bim-section-eyebrow">SECTION 01 · FRAME</div>
+  <h2 class="bim-section-title">Tool / Domain / Skill 三層關係</h2>
+  <figure class="bim-figure"><img src="../_images/skills-domain__frame__concentric.svg" alt="Tool Domain Skill concentric frame" width="1600" height="600" loading="lazy"></figure>
+
+  <div class="cat-summary">
+    <a href="#compliance" class="cat-summary-item" data-cat="compliance" style="text-decoration:none;border-bottom:none;color:inherit;">
+      <span class="cat-num">10</span><span class="cat-label">Compliance · 法規</span>
+    </a>
+    <a href="#workflow" class="cat-summary-item" data-cat="workflow" style="text-decoration:none;border-bottom:none;color:inherit;">
+      <span class="cat-num">13</span><span class="cat-label">Workflow · 模型 / 圖面</span>
+    </a>
+    <a href="#ops" class="cat-summary-item" data-cat="ops" style="text-decoration:none;border-bottom:none;color:inherit;">
+      <span class="cat-num">7</span><span class="cat-label">Ops · QA / authoring</span>
+    </a>
+    <a href="#mep" class="cat-summary-item" data-cat="mep" style="text-decoration:none;border-bottom:none;color:inherit;">
+      <span class="cat-num">9</span><span class="cat-label">MEP / 構件 / 穿梁</span>
+    </a>
+    <a href="#references" class="cat-summary-item" data-cat="ref" style="text-decoration:none;border-bottom:none;color:inherit;">
+      <span class="cat-num">1</span><span class="cat-label">References · 外部</span>
+    </a>
+  </div>
+
+  <div class="bim-grid bim-grid-3">
+    <div class="bim-card"><h4>Tool（88）</h4><p style="font-size:13px;">執行 Revit 查詢、建立、修改。<strong>所有具體資料</strong>必須來自工具回傳。</p></div>
+    <div class="bim-card bim-card-accent"><h4>Domain（40）</h4><p style="font-size:13px;">保存 SOP、公式、例外與判斷流程。<strong>方法的單一來源</strong>。</p></div>
+    <div class="bim-card"><h4><a href="skills-index.html" style="border-bottom:1px solid var(--accent-border);">Skill（19）</a></h4><p style="font-size:13px;">把 Domain 與工具串成工作流。<strong>不藏方法在 Skill body</strong>。</p></div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">為什麼不把每個 Domain 都升 Skill</span>
+    <div class="empathy-quote-text">防火 SOP 同時被<em>消防、走廊、合規</em>三個 Skill 引用。<br>若每個 Skill 都複製一份 → 法規修一次要改三份。<br>Domain 獨立存在，<strong>知識複用、編排薄層</strong>。</div>
+    <span class="empathy-quote-context">這是對 Anthropic 官方 Skill 模型（references 放 Skill 內）的合理特化。詳見 <a href="#skill-authoring-standard">skill-authoring-standard.md</a>。</span>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- A · COMPLIANCE（10 個 · 紅）-->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" data-cat="compliance" id="compliance">
+  <div class="bim-section-eyebrow">SECTION 02 · COMPLIANCE</div>
+  <h2 class="bim-section-title">法規與 compliance SOP（10）</h2>
+  <p class="bim-section-desc">建築技術規則、消防法、無障礙設施規範的本地化 SOP。<strong>標 ★ 為含抽屜摘要</strong>——點開可看完整公式與例外處理。</p>
+
+  <div class="bim-grid bim-grid-3">
+
+    <button id="daylight-area-check" class="bim-card domain-card" data-drawer-open data-source="#daylight-drawer-content" data-title="daylight-area-check.md ★" data-eyebrow="DOMAIN / COMPLIANCE / 建技 §41">
+      <div>
+        <div class="domain-name">daylight-area-check.md ★</div>
+        <div class="domain-desc">居室採光比 ≥ 1/8 （≈12.5%）。含 75cm 台度扣除、外牆門納入計算。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">採光</span><span class="domain-trigger">daylight</span><span class="domain-trigger">居室</span><span class="domain-trigger">§41</span>
+        <a href="skills-index.html#skills" class="domain-skill" onclick="event.stopPropagation()">↔ /building-compliance</a>
+      </div>
+    </button>
+
+    <button id="smoke-exhaust-review" class="bim-card domain-card" data-drawer-open data-source="#smoke-drawer-content" data-title="smoke-exhaust-review.md ★" data-eyebrow="DOMAIN / COMPLIANCE / 建技 §101 + 消防 §188">
+      <div>
+        <div class="domain-name">smoke-exhaust-review.md ★</div>
+        <div class="domain-desc">排煙窗有效面積、無窗居室判定、無開口樓層、天花板下 80cm 規則。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">排煙</span><span class="domain-trigger">無窗居室</span><span class="domain-trigger">smoke exhaust</span>
+        <a href="skills-index.html#skills" class="domain-skill" onclick="event.stopPropagation()">↔ /smoke-exhaust</a>
+      </div>
+    </button>
+
+    <div id="fire-rating-check" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">fire-rating-check.md</div>
+        <div class="domain-desc">防火時效檢核——構件耐燃、防火區劃、防火構造分類。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">fire rating</span><span class="domain-trigger">防火</span><span class="domain-trigger">耐燃</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /fire-safety-check</a>
+      </div>
+    </div>
+
+    <div id="corridor-analysis-protocol" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">corridor-analysis-protocol.md</div>
+        <div class="domain-desc">走廊寬度、逃生路徑、通道淨寬檢核協議。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">corridor</span><span class="domain-trigger">escape route</span><span class="domain-trigger">逃生</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /fire-safety-check</a>
+      </div>
+    </div>
+
+    <div id="exterior-wall-opening-check" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">exterior-wall-opening-check.md</div>
+        <div class="domain-desc">外牆開口距鄰地線距離（§110），防火必要區的判定。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">外牆開口</span><span class="domain-trigger">鄰地距離</span><span class="domain-trigger">§110</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /fire-safety-check</a>
+      </div>
+    </div>
+
+    <div id="floor-area-review" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">floor-area-review.md</div>
+        <div class="domain-desc">容積率、樓地板面積計算、送審面積核對。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">FAR</span><span class="domain-trigger">容積</span><span class="domain-trigger">送審</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /building-compliance</a>
+      </div>
+    </div>
+
+    <div id="parking-clearance-check" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">parking-clearance-check.md</div>
+        <div class="domain-desc">停車位淨高 ≥ 210cm、車道寬度、機車位 clearance。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">停車</span><span class="domain-trigger">clearance</span><span class="domain-trigger">&gt;210cm</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /parking-check</a>
+      </div>
+    </div>
+
+    <div id="parking-space-review" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">parking-space-review.md</div>
+        <div class="domain-desc">停車位數量分類（法定、無障礙、增設、機車等 8 類）。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">停車位數量</span><span class="domain-trigger">parking count</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /parking-check</a>
+      </div>
+    </div>
+
+    <div id="stair-compliance-check" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">stair-compliance-check.md</div>
+        <div class="domain-desc">樓梯級高、級深、淨寬、淨高（建技 §33）法規檢核。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">樓梯法規</span><span class="domain-trigger">stair compliance</span><span class="domain-trigger">級高級深</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /qa-review</a>
+      </div>
+    </div>
+
+    <div id="wall-check" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">wall-check.md</div>
+        <div class="domain-desc">外牆 Exterior / Interior Side 方向檢核，避免飾面位置與容積計算錯誤。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">wall orientation</span><span class="domain-trigger">內外方向</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /wall-orientation-check</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- B · WORKFLOW（13 個 · 青）-->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" data-cat="workflow" id="workflow">
+  <div class="bim-section-eyebrow">SECTION 03 · MODEL WORKFLOW</div>
+  <h2 class="bim-section-title">模型操作與圖面 workflow（13）</h2>
+  <p class="bim-section-desc">非法規驅動的日常 BIM 作業 SOP——查詢、上色、標註、出圖、視圖管理、立面/帷幕牆設計。</p>
+
+  <div class="bim-grid bim-grid-3">
+
+    <div id="element-query-workflow" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">element-query-workflow.md</div>
+        <div class="domain-desc">三階段查詢協議：探索 → 對齊 → 擷取。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">查詢</span><span class="domain-trigger">filter</span><span class="domain-trigger">find elements</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /element-query</a>
+      </div>
+    </div>
+
+    <div id="element-coloring-workflow" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">element-coloring-workflow.md</div>
+        <div class="domain-desc">依參數值對 Revit 元素進行顏色標記與視覺化。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">上色</span><span class="domain-trigger">color code</span><span class="domain-trigger">highlight</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /element-coloring</a>
+      </div>
+    </div>
+
+    <div id="auto-dimension-workflow" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">auto-dimension-workflow.md</div>
+        <div class="domain-desc">Ray-Casting / BoundingBox 自動標註房間、走廊、MEP 設備。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">標註</span><span class="domain-trigger">ray cast</span><span class="domain-trigger">淨寬</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /auto-dimension</a>
+      </div>
+    </div>
+
+    <div id="detail-component-sync" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">detail-component-sync.md</div>
+        <div class="domain-desc">2D 詳圖元件編號（AE-numbering）與圖紙號碼同步。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">詳圖</span><span class="domain-trigger">圖頭</span><span class="domain-trigger">標頭</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /detail-component-sync</a>
+      </div>
+    </div>
+
+    <div id="dependent-view-crop-workflow" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">dependent-view-crop-workflow.md</div>
+        <div class="domain-desc">依網格線批次建立從屬視圖與裁剪範圍。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">從屬視圖</span><span class="domain-trigger">grid crop</span><span class="domain-trigger">分區出圖</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /dependent-view-crop</a>
+      </div>
+    </div>
+
+    <div id="sheet-viewport-management" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">sheet-viewport-management.md</div>
+        <div class="domain-desc">圖紙、視埠、titleblock 批次建立、重新編號、衝突修正。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">圖紙</span><span class="domain-trigger">titleblock</span><span class="domain-trigger">viewport</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /sheet-management</a>
+      </div>
+    </div>
+
+    <div id="stair-hidden-line-workflow" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">stair-hidden-line-workflow.md</div>
+        <div class="domain-desc">剖面中為被側板遮擋的樓梯梯級繪製虛線詳圖線。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">stair hidden line</span><span class="domain-trigger">虛線</span><span class="domain-trigger">剖面</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /stair-hidden-line</a>
+      </div>
+    </div>
+
+    <div id="room-numbering-workflow" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">room-numbering-workflow.md</div>
+        <div class="domain-desc">房間自動編號規則（樓層 × 區域 × 序號）。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">room numbering</span><span class="domain-trigger">房間編號</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /element-query</a>
+      </div>
+    </div>
+
+    <div id="room-surface-area-review" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">room-surface-area-review.md</div>
+        <div class="domain-desc">房間表面積、粉刷 finish 面積核對。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">房間表面積</span><span class="domain-trigger">粉刷</span><span class="domain-trigger">finish</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /qa-review</a>
+      </div>
+    </div>
+
+    <div id="room-boundary" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">room-boundary.md</div>
+        <div class="domain-desc">房間邊界判定與例外處理（陽台、夾層、樓梯間）。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">room boundary</span><span class="domain-trigger">房間邊界</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /building-compliance</a>
+      </div>
+    </div>
+
+    <div id="curtain-wall-pattern" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">curtain-wall-pattern.md</div>
+        <div class="domain-desc">帷幕牆面板配置模式（網頁預覽 → 套用 Revit）。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">curtain wall</span><span class="domain-trigger">panel layout</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /curtain-wall</a>
+      </div>
+    </div>
+
+    <div id="facade-generation" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">facade-generation.md</div>
+        <div class="domain-desc">AI 照片分析 → 立面面板五種幾何（弧形 / 斜切 / 傾斜 / 圓角 / 平面）。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">facade</span><span class="domain-trigger">AI design</span><span class="domain-trigger">DirectShape</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /facade-generation</a>
+      </div>
+    </div>
+
+    <div id="parking-auto-numbering" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">parking-auto-numbering.md</div>
+        <div class="domain-desc">停車位自動編號規則（區域 + 連續序號）。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">parking numbering</span><span class="domain-trigger">停車自動編號</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /parking-check</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- C · OPS（7 個 · 黃）-->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" data-cat="ops" id="ops">
+  <div class="bim-section-eyebrow">SECTION 04 · OPS / QA / AUTHORING</div>
+  <h2 class="bim-section-title">維運、QA 與 authoring 標準（7）</h2>
+  <p class="bim-section-desc">不是 BIM 作業本身，而是<strong>專案治理層</strong>——讓專案在多人多 AI client 協作時不會走樣。</p>
+
+  <div class="bim-grid bim-grid-3">
+
+    <button id="skill-authoring-standard" class="bim-card domain-card" data-drawer-open data-source="#skill-authoring-drawer-content" data-title="skill-authoring-standard.md ★" data-eyebrow="DOMAIN / OPS / 編寫標準">
+      <div>
+        <div class="domain-name">skill-authoring-standard.md ★</div>
+        <div class="domain-desc">Skill 入門檻、命名規則、frontmatter 規範、何時不該升 Skill。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">skill 規範</span><span class="domain-trigger">編寫標準</span>
+        <a href="contributor-template.html" class="domain-skill" onclick="event.stopPropagation()">↔ Contributor Template</a>
+      </div>
+    </button>
+
+    <div id="qa-checklist" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">qa-checklist.md</div>
+        <div class="domain-desc">圖紙、詳圖、視圖、參數、MCP 系統健康度的 6 階段檢核。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">QA</span><span class="domain-trigger">verification</span><span class="domain-trigger">一致性</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /qa-review</a>
+      </div>
+    </div>
+
+    <div id="path-maintenance-qa" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">path-maintenance-qa.md</div>
+        <div class="domain-desc">目錄重構、檔案搬移的 QA 流程，避免引用失效。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">路徑</span><span class="domain-trigger">QC</span><span class="domain-trigger">目錄重構</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /claude-md-sync</a>
+      </div>
+    </div>
+
+    <div id="session-context-guard" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">session-context-guard.md</div>
+        <div class="domain-desc">當前視圖、樓層、連結模型 context 守護——避免跨樓層誤操作。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">context guard</span><span class="domain-trigger">視圖</span><span class="domain-trigger">連結模型</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /element-query</a>
+      </div>
+    </div>
+
+    <div id="tool-capability-boundary" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">tool-capability-boundary.md</div>
+        <div class="domain-desc">工具能做什麼 / 不能做什麼的邊界宣告——避免 LM 補虛構能力。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">工具</span><span class="domain-trigger">能力邊界</span><span class="domain-trigger">capability</span>
+        <a href="three-constitutions.html#constitution-2" class="domain-skill">↔ 第二憲法</a>
+      </div>
+    </div>
+
+    <div id="frontmatter-standard" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">frontmatter-standard.md</div>
+        <div class="domain-desc">YAML frontmatter 欄位規範與 qaqc Phase 6 lint 規則。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">frontmatter</span><span class="domain-trigger">YAML 標頭</span>
+        <a href="contributor-template.html" class="domain-skill">↔ Contributor Template</a>
+      </div>
+    </div>
+
+    <div id="lessons" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">lessons.md</div>
+        <div class="domain-desc">開發過程踩雷紀錄、避坑備忘。每次 /lessons 後追加。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">lessons learned</span><span class="domain-trigger">避坑</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ 全 Skill 都看</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- D · MEP / STRUCTURE（9 個 · 綠）-->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" data-cat="mep" id="mep">
+  <div class="bim-section-eyebrow">SECTION 05 · MEP + STRUCTURE</div>
+  <h2 class="bim-section-title">MEP、構件與穿梁（9）</h2>
+  <p class="bim-section-desc">機電與結構的交界面——碰撞、穿梁、機械構件、跨領域出圖。<strong>本分支</strong>（<code>feature/seven777-beam-penetration</code>）的核心 SOP 群組。</p>
+
+  <div class="bim-grid bim-grid-3">
+
+    <button id="mep-csa-clash-detection" class="bim-card domain-card" data-drawer-open data-source="#clash-drawer-content" data-title="mep-csa-clash-detection.md ★" data-eyebrow="DOMAIN / MEP / Curve-to-Solid 策略">
+      <div>
+        <div class="domain-name">mep-csa-clash-detection.md ★</div>
+        <div class="domain-desc">MEP × CSA Curve-to-Solid 干涉分析、視覺化、報告匯出。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">clash</span><span class="domain-trigger">碰撞</span><span class="domain-trigger">管線穿牆</span><span class="domain-trigger">套管</span>
+        <a href="skills-index.html#skills" class="domain-skill" onclick="event.stopPropagation()">↔ /detect-clashes</a>
+      </div>
+    </button>
+
+    <button id="beam-penetration-base" class="bim-card domain-card" data-drawer-open data-source="#beam-drawer-content" data-title="beam-penetration-base.md ★" data-eyebrow="DOMAIN / STRUCTURE / 穿梁基礎">
+      <div>
+        <div class="domain-name">beam-penetration-base.md ★</div>
+        <div class="domain-desc">梁穿孔通用 SOP（與 RC/SC/SRC 三細分共用基底）。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">beam penetration</span><span class="domain-trigger">套管穿梁</span><span class="domain-trigger">結構穿梁</span>
+        <a href="skills-index.html#skills" class="domain-skill" onclick="event.stopPropagation()">↔ /detect-clashes</a>
+      </div>
+    </button>
+
+    <div id="beam-penetration-rc" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">beam-penetration-rc.md</div>
+        <div class="domain-desc">RC 混凝土梁穿孔——Zone A 禁開、Zone B 限制、Zone C 許可。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">RC 梁</span><span class="domain-trigger">Zone A/B/C</span><span class="domain-trigger">混凝土</span>
+        <a href="#beam-penetration-base" class="domain-skill">↔ base</a>
+      </div>
+    </div>
+
+    <div id="beam-penetration-sc" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">beam-penetration-sc.md</div>
+        <div class="domain-desc">SC 鋼梁穿孔——腹板開孔（web opening）、flange 限制。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">SC 鋼梁</span><span class="domain-trigger">web opening</span><span class="domain-trigger">flange</span>
+        <a href="#beam-penetration-base" class="domain-skill">↔ base</a>
+      </div>
+    </div>
+
+    <div id="beam-penetration-src" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">beam-penetration-src.md</div>
+        <div class="domain-desc">SRC 鋼骨混凝土梁——composite beam internal steel 穿孔規則。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">SRC 梁</span><span class="domain-trigger">鋼骨混凝土</span><span class="domain-trigger">composite</span>
+        <a href="#beam-penetration-base" class="domain-skill">↔ base</a>
+      </div>
+    </div>
+
+    <div id="mep-extension-guide" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">mep-extension-guide.md</div>
+        <div class="domain-desc">MEP 工具擴展研究指南——pyRevit 模式參考。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">MEP</span><span class="domain-trigger">pyRevit</span><span class="domain-trigger">機電</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ 開發層</a>
+      </div>
+    </div>
+
+    <div id="mechanical-part-doc" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">mechanical-part-doc.md</div>
+        <div class="domain-desc">機械出圖 assembly、BIP、視圖生成、比例計算。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">mechanical</span><span class="domain-trigger">assembly</span><span class="domain-trigger">BIP</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /sheet-management</a>
+      </div>
+    </div>
+
+    <div id="pdf-export-comparison" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">pdf-export-comparison.md</div>
+        <div class="domain-desc">PDFExportOptions 各模式比較——送審 / 文管 / 加工發包用途。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">PDF</span><span class="domain-trigger">出圖</span><span class="domain-trigger">送審</span><span class="domain-trigger">DCC</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /sheet-management</a>
+      </div>
+    </div>
+
+    <div id="revit-fill-pattern-conversion" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">revit-fill-pattern-conversion.md</div>
+        <div class="domain-desc">填充樣式（fill pattern）轉換規則。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">fill pattern</span><span class="domain-trigger">填充圖案</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /element-coloring</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- E · REFERENCES（1 個 · 紫）-->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" data-cat="ref" id="references">
+  <div class="bim-section-eyebrow">SECTION 06 · EXTERNAL REFERENCES</div>
+  <h2 class="bim-section-title">外部規範庫（1）</h2>
+  <p class="bim-section-desc">非本專案產出的 SOP，而是引用外部規範本文。放在 <code>domain/references/</code> 子目錄。</p>
+
+  <div class="bim-grid bim-grid-3">
+    <div id="building-code-tw" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">references/building-code-tw.md</div>
+        <div class="domain-desc">台灣建築技術規則條號索引——容積率、防火構造、走廊寬度、樓梯寬度、無障礙等對應條號速查。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">building code</span><span class="domain-trigger">法規條號</span><span class="domain-trigger">建築技術規則</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ 全法規 Skill 都引用</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 貢獻指引 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="contribute">
+  <div class="bim-section-eyebrow">SECTION 07 · CONTRIBUTION</div>
+  <h2 class="bim-section-title">新增 Domain 的順序</h2>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">Domain 是<strong>方法的單一來源</strong>。法規修訂只改一份 SOP，所有引用它的 Skill 自動跟上。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">先寫 <code>domain/*.md</code>，再決定要不要建 Skill（不是每個 domain 都要 Skill）。最後跑 <code>/claude-md-sync</code> 驗證雙向一致。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Knowledge / Orchestration Separation · Single Source of Truth · No Skill Inflation</div>
+    <div class="how-tech-label">CHECKLIST</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>新增 compliance 主題 → 先建 <code>domain/*.md</code>，含 frontmatter</li>
+        <li>需要 AI workflow 編排再建/更新 Skill</li>
+        <li>更新 CLAUDE.md 觸發表（38 行的那張）</li>
+        <li>更新此頁卡片（含 trigger + 反查 Skill）</li>
+        <li>跑 <code>/claude-md-sync</code> 與 <code>/qaqc</code> 驗收</li>
+      </ul>
+    </div>
+  </div>
+
+  <p style="margin-top:var(--gap-md);"><a href="contributor-template.html" style="font-weight:600;">→ 完整貢獻範本（含 6 步驟停車場淨高範例）</a></p>
+</section>
+
+<!-- ============================================ -->
+<!-- DRAWER CONTENT — 5 個重點 domain 的 SOP 摘要 -->
+<!-- 隱藏 template，被 [data-drawer-open data-source] 引用 -->
+<!-- ============================================ -->
+<div style="display:none;">
+  <div id="daylight-drawer-content">
+    <h3>本 SOP 解決什麼</h3>
+    <p>建技規則 §41：居室採光面積 ≥ 該居室樓地板面積的 1/8（≈ 12.5%）。<strong>但</strong> tool 回的 raw data 不直接給 PASS / FAIL——必須套 75cm 台度扣除公式 + 納入外牆門開口（含玻璃部分）。</p>
+
+    <h3>核心公式</h3>
+    <p><strong>有效採光面積</strong> = Σ（窗開口面積）+ Σ（外牆門有效面積）</p>
+    <p><strong>外牆門有效高度</strong> = HeadHeight − 750mm （扣 75cm 台度基準）</p>
+    <p><strong>採光比</strong> = 有效採光面積 / 居室樓地板面積，必須 ≥ 12.5%</p>
+
+    <h3>常見錯誤（違規範例）</h3>
+    <div class="pitfalls">
+      <div class="pitfalls-title">2026-04-23 違規案例</div>
+      <ul>
+        <li>❌ 排除所有外牆門（誤以為門不算採光） → Room 203 被低估 1.38 m²</li>
+        <li>❌ 未套 75cm 台度扣除 → 結果偏高</li>
+        <li>❌ 用 LM prior 補計算 → 違反第二憲法 Domain Method Compliance</li>
+      </ul>
+    </div>
+
+    <h3>正確流程</h3>
+    <ol>
+      <li>呼叫 <code>get_room_daylight_info(level='LX')</code> 取得房間 + 開口 raw data</li>
+      <li>讀 <code>domain/daylight-area-check.md</code> 完整 SOP</li>
+      <li>對每個外牆開口（含門）套 <strong>Effective Height = HeadHeight − 750mm</strong>（若 SillHeight &lt; 750mm）</li>
+      <li>計算採光比、輸出 PASS / FAIL + 證據</li>
+    </ol>
+
+    <div class="further-reading">
+      <div class="further-reading-label">深度</div>
+      <ul class="further-reading-list">
+        <li><div><span class="fr-type">Constitution</span><a href="three-constitutions.html#constitution-2">第二憲法 Domain Method Compliance</a></div></li>
+        <li><div><span class="fr-type">File</span><code>domain/daylight-area-check.md</code></div></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="smoke-drawer-content">
+    <h3>本 SOP 解決什麼</h3>
+    <p>建技 §101 + 消防 §188：居室排煙窗在<strong>天花板下 80cm 範圍內</strong>的有效開口面積，必須 ≥ 該居室樓地板面積的 2%（或機械排煙替代）。</p>
+
+    <h3>三個判定</h3>
+    <ul>
+      <li><strong>無窗居室判定</strong>：完全無對外開口 → 強制機械排煙</li>
+      <li><strong>無開口樓層判定</strong>：整層平面對外開口不足 → 需檢討避難動線</li>
+      <li><strong>有效面積計算</strong>：僅<strong>天花下 80cm 內</strong>的窗計入，其下方部分忽略</li>
+    </ul>
+
+    <h3>常見錯誤</h3>
+    <div class="pitfalls">
+      <div class="pitfalls-title">tool 預設行為踩雷</div>
+      <ul>
+        <li>❌ <code>createAnnotatedViews=true</code> 預設會建 80+ 視圖污染專案</li>
+        <li>✅ 5/18 demo 後改預設 false（commit 4975ceb）</li>
+      </ul>
+    </div>
+
+    <h3>正確流程</h3>
+    <ol>
+      <li>呼叫 <code>check_smoke_exhaust_windows(level='LX', createAnnotatedViews=false)</code></li>
+      <li>讀 SOP 確認天花下 80cm 規則 + 機械排煙替代條件</li>
+      <li>若 FAIL → 套 <a href="spectrum-decision.html#case-smoke">A/B/C/D 框架</a></li>
+    </ol>
+
+    <div class="further-reading">
+      <div class="further-reading-label">深度</div>
+      <ul class="further-reading-list">
+        <li><div><span class="fr-type">Skill</span><a href="skills-index.html">/smoke-exhaust</a></div></li>
+        <li><div><span class="fr-type">Spectrum</span><a href="spectrum-decision.html#case-smoke">A/B/C/D 套例 2</a></div></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="beam-drawer-content">
+    <h3>本 SOP 解決什麼</h3>
+    <p>結構工程容許梁穿孔（套管穿梁），但有嚴格<strong>位置與大小限制</strong>避免削弱抗剪能力。三種材料各有規則：</p>
+    <ul>
+      <li><strong>RC（混凝土）</strong>：Zone A 禁開 / Zone B 限制 / Zone C 許可</li>
+      <li><strong>SC（鋼梁）</strong>：腹板 web opening 規則、flange 嚴禁</li>
+      <li><strong>SRC（鋼骨混凝土）</strong>：依 composite beam internal steel 規則</li>
+    </ul>
+
+    <h3>本 base SOP 共用部分</h3>
+    <ol>
+      <li>判定梁類型（RC / SC / SRC）</li>
+      <li>分派到對應細項 SOP（<a href="#beam-penetration-rc">RC</a> / <a href="#beam-penetration-sc">SC</a> / <a href="#beam-penetration-src">SRC</a>）</li>
+      <li>共用輸出格式（穿孔位置 + 大小 + Zone 判定 + 建議）</li>
+    </ol>
+
+    <h3>當前分支重點</h3>
+    <p>本檔在 <code>feature/seven777-beam-penetration</code> 分支開發中。Branch B Wave 2 待補完——SC / SRC 完整測試 + 分析模板。</p>
+
+    <div class="further-reading">
+      <div class="further-reading-label">細分檔</div>
+      <ul class="further-reading-list">
+        <li><div><span class="fr-type">File</span><code>domain/beam-penetration-rc.md</code></div></li>
+        <li><div><span class="fr-type">File</span><code>domain/beam-penetration-sc.md</code></div></li>
+        <li><div><span class="fr-type">File</span><code>domain/beam-penetration-src.md</code></div></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="clash-drawer-content">
+    <h3>本 SOP 解決什麼</h3>
+    <p>MEP 管線 × 結構（CSA = Civil / Structural / Architectural）<strong>碰撞偵測</strong>。傳統 Navisworks 用 Solid-to-Solid 計算量大，本 SOP 採 <strong>Curve-to-Solid</strong> 策略加速（把管線視為 curve）。</p>
+
+    <h3>三階段</h3>
+    <ol>
+      <li><strong>偵測</strong>：對指定 view / level 跑 <code>detect_clashes</code></li>
+      <li><strong>視覺化</strong>：自動 <code>colorize_clashes</code> 染紅／橘／黃三級嚴重度</li>
+      <li><strong>匯出</strong>：<code>export_clash_report</code> 產出可送業主的 PDF / Excel</li>
+    </ol>
+
+    <h3>觸發場景</h3>
+    <ul>
+      <li>每個階段完成點（P7）後跑一次——對應業界 70% 返工可避免的統計</li>
+      <li>圖紙快出前必跑——避免「圖出後才發現碰撞」</li>
+    </ul>
+
+    <div class="further-reading">
+      <div class="further-reading-label">深度</div>
+      <ul class="further-reading-list">
+        <li><div><span class="fr-type">Skill</span><a href="skills-index.html">/detect-clashes</a></div></li>
+        <li><div><span class="fr-type">Evidence</span><a href="industry-evidence.html#stat-70">70% 返工可避免</a></div></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="skill-authoring-drawer-content">
+    <h3>本 SOP 解決什麼</h3>
+    <p>當新貢獻者想新增功能時——<strong>該寫 Domain？該寫 Skill？該加 Tool？</strong> 沒有 SOP 會導致「每個小需求都建一個 Skill」造成 metadata 膨脹。</p>
+
+    <h3>三選一決策樹</h3>
+    <ul>
+      <li><strong>只有方法 / 法規條文</strong> → 寫 <code>domain/*.md</code>，不建 Skill</li>
+      <li><strong>有跨多 tool 的編排價值 + 觸發頻率高</strong> → 才建 Skill</li>
+      <li><strong>沒有對應 tool</strong> → 先在 issue tracker 開 RFC，再評估加 MCP tool</li>
+    </ul>
+
+    <h3>Skill 入門檻</h3>
+    <ol>
+      <li>協調 ≥ 2 個 tool（單 tool 不必開 Skill）</li>
+      <li>觸發關鍵字高頻（冷門關鍵字停在 Domain）</li>
+      <li>引用既有 Domain（不寫新知識，寫新編排）</li>
+    </ol>
+
+    <h3>反例</h3>
+    <div class="pitfalls">
+      <div class="pitfalls-title">不該升 Skill 的常見誤判</div>
+      <ul>
+        <li>❌ 把單一 tool 的「使用範例」當 Skill</li>
+        <li>❌ 把複製貼上的 SOP 包成 Skill body（應該引用 Domain）</li>
+        <li>❌ 為了 demo 漂亮而建 Skill</li>
+      </ul>
+    </div>
+
+    <div class="further-reading">
+      <div class="further-reading-label">深度</div>
+      <ul class="further-reading-list">
+        <li><div><span class="fr-type">Template</span><a href="contributor-template.html">Contributor Template（含 6 步驟範例）</a></div></li>
+        <li><div><span class="fr-type">Index</span><a href="skills-index.html">Skills 索引（19）</a></div></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="skills-index.html" class="bim-footer-btn">← Skills 索引</a>
+    <a href="contributor-template.html" class="bim-footer-btn primary">如何貢獻 →</a>
+    <a href="../index.html" class="bim-footer-btn">回 BIM_MCP 首頁</a>
+  </div>
+  <p>BIM_MCP · reference / domain-index</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-05-18 · 40 個 domain SOP 完整索引，五分類彩色標示，5 個重點 domain 含抽屜摘要。</p>
+</footer>
+
+<script src="../_shared.js"></script><script>initAll();</script>
+</body>
+</html>

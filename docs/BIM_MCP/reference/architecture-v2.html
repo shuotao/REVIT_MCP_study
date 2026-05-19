@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三層模組架構 V2 · BIM_MCP</title>
+<meta property="og:title" content="三層模組架構 V2：Skill / CLAUDE.md / Domain — MCP ≠ Skill 官方澄清">
+<meta property="og:description" content="REVIT_MCP 專案核心架構說明：Skill（觸發層） / CLAUDE.md（橋接層） / Domain（知識層）。含 MCP vs Skill 官方定義對比。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../_nav.css">
+</head>
+<body>
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">三層模組架構 V2</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="skills-index.html" class="bim-topnav-btn">Skill 索引 →</a>
+    <a href="domain-index.html" class="bim-topnav-btn">Domain 索引</a>
+    <a href="../index.html" class="bim-topnav-btn">回首頁</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">ARCHITECTURE V2 <span class="accent">3 層</span></div>
+  <h1 class="bim-hero-title"><span class="accent">Skill / CLAUDE.md / Domain</span><br>三層模組架構</h1>
+  <p class="bim-hero-sub">REVIT_MCP 的核心架構：把 9 個系統、40 個 Domain、88 個工具按職責分到三層。Skill 管「何時觸發」、CLAUDE.md 管「跨 AI Client 橋接」、Domain 管「不可協商的知識」。本頁同時澄清「MCP ≠ Skill」的常見誤解。</p>
+</header>
+
+<!-- ============================================ -->
+<!-- MCP ≠ Skill 官方澄清 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section">
+  <div class="bim-section-eyebrow">CLARIFICATION · 廚房與食譜</div>
+  <h2 class="bim-section-title">MCP ≠ Skill：官方定義與比喻</h2>
+  <p class="bim-section-desc">社群常爭論「Skill 會不會取代 MCP」。答案是<strong>不會</strong>——MCP 是廚房（給 AI 能力），Skill 是食譜（給 AI 知識）。兩者缺一不可。</p>
+
+  <h3>MCP Tools 是什麼</h3>
+  <blockquote>
+    <p>"Tools are designed to be <strong>model-controlled</strong>, meaning that the language model can discover and invoke tools automatically."</p>
+    <p style="color:var(--text-muted);">（工具被設計為<strong>模型控制</strong>的，意即語言模型可以自動發現並調用工具。）</p>
+    <cite>— <a href="https://modelcontextprotocol.io/docs/concepts/tools" target="_blank">MCP Specification: Tools</a></cite>
+  </blockquote>
+
+  <h3>Agent Skill 是什麼</h3>
+  <blockquote>
+    <p>"Skills load on-demand and eliminate the need to repeatedly provide the same guidance across multiple conversations."</p>
+    <p style="color:var(--text-muted);">（技能按需載入，消除了在多次對話中重複提供相同指引的需要。）</p>
+    <cite>— <a href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview" target="_blank">Anthropic: Agent Skills Overview</a></cite>
+  </blockquote>
+
+  <h3>關鍵區別</h3>
+  <table>
+    <thead><tr><th>維度</th><th>MCP Tool</th><th>Agent Skill</th></tr></thead>
+    <tbody>
+      <tr><td>角色</td><td>能力層（DO）— 廚房</td><td>知識層（KNOW）— 食譜</td></tr>
+      <tr><td>控制者</td><td>LLM 自動選擇</td><td>關鍵字觸發 → 按需載入</td></tr>
+      <tr><td>粒度</td><td>單一原子操作</td><td>多步驟工作流編排</td></tr>
+      <tr><td>需要基礎設施</td><td>是（Server process）</td><td>否（純檔案）</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Anthropic 官方：互補，不是取代</h3>
+  <blockquote>
+    <p>"We'll also explore how Skills can <strong>complement</strong> Model Context Protocol (MCP) servers by teaching agents more complex <strong>workflows that involve external tools</strong> and software."</p>
+    <p style="color:var(--text-muted);">（我們也將探討 Skill 如何<strong>補充</strong> MCP 伺服器，透過教導 Agent 涉及外部工具的更複雜<strong>工作流程</strong>。）</p>
+    <cite>— <a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills" target="_blank">Anthropic Engineering Blog</a></cite>
+  </blockquote>
+  <blockquote>
+    <p>"Skills describe the workflow. MCP provides the runner... Saying Skills killed MCP is like saying GitHub Actions killed Bash."</p>
+    <p style="color:var(--text-muted);">（Skill 描述工作流程。MCP 提供執行器……說 Skill 殺死了 MCP，就像說 GitHub Actions 殺死了 Bash。）</p>
+    <cite>— <a href="https://block.github.io/goose/blog/2025/12/22/agent-skills-vs-mcp/" target="_blank">Block/Goose Team</a></cite>
+  </blockquote>
+
+  <h3>以本專案為例</h3>
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card bim-card-accent">
+      <h4>🍳 MCP（廚房）</h4>
+      <p><code>override_element_graphics</code> 真的去改 Revit model 顏色，<code>query_elements_with_filter</code> 真的查 Revit 資料庫。</p>
+      <p>這些操作需要 WebSocket、Revit API、Transaction。Skill 做不了這些。</p>
+    </div>
+    <div class="bim-card bim-card-ok">
+      <h4>📖 Skill（食譜）</h4>
+      <p><code>/fire-safety-check</code> 告訴 AI「先查參數名 → 再列時效等級 → 再篩選 → 最後上色」。</p>
+      <p>這是知識和順序，不是能力。MCP 不管這些。</p>
+    </div>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">社群常爭論「Skill 殺死 MCP」——這是把<strong>抽象層級</strong>搞混的結果。MCP 解決「<strong>AI 怎麼動 Revit</strong>」（基礎能力），Skill 解決「<strong>AI 該照什麼順序動 Revit</strong>」（編排知識）。兩件根本不同層級的事，沒有取代關係。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">本專案明確分層——MCP server 提供 88 個原子工具（純能力），Skill 編排工具呼叫順序（純知識）。一個 MCP 工具被多個 Skill 引用，一個 Skill 引用多個 MCP 工具——<strong>多對多關係</strong>，互不替代。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Layered Capability Architecture · MCP as Runtime Bridge · Skill as Workflow Choreographer · M:N Tool-Skill Composition</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">為什麼這個區別很重要</span>
+    <div class="empathy-quote-text">把 Skill 當成「<em>更聰明的 MCP</em>」是業界最常見的誤解。<br>正確理解是：Skill 是「<em>給 AI 看的 SOP 文件</em>」，MCP 是「<em>給 AI 用的螺絲起子</em>」。<br><strong>SOP 寫得再好也無法替代螺絲起子</strong>。</div>
+    <span class="empathy-quote-context">這也是為什麼 Block/Goose 那句「<span class="lingo">說 Skill 殺死 MCP 就像說 GitHub Actions 殺死 Bash</span>」會在開發者圈廣傳——它一語道破<strong>「編排層」與「執行層」是不同抽象級別</strong>。BIM 場域更是如此：再強的 Skill workflow 也無法不通過 MCP 改變 Revit 一條牆。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀 · MCP vs Skill 區辨</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Blog</span><a href="https://block.github.io/goose/blog/2025/12/22/agent-skills-vs-mcp/" target="_blank">Skills vs MCP — Block/Goose</a>
+          <span class="fr-desc">業界對「Skill 不取代 MCP」最清晰的論證——GitHub Actions 對 Bash 的類比</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Spec</span><a href="https://modelcontextprotocol.io/docs/concepts/tools" target="_blank">MCP Specification: Tools</a>
+          <span class="fr-desc">MCP Tools 官方定義：model-controlled 自動發現與呼叫</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Spec</span><a href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview" target="_blank">Anthropic Agent Skills Overview</a>
+          <span class="fr-desc">Agent Skill 官方定義：按需載入的工作流引導</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Blog</span><a href="https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills" target="_blank">Anthropic Engineering — Equipping Agents with Skills</a>
+          <span class="fr-desc">Anthropic 官方明確說 Skill「<strong>補充</strong>」MCP 而非取代</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 三層架構說明 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section">
+  <div class="bim-section-eyebrow">CORE ARCHITECTURE · 3 層</div>
+  <h2 class="bim-section-title">三層模組架構詳解</h2>
+  <p class="bim-section-desc">每一層各自管獨立職責，互不重複。理解這三層 = 理解專案結構的全部。</p>
+
+  <div class="bim-grid bim-grid-3">
+    <div class="bim-card bim-card-accent">
+      <div class="prop-badge">層 1</div>
+      <h3 style="margin-top:8px;">Skill（觸發層）</h3>
+      <p>放在 <code>.claude/skills/{name}/SKILL.md</code>。<strong>關鍵字觸發</strong>後按需載入，告訴 AI「該做什麼步驟、引用哪個 Domain、呼叫哪些 MCP Tool」。</p>
+      <p style="font-size:13px;color:var(--text-muted);">本專案目前 <strong>19 個 Skill</strong>。</p>
+    </div>
+    <div class="bim-card bim-card-warn">
+      <div class="prop-badge" style="background:rgba(251,191,36,0.15);color:var(--warn);border-color:rgba(251,191,36,0.35);">層 2</div>
+      <h3 style="margin-top:8px;">CLAUDE.md（橋接層）</h3>
+      <p>專案根目錄的單一 source of truth。多 AI Client（Claude / Gemini / Copilot / Claude Code）<strong>都讀同一份</strong>，避免重複維護。含 AI Guard Rails、Domain 觸發表、Build Commands。</p>
+      <p style="font-size:13px;color:var(--text-muted);"><code>GEMINI.md</code> 是 1 行指向 <code>CLAUDE.md</code> 的薄殼。</p>
+    </div>
+    <div class="bim-card bim-card-ok">
+      <div class="prop-badge" style="background:rgba(74,222,128,0.15);color:var(--ok);border-color:rgba(74,222,128,0.35);">層 3</div>
+      <h3 style="margin-top:8px;">Domain（知識層）</h3>
+      <p>放在 <code>domain/*.md</code>。<strong>不可協商的限制</strong>——法規、SOP、計算公式、邊界案例。被多個 Skill 引用（複用），是專案的「資產投資」。</p>
+      <p style="font-size:13px;color:var(--text-muted);">本專案目前 <strong>40 個 Domain</strong>。</p>
+    </div>
+  </div>
+
+  <h3>Domain 為什麼獨立於 Skill 存在</h3>
+  <p>BIM 的知識是共用的——防火法規同時被消防檢查、走廊分析、建築合規引用。Domain 獨立於 Skill 存在，是因為<strong>知識不應該重複在每個 Skill 裡</strong>。</p>
+
+  <div class="bim-card bim-card-accent">
+    <h4>實例：防火 Domain 被三個 Skill 引用</h4>
+    <p><code>domain/fire-rating-check.md</code> 同時被以下 3 個 Skill 引用：</p>
+    <ul>
+      <li><code>/fire-safety-check</code> — 消防安全檢討（防火時效視覺化）</li>
+      <li><code>/corridor-analysis</code> — 走廊防火分析（隔間時效要求）</li>
+      <li><code>/building-compliance</code> — 建築法規檢討（防火構造合規）</li>
+    </ul>
+    <p>如果防火法規條文更新，<strong>只動 domain/fire-rating-check.md 一處</strong>，三個 Skill 自動拿到新內容。這就是「Domain 是本體」（<a href="philosophy-22-propositions.html#p5">P5</a>）的具體含義。</p>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">三層分離不是「為了好看」，是為了<strong>「換新」</strong>容易——Skill 改了不影響 Domain，Domain 改了不影響 MCP，AI Client 換了不影響 Skill。每層獨立演化，整體就能跑得很久。<strong>架構生命週期 &gt; 程式碼生命週期</strong>。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">遵守單一職責：<br>• Skill = 何時觸發 + 工作流順序<br>• CLAUDE.md = 行為指引 + 觸發映射表<br>• Domain = 法規 + 公式 + 邊界案例<br><strong>禁止跨層污染</strong>——Domain 不寫工作流、Skill 不寫法規條文、CLAUDE.md 不寫具體算法。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Three-Layer Separation of Concerns · Single Source of Truth (CLAUDE.md) · Multi-Client Bridge Pattern · M:N Skill-Domain Composition</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">為什麼分層比堆功能重要</span>
+    <div class="empathy-quote-text">很多 BIM 工具死於「<em>所有邏輯擠在一個 plug-in 裡</em>」——<br>升級規範要重編譯、換 AI 要重寫工具、改流程要動 C# code。<br><strong>本專案的三層分離讓「換新」成本接近零</strong>。</div>
+    <span class="empathy-quote-context">這也是為什麼<span class="lingo">「Skill / Domain 都用 markdown」</span>是刻意設計——任何老師都能用記事本寫，不需要 IDE、不需要編譯、不需要 Git 進階知識。<strong>降低貢獻門檻 = 知識複利的起點</strong>。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀 · 三層架構</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="philosophy-22-propositions.html#p5">P5 — Domain 是本體</a>
+          <span class="fr-desc">「Domain 獨立於 Skill」的哲學基礎</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="philosophy-22-propositions.html#p9">P9 — 滾動式開源 Domain</a>
+          <span class="fr-desc">為什麼三層分離 = 開源貢獻的前置條件</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Book</span>Robert C. Martin — <em>Clean Architecture</em>
+          <span class="fr-desc">「層級獨立」軟體架構經典——三層分離的學術基礎</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Guide</span><a href="contributor-template.html">Level 1 貢獻範本</a>
+          <span class="fr-desc">2 個檔案完成貢獻，不寫程式碼——三層架構讓非工程師也能參與</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 4+1 通訊架構 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section">
+  <div class="bim-section-eyebrow">COMMUNICATION · 4+1 模式</div>
+  <h2 class="bim-section-title">技術通訊架構</h2>
+  <p class="bim-section-desc">Skill / CLAUDE.md / Domain 是「邏輯三層」，下面這個是「技術四層」——AI Client → MCP Server → Revit Add-in → Revit API。</p>
+
+  <pre style="background:var(--bg-elevated);"><code>AI Client (Claude Desktop / Gemini CLI / VS Code Copilot / Claude Code)
+  ↓ stdio
+MCP Server (Node.js/TypeScript) — MCP-Server/src/index.ts
+  ↓ WebSocket (ws://localhost:8964)
+Revit Add-in (C# .NET 4.8) — MCP/Application.cs
+  ↓ ExternalEventManager (UI thread)
+CommandExecutor → Revit API</code></pre>
+
+  <p>第 5 種「embedded」選項——WPF chat window 內嵌在 Revit Add-in，直接 call Gemini API，bypass MCP Server。</p>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">為什麼不直接 AI Client ↔ Revit API？因為<strong>Revit API 太底層</strong>——LLM 要傳 ElementId、Transaction、ViewSet 這些原生型別，每次都得編 boilerplate。MCP Server 中間層把這些封裝成 88 個語意化工具（<code>check_smoke_exhaust_windows</code> 比 <code>FilteredElementCollector.OfCategory(...)</code> 友善 100 倍）。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">AI Client（stdio）→ MCP Server（Node.js TypeScript）→ WebSocket（port 8964）→ Revit Add-in（C# .NET）→ Revit API。每層做<strong>協議翻譯 + UI 執行緒守門</strong>。port 8964 由 Add-in 啟動（HttpListener），MCP Server 連入。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">4+1 Communication Architecture · WebSocket Bridge · ExternalEvent UI-Thread Guard · stdio MCP Transport · Optional Embedded WPF Path</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">為什麼選 WebSocket 不是 REST</span>
+    <div class="empathy-quote-text">REST API 適合「<em>一問一答 + 無狀態</em>」，但 Revit 操作是「<em>連續對話 + 有 transaction state</em>」。<br>WebSocket 保持連線、減少 handshake 開銷、UI thread 同步更穩。</div>
+    <span class="empathy-quote-context">port 8964 是 0425 開始就固定的——記得這個數字，因為<span class="lingo">「Port 被占用」</span>是 3 個最常見的部署問題之一（其他兩個：DLL 沒部署、路徑寫錯）。詳見 <a href="troubleshooting.html">故障排除</a>。</span>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 多 AI Client 統一指向 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section">
+  <div class="bim-section-eyebrow">MULTI-CLIENT · 不同入口同一目的地</div>
+  <h2 class="bim-section-title">多 AI Client 統一架構</h2>
+  <p class="bim-section-desc">本專案支援多個 AI Client，採用「<strong>不同入口、同一目的地</strong>」規範。</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>項目</th>
+        <th>Claude Code</th>
+        <th>Gemini CLI</th>
+        <th>VS Code Copilot</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>行為指引</td>
+        <td>CLAUDE.md</td>
+        <td>GEMINI.md → CLAUDE.md</td>
+        <td>.github/copilot-instructions.md</td>
+      </tr>
+      <tr>
+        <td>Skills</td>
+        <td><code>.claude/skills/SKILL.md</code></td>
+        <td><code>.gemini/skills/SKILL.md</code></td>
+        <td>instructions 引導</td>
+      </tr>
+      <tr>
+        <td>Domain 文件</td>
+        <td>共用 <code>domain/</code></td>
+        <td>共用 <code>domain/</code></td>
+        <td>共用 <code>domain/</code></td>
+      </tr>
+      <tr>
+        <td>MCP Tools</td>
+        <td>共用 88 個工具</td>
+        <td>共用 88 個工具</td>
+        <td>共用 88 個工具</td>
+      </tr>
+      <tr>
+        <td>Event Log</td>
+        <td>共用 <code>log/</code></td>
+        <td>共用 <code>log/</code></td>
+        <td>共用 <code>log/</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>SKILL.md 格式遵循 <a href="https://agentskills.io" target="_blank">Agent Skills 開放標準</a>（YAML frontmatter + Markdown body），Claude Code 與 Gemini CLI 皆原生支援。</p>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">設計師不該被綁定特定 AI 廠商——今天用 Claude，明天可能要換 Gemini 或 Copilot。如果每個 AI 都要重寫一套 Skill / Domain，<strong>知識資產就死在工具升級時</strong>。「不同入口、同一目的地」確保你今天投入的 domain，明天還能用。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">行為指引層用 symlink / 薄殼指向（<code>GEMINI.md</code> 內容就是 <code>CLAUDE.md</code>）。Skill 層遵守 Anthropic 制定的 <a href="https://agentskills.io" target="_blank">Agent Skills 開放標準</a>（YAML frontmatter + Markdown），任何支援標準的 AI Client 都能用。Domain / MCP / Log 全跨 client 共用。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Multi-Client Convergence Pattern · Anthropic Agent Skills Standard Compliance · Symlink Pattern for Behavior Guidance · Shared Domain Knowledge Base</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">為什麼不綁定單一 AI</span>
+    <div class="empathy-quote-text">教設計師「<em>只能用 Claude</em>」，第二年 OpenAI 出新版設計師會跑光。<br>教設計師「<em>用任何 AI 都能跑這套 SOP</em>」，他們會帶著 SOP 跟你走 10 年。<br><strong>知識的長壽 &gt; 工具的時髦</strong>。</div>
+    <span class="empathy-quote-context">這也是為什麼採用 <span class="lingo">Anthropic Agent Skills 開放標準</span>而不是自製格式——標準化會讓「貢獻你的 Skill」變成可移植資產，不是被某家公司鎖住的奴隸契約。Domain 用 Markdown 也是同理——人類可讀、AI 可讀、任何工具可讀。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀 · 多 AI Client 策略</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Spec</span><a href="https://agentskills.io" target="_blank">Agent Skills 開放標準</a>
+          <span class="fr-desc">Anthropic 制定的 YAML frontmatter + Markdown 標準——多 AI Client 互通的基礎</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Article</span>Joel Spolsky — <em>Lock-In and the Open Source Strategy</em>
+          <span class="fr-desc">論「廠商鎖定」的長期代價——多 Client 策略的反向論證</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="philosophy-22-propositions.html#p9">P9 — 滾動式開源 Domain</a>
+          <span class="fr-desc">多 Client 策略 = 開源知識資產的前置條件</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- Quick Links -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section">
+  <div class="bim-section-eyebrow">QUICK LINKS · 深入了解</div>
+  <h2 class="bim-section-title">下一步閱讀</h2>
+
+  <div class="bim-grid bim-grid-2">
+    <a href="skills-index.html" class="bim-card" style="border-bottom:none;">
+      <h4>📖 19 個 Skill 完整索引</h4>
+      <p>每個 Skill 的觸發關鍵字、引用 Domain、呼叫工具一覽。</p>
+    </a>
+    <a href="domain-index.html" class="bim-card" style="border-bottom:none;">
+      <h4>📚 40 Domain 完整索引</h4>
+      <p>每個 Domain 的觸發詞、被引用 Skill、檔案位置。</p>
+    </a>
+    <a href="contributor-template.html" class="bim-card" style="border-bottom:none;">
+      <h4>🛠 Level 1 貢獻範本</h4>
+      <p>停車場檢討範例——2 個檔案完成 Skill + Domain 貢獻，不需寫程式碼。</p>
+    </a>
+    <a href="philosophy-22-propositions.html#p5" class="bim-card" style="border-bottom:none;">
+      <h4>💡 P5 — Domain 是本體</h4>
+      <p>為什麼 Domain 是 MCP 的核心資產（哲學層論述）。</p>
+    </a>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="../index.html" class="bim-footer-btn">← 回 BIM_MCP 首頁</a>
+    <a href="skills-index.html" class="bim-footer-btn primary">Skill 索引 →</a>
+    <a href="domain-index.html" class="bim-footer-btn">Domain 索引</a>
+    <a href="deployment-guide.html" class="bim-footer-btn">部署指南</a>
+  </div>
+  <div>
+    BIM_MCP · 三層模組架構 V2<br>
+    最後更新：2026-05-18 · 來源：0425 五月小聚 Section 3 升級
+  </div>
+</footer>
+
+<script src="../_shared.js"></script>
+<script>initAll();</script>
+</body>
+</html>

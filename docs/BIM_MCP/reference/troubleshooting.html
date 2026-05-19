@@ -1,0 +1,403 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Troubleshooting · BIM_MCP</title>
+<meta property="og:title" content="BIM_MCP Troubleshooting · 5 classic + 4 live fixes">
+<meta property="og:description" content="部署 / 連線 / 工具語義三類問題。含 5 個經典踩雷與 5/18 demo 暴露的 4 個 fix（commit 4975ceb）的 root cause 分析。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../_nav.css">
+<style>
+  .bim-hero-figure{margin:var(--gap-lg) 0 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+  .bim-hero-figure img{display:block;width:100%;height:auto}
+  .diag-flow {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--gap-sm);
+    margin: var(--gap-md) 0;
+  }
+  .diag-step {
+    padding: 16px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    border-top: 3px solid var(--accent);
+    position: relative;
+  }
+  .diag-step .diag-num {
+    font-family: var(--font-tech);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .diag-step h4 { font-size: 14px; margin: 0 0 6px 0; }
+  .diag-step p { font-size: 12px; margin: 0; }
+
+  .fix-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--bad);
+    border-radius: var(--radius-md);
+    padding: 22px 26px;
+    margin-bottom: var(--gap-md);
+  }
+  .fix-card.resolved { border-left-color: var(--ok); }
+  .fix-tag {
+    display: inline-block;
+    font-family: var(--font-tech);
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 3px 10px;
+    border-radius: var(--radius-sm);
+    background: rgba(239,68,68,0.1);
+    color: var(--bad);
+    border: 1px solid rgba(239,68,68,0.3);
+    margin-bottom: 10px;
+  }
+  .fix-card.resolved .fix-tag {
+    background: rgba(74,222,128,0.1);
+    color: var(--ok);
+    border-color: rgba(74,222,128,0.3);
+  }
+  .fix-card h3 { margin: 4px 0 12px 0; font-size: 18px; }
+  .fix-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gap-md);
+    margin-top: var(--gap-sm);
+  }
+  .fix-section h5 {
+    font-family: var(--font-tech);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .fix-section p { font-size: 13px; }
+  @media (max-width: 700px) {
+    .diag-flow { grid-template-columns: 1fr; }
+    .fix-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body data-prev="deployment-guide.html" data-next="contributor-template.html">
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <a href="../index.html#reference" style="color:var(--text-secondary);border-bottom:none;">reference</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">Troubleshooting</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="deployment-guide.html" class="bim-topnav-btn">← Deployment</a>
+    <a href="contributor-template.html" class="bim-topnav-btn">Contributor →</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">TROUBLESHOOTING <span class="accent">5 classic + 4 live fixes</span></div>
+  <h1 class="bim-hero-title">先分清：<span class="accent">部署</span> / 連線 / 工具語義</h1>
+  <p class="bim-hero-sub">本頁綜合 CLAUDE.md troubleshooting 表與 commit <code>4975ceb</code> 的 4 個工具修復。<strong>5/18 demo 暴露的不是單純 bug list</strong>——它們也是「<a href="three-constitutions.html#constitution-2">Tool Call Data Honesty</a>」與「<a href="three-constitutions.html#constitution-3">Domain Method Compliance</a>」邊界的活體實證。先看下方診斷流程決定該翻哪節。</p>
+  <figure class="bim-hero-figure"><img src="../_images/troubleshooting__hero__9-cases.svg" alt="Nine troubleshooting scenarios" width="1600" height="900"></figure>
+</header>
+
+<!-- ============================================ -->
+<!-- 診斷流程 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="diagnose">
+  <div class="bim-section-eyebrow">SECTION 01 · 診斷流程</div>
+  <h2 class="bim-section-title">出問題了？先 30 秒分類</h2>
+  <p class="bim-section-desc">大多數「壞了」其實是三類問題之一。先分清屬於哪類，再翻對應節。</p>
+
+  <div class="diag-flow">
+    <div class="diag-step">
+      <div class="diag-num">CLASS A · 部署</div>
+      <h4>build / dll / addin</h4>
+      <p>Revit ribbon 沒看到 RevitMCP panel？build 失敗或找不到 dll？看 <a href="#classic">Section 02</a> 第 1-2 項。</p>
+    </div>
+    <div class="diag-step">
+      <div class="diag-num">CLASS B · 連線</div>
+      <h4>port / websocket</h4>
+      <p>MCP server 連不到 Revit？port 8964 卡住？指令送出去沒回應？看 <a href="#classic">Section 02</a> 第 3-5 項。</p>
+    </div>
+    <div class="diag-step">
+      <div class="diag-num">CLASS C · 工具語義</div>
+      <h4>raw data / pass-fail</h4>
+      <p>tool 跑得通但結果不對？輸出太長？建了一堆視圖？看 <a href="#demo-fixes">Section 03</a> 4 個 live fixes。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 5 個經典 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="classic">
+  <div class="bim-section-eyebrow">SECTION 02 · CLASSIC</div>
+  <h2 class="bim-section-title">5 個經典問題（部署 / 連線層）</h2>
+
+  <table>
+    <thead>
+      <tr><th style="width:25%;">Symptom</th><th style="width:30%;">Root cause</th><th style="width:45%;">Fix</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Build 出現 56 warnings</strong></td>
+        <td>Revit 2024 使用 2022-compatible syntax 時的正常警告</td>
+        <td>確認無 error 即可。不影響功能。</td>
+      </tr>
+      <tr>
+        <td><code>RevitMCP.dll</code> not found</td>
+        <td>Build config 拼錯或 output 路徑改了</td>
+        <td>使用 <code>dotnet build -c Release.R{YY} RevitMCP.csproj</code>，YY ∈ {22,23,24,25,26}。Output 在 <code>bin/Release.R{YY}/RevitMCP.dll</code>。</td>
+      </tr>
+      <tr>
+        <td><strong>MCP Server connection failed</strong></td>
+        <td>(a) <code>npm run build</code> 沒跑 / (b) AI client 設定路徑錯 / (c) port 被佔</td>
+        <td>(a) <code>cd MCP-Server && npm run build</code><br>(b) 檢查 client config 是絕對路徑指向 <code>build/index.js</code><br>(c) 跑 <code>scripts/release-port.ps1</code></td>
+      </tr>
+      <tr>
+        <td>Port 8964 被 <code>PID 4</code>（System）佔用</td>
+        <td>Revit 異常關閉後 HTTP.sys 留下孤兒 Request Queue</td>
+        <td>執行 <code>scripts\release-port.ps1</code>（需 Admin）。或手動：<code>net stop http /y && net start http</code></td>
+      </tr>
+      <tr>
+        <td><strong>Commands 送出去沒回應</strong></td>
+        <td>Revit UI thread 被卡（沒走 ExternalEventManager）</td>
+        <td>確認所有 Revit API 呼叫都包進 <code>ExternalEventManager.Instance.PostCommand()</code>。看 <code>%AppData%\RevitMCP\Logs\RevitMCP_YYYYMMDD.log</code> 確認 ExternalEvent 是否被觸發。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pitfalls">
+    <div class="pitfalls-title">部署不可破壞 unified architecture</div>
+    <ul>
+      <li>❌ 不要新增 <code>RevitMCP.2024.csproj</code> 這類版本專用 project</li>
+      <li>❌ 不要新增版本專用 <code>.addin</code></li>
+      <li>❌ 不要在 <code>.addin</code> hardcode 絕對 DLL 路徑</li>
+      <li>❌ 不要改 <code>AddInId</code>（會被 Revit 視為兩個不同 plugin 載入兩次）</li>
+      <li>❌ 不要設 <code>&lt;DeployAddin&gt;true&lt;/DeployAddin&gt;</code>（Nice3point SDK 會產生 <code>RevitMCP.{version}.addin</code> 與手動的 <code>RevitMCP.addin</code> 衝突）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 4 個 5/18 demo live fixes -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="demo-fixes">
+  <div class="bim-section-eyebrow">SECTION 03 · LIVE FIXES</div>
+  <h2 class="bim-section-title">5/18 demo 4 個工具修復 <span style="font-family:var(--font-tech);font-size:14px;color:var(--text-faint);">commit 4975ceb</span></h2>
+  <p class="bim-section-desc">5/18 demo 實機跑 5 個工具暴露 5 種典型 MCP 工具邊界樣態（output 過大 / API 不對稱 / 工具設計差異 / 真實 bug / 只回 raw data）。<strong>這個歷程本身是 <a href="philosophy-22-propositions.html#p15">P15「排程死線」</a> + <a href="three-constitutions.html#constitution-2">第二憲法 Data Honesty</a> 的活體實證</strong>。</p>
+
+  <div class="fix-card resolved">
+    <span class="fix-tag">FIX #1 · RESOLVED</span>
+    <h3><code>check_exterior_wall_openings</code> · 輸出超限</h3>
+    <figure class="bim-card-figure"><img src="../_images/troubleshooting__fix1__overflow.svg" alt="Summary mode trims excessive output" width="400" height="400" loading="lazy"></figure>
+    <div class="fix-grid">
+      <div class="fix-section">
+        <h5>Symptom</h5>
+        <p>對一整層樓跑外牆開口檢查，工具回傳 JSON 過大（每個 opening 都帶完整 geometry），AI 端 context window 被吃光，後續無法繼續對話。</p>
+      </div>
+      <div class="fix-section">
+        <h5>Root cause</h5>
+        <p>原預設輸出 verbose mode，每個 opening 帶 BoundingBox + Solid geometry + 鄰地距離計算中間值。<strong>對 UI 顯示有用，對 AI context 是噪音</strong>。</p>
+      </div>
+      <div class="fix-section">
+        <h5>Fix</h5>
+        <p>新增 <code>summary</code> 模式（預設）：每個 opening 只回 ID + Wall reference + 鄰地距離 + PASS/FAIL。若需細節再傳 <code>detail=true</code>。</p>
+      </div>
+      <div class="fix-section">
+        <h5>Pattern</h5>
+        <p>所有可能回大量 elements 的工具都應該<strong>預設 summary、選配 detail</strong>。這是「工具設計差異」型別。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fix-card resolved">
+    <span class="fix-tag">FIX #2 · RESOLVED</span>
+    <h3><code>check_smoke_exhaust_windows</code> · 80+ 視圖污染</h3>
+    <figure class="bim-card-figure"><img src="../_images/troubleshooting__fix2__view-pollution.svg" alt="createAnnotatedViews false prevents view pollution" width="400" height="400" loading="lazy"></figure>
+    <div class="fix-grid">
+      <div class="fix-section">
+        <h5>Symptom</h5>
+        <p>對整個專案跑排煙檢查，工具自動建立 80+ 個 annotated views（每個居室一個剖面圖）。專案視圖樹爆炸，用戶手動刪 30 分鐘。</p>
+      </div>
+      <div class="fix-section">
+        <h5>Root cause</h5>
+        <p>原本想做 demo 視覺效果——「每個居室都附剖面與標註」。實務上<strong>大多數情境只想要 PASS/FAIL 列表</strong>，不想視圖。</p>
+      </div>
+      <div class="fix-section">
+        <h5>Fix</h5>
+        <p>把 <code>createAnnotatedViews</code> 預設改為 <code>false</code>。需要視圖才主動傳 <code>true</code>。批次工作流請<strong>顯式指定 viewId</strong> 不要靠 active view。</p>
+      </div>
+      <div class="fix-section">
+        <h5>Pattern</h5>
+        <p>「會修改模型」的副作用必須 opt-in 不能 opt-out。這是「真實 bug + 工具設計」混合型別。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fix-card resolved">
+    <span class="fix-tag">FIX #3 · RESOLVED</span>
+    <h3><code>check_stair_headroom</code> · 不支援 batch</h3>
+    <figure class="bim-card-figure"><img src="../_images/troubleshooting__fix3__batch.svg" alt="Batch mode checks multiple stairs at once" width="400" height="400" loading="lazy"></figure>
+    <div class="fix-grid">
+      <div class="fix-section">
+        <h5>Symptom</h5>
+        <p>整層樓有 5 個樓梯需要檢查淨高。工具一次只能檢一個 stair element，AI 連續呼叫 5 次造成 round-trip 延遲與容易超時。</p>
+      </div>
+      <div class="fix-section">
+        <h5>Root cause</h5>
+        <p>初版設計時只想到「點選一個樓梯檢查」，沒考慮整層批次需求。<strong>API 不對稱</strong>——其他類似 check_* 工具都支援 batch。</p>
+      </div>
+      <div class="fix-section">
+        <h5>Fix</h5>
+        <p>新增 <code>stairIds</code> 陣列參數（可選），傳入則批次處理。原本單一 <code>stairId</code> 參數仍保留向後相容。</p>
+      </div>
+      <div class="fix-section">
+        <h5>Pattern</h5>
+        <p>新工具的 API 預設要考慮「同類元素批次」需求。這是「API 不對稱」型別。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fix-card">
+    <span class="fix-tag">FIX #4 · BY DESIGN（不是 bug）</span>
+    <h3><code>get_room_daylight_info</code> · 只回 raw data</h3>
+    <figure class="bim-card-figure"><img src="../_images/troubleshooting__fix4__by-design.svg" alt="Raw data flows into the domain SOP by design" width="400" height="400" loading="lazy"></figure>
+    <div class="fix-grid">
+      <div class="fix-section">
+        <h5>Symptom</h5>
+        <p>使用者期待工具直接回 PASS/FAIL「採光達標」，實際只回 raw data（窗 ID、面積、台度高度等），需要再套公式才知道結果。</p>
+      </div>
+      <div class="fix-section">
+        <h5>Root cause</h5>
+        <p><strong>這是 spec by design 不是 bug</strong>——PASS/FAIL 屬於 <a href="three-constitutions.html#constitution-3">第三憲法 Domain Method Compliance</a> 的範疇，由 <code>domain/daylight-area-check.md</code> 規定（含 75cm 台度扣除、外牆門納入等規則），<strong>不應該寫死在工具裡</strong>。法規修訂時改 domain 一份，工具不動。</p>
+      </div>
+      <div class="fix-section">
+        <h5>Fix</h5>
+        <p>不改工具，改練習頁說明。Step 4 改用 <code>level='1FL'</code> + 提示要手動套 75cm 公式，並連到 domain 完整 SOP。</p>
+      </div>
+      <div class="fix-section">
+        <h5>Pattern</h5>
+        <p>Tool 回 raw data，PASS/FAIL 留給 domain SOP。<strong>這是 MCP 架構的核心紀律</strong>，違反會導致「法規一改要改 N 個工具」。這是「只回 raw data」型別。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">為什麼 4 個 fix 故事要留</span>
+    <div class="empathy-quote-text">大多數技術文件只寫「<em>怎麼避免</em>」，不寫「<em>當初為什麼會出</em>」。<br>但<strong>「為什麼」才是教育性最強的部分</strong>——它讓下個工具設計者知道哪個方向會踩同樣坑。</div>
+    <span class="empathy-quote-context">這也是為什麼 fix #4 標「By Design」而不是「Resolved」——它澄清了一個容易誤判的設計選擇。未來如有人想「順便讓工具回 PASS/FAIL」，看這頁可以省一場架構辯論。</span>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- LOGS -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="logs">
+  <div class="bim-section-eyebrow">SECTION 04 · LOGS</div>
+  <h2 class="bim-section-title">出問題先看哪個 log</h2>
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card">
+      <h4>Revit Add-in 端</h4>
+      <p><code>%AppData%\RevitMCP\Logs\RevitMCP_YYYYMMDD.log</code></p>
+      <p style="font-size:13px;color:var(--text-muted);">看 ExternalEvent 是否觸發、CommandExecutor 是否收到指令、有無 exception。</p>
+    </div>
+    <div class="bim-card">
+      <h4>MCP Server 端</h4>
+      <p>stdout / stderr — Claude Desktop 看 <code>~/Library/Logs/Claude/mcp*.log</code>（Mac）或 <code>%AppData%\Claude\logs\mcp*.log</code>（Win）</p>
+      <p style="font-size:13px;color:var(--text-muted);">看 WebSocket 連線是否建立、tool schema 是否載入。</p>
+    </div>
+    <div class="bim-card">
+      <h4>Repo session log</h4>
+      <p><code>log/YYYY-MM.md</code></p>
+      <p style="font-size:13px;color:var(--text-muted);">保存 AI session 摘要、commit 對應、手動紀錄。看「最近發生什麼」。</p>
+    </div>
+    <div class="bim-card">
+      <h4>git stat</h4>
+      <p><code>git log --stat -5</code> 或 <code>git show 4975ceb</code></p>
+      <p style="font-size:13px;color:var(--text-muted);">看最近 commit 改了什麼。比 log/ 還即時。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- METHOD -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="method">
+  <div class="bim-section-eyebrow">SECTION 05 · METHOD</div>
+  <h2 class="bim-section-title">不要用猜的補 Revit 專案資料</h2>
+
+  <div class="how-tech">
+    <div class="how-tech-label">RULE</div>
+    <div class="how-tech-content">任何元素 ID、面積、數量、房名、樓層都<strong>必須來自本 turn 工具回傳</strong>。沒有工具回傳時，只能說通用流程。違反此規則的修復建議一律無效——可能在「修一個不存在的問題」。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">
+      1. 先確認 Revit add-in 與 MCP server <strong>連線正常</strong>（跑 <code>get_project_info</code> smoke test）<br>
+      2. 再用<strong>只讀工具</strong>列出實際元素（不要先猜，要先看）<br>
+      3. 最後套用 domain SOP 做判斷<br>
+      4. 若 domain SOP 不夠用 → 先補 SOP，不要直接套 LM 推理
+    </div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Read-Before-Write · Tool Round-Trip Validation · Domain-Anchored Diagnosis</div>
+    <div class="how-tech-label">CHECKLIST</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>修復建議中的所有 ID / 路徑 / 數字都可追到 tool response？</li>
+        <li>用了哪個 domain SOP（不是「我覺得應該」）？</li>
+        <li>修復後跑 smoke test 確認回到正常？</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Constitution</span><a href="three-constitutions.html#constitution-2">第二憲法 · Tool Call Data Honesty</a>
+          <div class="fr-desc">為什麼修復建議不能編造數字。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Constitution</span><a href="three-constitutions.html#constitution-3">第三憲法 · Domain Method Compliance</a>
+          <div class="fr-desc">為什麼 fix #4 是 by design 不是 bug。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Proposition</span><a href="philosophy-22-propositions.html#p15">P15 · 排程死線第一限制</a>
+          <div class="fr-desc">為什麼 5/18 demo 必須跑出 4 個 fix——dead-line 暴露隱藏邊界。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Spectrum</span><a href="spectrum-decision.html#abcd-framework">A/B/C/D 決策框架</a>
+          <div class="fr-desc">FAIL 之後該怎麼選路線（不只是修工具）。</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="deployment-guide.html" class="bim-footer-btn">← Deployment</a>
+    <a href="contributor-template.html" class="bim-footer-btn primary">Contributor →</a>
+    <a href="../index.html" class="bim-footer-btn">回 BIM_MCP 首頁</a>
+  </div>
+  <p>BIM_MCP · reference / troubleshooting</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-05-18 · 5 經典 + 4 個 5/18 demo live fix root cause 分析。</p>
+</footer>
+
+<script src="../_shared.js"></script><script>initAll();</script>
+</body></html>

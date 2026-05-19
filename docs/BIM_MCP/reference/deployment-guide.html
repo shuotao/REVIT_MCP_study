@@ -1,0 +1,330 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deployment Guide · BIM_MCP</title>
+<meta property="og:title" content="BIM_MCP Deployment Guide · Nice3point / Release.R{YY}">
+<meta property="og:description" content="RevitMCP 多版本 build 與部署完整流程：setup.ps1 一鍵安裝、手動 build / deploy、AI client 設定、驗收 smoke test。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../_nav.css">
+<style>
+  .bim-hero-figure{margin:var(--gap-lg) 0 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+  .bim-hero-figure img{display:block;width:100%;height:auto}
+  .bim-steps{counter-reset:step;list-style:none;padding:0}
+  .bim-steps li{counter-increment:step;margin:0 0 14px;padding:18px 22px 18px 64px;border:1px solid var(--border);border-radius:var(--radius-md);position:relative;background:var(--bg-card)}
+  .bim-steps li:before{content:counter(step);position:absolute;left:20px;top:18px;width:28px;height:28px;display:grid;place-items:center;background:var(--accent);color:#000;border-radius:50%;font-family:var(--font-tech);font-weight:700}
+  .bim-steps li strong{display:block;margin-bottom:4px;color:var(--text-primary);}
+  .bim-steps li code{font-size:12px;}
+  .bim-steps li p{font-size:13px;margin:6px 0 0 0;color:var(--text-muted);}
+
+  .client-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gap-md);
+    margin: var(--gap-md) 0;
+  }
+  .client-card {
+    padding: 18px 22px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+  .client-card h4 { margin: 0 0 6px 0; font-size: 15px; }
+  .client-card .client-path {
+    font-family: var(--font-tech);
+    font-size: 11px;
+    color: var(--accent);
+    background: var(--accent-bg);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    margin: 4px 0;
+    display: inline-block;
+  }
+  .client-card p { font-size: 12px; color: var(--text-muted); margin: 6px 0 0 0; }
+  @media (max-width: 700px) { .client-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-prev="domain-index.html" data-next="troubleshooting.html">
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <a href="../index.html#reference" style="color:var(--text-secondary);border-bottom:none;">reference</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">Deployment Guide</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="domain-index.html" class="bim-topnav-btn">← Domain</a>
+    <a href="troubleshooting.html" class="bim-topnav-btn">Troubleshooting →</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">DEPLOYMENT <span class="accent">5 Revit 版本 / 一條指令</span></div>
+  <h1 class="bim-hero-title">一個 csproj，<span class="accent">五個 Revit 版本</span></h1>
+  <p class="bim-hero-sub">本頁整理 CLAUDE.md 部署規則：保留<strong>單一</strong> <code>MCP/RevitMCP.csproj</code>、<strong>單一</strong> <code>MCP/RevitMCP.addin</code>，透過 Nice3point SDK 與 <code>Release.R{YY}</code> 組態輸出版本化 DLL。新機器跑 <code>scripts/setup.bat</code> 一條指令搞定。</p>
+  <figure class="bim-hero-figure"><img src="../_images/deployment__hero__one-cmd.svg" alt="One command fans out to five Revit versions" width="1600" height="900"></figure>
+</header>
+
+<!-- ============================================ -->
+<!-- 前提條件 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="prereq">
+  <div class="bim-section-eyebrow">SECTION 01 · 前提條件</div>
+  <h2 class="bim-section-title">先確認這些</h2>
+
+  <table>
+    <thead>
+      <tr><th>項目</th><th>需求</th><th>檢查</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>OS</strong></td>
+        <td>Windows 10/11（Revit 只支援 Win）</td>
+        <td><code>winver</code></td>
+      </tr>
+      <tr>
+        <td><strong>.NET</strong></td>
+        <td>Framework 4.8（R22-R24）+ .NET 8 SDK（R25-R26）</td>
+        <td><code>dotnet --list-sdks</code></td>
+      </tr>
+      <tr>
+        <td><strong>Node.js</strong></td>
+        <td>≥ 18.x（給 MCP-Server 用）</td>
+        <td><code>node --version</code></td>
+      </tr>
+      <tr>
+        <td><strong>Revit</strong></td>
+        <td>2022 / 2023 / 2024 / 2025 / 2026 任一</td>
+        <td>查 <code>%ProgramFiles%\Autodesk\Revit ...</code></td>
+      </tr>
+      <tr>
+        <td><strong>git</strong></td>
+        <td>any recent</td>
+        <td><code>git --version</code></td>
+      </tr>
+      <tr>
+        <td><strong>port 8964</strong></td>
+        <td>未被佔用</td>
+        <td><code>netstat -ano | findstr 8964</code></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================================ -->
+<!-- 一鍵安裝 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="quick">
+  <div class="bim-section-eyebrow">SECTION 02 · 一鍵安裝</div>
+  <h2 class="bim-section-title">新機器走這條</h2>
+  <p class="bim-section-desc">建議所有新機器走 <code>setup.bat</code>。它會：(1) 檢查 prerequisites (2) build 所有版本 (3) deploy DLL 到 Revit Add-ins 資料夾 (4) 給 Claude Desktop / Gemini CLI 寫 MCP config (5) 檢查 port 8964。</p>
+
+  <figure class="bim-figure">
+    <img src="../_images/deployment__s02__arch.svg" alt="Setup script builds and deploys into the Revit addins folder" width="800" height="600" loading="lazy">
+  </figure>
+
+  <ol class="bim-steps">
+    <li>
+      <strong>下載 repo</strong>
+      <p><code>git clone https://github.com/&lt;your-fork&gt;/REVIT_MCP.git</code></p>
+    </li>
+    <li>
+      <strong>雙擊 <code>scripts/setup.bat</code></strong>
+      <p>會用 <code>powershell -ExecutionPolicy Bypass</code> 啟動 <code>setup.ps1</code>，不必預設 unrestricted policy。</p>
+    </li>
+    <li>
+      <strong>依提示選擇 Revit 版本</strong>
+      <p>多選——一次裝 2024 + 2025 也行。每版各自輸出 <code>bin/Release.R{YY}/RevitMCP.dll</code>。</p>
+    </li>
+    <li>
+      <strong>選擇要設定哪些 AI client</strong>
+      <p>Claude Desktop / Gemini CLI / VS Code Copilot / Claude Code 任選。會自動寫對應 config。</p>
+    </li>
+    <li>
+      <strong>setup 完成後重啟對應 client + Revit</strong>
+      <p>Claude Desktop 重啟，Gemini CLI 不必。Revit 開啟即會載入新 dll。</p>
+    </li>
+  </ol>
+
+  <div class="bim-card bim-card-accent">
+    <h4>什麼時候不該用 setup.bat</h4>
+    <p>CI / 自動化 build pipeline 想精確控制 → 走<a href="#manual">手動流程</a>。debugging 想知道哪一步失敗 → 也走手動。</p>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 手動 build / deploy -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="manual">
+  <div class="bim-section-eyebrow">SECTION 03 · 手動流程</div>
+  <h2 class="bim-section-title">手動 build / deploy（4 步）</h2>
+
+  <ol class="bim-steps">
+    <li>
+      <strong>關閉 Revit</strong>
+      <p>新 DLL 才能取代舊 DLL。沒關閉 → DLL is locked → copy 失敗。<br><code>tasklist | findstr Revit</code> 確認。</p>
+    </li>
+    <li>
+      <strong>Build</strong>
+<pre><code>cd MCP
+dotnet build -c Release.R24 RevitMCP.csproj</code></pre>
+      <p>把 R24 換成你要的版本（R22/R23/R24/R25/R26）。Output 在 <code>bin/Release.R24/RevitMCP.dll</code>。</p>
+    </li>
+    <li>
+      <strong>Deploy DLL</strong>
+<pre><code>Copy-Item "bin/Release.R24/RevitMCP.dll" `
+  "$env:APPDATA\Autodesk\Revit\Addins\2024\RevitMCP\" -Force</code></pre>
+      <p>注意 <code>.addin</code> 檔由 setup.ps1 或 <code>/deploy-addon</code> skill 一次性建立，後續只更新 <code>.dll</code> 不動 <code>.addin</code>。</p>
+    </li>
+    <li>
+      <strong>重啟 Revit + 驗收</strong>
+      <p>啟動 Revit → 看 Add-Ins 面板有 RevitMCP panel → 按 Connect → MCP server 端 log 應看到 WebSocket 連線。</p>
+    </li>
+  </ol>
+
+  <div class="pitfalls">
+    <div class="pitfalls-title">不可違反的部署規則</div>
+    <ul>
+      <li>❌ 不要新增 <code>RevitMCP.2024.csproj</code> 或其他版本專用 project</li>
+      <li>❌ 不要新增版本專用 <code>.addin</code> 檔</li>
+      <li>❌ 不要在 <code>.addin</code> 內 hardcode 絕對 DLL 路徑（用 <code>RevitMCP.dll</code> 相對）</li>
+      <li>❌ 不要改 <code>AddInId</code>（Revit 會把兩個 GUID 視為兩個獨立 plugin 載入兩次）</li>
+      <li>❌ 不要在 csproj 設 <code>&lt;DeployAddin&gt;true&lt;/DeployAddin&gt;</code>（Nice3point SDK 會自動產生 <code>RevitMCP.{version}.addin</code>，與手動 <code>RevitMCP.addin</code> 衝突）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- Build Matrix -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="matrix">
+  <div class="bim-section-eyebrow">SECTION 04 · MATRIX</div>
+  <h2 class="bim-section-title">Build Matrix · 5 個版本</h2>
+
+  <table>
+    <thead>
+      <tr><th>Config</th><th>Target</th><th>.NET</th><th>ElementId</th><th>Output</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>Release.R22</code></td><td>Revit 2022</td><td>Framework 4.8</td><td>int</td><td><code>bin\Release.R22\RevitMCP.dll</code></td></tr>
+      <tr><td><code>Release.R23</code></td><td>Revit 2023</td><td>Framework 4.8</td><td>int</td><td><code>bin\Release.R23\RevitMCP.dll</code></td></tr>
+      <tr><td><code>Release.R24</code></td><td>Revit 2024</td><td>Framework 4.8</td><td>int</td><td><code>bin\Release.R24\RevitMCP.dll</code></td></tr>
+      <tr><td><code>Release.R25</code></td><td>Revit 2025</td><td>.NET 8</td><td><strong>long</strong></td><td><code>bin\Release.R25\RevitMCP.dll</code></td></tr>
+      <tr><td><code>Release.R26</code></td><td>Revit 2026</td><td>.NET 8</td><td><strong>long</strong></td><td><code>bim\Release.R26\RevitMCP.dll</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="bim-card">
+    <h4>跨版本相容</h4>
+    <p>Revit 2025+ 的 <code>ElementId</code> 從 <code>int</code> 改為 <code>long</code>。<code>MCP/Core/RevitCompatibility.cs</code> 提供 <code>GetIdValue()</code> 與 <code>ToElementId()</code> 擴充方法跨版本相容。預處理符號 <code>REVIT2025_OR_GREATER</code> 用於條件編譯。</p>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- AI Client Setup -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="clients">
+  <div class="bim-section-eyebrow">SECTION 05 · AI CLIENTS</div>
+  <h2 class="bim-section-title">所有 AI Client 指向同一個 MCP Server</h2>
+  <p class="bim-section-desc">replace <code>{absolute-path}</code> 為你的實際 repo 絕對路徑。第一次使用前必須在 <code>MCP-Server/</code> 跑 <code>npm run build</code>。</p>
+
+<pre><code>{
+  "mcpServers": {
+    "revit-mcp": {
+      "command": "node",
+      "args": ["{absolute-path}/MCP-Server/build/index.js"]
+    }
+  }
+}</code></pre>
+
+  <div class="client-grid">
+    <div class="client-card">
+      <h4>Claude Desktop</h4>
+      <div class="client-path">%APPDATA%\Claude\claude_desktop_config.json</div>
+      <p>編輯後重啟 app。Mac 路徑 <code>~/Library/Application Support/Claude/</code>。</p>
+    </div>
+    <div class="client-card">
+      <h4>Gemini CLI</h4>
+      <div class="client-path">~/.gemini/settings.json</div>
+      <p>不必重啟，下次 invoke 即生效。</p>
+    </div>
+    <div class="client-card">
+      <h4>VS Code Copilot</h4>
+      <div class="client-path">.vscode/mcp.json</div>
+      <p>可用 <code>${workspaceFolder}</code> 代替絕對路徑。專案層配置不跨機器分享自動同步。</p>
+    </div>
+    <div class="client-card">
+      <h4>Claude Code (CLI)</h4>
+      <div class="client-path">.mcp.json</div>
+      <p>專案根目錄。或用 <code>claude mcp add</code> 命令。重啟 session 後生效。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- Verify -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="verify">
+  <div class="bim-section-eyebrow">SECTION 06 · VERIFY</div>
+  <h2 class="bim-section-title">部署完成 · 5 個 smoke test</h2>
+
+  <div class="how-tech">
+    <div class="how-tech-label">CHECKLIST</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>✅ Revit ribbon 看得到 <strong>RevitMCP panel</strong>（Add-Ins tab 內）</li>
+        <li>✅ Port 8964 沒被 PID 4 卡住：<code>netstat -ano | findstr 8964</code> 只看到自己的 Revit PID</li>
+        <li>✅ MCP Server 能連到 <code>ws://localhost:8964</code>：跑 AI client → <code>get_project_info</code></li>
+        <li>✅ Tool round-trip：跑 <code>get_active_view</code> 回傳當前 view 資訊（不是 timeout）</li>
+        <li>✅ 任一寫入工具：建一面短牆 → undo → 確認 Transaction 走完</li>
+      </ul>
+    </div>
+    <div class="how-tech-label">WHY 都要過</div>
+    <div class="how-tech-content">第 1 條失敗 = DLL 沒部署到對的位置。第 2 條失敗 = port 被搶。第 3-4 條失敗 = MCP Server 路徑或 npm build 沒跑。第 5 條失敗 = ExternalEventManager / Transaction 設定錯。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Five-Stage Smoke Test · Round-Trip Validation · Defensive Deployment Verification</div>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">SDK</span><a href="https://github.com/Nice3point/RevitTemplates" target="_blank">Nice3point.Revit.Sdk 文件</a>
+          <div class="fr-desc">統一多版本 build 系統的官方範本。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Internal</span><a href="troubleshooting.html#classic">Troubleshooting · 5 經典問題</a>
+          <div class="fr-desc">部署過程踩雷的根因與修復。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Skill</span><a href="skills-index.html#skills">/build-revit · /deploy-addon</a>
+          <div class="fr-desc">手動流程的 Skill 自動化版。</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="domain-index.html" class="bim-footer-btn">← Domain</a>
+    <a href="troubleshooting.html" class="bim-footer-btn primary">Troubleshooting →</a>
+    <a href="../index.html" class="bim-footer-btn">回 BIM_MCP 首頁</a>
+  </div>
+  <p>BIM_MCP · reference / deployment-guide</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-05-18 · 含一鍵安裝、手動 4 步、5 版 matrix、4 client 設定、5 階段 smoke test。</p>
+</footer>
+
+<script src="../_shared.js"></script><script>initAll();</script>
+</body></html>

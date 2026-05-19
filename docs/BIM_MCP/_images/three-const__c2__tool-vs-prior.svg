@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" role="img" aria-labelledby="title desc">
+  <title id="title">Tool call versus language model prior</title>
+  <desc id="desc">Concrete data comes from a tool call, not from prior knowledge.</desc>
+  <rect width="800" height="400" fill="#000"/>
+  <rect x="120" y="95" width="220" height="150" fill="#fff"/>
+  <rect x="460" y="95" width="220" height="150" fill="none" stroke="#fff" stroke-width="2"/>
+  <path d="M195 58l28 28 54-58" fill="none" stroke="#60a5fa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M540 48l70 70M610 48l-70 70" stroke="#ef4444" stroke-width="8" stroke-linecap="round"/>
+  <g font-family="JetBrains Mono, Consolas, monospace" text-anchor="middle" font-size="19" font-weight="700">
+    <text x="230" y="155" fill="#000">TOOL CALL</text>
+    <text x="230" y="190" fill="#000">829648</text>
+    <text x="570" y="155" fill="rgba(255,255,255,.45)">LM PRIOR</text>
+    <text x="570" y="190" fill="rgba(255,255,255,.45)">???</text>
+  </g>
+  <text x="400" y="318" fill="#fff" text-anchor="middle" font-family="JetBrains Mono, Consolas, monospace" font-size="17">EVERY CONCRETE DATUM NEEDS A CURRENT TOOL TRACE</text>
+</svg>

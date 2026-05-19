@@ -1,0 +1,442 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>業界證據：100x / 70% / $15-25K · BIM_MCP</title>
+<meta property="og:title" content="業界證據：為什麼 MCP 在 BIM 是早期介入而非過度工程">
+<meta property="og:description" content="Boehm 100x 規則、united-bim 70% 返工、Nexora $15-25K 直接損失。Stage-Gate / DoD / CI 三套成熟方法論對應 MCP 三命題。Early Mover 5 個時機證據。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../_nav.css">
+<style>
+  /* 本頁特化：timeline 樣式 */
+  .em-timeline {
+    position: relative;
+    margin: var(--gap-lg) 0;
+    padding-left: 0;
+  }
+  .em-timeline::before {
+    content: '';
+    position: absolute;
+    left: 110px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--border-strong);
+  }
+  .em-timeline-item {
+    position: relative;
+    padding: 16px 0 16px 140px;
+    border-bottom: 1px solid var(--border);
+  }
+  .em-timeline-item:last-child { border-bottom: none; }
+  .em-timeline-date {
+    position: absolute;
+    left: 0;
+    top: 18px;
+    width: 95px;
+    text-align: right;
+    font-family: var(--font-tech);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+  .em-timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 104px;
+    top: 24px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+  }
+  .em-timeline-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .em-timeline-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .em-timeline-item.future::before {
+    background: var(--warn);
+    border-color: var(--warn);
+  }
+  .em-timeline-item.future .em-timeline-date {
+    color: var(--warn);
+  }
+
+  /* 三大數據強化 */
+  .mega-stat {
+    text-align: center;
+    padding: var(--gap-xl) var(--gap-md);
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+    border-radius: var(--radius-lg);
+  }
+  .mega-stat-value {
+    font-size: 88px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .mega-stat-unit {
+    font-size: 13px;
+    color: var(--text-faint);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .mega-stat-claim {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 280px;
+    margin: 0 auto;
+  }
+  @media (max-width: 900px) {
+    .mega-stat-value { font-size: 56px; }
+    .em-timeline::before { left: 80px; }
+    .em-timeline-item { padding-left: 105px; }
+    .em-timeline-date { width: 70px; font-size: 11px; }
+    .em-timeline-item::before { left: 74px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <a href="../index.html#reference" style="color:var(--text-secondary);border-bottom:none;">reference</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">業界證據</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="philosophy-22-propositions.html" class="bim-topnav-btn">22 命題</a>
+    <a href="three-constitutions.html" class="bim-topnav-btn">三憲法</a>
+    <a href="spectrum-decision.html" class="bim-topnav-btn">光譜決策 →</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">INDUSTRY EVIDENCE <span class="accent">3 數據 / 3 方法論 / 5 時機</span></div>
+  <h1 class="bim-hero-title">為什麼是<span class="accent">現在</span><br>而不是兩年後</h1>
+  <p class="bim-hero-sub"><strong>後期返工很貴</strong>——Boehm 40 年前在軟體業已經證明過。<strong>70% 的營建返工本可避免</strong>——united-bim 統計過。<strong>2 吋誤差直接燒掉 $15-25K</strong>——Nexora 算過。MCP 在 BIM 的價值不是發明新理論，而是把<strong>三套成熟方法論</strong>（Stage-Gate / Definition of Done / CI Quality Gates）套到設計流程的第一個切入點。本頁集中業界證據與外部資源。</p>
+</header>
+<figure style="max-width:1100px;margin:32px auto 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:#000;">
+  <img src="../_images/industry__hero__cost-curve.svg" alt="Cost curve from requirement phase to field phase" width="1600" height="900" style="display:block;width:100%;height:auto;">
+</figure>
+
+<!-- ============================================ -->
+<!-- 三大數據 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="three-stats">
+  <div class="bim-section-eyebrow">SECTION 01 · 三組業界數據</div>
+  <h2 class="bim-section-title">三個數字撐起整個論述</h2>
+  <p class="bim-section-desc">MCP × BIM 不是「酷炫概念」，是 40 年成本曲線的當代應用。下面三組數字直接回答「為什麼要早期介入限制檢查」。</p>
+
+  <figure class="bim-figure">
+    <img src="../_images/industry__s01__three-stats.svg" alt="Three industry statistics supporting early BIM checks" width="1600" height="500" loading="lazy">
+  </figure>
+
+  <div class="bim-grid bim-grid-3">
+    <div class="mega-stat">
+      <div class="mega-stat-value">100×</div>
+      <div class="mega-stat-unit">COST GROWTH</div>
+      <div class="mega-stat-claim">後期修正成本可達需求階段的 <strong>100 倍</strong>。Boehm &amp; Basili 40 年規則。</div>
+    </div>
+    <div class="mega-stat">
+      <div class="mega-stat-value">70%</div>
+      <div class="mega-stat-unit">REWORK AVOIDABLE</div>
+      <div class="mega-stat-claim">營建返工中 <strong>約 70%</strong> 是可避免的——大多源自前期協調失誤。</div>
+    </div>
+    <div class="mega-stat">
+      <div class="mega-stat-value">$15–25K</div>
+      <div class="mega-stat-unit">PER 2-INCH DRIFT</div>
+      <div class="mega-stat-claim">MEP 一處 <strong>2 吋誤差</strong>的直接損失（不含 schedule 影響）。</div>
+    </div>
+  </div>
+
+  <!-- 100x -->
+  <h3 id="stat-100x">100× — Boehm 規則（1981 → 至今）</h3>
+  <p>Barry Boehm 1981 年首次提出後，1996 年 Boehm &amp; Basili 在《Software Defect Reduction Top-10 List》中再驗證：缺陷在<strong>需求階段</strong>修正花 $1，到<strong>維護階段</strong>修正可能花 $100。後續多份研究在嵌入式系統、企業軟體、營建 IT 系統重複驗證此曲線。</p>
+  <div class="bim-card bim-card-accent">
+    <h4>對 BIM 的對應</h4>
+    <p>同一條曲線在營建業更陡峭：設計階段改一條走廊牆 = 改 Revit model；施工階段改 = 拆混凝土 + 補強 + 延工期 + 索賠。MCP 把<strong>「在設計階段把限制顯現」</strong>當成預設動作，正是把成本從 100× 端拉回 1× 端。</p>
+  </div>
+
+  <!-- 70% -->
+  <h3 id="stat-70">70% — united-bim 返工統計</h3>
+  <p>united-bim 在 BIM 衝突協調報告中估算：營建現場返工有約 70% 屬於<strong>可避免類</strong>——意思是這些返工的根因都能在設計或前期協調階段被偵測。剩下 30% 才是真正不可預期的變更（地質、業主後期需求變化）。</p>
+  <div class="bim-card bim-card-warn">
+    <h4>為什麼這個 70% 一直沒拿掉</h4>
+    <p>不是技術不夠，是<strong>協調動作不發生在對的時間點</strong>。BIM 360 / Navisworks 可以跑碰撞，但很多事務所是「<span class="lingo">圖紙快出了才跑一次</span>」——這時錯誤已經寫進 model，要回頭改的成本接近 Boehm 100× 那端。MCP 把碰撞檢查、採光檢查、消防檢查做成<strong>「設計師問就答」</strong>的 on-demand 工具，目標是把這 70% 從「後期才知道」變成「每個階段完成點都知道」。</p>
+  </div>
+
+  <!-- $15-25K -->
+  <h3 id="stat-money">$15–25K — Nexora 2 吋誤差</h3>
+  <p>Nexora Design 在 MEP 協調失誤研究中算過一筆直接成本：MEP 走管路線上一處<strong>2 吋（約 5 cm）的誤差</strong>，若到現場才發現，直接修正成本（拆裝、改件、停工）約 $15,000–$25,000 美金。這還不含 schedule 連動的索賠與罰款。</p>
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">業界 punch line</span>
+    <div class="empathy-quote-text">「<em>BIM 不是 nice to have</em>」——它是<strong>把 $25K 損失壓回 $0</strong>的工具。<br>但 BIM 自己沒辦法強制設計師在對的時間點檢查；<br>那才是 MCP 的角色。</div>
+    <span class="empathy-quote-context">這也是為什麼 BIM 普及 20 年了，<span class="lingo">碰撞檢查</span>仍是每場業主檢核的 No.1 痛點——工具早就有了，但<strong>「什麼時候做」</strong>沒有制度化。MCP 補的就是這個制度層。</span>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">三個數據共指一件事：<strong>越晚發現越貴</strong>。這不是 BIM 獨家問題，是所有工程領域的共通曲線。MCP 在 BIM 場域的價值，不是發明新理論，是把這條曲線拉直的執行工具。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">把<strong>檢查動作 on-demand 化</strong>：設計師抵達階段完成點 → 主動 invoke MCP → 拿到 PASS/FAIL → 在還能廉價修改的時候修改。對應 <a href="philosophy-22-propositions.html#p7">P7 階段完成點</a> 與 <a href="three-constitutions.html#constitution-1">第一憲法 被動就緒</a>。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Early Defect Detection · Shift-Left for Design · On-Demand Compliance Check · Cost-Curve Flattening</div>
+    <div class="how-tech-label">CHECKLIST</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>專案是否定義了<strong>明確的階段完成點</strong>（不是主計畫里程碑）？</li>
+        <li>每個完成點是否對應一組 MCP 檢查（採光 / 消防 / 碰撞 / 容積…）？</li>
+        <li>檢查結果是否回到設計師，而不是堆給 BIM 經理批次處理？</li>
+        <li>FAIL 後是否有<a href="spectrum-decision.html">A/B/C/D 決策框架</a>讓設計師選擇路線？</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 三套方法論 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="three-methods">
+  <div class="bim-section-eyebrow">SECTION 02 · 三套成熟方法論</div>
+  <h2 class="bim-section-title">MCP 不是新發明，是<span style="color:var(--accent);">跨領域的當代套用</span></h2>
+  <p class="bim-section-desc">每一套方法論都已在自己的場域跑了 20–40 年。MCP 做的是把它們的「核心動作」搬到 BIM 設計流程。</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:25%;">方法論</th>
+        <th style="width:15%;">起源年</th>
+        <th style="width:20%;">原領域</th>
+        <th style="width:25%;">核心動作</th>
+        <th style="width:15%;">對應命題</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Stage-Gate</strong></td>
+        <td>1986</td>
+        <td>汽車 / 製造業</td>
+        <td>每個 stage 結束做 <span class="mono">Go / Recycle / Kill</span> 三元決策</td>
+        <td><a href="philosophy-22-propositions.html#p7">P7</a> · <a href="philosophy-22-propositions.html#p15">P15</a></td>
+      </tr>
+      <tr>
+        <td><strong>Definition of Done</strong></td>
+        <td>~2003</td>
+        <td>Agile / 軟體</td>
+        <td>checklist 全綠才算「完成」，否則 in-progress</td>
+        <td><a href="philosophy-22-propositions.html#p13">P13</a></td>
+      </tr>
+      <tr>
+        <td><strong>CI/CD Quality Gates</strong></td>
+        <td>~2010</td>
+        <td>軟體交付</td>
+        <td>branch protection + automated check，FAIL 就擋 merge</td>
+        <td><a href="three-constitutions.html#constitution-2">第二憲法</a></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Stage-Gate（Robert Cooper, 1986）</h3>
+  <p>原本用在汽車業：每個 stage（concept / design / prototype / launch）結束都有一個 gate，由 cross-functional team 做 <strong>Go / Recycle / Kill</strong> 決策。Recycle 不是失敗，是「回去多做一輪再來」。</p>
+  <div class="bim-card">
+    <h4>MCP 對應</h4>
+    <p>MCP 的 PASS/FAIL 就是 stage-gate 的 Go/Recycle。FAIL 不是失敗，是「<strong>設計師收到資訊後選擇 A/B/C/D 路線</strong>」（見 <a href="spectrum-decision.html">光譜決策</a>）。MCP 提供 gate 機制，但<strong>不替設計師按按鈕</strong>。</p>
+  </div>
+
+  <h3>Definition of Done（Agile / Scrum）</h3>
+  <p>Agile 團隊在 sprint 開始前定義 DoD：一個 user story 要滿足哪些條件才算「真的做完」。寫完 code 不算完，要過 test + code review + deploy to staging + acceptance 才算。</p>
+  <div class="bim-card">
+    <h4>MCP 對應</h4>
+    <p>BIM 的 DoD 是 LOD（Level of Development）：LOD 200 / 300 / 400 各有自己的「該有什麼」。MCP 把「<strong>LOD 達成檢查</strong>」做成設計師按一個指令就能跑的批次工作流——對應 P13「MCP 是 0/1 執行器」的精神。</p>
+  </div>
+
+  <h3>CI/CD Quality Gates（DevOps）</h3>
+  <p>軟體交付管線常見：每個 commit 自動跑 lint + test + security scan，FAIL 就擋 merge。GitHub branch protection 是最簡單實作。Sonar / Codacy 等是進階版。</p>
+  <div class="bim-card">
+    <h4>MCP 對應</h4>
+    <p>MCP 提供的是「<strong>BIM 版 quality gate 的料</strong>」——採光、消防、碰撞、容積等檢查像 lint rule。差別是<strong>不擋 merge</strong>（沒有 BIM 360 級的 lock 機制，也<strong>不該擋</strong>，呼應第一憲法被動就緒）。設計師收到 FAIL，自己決定是否繼續。</p>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">為什麼三套都不直接搬</span>
+    <div class="empathy-quote-text">Stage-Gate 太硬（汽車業可以排 18 個月的 stage，建築設計流程不行）。<br>DoD 太軟（沒法律強制 LOD 300 就是 LOD 300）。<br>CI Quality Gate 太霸（會擋 merge 違反第一憲法）。<br><strong>MCP 取三者交集——「<em>gate 機制 + checklist + 自動檢查</em>」三件事的最小可行套用</strong>。</div>
+    <span class="empathy-quote-context">沒有銀彈。MCP 就是把這三套方法論的「<span class="lingo">適合設計師接受的姿態</span>」抽出來，做成 on-demand 工具。剩下「<strong>用不用 / 何時用 / 用了之後怎麼決策</strong>」全留給設計師。這是 P10「設計=解決問題」的延伸——MCP 不解決問題，<strong>顯現問題給人解</strong>。</span>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- Early Mover 時機 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="early-mover">
+  <div class="bim-section-eyebrow">SECTION 03 · Early Mover 時機證據</div>
+  <h2 class="bim-section-title">為什麼<span style="color:var(--accent);">這 24 個月</span>是切入點</h2>
+  <p class="bim-section-desc">BIM AI 化的標準件還沒到位，每個官方解決方案都還有 12–24 個月的空白期。這段空白期就是<strong>把 SOP 沉澱進 domain/ 目錄</strong>的機會窗。</p>
+
+  <figure class="bim-figure">
+    <img src="../_images/industry__s03__timeline.svg" alt="Early mover timeline for BIM AI and MCP adoption" width="1600" height="500" loading="lazy">
+  </figure>
+
+  <div class="em-timeline">
+    <div class="em-timeline-item">
+      <div class="em-timeline-date">2024-06</div>
+      <div class="em-timeline-title">IDS 1.0（buildingSMART）正式發布</div>
+      <div class="em-timeline-desc">Information Delivery Specification——把 BIM 模型的「<strong>該有什麼欄位、什麼值</strong>」做成可機讀規範。在此之前，LOD 全靠人讀文件。<br>👉 MCP 可以拿 IDS 當 input，但 IDS 本身<strong>不告訴你流程怎麼跑</strong>——這個空白要靠 MCP + domain SOP 補。</div>
+    </div>
+    <div class="em-timeline-item">
+      <div class="em-timeline-date">2024-11</div>
+      <div class="em-timeline-title">Procore 加入 AI Agents</div>
+      <div class="em-timeline-desc">Procore 把 AI agents 接到專案管理流程，但主要是<strong>施工管理</strong>側（RFI / submittal / safety），不碰 Revit 設計側的限制檢查。<br>👉 MCP 補的正是<strong>設計階段</strong>的 AI agent 空白。</div>
+    </div>
+    <div class="em-timeline-item">
+      <div class="em-timeline-date">2025-Q1</div>
+      <div class="em-timeline-title">Dassault Virtual Companions 公告（2025-2026）</div>
+      <div class="em-timeline-desc">Dassault 公告 CATIA 領域的 AI 協作角色（建築 / 工業設計），但主場域仍是航太 / 製造，建築 / BIM 是 secondary。<br>👉 MCP 在 Autodesk 生態保留專屬位置。</div>
+    </div>
+    <div class="em-timeline-item future">
+      <div class="em-timeline-date">2026-04</div>
+      <div class="em-timeline-title">Autodesk Assistant in Revit Tech Preview</div>
+      <div class="em-timeline-desc">Autodesk 自家 AI 助手剛進 Revit tech preview。功能主要是<strong>自然語言操作 Revit API</strong>（query / 簡單建模），<strong>不</strong>包含法規檢核 / domain SOP。<br>👉 MCP 與 Autodesk Assistant 是<strong>互補</strong>——前者管「規範與決策」，後者管「自然語言操作」。</div>
+    </div>
+    <div class="em-timeline-item future">
+      <div class="em-timeline-date">2027</div>
+      <div class="em-timeline-title">Revit 2027 內建 MCP（推測）</div>
+      <div class="em-timeline-desc">依 Autodesk 過去新功能 cadence 推算，內建 MCP 約 12 個月後到位。<br>👉 在那之前，<strong>domain SOP 的積累誰先誰贏</strong>——這是知識資產，不會因 Autodesk 內建 MCP 而失效。</div>
+    </div>
+  </div>
+
+  <div class="bim-card bim-card-accent">
+    <h4>「Early Mover」不是賭快，是賭<span style="color:var(--accent);">沉澱資產</span></h4>
+    <p>等 Autodesk 內建 MCP 後，工具層會被打平——但<strong>「採光 SOP / 消防 SOP / 容積 SOP」這些 domain 知識</strong>不會。沉澱在自家 <code>domain/</code> 目錄的 SOP 是<strong>事務所專屬資產</strong>，跨工具可遷移。</p>
+    <p>本專案 <strong>40 個 domain/*.md</strong> 就是答案的雛形。</p>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 進階閱讀 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="references">
+  <div class="bim-section-eyebrow">SECTION 04 · 外部資料源</div>
+  <h2 class="bim-section-title">所有引用 URL · 一站集中</h2>
+  <p class="bim-section-desc">本頁所有數據與引用的原始來源。可直接拿來支援自家事務所的內部簡報或業主提案。</p>
+
+  <div class="further-reading">
+    <div class="further-reading-label">三大數據 · 原始研究</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Paper</span><a href="https://scirp.org/html/4305.html" target="_blank">Software Defect Reduction Top-10 List — Boehm &amp; Basili</a>
+          <div class="fr-desc">100× cost growth 的源頭研究。1996 年 IEEE Computer 上的 short paper，後續被引用上千次。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Industry</span><a href="https://www.united-bim.com/how-revit-clash-coordination-reduces-costly-rework-in-construction-projects/" target="_blank">How Revit Clash Coordination Reduces Costly Rework — united-bim</a>
+          <div class="fr-desc">70% 返工可避免的統計來源。含案例 ROI 計算。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Industry</span><a href="https://www.nexoradesign.net/post/the-hidden-engineering-problem-killing-mep-projects-coordination-failures-causes-impacts-and-pr" target="_blank">The Hidden Engineering Problem Killing MEP Projects — Nexora Design</a>
+          <div class="fr-desc">$15-25K 2 吋誤差直接成本的詳細拆解。MEP 協調失誤的因/果/解。</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">三套方法論 · 原典</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Method</span><a href="https://www.stage-gate.com/blog/the-stage-gate-model-an-overview/" target="_blank">The Stage-Gate Model — An Overview (Robert Cooper)</a>
+          <div class="fr-desc">Stage-Gate 創始人本人寫的官方總覽。Go/Recycle/Kill 決策框架。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Method</span><a href="https://www.scrum.org/resources/what-definition-done" target="_blank">What is a Definition of Done? — Scrum.org</a>
+          <div class="fr-desc">Scrum 官方對 DoD 的標準定義，含 sample checklist。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Method</span><a href="https://www.infoq.com/articles/pipeline-quality-gates/" target="_blank">Implementing Pipeline Quality Gates — InfoQ</a>
+          <div class="fr-desc">CI/CD quality gate 的實務指南，含工具對比。</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">Early Mover · 時機證據</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Spec</span><a href="https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/" target="_blank">Information Delivery Specification (IDS) — buildingSMART</a>
+          <div class="fr-desc">2024-06 官方發布的 BIM 模型欄位規範。MCP 可拿 IDS 作為 input 之一。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">News</span><a href="https://siliconangle.com/2024/11/20/procore-add-ai-agents-to-its-construction-management-software-platform/" target="_blank">Procore Adds AI Agents to Construction Management Platform — SiliconAngle</a>
+          <div class="fr-desc">2024-11 Procore AI agents 發布報導。施工管理側的 AI 化證據。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Keynote</span><a href="https://www.nvidia.com/en-us/on-demand/session/gtc26-s81834/" target="_blank">Dassault Virtual Companions — NVIDIA GTC 2026</a>
+          <div class="fr-desc">Dassault 在 GTC 2026 演講中提出的 Virtual Companions 路線圖。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Release</span><a href="https://www.autodesk.com/blogs/aec/2026/04/07/whats-new-in-revit-2027/" target="_blank">What's New in Revit 2027 — Autodesk Blog</a>
+          <div class="fr-desc">Revit 2027 新功能公告。內建 MCP 尚未在 2027 出現，推測在 2028。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Preview</span><a href="https://www.autodesk.com/blogs/aec/2026/04/22/autodesk-assistant-in-revit-tech-preview/" target="_blank">Autodesk Assistant in Revit Tech Preview — Autodesk Blog</a>
+          <div class="fr-desc">Autodesk 自家 AI 助手的 tech preview 公告。功能定位是自然語言操作 Revit。</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="philosophy-22-propositions.html" class="bim-footer-btn">← 22 命題</a>
+    <a href="three-constitutions.html" class="bim-footer-btn">三憲法</a>
+    <a href="spectrum-decision.html" class="bim-footer-btn primary">光譜決策 →</a>
+    <a href="../index.html" class="bim-footer-btn">回 BIM_MCP 首頁</a>
+  </div>
+  <p>BIM_MCP · reference / industry-evidence</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-05-18 · 為 5/23 月小聚場後追加業界證據獨立頁，集中三大數據與外部 URL。</p>
+</footer>
+
+<script src="../_shared.js"></script>
+<script>initAll();</script>
+</body>
+</html>

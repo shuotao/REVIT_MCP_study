@@ -1,0 +1,472 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>光譜決策框架 A/B/C/D · BIM_MCP</title>
+<meta property="og:title" content="MCP FAIL 之後：A/B/C/D 光譜決策框架">
+<meta property="og:description" content="MCP 給的是 0/1，設計師走的是光譜。FAIL 不是死刑，是 A/B/C/D 四條路線的決策起點。含採光、排煙、日本 sample 三組實務案例。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../_nav.css">
+<style>
+  /* 本頁特化：A/B/C/D 決策樹卡片 */
+  .abcd-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--gap-md);
+    margin: var(--gap-lg) 0;
+  }
+  .abcd-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius-md);
+    padding: 22px 26px;
+    position: relative;
+  }
+  .abcd-card.option-d {
+    border-left-color: var(--warn);
+    background: var(--warn-bg);
+  }
+  .abcd-letter {
+    position: absolute;
+    top: -14px; left: 18px;
+    width: 32px; height: 32px;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: var(--font-tech);
+    font-size: 17px;
+    font-weight: 800;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .abcd-card.option-d .abcd-letter {
+    background: var(--warn);
+  }
+  .abcd-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 6px 0 12px 0;
+  }
+  .abcd-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .abcd-cost {
+    font-family: var(--font-tech);
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+  }
+  .abcd-cost strong { color: var(--text-primary); }
+
+  /* MCP vs 設計師對比卡 */
+  .vs-table {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0;
+    margin: var(--gap-lg) 0;
+    align-items: stretch;
+  }
+  .vs-side {
+    padding: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+  }
+  .vs-side.left {
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    border-right: none;
+  }
+  .vs-side.right {
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    border-left: none;
+    background: var(--accent-bg);
+    border-color: var(--accent-border);
+  }
+  .vs-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    font-family: var(--font-tech);
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 2px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .vs-side h4 {
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: var(--gap-sm);
+  }
+  .vs-side.right h4 { color: var(--accent); }
+  .vs-side ul {
+    list-style: none;
+    padding: 0;
+  }
+  .vs-side li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .vs-side li:last-child { border-bottom: none; }
+
+  /* Hero quote 強化 */
+  .hero-quote {
+    margin: var(--gap-xl) 0;
+    padding: var(--gap-xl) var(--gap-lg);
+    text-align: center;
+    border-top: 1px solid var(--border-strong);
+    border-bottom: 1px solid var(--border-strong);
+  }
+  .hero-quote-text {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text-primary);
+    letter-spacing: 0;
+    max-width: 800px;
+    margin: 0 auto var(--gap-md) auto;
+  }
+  .hero-quote-text .accent { color: var(--accent); }
+  .hero-quote-attr {
+    font-family: var(--font-tech);
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 900px) {
+    .abcd-grid { grid-template-columns: 1fr; }
+    .vs-table { grid-template-columns: 1fr; }
+    .vs-side.left { border-radius: var(--radius-md) var(--radius-md) 0 0; border-right: 1px solid var(--border); border-bottom: none; }
+    .vs-side.right { border-radius: 0 0 var(--radius-md) var(--radius-md); border-left: 1px solid var(--border); border-top: none; }
+    .vs-divider { padding: 8px 0; border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+    .hero-quote-text { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <a href="../index.html#reference" style="color:var(--text-secondary);border-bottom:none;">reference</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">光譜決策框架</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="industry-evidence.html" class="bim-topnav-btn">← 業界證據</a>
+    <a href="three-constitutions.html" class="bim-topnav-btn">三憲法</a>
+    <a href="philosophy-22-propositions.html" class="bim-topnav-btn">22 命題</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">SPECTRUM DECISION <span class="accent">A / B / C / D</span></div>
+  <h1 class="bim-hero-title">MCP 給 0/1<br>設計師走<span class="accent">光譜</span></h1>
+  <p class="bim-hero-sub">MCP 回 PASS / FAIL 就好。FAIL <strong>不是死刑</strong>——它是<strong>四條路線的決策起點</strong>。本頁定義 A/B/C/D 框架，套到採光 / 排煙兩個典型 FAIL 場景，並從本場日本 sample 模型 demo 跑出的實際 FAIL 案例庫出發。</p>
+</header>
+<figure style="max-width:1100px;margin:32px auto 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:#000;">
+  <img src="../_images/spectrum__hero__01-vs-spectrum.svg" alt="Binary decision versus spectrum decision" width="1600" height="900" style="display:block;width:100%;height:auto;">
+</figure>
+
+<!-- ============================================ -->
+<!-- 為什麼需要框架 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="why-framework">
+  <div class="bim-section-eyebrow">SECTION 01 · 兩者角色截然不同</div>
+  <h2 class="bim-section-title">MCP vs 設計師 — 不同的工作模式</h2>
+  <p class="bim-section-desc">MCP 是 <strong>執行器</strong>，回答「達標／不達標」。設計師是<strong>決策者</strong>，回答「<em>能接受嗎？怎麼修？</em>」。把這兩種模式混淆是大多數「AI 取代設計師」恐慌的源頭。</p>
+
+  <div class="vs-table">
+    <div class="vs-side left">
+      <h4>MCP（執行器）</h4>
+      <ul>
+        <li><strong>PASS / FAIL</strong>（二元）</li>
+        <li>0/1 結果，無灰色地帶</li>
+        <li>硬如鋼——法規條文的字面執行</li>
+        <li>對應 <a href="philosophy-22-propositions.html#p13">P13 MCP 是 0/1 執行器</a></li>
+        <li>不負責推理「<span class="lingo">退一步海闊天空</span>」</li>
+      </ul>
+    </div>
+    <div class="vs-divider">VS</div>
+    <div class="vs-side right">
+      <h4>設計師（決策者）</h4>
+      <ul>
+        <li>「<strong>能接受嗎？怎麼修？</strong>」（光譜）</li>
+        <li>維度與漸層的考量</li>
+        <li>win-win strategy，找最少退讓</li>
+        <li>對應 <a href="philosophy-22-propositions.html#p11">P11 光譜在設計師</a></li>
+        <li>負責整合美學 / 法規 / 業主期待</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="bim-card bim-card-accent">
+    <h4>互不替代</h4>
+    <p>把 MCP 的 0/1 結果硬塞「決策建議」（如「我建議您改成 1.2 m」）= <strong>越界</strong>。設計師收到 FAIL 後，<strong>自己</strong>選 A/B/C/D 路線。MCP 只負責清楚說「未達 X 標準，差 Y 數值」。剩下交給人。</p>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- A/B/C/D 框架 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="abcd-framework">
+  <div class="bim-section-eyebrow">SECTION 02 · 通用決策框架</div>
+  <h2 class="bim-section-title">FAIL 之後 · 四條路線</h2>
+  <p class="bim-section-desc">不管是採光、消防、容積還是停車，<strong>FAIL 之後的決策都收斂到同一組四選一</strong>。框架是 A 改設計 / B 接受現狀 / C 改定義 / D 跳出 AI 找人。</p>
+
+  <figure class="bim-figure">
+    <img src="../_images/spectrum__s02__decision-tree.svg" alt="A fail result branching to A B C D decision paths" width="1200" height="800" loading="lazy">
+  </figure>
+
+  <div class="abcd-grid">
+    <div class="abcd-card">
+      <div class="abcd-letter">A</div>
+      <div class="abcd-title">改設計（直接修）</div>
+      <div class="abcd-desc">擴大窗、加開排煙窗、改走管路徑、加柱⋯⋯把 model 改到 PASS。<strong>最直觀</strong>，但要評估連動成本（結構 / 立面 / MEP 衝突）。</div>
+      <div class="abcd-cost">COST：<strong>連動評估必跑</strong> · 適用：早期階段 / 衝突項少</div>
+    </div>
+    <div class="abcd-card">
+      <div class="abcd-letter">B</div>
+      <div class="abcd-title">接受現狀（不改）</div>
+      <div class="abcd-desc">承認「法規這樣寫，沒得改」。把 FAIL 留下 紀錄/，作為<strong>已知的不達標</strong>項繼續推進。需要主管簽字 + 業主同意。</div>
+      <div class="abcd-cost">COST：<strong>需要文件背書</strong> · 適用：合規空間極小 / 後續審查可商榷</div>
+    </div>
+    <div class="abcd-card">
+      <div class="abcd-letter">C</div>
+      <div class="abcd-title">改定義（改房間用途）</div>
+      <div class="abcd-desc">把「臥室」改成「儲藏室」就不用查採光、把「居室」改成「非居室」就不用查排煙。<strong>合法繞道</strong>，但若實質用途仍是臥室，業主可能反對。</div>
+      <div class="abcd-cost">COST：<strong>業主接受度成本</strong> · 適用：定義有彈性 / 業主可協商</div>
+    </div>
+    <div class="abcd-card option-d">
+      <div class="abcd-letter">D</div>
+      <div class="abcd-title">跳出 AI（找人腦力激盪）</div>
+      <div class="abcd-desc">A/B/C 都卡死。<strong>AI 認輸</strong>——找老闆、業主、結構技師、消防顧問開會。對應 <a href="philosophy-22-propositions.html#p12">P12 死局求助</a>。<strong>這是好事</strong>，不是失敗。</div>
+      <div class="abcd-cost">COST：<strong>時間成本，但避免錯路</strong> · 適用：跨領域衝突 / 法規與業主期待矛盾</div>
+    </div>
+  </div>
+
+  <figure class="bim-figure quote-backdrop" aria-hidden="true">
+    <img src="../_images/spectrum__quote__resign-king.svg" alt="" width="1600" height="600" loading="lazy">
+  </figure>
+  <div class="hero-quote">
+    <div class="hero-quote-text">「AI 認輸」<span class="accent">是好事</span>，不是失敗。<br>它讓<strong>對的問題</strong>到達<strong>對的人</strong>。</div>
+    <div class="hero-quote-attr">— 第三輪論述對 P12 的詮釋 · 2026-05-18</div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 採光案例 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="case-daylight">
+  <div class="bim-section-eyebrow">CASE 01 · 採光 FAIL</div>
+  <h2 class="bim-section-title">套例 1：採光 FAIL（建技 §41）</h2>
+  <p class="bim-section-desc">居室採光面積比 ≥ 1/8（≈ 12.5%）。某居室實測 9.5%，FAIL。<strong>同一個 FAIL，四條路線</strong>。</p>
+
+  <div class="abcd-grid">
+    <div class="abcd-card">
+      <div class="abcd-letter">A</div>
+      <div class="abcd-title">加大窗</div>
+      <div class="abcd-desc">把 1.5×1.2 m 的窗放大到 1.8×1.5 m，採光比拉到 13.2% PASS。<br><strong>連動風險</strong>：(1) 結構柱距是否允許？(2) 立面節奏是否被打破？(3) 增加熱負荷影響空調設計？</div>
+      <div class="abcd-cost">PASS 路徑：直接 · COST：結構 / 立面 / 空調連動</div>
+    </div>
+    <div class="abcd-card">
+      <div class="abcd-letter">B</div>
+      <div class="abcd-title">接受不達標</div>
+      <div class="abcd-desc">寫進<strong>不達標項紀錄</strong>，送業主與主管簽字。若送審時審查單位可商榷（如鄰棟距離特殊），可能放行。<br><strong>實務上很少走</strong>——大多數情況審查不會放。</div>
+      <div class="abcd-cost">PASS 路徑：審查放行 · COST：文件 + 風險</div>
+    </div>
+    <div class="abcd-card">
+      <div class="abcd-letter">C</div>
+      <div class="abcd-title">改用途為「儲藏室」</div>
+      <div class="abcd-desc">儲藏室<strong>不是居室</strong>，不適用 §41 採光要求。FAIL 自動消失。<br><strong>業主接受度</strong>：若實質是讓人睡的房間，業主會反對 → 不行。若是真的當儲藏 → 可行。</div>
+      <div class="abcd-cost">PASS 路徑：定義變更 · COST：業主談判</div>
+    </div>
+    <div class="abcd-card option-d">
+      <div class="abcd-letter">D</div>
+      <div class="abcd-title">跳出找人</div>
+      <div class="abcd-desc">業主堅持要當臥室，結構不允許大窗，立面也不能改 → 找<strong>建築主管 + 業主</strong>三方會議。可能性：天窗、採光井、把房間挪到棟內別處。<br>對應 P12「死局求助」。</div>
+      <div class="abcd-cost">PASS 路徑：團隊決策 · COST：會議時間，但避免錯方向</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 排煙案例 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="case-smoke">
+  <div class="bim-section-eyebrow">CASE 02 · 排煙 FAIL</div>
+  <h2 class="bim-section-title">套例 2：排煙 FAIL（建技 §101 / 消防 §188）</h2>
+  <p class="bim-section-desc">某居室開口距天花 &lt; 80 cm 的有效面積不足，FAIL。同一個 A/B/C/D 框架，<strong>套上去動作完全一致</strong>——這就是框架的普適性。</p>
+
+  <div class="abcd-grid">
+    <div class="abcd-card">
+      <div class="abcd-letter">A</div>
+      <div class="abcd-title">加開排煙窗</div>
+      <div class="abcd-desc">在天花下 80 cm 範圍內加一扇開放式排煙窗。<br><strong>連動</strong>：立面是否容納？是否需要電動開啟機構？</div>
+      <div class="abcd-cost">PASS 路徑：硬體增加 · COST：機構 + 立面</div>
+    </div>
+    <div class="abcd-card">
+      <div class="abcd-letter">B</div>
+      <div class="abcd-title">改裝機械排煙</div>
+      <div class="abcd-desc">放棄自然排煙窗路線，改裝<strong>機械排煙系統</strong>（與 B「接受」不同——這算 A 的變體：改設計）。法規允許替代手段。<br><strong>連動</strong>：MEP 設備量、電力、維護成本。</div>
+      <div class="abcd-cost">PASS 路徑：替代手段 · COST：機電 + 長期維護</div>
+    </div>
+    <div class="abcd-card">
+      <div class="abcd-letter">C</div>
+      <div class="abcd-title">改用途為非居室</div>
+      <div class="abcd-desc">機械室 / 儲藏室 / 走廊都<strong>不算居室</strong>，不適用排煙要求。能不能改要看實質用途與業主期待。</div>
+      <div class="abcd-cost">PASS 路徑：定義變更 · COST：業主談判</div>
+    </div>
+    <div class="abcd-card option-d">
+      <div class="abcd-letter">D</div>
+      <div class="abcd-title">跳出找人</div>
+      <div class="abcd-desc">A/B/C 都被擋（業主不允用途變更、立面不允加窗、預算不允機械排煙）→ 找<strong>消防顧問 + 業主</strong>重新評估全棟排煙策略，可能要改平面格局。</div>
+      <div class="abcd-cost">PASS 路徑：團隊決策 · COST：可能改格局</div>
+    </div>
+  </div>
+
+  <div class="bim-card bim-card-accent">
+    <h4>框架的普適性 · 已被驗證</h4>
+    <p>採光與排煙是兩個完全不同的法規條文，但 FAIL 之後的決策路線<strong>結構一致</strong>。這意味框架可以推廣到：容積率 FAIL、停車位數 FAIL、走廊寬度 FAIL、樓梯淨高 FAIL⋯⋯所有 MCP 給的 0/1 結果，都用同一個 A/B/C/D 收斂。</p>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 實務案例庫 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="case-library">
+  <div class="bim-section-eyebrow">CASE LIBRARY · 5/18 demo 模型實測</div>
+  <h2 class="bim-section-title">本場日本 sample 模型實測 FAIL</h2>
+  <p class="bim-section-desc">5/18 demo 用 <code>サンプル住宅集合.rvt</code> 跑出的真實 FAIL，作為框架的活體範例。<strong>不是教科書例題</strong>——是實際模型跑出來的。</p>
+
+  <h3>店舗 26 排煙 FAIL（建技 §101）</h3>
+  <p>1F 店舗 26 經 <code>check_smoke_exhaust_windows</code> 跑出：「有效開口面積不足，FAIL」。套 A/B/C/D：</p>
+  <table>
+    <thead>
+      <tr><th style="width:8%;">路線</th><th>具體做法</th><th>業主／法規 / 美學阻力</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>A</strong></td><td>店舗面外的玻璃櫥窗改一部分為排煙開放窗</td><td>會打斷店舗店面節奏，業主可能反對</td></tr>
+      <tr><td><strong>A'</strong></td><td>裝機械排煙</td><td>店舗預算不一定接受長期電費</td></tr>
+      <tr><td><strong>C</strong></td><td>把該空間改成「事務空間（非營業）」？</td><td>業主用途不允</td></tr>
+      <tr><td><strong>D</strong></td><td>找消防顧問與業主三方評估</td><td>建議走 D，因 A/A'/C 都有明顯阻力</td></tr>
+    </tbody>
+  </table>
+
+  <h3>駐車場 27 採光 FAIL（建技 §41 — 若該空間定義為居室）</h3>
+  <p><code>get_room_daylight_info</code> 顯示駐車場 27 採光比僅 4.5%。但這裡有個<strong>關鍵釐清</strong>——駐車場本來就不適用居室採光要求。實況：<strong>tool 的 raw data 是對的，但<a href="three-constitutions.html#constitution-2">第二憲法 Domain Method Compliance</a>要求查 domain SOP 確認房間是否需檢核</strong>。</p>
+  <div class="bim-card bim-card-warn">
+    <h4>FAIL 不一定要走 A/B/C/D</h4>
+    <p>有時 FAIL 是<strong>檢核被誤用</strong>（用居室標準檢核非居室）。第二憲法要求先過 domain SOP 確認「該不該檢」——這比 A/B/C/D 早一步。框架的應用順序是：<br>1️⃣ 第一憲法 — 設計師問了才檢<br>2️⃣ 第二憲法 — 用對 domain SOP 檢<br>3️⃣ A/B/C/D — 真的 FAIL 才開始選路線</p>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">為什麼要做這個框架？因為大多數設計師看到 MCP 給 FAIL 的第一反應是「<strong>糟糕，怎麼辦</strong>」——而不是「<strong>選哪條路線</strong>」。框架把模糊的焦慮變成清楚的四選一，<strong>恢復決策權給人</strong>。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">收到 FAIL → 30 秒內把 A/B/C/D 全部列出來（不是評估，是<strong>列出</strong>）。<br>再用 5 分鐘檢查每條路線的<strong>連動成本與業主接受度</strong>。<br>若三條都被擋，<strong>不要硬撐</strong>——走 D，找人。對應 P12「死局求助」是<strong>主動動作</strong>不是被動投降。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Four-Path Decision Framework · Failure Reframing · Cross-Domain Applicability · Human-in-Loop Escalation</div>
+    <div class="how-tech-label">CHECKLIST</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>FAIL 訊息是否清楚說明<strong>差什麼數值</strong>（不只 PASS/FAIL）？</li>
+        <li>設計師是否被訓練過 A/B/C/D 框架（而不是只想到 A）？</li>
+        <li>選 D 是否被視為<strong>正常動作</strong>（不是「無能」）？</li>
+        <li>連動成本評估是否有<strong>簡單檢核表</strong>（不必全跑模擬）？</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">為什麼 D 最被低估</span>
+    <div class="empathy-quote-text">大多數人覺得「<em>找人</em>」=「<em>我搞不定</em>」=「<em>能力差</em>」。<br>真實情況相反：<strong>越資深的設計師，越早觸發 D</strong>。<br>因為他們知道<strong>有些問題不該獨自背</strong>。</div>
+    <span class="empathy-quote-context">這也是為什麼 <span class="lingo">junior 工程師</span> 容易陷在 A 路線，硬改設計到天荒地老 → 最後 schedule 炸了。senior 工程師看到「業主期待 + 法規 + 結構」三方衝突就直接 escalate，把問題送到對的決策層。<strong>D 不是失敗，是專業判斷</strong>。MCP 把它寫進框架，是為了把這個資深經驗變成<strong>每個設計師都能用的</strong>標準動作。</span>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 進階閱讀 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="references">
+  <div class="bim-section-eyebrow">SECTION 05 · 延伸閱讀</div>
+  <h2 class="bim-section-title">延伸閱讀</h2>
+
+  <div class="further-reading">
+    <div class="further-reading-label">理論基礎</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Internal</span><a href="philosophy-22-propositions.html#p11">P11 光譜在設計師</a>
+          <div class="fr-desc">為什麼設計師走的是維度與漸層，而不是 0/1。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Internal</span><a href="philosophy-22-propositions.html#p13">P13 MCP 是 0/1 執行器</a>
+          <div class="fr-desc">為什麼 MCP 不應該替設計師做決策。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Internal</span><a href="philosophy-22-propositions.html#p12">P12 死局求助</a>
+          <div class="fr-desc">D 路線的命題本源——AI 認輸是好事。</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">業界對標</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Method</span><a href="https://www.stage-gate.com/blog/the-stage-gate-model-an-overview/" target="_blank">Stage-Gate · Go/Recycle/Kill</a>
+          <div class="fr-desc">A/B/C/D 框架的概念近親——Stage-Gate 的三元決策也是「執行 vs 決策」分離。</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Industry</span><a href="industry-evidence.html#stat-money">$15-25K 案例</a>
+          <div class="fr-desc">為什麼 D 路線值得花會議時間——後期返工成本比會議貴 100 倍。</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="industry-evidence.html" class="bim-footer-btn">← 業界證據</a>
+    <a href="three-constitutions.html" class="bim-footer-btn">三憲法</a>
+    <a href="philosophy-22-propositions.html" class="bim-footer-btn primary">22 命題</a>
+    <a href="../index.html" class="bim-footer-btn">回 BIM_MCP 首頁</a>
+  </div>
+  <p>BIM_MCP · reference / spectrum-decision</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-05-18 · 為 5/23 月小聚場後追加光譜決策獨立頁，套採光 + 排煙兩案例證明框架普適性。</p>
+</footer>
+
+<script src="../_shared.js"></script>
+<script>initAll();</script>
+</body>
+</html>

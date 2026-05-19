@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 600" role="img" aria-label="Tool Domain Skill concentric frame">
+  <rect width="1600" height="600" fill="#000"/>
+  <g transform="translate(800 290)" fill="none" stroke="#fff" stroke-width="3">
+    <circle r="80" fill="#fff"/>
+    <circle r="170"/>
+    <circle r="260"/>
+    <line x1="0" y1="0" x2="330" y2="-150"/>
+    <path d="M330 -150 l-42 -6 l22 36z" fill="#fff"/>
+  </g>
+  <g font-family="JetBrains Mono,Consolas,monospace" text-anchor="middle">
+    <text x="800" y="300" fill="#000" font-size="28">TOOL</text>
+    <text x="800" y="116" fill="#fff" font-size="24">DOMAIN</text>
+    <text x="800" y="40" fill="#60a5fa" font-size="24">SKILL</text>
+    <text x="800" y="540" fill="#fff" font-size="28" letter-spacing="3">ORCHESTRATION / KNOWLEDGE / EXECUTION</text>
+  </g>
+</svg>

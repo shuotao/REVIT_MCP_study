@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Nine troubleshooting scenarios">
+  <rect width="1600" height="900" fill="#000"/>
+  <g transform="translate(535 170)" stroke="#fff" stroke-width="3" fill="none">
+    <rect x="0" y="0" width="150" height="150"/><rect x="190" y="0" width="150" height="150"/><rect x="380" y="0" width="150" height="150"/>
+    <rect x="0" y="190" width="150" height="150"/><rect x="190" y="190" width="150" height="150"/><rect x="380" y="190" width="150" height="150"/>
+    <rect x="0" y="380" width="150" height="150"/><rect x="190" y="380" width="150" height="150"/><rect x="380" y="380" width="150" height="150"/>
+  </g>
+  <g stroke-width="10" stroke-linecap="round">
+    <g stroke="#ef4444"><line x1="575" y1="210" x2="645" y2="280"/><line x1="645" y1="210" x2="575" y2="280"/><line x1="765" y1="210" x2="835" y2="280"/><line x1="835" y1="210" x2="765" y2="280"/><line x1="955" y1="210" x2="1025" y2="280"/><line x1="1025" y1="210" x2="955" y2="280"/><line x1="575" y1="400" x2="645" y2="470"/><line x1="645" y1="400" x2="575" y2="470"/><line x1="765" y1="400" x2="835" y2="470"/><line x1="835" y1="400" x2="765" y2="470"/></g>
+    <g stroke="#60a5fa"><path d="M960 440 l28 28 l52 -70"/><path d="M580 630 l28 28 l52 -70"/><path d="M770 630 l28 28 l52 -70"/><path d="M960 630 l28 28 l52 -70"/></g>
+  </g>
+  <text x="800" y="780" fill="#fff" font-family="JetBrains Mono,Consolas,monospace" font-size="32" text-anchor="middle" letter-spacing="3">5 CLASSIC + 4 LIVE FIXES = 9 SCENARIOS</text>
+</svg>

@@ -1,0 +1,470 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCP 三憲法 · BIM_MCP</title>
+<meta property="og:title" content="MCP 三憲法：被動就緒 / Tool Call Data Honesty / Domain Method Compliance">
+<meta property="og:description" content="MCP 系統設計的三條憲法級規範，超越所有 Skill / Domain / subagent。含實際違規案例與正確做法對比。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../_nav.css">
+</head>
+<body>
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <a href="philosophy-22-propositions.html" style="color:var(--text-secondary);border-bottom:none;">22 命題</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">三憲法</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="philosophy-22-propositions.html" class="bim-topnav-btn">← 22 命題</a>
+    <a href="../index.html" class="bim-topnav-btn">回首頁</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">CONSTITUTIONAL RULES <span class="accent">3 條</span></div>
+  <h1 class="bim-hero-title">MCP <span class="accent">三憲法</span><br>超越所有 Skill / Domain / subagent</h1>
+  <p class="bim-hero-sub">三條憲法級規範定義 MCP × Revit 人機協作的底線。這些規則 <strong>不被任何 Skill 覆蓋</strong>——即使 Skill body 看起來允許違反，憲法仍然優先。每條都附實際違規案例與正確做法對比。</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">1</div>
+      <div class="data-emph-label">被動就緒</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">何時介入</div>
+    </div>
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">2</div>
+      <div class="data-emph-label">Tool Call Data Honesty</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">數據從哪來</div>
+    </div>
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">3</div>
+      <div class="data-emph-label">Domain Method Compliance</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">算法從哪來</div>
+    </div>
+  </div>
+</header>
+<figure style="max-width:1100px;margin:32px auto 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:#000;">
+  <img src="../_images/three-const__hero__pyramid.svg" alt="Three constitutions pyramid" width="1600" height="900" style="display:block;width:100%;height:auto;">
+</figure>
+
+<!-- ============================================ -->
+<!-- 第一憲法：被動就緒（P8） -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="constitution-1">
+  <div class="bim-section-eyebrow">CONSTITUTION I · 何時介入</div>
+  <h2 class="bim-section-title">第一憲法：被動就緒</h2>
+  <p class="bim-section-desc">MCP 限制顯現的正確姿態是「<strong>被動</strong>」——等設計師問才回應。主動跳出限制會壓死美學想像力。</p>
+  <figure class="bim-figure">
+    <img src="../_images/three-const__c1__passive-vs-active.svg" alt="Active automation interrupts the work loop while passive automation is invited" width="800" height="400" loading="lazy">
+  </figure>
+
+  <h3>使用者原文（2026-05-18 第二輪論述）</h3>
+  <div class="user-quote">
+    限制應該不是主動，而是在設計者製作工作的過程中⋯⋯在尚未到達<strong>階段完成點</strong>的時候，如果有過多的資訊進入或來討論，會造成設計者的<strong>思緒上陷入迴圈打轉</strong>，而無法完成工作！⋯⋯因此<strong>主動跳出限制我覺得很怪，被動反倒是個好的狀態</strong>。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+
+  <h3>技術上可以「主動」 vs 設計上選擇「不做」</h3>
+  <p>技術上 MCP 完全可以接 Webhook、watcher、可以做 fail-fast。但<strong>「能做」不等於「該做」</strong>——主動跳出會打斷設計師的「思維落地」過程。</p>
+
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card bim-card-bad">
+      <h4 style="color:var(--bad);">❌ 違規做法</h4>
+      <p>MCP 自動 watcher 偵測「設計師畫了第三道牆」→ 立刻彈窗：「⚠ 警告：此走廊寬度 110cm，違反 §62 規定 ≥120cm。」</p>
+      <p style="font-size:13px;color:var(--text-muted);">問題：設計師才剛畫，連完整空間都還沒構思完，AI 就硬塞限制 → 思緒被打斷，創意空間崩塌。</p>
+    </div>
+    <div class="bim-card bim-card-ok">
+      <h4 style="color:var(--ok);">✓ 正確做法</h4>
+      <p>設計師完成 1F 平面後明示：「現在檢查 1F 是否符合 LOD 300 交付。」MCP 才介入跑批次檢核。</p>
+      <p style="font-size:13px;color:var(--text-muted);">原則：等設計師<strong>到達階段完成點</strong>（<a href="philosophy-22-propositions.html#p7">P7</a>）並<strong>主動 invoke</strong> 才行動。</p>
+    </div>
+  </div>
+
+  <h3>業界對標：Fail-Fast 在另一場域</h3>
+  <p><a href="https://martinfowler.com/ieeeSoftware/failFast.pdf" target="_blank">Martin Fowler 的 Fail-Fast Architecture</a> 在軟體工程是好設計（程式有 bug 越早報越好）。但搬到「設計師創作過程」就是<strong>噪音</strong>——設計師的思維落地比 bug 重要。<strong>場域不同、要求不同</strong>。</p>
+
+  <div class="bim-card bim-card-accent">
+    <h4>Rule of Thumb</h4>
+    <p style="font-size:16px;font-style:italic;"><em>「能做」與「該做」是兩個問題。技術可以主動，設計選擇不要。</em></p>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">技術上 MCP 完全可以接 Webhook、watcher、可以做 fail-fast。但<strong>「能做」不等於「該做」</strong>——主動跳出會打斷設計師的「思維落地」過程。這是場域決定的姿態，不是技術限制。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">所有 MCP 工具設計為 <code>request-response</code> 而非 <code>event-push</code>。沒有 watcher、沒有 polling、沒有自動觸發。設計師明示叫，工具才動。違反此原則的工具一律不收（呼應 Branch C 工具設計三問）。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Passive On-Demand Activation · Anti-Fail-Fast for Creative Domains · No Watchers · No Polling · No Auto-Trigger</div>
+    <div class="how-tech-label">CHECKLIST</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>每個 MCP tool 是否都是「呼叫才動」？</li>
+        <li>沒有 cron / watcher / event listener 主動觸發？</li>
+        <li>UI 上沒有彈窗 / popup / 中斷式 notification？</li>
+        <li>使用者沒打字之前，MCP 全程靜音？</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">場域決定姿態</span>
+    <div class="empathy-quote-text">IDE 寫 code 時 ESLint 紅線越早越好。<br>但設計師畫第一筆時跳「<em>⚠ 走廊寬度違反 §62</em>」會讓他想砸電腦。<br><strong>同一個 fail-fast 機制，在不同場域是好設計或是公敵</strong>。</div>
+    <span class="empathy-quote-context">這也是為什麼很多 BIM plug-in 死掉——它們是工程師寫給工程師的，把「<span class="lingo">即時警告</span>」當功能賣，但設計師需要的是「<strong>等我問了再說</strong>」的尊重。MCP 把「不打斷」當設計原則，不是次要 UX。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀 · 第一憲法</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Paper</span><a href="https://martinfowler.com/ieeeSoftware/failFast.pdf" target="_blank">Fail-Fast Architecture — Martin Fowler</a>
+          <span class="fr-desc">軟體工程的 fail-fast 經典——第一憲法的反對標物（同樣機制在不同場域有不同道德性）</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Book</span>Mihaly Csikszentmihalyi — <em>Flow: The Psychology of Optimal Experience</em>
+          <span class="fr-desc">「Flow 心流」理論——設計師思緒被打斷的代價可量化（恢復需 23 分鐘）</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Book</span>Cal Newport — <em>Deep Work</em>
+          <span class="fr-desc">論「中斷文化」摧毀知識工作者的論述——P8 的職場心理學基礎</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="philosophy-22-propositions.html#p8">命題 P8 完整論述</a>
+          <span class="fr-desc">第一憲法的源頭命題</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 第二憲法：Tool Call Data Honesty -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="constitution-2">
+  <div class="bim-section-eyebrow">CONSTITUTION II · 數據從哪來</div>
+  <h2 class="bim-section-title">第二憲法：Tool Call Data Honesty</h2>
+  <p class="bim-section-desc"><strong>Scope</strong>：適用每一次 tool use——任何 MCP server（Revit / Rhino / AutoCAD / 未來）、任何 function calling、任何外部資料源——<strong>無論當下啟用哪個 Skill / Domain / subagent</strong>。這條規則 NOT 被 Skill-specific 指令覆蓋。</p>
+  <figure class="bim-figure">
+    <img src="../_images/three-const__c2__tool-vs-prior.svg" alt="Concrete data comes from tool calls instead of model prior knowledge" width="800" height="400" loading="lazy">
+  </figure>
+
+  <h3>核心不變式</h3>
+  <p>輸出中的每個具體資料——識別碼（6+ 位數 ID、GUID、元素名稱）、列舉的實體清單、計數、面積、百分比、座標、量測、外部系統的類型名稱——<strong>必須能追溯到本 turn 的 tool call 回應</strong>。語言模型的先驗知識 MUST NOT 提供這類資料。</p>
+
+  <h3>Pre-Output 自檢清單（發送回應前跑）</h3>
+  <ol>
+    <li>草稿是否包含任何 6+ 位數的數字？→ 該數字必須在本 turn tool response 中原樣出現。否則刪除。</li>
+    <li>草稿是否列出 2+ 個同類具名實體？→ 每個實體必須在本 turn tool response 中。否則改用泛型語言。</li>
+    <li>草稿是否陳述計數、面積、長度或百分比？→ 數值必須可從 tool 輸出推導。否則移除或明確標示「未驗證」。</li>
+    <li>草稿是否提到外部系統原生的類型/類別名稱（非通用概念）？→ 該名稱必須在本 turn tool response 中。否則別寫。</li>
+  </ol>
+
+  <h3>三個輸出分支</h3>
+  <table>
+    <thead><tr><th>分支</th><th>狀況</th><th>做法</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>A</strong></td>
+        <td>資料已驗證</td>
+        <td>引用之。可標來源：「Per <code>{tool_name}</code>: …」</td>
+      </tr>
+      <tr>
+        <td><strong>B</strong></td>
+        <td>資料未驗證，但工具存在</td>
+        <td>用泛型語言 + 主動 offer 查詢：「我需要 call <code>{tool}</code> 取得實際清單——要我現在執行嗎？」</td>
+      </tr>
+      <tr>
+        <td><strong>C</strong></td>
+        <td>工具不可用（server down / timeout / 無對應工具）</td>
+        <td>明確聲明限制。<strong>DO NOT</strong> 用先驗知識補。「<code>{tool}</code> 目前不可達。以下為通用指引，<strong>非</strong>本專案實際狀態：…」</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>實際違規案例（2026-04-23, Revit）</h3>
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card bim-card-bad">
+      <h4 style="color:var(--bad);">❌ 違規行為</h4>
+      <p>使用者查詢當前視圖後問「我能做什麼」。</p>
+      <p>AI 僅呼叫過 <code>get_active_view</code>，卻在回覆中列出：</p>
+      <ul>
+        <li><code>Corridor (ID: 829648)</code></li>
+        <li><code>Stair (ID: 826593)</code></li>
+      </ul>
+      <p>這兩個 ID <strong>從未出現在本 turn 任何 tool response</strong>——是 LM 先驗編造。</p>
+    </div>
+    <div class="bim-card bim-card-ok">
+      <h4 style="color:var(--ok);">✓ 正確做法（Branch B）</h4>
+      <p>「您目前在 L2（FloorPlan）。若您需要針對此樓層的具體操作建議，我需要先呼叫 <code>get_rooms_by_level(level='L2')</code> 取得實際房間清單——<strong>要我現在執行嗎？</strong></p>
+      <p>在查到實際資料前，我只能給泛型建議：若此樓層有走廊、居室、樓梯，分別對應 <code>/fire-safety-check</code>、<code>/smoke-exhaust</code>、<code>check_stair_headroom</code> 工作流。」</p>
+    </div>
+  </div>
+
+  <h3>優先順序（這條規則優先於）</h3>
+  <ul>
+    <li>使用者「想要完整答案」的隱式期待</li>
+    <li>敘事流暢度、段落完整性、列表美感</li>
+    <li>任何 Skill body 暗示要列舉特定實體</li>
+    <li>「補上典型專案會有什麼」的本能反射</li>
+  </ul>
+
+  <div class="bim-card bim-card-accent">
+    <h4>Rule of Thumb</h4>
+    <p style="font-size:16px;font-style:italic;"><em>If you can't point to a tool response for this specific value in this turn, don't write it.</em></p>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">LLM 的核心能力是「<strong>把似真的文本生成出來</strong>」——這也是它最危險的能力。當你問「3 樓有什麼房間」，LLM 知道「典型 3 樓會有 A/B/C 房間」，它會本能生成這些<strong>看似合理但可能完全錯誤</strong>的答案。建築專業場域不能接受這種模糊——錯一個房間 ID 可能整個檢核全錯。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">每個具體資料（6+ 位數 ID / 計數 / 面積 / 百分比 / 外部系統類型名）<strong>必須能追溯到本 turn 的 tool call response</strong>。LM 先驗知識禁止填補這些資料。輸出前跑 4 點自檢清單。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Tool-Traceable Data Provenance · Pre-Output Self-Check Protocol · 3-Branch Response (Verified / Unverified-Offer / Tool-Unreachable)</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">「合理」是 AI 最危險的能力</span>
+    <div class="empathy-quote-text">設計師不怕 AI 說「<em>我不知道</em>」——怕的是 AI 說「<em>大概是這樣吧</em>」然後給出<strong>看起來對的錯誤答案</strong>。<br>建築這行錯一個 ID 可能少蓋一根防火柱。</div>
+    <span class="empathy-quote-context">這也是 ChatGPT 早期被建築專業圈拒絕的根本原因——它太會「<span class="lingo">編故事</span>」。第二憲法的設計就是<strong>明確切斷 LM 編故事的權力</strong>——你只能講你查到的，沒查到就老實說沒查到。這比「再聰明一點」重要。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀 · 第二憲法</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Paper</span>Ji et al. — <em>Survey of Hallucination in Natural Language Generation</em> (ACM CSUR 2023)
+          <span class="fr-desc">LLM hallucination 學術綜述——為什麼「合理但錯」的輸出是 LLM 本質而非 bug</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Article</span>Anthropic — <em>Constitutional AI Principles</em>
+          <span class="fr-desc">「AI 必須能說我不知道」的訓練哲學——第二憲法的學術同調</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Case</span>2026-04-23 違規案 — Corridor ID 829648 編造事件
+          <span class="fr-desc">本專案首次發現 LM 編造 ID，從而誕生了第二憲法</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="philosophy-22-propositions.html#p13">P13 — MCP 是 0/1 執行器</a>
+          <span class="fr-desc">第二憲法在「工具回值」層面的延伸——0/1 不容稀釋成「大概」</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 第三憲法：Domain Method Compliance -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="constitution-3">
+  <div class="bim-section-eyebrow">CONSTITUTION III · 算法從哪來</div>
+  <h2 class="bim-section-title">第三憲法：Domain Method Compliance</h2>
+  <p class="bim-section-desc"><strong>Scope</strong>：適用任何牽涉法規合規、code-check 計算、工程分析的回應——只要任務的正確算法已編碼於 <code>domain/*.md</code>。權威觸發表是 CLAUDE.md「Domain Knowledge & Workflow Files」段落。</p>
+  <figure class="bim-figure">
+    <img src="../_images/three-const__c3__sop-vs-intuition.svg" alt="Domain SOP files define the method rather than intuition" width="800" height="400" loading="lazy">
+  </figure>
+
+  <h3>與第二憲法的關係</h3>
+  <div class="bim-card bim-card-accent">
+    <p><strong>Tool Call Data Honesty 管 <em>事實從哪來</em></strong>（tool response，非 LM 先驗）。</p>
+    <p><strong>Domain Method Compliance 管 <em>事實如何被轉換</em></strong>（domain SOP，非 LM 直覺）。</p>
+    <p><strong>兩條規則必須同時滿足</strong>。乾淨的 tool 資料 + 編造的算法 = 仍然是幻覺答案。</p>
+  </div>
+
+  <h3>核心不變式</h3>
+  <p>當任務對應觸發表中的 <code>domain/*.md</code>，計算程序——公式、扣除、乘數、納入/排除條件、邊界案例——<strong>必須來自該檔案</strong>。LM 先驗知識「典型上 X 怎麼算」MUST NOT 替代專案的 codified SOP，即使 LM 的方法看起來合理或產出看似合理的數字。</p>
+
+  <h3>Pre-Analysis 自檢清單（首次計算前跑）</h3>
+  <ol>
+    <li>使用者是否要求合規檢查、合規比、面積/體積/計數計算或任何 domain-specific 量化分析？→ 進入步驟 2。</li>
+    <li>掃 CLAUDE.md「Domain Knowledge & Workflow Files」觸發關鍵字（採光/daylight、走廊/corridor、防火/fire rating、排煙/smoke exhaust、停車/parking、容積/FAR、碰撞/clash、樓梯/stair compliance）。是否有關鍵字匹配？→ 若是，對應 <code>domain/*.md</code> <strong>必須在計算前讀</strong>。</li>
+    <li>計畫算法是否複製該 domain 檔的每個步驟，包含所有扣除（如 75cm sill baseline）、納入規則（如含玻璃門納入採光）、乘數（如天窗 ×3、深陽台 ×0.7）？→ 若否，丟掉自己的算法，原樣用 domain 檔。</li>
+    <li>是否有 tool 欄位被忽略而 domain 檔需要？（如 <code>SillHeight</code>、<code>HeadHeight</code>、<code>Category=門</code>）→ 若是，算法 under-specified。修完才能輸出。</li>
+  </ol>
+
+  <h3>實際違規案例（2026-04-23, Revit — 採光分析）</h3>
+  <p>使用者請求「L2 居室採光分析」。AI 正確呼叫 <code>get_room_daylight_info</code> 取得 tool response（<strong>Data Honesty 過關</strong>），但 <strong>未讀 <code>domain/daylight-area-check.md</code></strong> 即自行套用簡化算法：</p>
+  <ul>
+    <li>排除所有外牆門</li>
+    <li>未套 75cm 台度扣除公式</li>
+  </ul>
+  <p>結果 <strong>Room 203/204/205 的有效採光面積被系統性低估 1.38–4.14 m²</strong>。同時間另一 AI 遵照 domain SOP 計算，數值與官方公式一致。</p>
+
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card bim-card-bad">
+      <h4 style="color:var(--bad);">❌ 違規做法</h4>
+      <p>「Room 203 採光分析：4 扇外牆窗，合計 7.742 m²。採光比 7.742 / 55.08 = 14.06%，合格。」</p>
+      <p style="font-size:13px;color:var(--text-muted);">問題：忽略外牆門（含玻璃部分），未套 75cm 公式對 SillHeight &lt; 750mm 的開口扣除。看似合理但<strong>系統性低估</strong>。</p>
+    </div>
+    <div class="bim-card bim-card-ok">
+      <h4 style="color:var(--ok);">✓ 正確做法（Branch A）</h4>
+      <p>「執行前先讀 <code>domain/daylight-area-check.md</code> 步驟 3、4：納入外牆門（含玻璃部分）且對 <code>SillHeight &lt; 750mm</code> 的開口套 <code>Effective Height = HeadHeight - 750mm</code> 公式。</p>
+      <p>據此 Room 203 = <strong>4 扇外牆窗</strong>（SH 全 &gt;750mm，合計 7.742 m²）<strong>+ 1 扇外牆門</strong>（Effective Height = 2260.6 - 750 = 1510.6mm；面積 = 0.9144 × 1.5106 = 1.381 m²）= <strong>9.123 m²</strong>，採光比 9.123/55.08 = <strong>16.56%</strong>，≥ 12.5% 合格。」</p>
+    </div>
+  </div>
+
+  <h3>三個輸出分支</h3>
+  <table>
+    <thead><tr><th>分支</th><th>狀況</th><th>模板</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>A</strong></td>
+        <td>domain 檔已讀已套</td>
+        <td>明確引用：「Per <code>domain/{file}.md</code> step {N}: {formula}. Applied to tool data: {計算}. Result: {value}。」</td>
+      </tr>
+      <tr>
+        <td><strong>B</strong></td>
+        <td>domain 檔存在但未讀</td>
+        <td><strong>STOP</strong>。先讀檔。DO NOT 即興算法然後標為合規結果。即使數字自洽，方法錯了結果也是錯的。</td>
+      </tr>
+      <tr>
+        <td><strong>C</strong></td>
+        <td>無 domain 檔涵蓋此關鍵字</td>
+        <td>明確聲明：「此專案尚未收錄 {topic} 的檢討 SOP（無對應 <code>domain/*.md</code>）。以下為通用工程常識而非專案認可算法，請勿作為合規依據。」</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>優先順序（這條規則優先於）</h3>
+  <ul>
+    <li>LM 的「合理預設」——「典型上 X 怎麼算」</li>
+    <li>前一 turn 用錯算法的計算（必須修正，不能延用或辯護）</li>
+    <li>任何 Skill body 漏掉 domain SOP 內有的扣除、納入、乘數（domain 檔贏）</li>
+    <li>使用者「想要快答案」的隱式期待——正解需要先讀規範</li>
+  </ul>
+
+  <div class="bim-card bim-card-accent">
+    <h4>Rule of Thumb</h4>
+    <p style="font-size:16px;font-style:italic;"><em>If a <code>domain/*.md</code> file exists for this topic, its algorithm IS the algorithm. Your analytical intuition does not get a vote.</em></p>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">第二憲法保證「<strong>事實是真的</strong>」，但事實本身不會「合規」。把真實數據用<strong>錯誤算法</strong>處理 → 仍然得到錯答案。例如採光 raw data 全對，但忽略「75cm 台度扣除」公式 → Room 203 系統性低估 1.38-4.14 m²。乾淨的 tool 資料 + 編造的算法 = 仍然是<strong>幻覺答案</strong>。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">任何牽涉法規 / code-check / 工程分析的任務，<strong>計算前先掃 CLAUDE.md 觸發表</strong>。若關鍵字匹配 → 對應 <code>domain/*.md</code> 必須先讀，按其公式 / 扣除 / 乘數逐步執行。LM「合理預設」禁止替代專案 SOP。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Domain-File-First Algorithm Sourcing · Pre-Analysis Self-Check (4 Steps) · Branch A/B/C Response · Trigger-Table-Driven Domain Loading</div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">「常識」是設計專業的最大陷阱</span>
+    <div class="empathy-quote-text">每個建築系學生都會算「<em>窗面積 ÷ 房間面積</em>」採光比——<br>但只有資深建築師知道「<em>SH&lt;75cm 要扣除 Effective Height</em>」這條規範細節。<br>AI 用「常識」算 = 用學生水平交圖。</div>
+    <span class="empathy-quote-context">這也是為什麼<span class="lingo">「Domain 是本體」</span>是 BIM 場域的核心命題——規範細節 30 年累積的<strong>專業 know-how</strong> 才是真正的價值，不是「會算面積」的基礎能力。第三憲法保證 AI 永遠用<strong>資深建築師的算法</strong>，不是學生的算法。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀 · 第三憲法</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Book</span>Eric Evans — <em>Domain-Driven Design</em> (2003)
+          <span class="fr-desc">「Domain 是核心」的軟體工程奠基——第三憲法在 BIM 場域的特化</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Case</span>2026-04-23 違規案 — 採光 Room 203 低估 1.38 m²
+          <span class="fr-desc">本專案首次發現 AI 用簡化算法繞過 domain SOP，從而誕生第三憲法</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="philosophy-22-propositions.html#p5">P5 — Domain 是本體</a>
+          <span class="fr-desc">第三憲法的哲學源頭命題</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Index</span><a href="domain-index.html">40 Domain 完整索引（觸發表）</a>
+          <span class="fr-desc">CLAUDE.md「Domain Knowledge & Workflow Files」段的視覺化版</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 三憲法的整體關係 -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section">
+  <div class="bim-section-eyebrow">SYNTHESIS · 三憲法整體</div>
+  <h2 class="bim-section-title">三憲法的整體結構</h2>
+  <p class="bim-section-desc">三條憲法分別管「<strong>何時</strong>介入」「<strong>數據從哪來</strong>」「<strong>算法從哪來</strong>」——構成 MCP 系統設計的完整底線。</p>
+
+  <table>
+    <thead><tr><th>憲法</th><th>管什麼</th><th>違規典型樣態</th><th>正確姿態</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>I · 被動就緒</strong></td>
+        <td>何時介入</td>
+        <td>自動 watcher / 主動彈窗</td>
+        <td>等設計師到達階段完成點並 invoke</td>
+      </tr>
+      <tr>
+        <td><strong>II · Tool Call Data Honesty</strong></td>
+        <td>數據從哪來</td>
+        <td>編造 6+ 位數 ID、列舉沒查到的實體</td>
+        <td>每個具體數值都能追溯到本 turn tool response</td>
+      </tr>
+      <tr>
+        <td><strong>III · Domain Method Compliance</strong></td>
+        <td>算法從哪來</td>
+        <td>用 LM「合理預設」算合規而非讀 domain 檔</td>
+        <td>有對應 domain/*.md 就以該檔算法為準</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>為什麼是「憲法」級</h3>
+  <p>這三條<strong>不被任何 Skill 覆蓋</strong>。即使 Skill body 看起來允許違反，憲法仍然優先。原因：</p>
+  <ul>
+    <li>Skill 是工作流編排（怎麼做）——可以調整、迭代、被替換</li>
+    <li>憲法是底線（不能怎麼做）——一旦違反，系統的可信度崩塌</li>
+    <li>BIM 場域特別嚴格——合規結果直接影響送審通過、業主簽核、營建品質</li>
+  </ul>
+
+  <h3>三憲法的歷史</h3>
+  <ul>
+    <li><strong>2026-04-23</strong>：Tool Call Data Honesty 違規案（Corridor ID 編造）→ 寫入 CLAUDE.md AI Guard Rails</li>
+    <li><strong>2026-04-23</strong>：Domain Method Compliance 違規案（採光算法錯誤）→ 寫入 CLAUDE.md</li>
+    <li><strong>2026-05-18</strong>：第三憲法「被動就緒」從 0523 命題 P8 升級到憲法級——使用者明示「主動跳出限制我覺得很怪」</li>
+  </ul>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="../index.html" class="bim-footer-btn">← 回 BIM_MCP 首頁</a>
+    <a href="philosophy-22-propositions.html" class="bim-footer-btn primary">22 命題完整宣言 →</a>
+    <a href="spectrum-decision.html" class="bim-footer-btn">A/B/C/D 光譜決策</a>
+    <a href="https://github.com/shuotao/REVIT_MCP_study/blob/main/CLAUDE.md" target="_blank" class="bim-footer-btn">CLAUDE.md 原文</a>
+  </div>
+  <div>
+    BIM_MCP · 三憲法 · 超越所有 Skill / Domain<br>
+    最後更新：2026-05-18 · 來源：CLAUDE.md AI Guard Rails + 0523 命題 P8 升級
+  </div>
+</footer>
+
+<script src="../_shared.js"></script>
+<script>initAll();</script>
+</body>
+</html>

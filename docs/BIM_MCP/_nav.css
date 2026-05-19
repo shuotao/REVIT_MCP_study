@@ -1,0 +1,599 @@
+/* ===========================================================================
+   BIM_MCP 防迷路（Wayfinding）+ Drawer 樣式擴充
+   日期：2026-05-18 / 版本：v1.1（加 scroll-snap + section-collapse + 週期表）
+   不修改 styles.css 共用層 — 每頁可選擇載入此檔啟用
+   =========================================================================== */
+
+/* ===== Scroll Snap（每節一個視窗，像簡報滾動）===== */
+html {
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 120px;  /* 避免被 topnav + context bar 遮住 */
+}
+.bim-hero,
+.bim-section {
+  scroll-snap-align: start;
+}
+.bim-section.bim-anchor {
+  min-height: calc(100vh - 130px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: var(--gap-xl);
+  padding-bottom: var(--gap-xl);
+}
+/* 不要對 .bim-section.no-snap 強制最小高度（給 frame / 索引這類短 section） */
+.bim-section.bim-anchor.no-snap {
+  min-height: 0;
+  scroll-snap-align: none;
+}
+.bim-footer { scroll-snap-align: end; }
+
+@media (max-width: 700px) {
+  /* mobile: 不強制 snap，讓 thumb scroll 自然 */
+  html { scroll-snap-type: none; }
+  .bim-section.bim-anchor { min-height: 0; padding-top: var(--gap-lg); padding-bottom: var(--gap-lg); }
+}
+
+/* ===== Floating Progress Rail（右側細長 scroll 進度）===== */
+.bim-progress {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 3px;
+  height: 100vh;
+  background: rgba(255,255,255,0.04);
+  z-index: 99;
+  pointer-events: none;
+}
+.bim-progress-fill {
+  width: 100%;
+  height: 0;
+  background: linear-gradient(180deg, var(--accent) 0%, rgba(96,165,250,0.4) 100%);
+  transition: height 0.1s linear;
+}
+
+/* ===== Sticky Context Bar（topnav 下方，動態當前 section）===== */
+.bim-context-bar {
+  position: sticky;
+  top: 51px; /* 緊貼 topnav 下方 */
+  z-index: 90;
+  background: rgba(0,0,0,0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  padding: 9px 32px;
+  font-family: var(--font-tech);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: opacity 0.3s, transform 0.3s;
+}
+.bim-context-bar.hidden { opacity: 0; transform: translateY(-100%); pointer-events: none; }
+.bim-context-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.bim-context-step .bim-context-num {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+}
+.bim-context-step .bim-context-name {
+  color: var(--text-primary);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.bim-context-back {
+  color: var(--text-faint);
+  border-bottom: none;
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  transition: color 0.3s, border-color 0.3s;
+}
+.bim-context-back:hover { color: var(--accent); border-color: var(--accent-border); }
+
+@media (max-width: 700px) {
+  .bim-context-bar { padding: 8px 14px; font-size: 10px; letter-spacing: 1px; }
+  .bim-context-back { display: none; }
+}
+
+/* ===== Section Marker（強化邊界 — 大型編號分隔）===== */
+.bim-section-marker {
+  text-align: center;
+  padding: var(--gap-2xl) var(--gap-md) var(--gap-lg);
+  border-top: 1px solid var(--border);
+  position: relative;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.bim-section-marker::before {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 1px;
+  background: var(--accent);
+  margin: 0 auto var(--gap-md) auto;
+}
+.bim-section-marker-num {
+  font-family: var(--font-tech);
+  font-size: 56px;
+  font-weight: 800;
+  color: var(--text-faint);
+  letter-spacing: 4px;
+  line-height: 1;
+}
+.bim-section-marker-label {
+  font-family: var(--font-tech);
+  font-size: 12px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+/* ===== Footer Preview Cards（next/prev with preview）===== */
+.bim-footer-preview {
+  max-width: 1100px;
+  margin: var(--gap-xl) auto 0;
+  padding: 0 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap-md);
+}
+.bim-footer-preview-card {
+  display: block;
+  padding: 22px 26px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+  transition: border-color 0.3s, transform 0.3s, background 0.3s;
+  text-decoration: none;
+}
+.bim-footer-preview-card:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+  transform: translateY(-3px);
+}
+.bim-footer-preview-dir {
+  font-family: var(--font-tech);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bim-footer-preview-card.next { text-align: right; }
+.bim-footer-preview-card.next .bim-footer-preview-dir { justify-content: flex-end; }
+.bim-footer-preview-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  letter-spacing: 0;
+}
+.bim-footer-preview-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+  .bim-footer-preview { grid-template-columns: 1fr; padding: 0 16px; }
+  .bim-footer-preview-card.next { text-align: left; }
+  .bim-footer-preview-card.next .bim-footer-preview-dir { justify-content: flex-start; }
+}
+
+/* ===== Enhanced TOC（section 編號 + 完成標記）===== */
+.bim-toc .bim-toc-counter {
+  font-family: var(--font-tech);
+  font-size: 10px;
+  color: var(--text-faint);
+  margin-right: 8px;
+  letter-spacing: 1px;
+}
+.bim-toc a {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 0;
+}
+.bim-toc a.visited::before {
+  content: '✓';
+  color: var(--ok);
+  font-size: 11px;
+  margin-right: 4px;
+}
+
+/* ===== Drawer（右側滑出，借鏡 GENAI/web）===== */
+.bim-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+.bim-drawer-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.bim-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(75vw, 820px);
+  height: 100vh;
+  background: var(--bg);
+  border-left: 1px solid var(--border-strong);
+  box-shadow: -20px 0 60px rgba(0,0,0,0.6);
+  z-index: 1001;
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.bim-drawer.open { transform: translateX(0); }
+
+.bim-drawer-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(0,0,0,0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: 18px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.bim-drawer-eyebrow {
+  font-family: var(--font-tech);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.bim-drawer-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-top: 4px;
+  letter-spacing: 0;
+}
+.bim-drawer-close {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.3s, color 0.3s, border-color 0.3s, transform 0.3s;
+}
+.bim-drawer-close:hover {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  transform: rotate(90deg);
+}
+.bim-drawer-body {
+  padding: 28px;
+  flex: 1;
+}
+.bim-drawer-body h3 {
+  font-size: 18px;
+  margin: var(--gap-lg) 0 var(--gap-sm) 0;
+  color: var(--text-primary);
+}
+.bim-drawer-body h3:first-child { margin-top: 0; }
+.bim-drawer-body p {
+  color: var(--text-secondary);
+  margin-bottom: var(--gap-sm);
+  line-height: 1.7;
+}
+.bim-drawer-body .user-quote {
+  margin: var(--gap-md) 0;
+}
+.bim-drawer-body .how-tech,
+.bim-drawer-body .empathy-quote,
+.bim-drawer-body .further-reading,
+.bim-drawer-body .pitfalls { margin: var(--gap-md) 0; }
+
+.bim-drawer-foot {
+  padding: 18px 28px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.bim-drawer-foot a {
+  font-family: var(--font-tech);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--accent);
+  border-bottom: 1px solid var(--accent-border);
+  padding-bottom: 1px;
+}
+
+@media (max-width: 700px) {
+  .bim-drawer { width: 100vw; border-left: none; }
+  .bim-drawer-head { padding: 16px 18px; }
+  .bim-drawer-body { padding: 20px 18px; }
+  .bim-drawer-title { font-size: 18px; }
+}
+
+/* ===== Drawer Opener（限定 .bim-card / .domain-card / .prop-cell 樣式）===== */
+.bim-card[data-drawer-open],
+.domain-card[data-drawer-open] {
+  cursor: pointer;
+  position: relative;
+  border-bottom: none;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
+  display: block;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  transition: border-color 0.3s, background 0.3s, transform 0.3s;
+}
+.bim-card[data-drawer-open]:hover,
+.domain-card[data-drawer-open]:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+  transform: translateY(-2px);
+}
+.bim-card[data-drawer-open]::after {
+  content: '→';
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  color: var(--text-faint);
+  font-size: 14px;
+  transition: color 0.3s, transform 0.3s;
+}
+.bim-card[data-drawer-open]:hover::after {
+  color: var(--accent);
+  transform: translateY(-50%) translateX(4px);
+}
+
+/* ===== Section Drawer Bar（章節底部抽屜觸發列）===== */
+.section-drawer-bar {
+  display: flex;
+  gap: 10px;
+  margin-top: var(--gap-lg);
+  padding-top: var(--gap-md);
+  border-top: 1px dashed var(--border);
+  flex-wrap: wrap;
+  align-items: center;
+}
+.section-drawer-bar::before {
+  content: '展開細節 →';
+  font-family: var(--font-tech);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  margin-right: 8px;
+}
+.section-drawer-trigger {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-tech);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: border-color 0.3s, background 0.3s, color 0.3s, transform 0.3s;
+}
+.section-drawer-trigger::before {
+  content: '⊕';
+  font-size: 14px;
+  color: var(--accent);
+  transition: transform 0.3s;
+}
+.section-drawer-trigger:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+.section-drawer-trigger:hover::before {
+  transform: rotate(90deg);
+}
+.section-drawer-trigger .count {
+  background: rgba(255,255,255,0.06);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  color: var(--text-faint);
+  margin-left: 4px;
+}
+
+/* ===== 元素週期表（Option A · philosophy quick-index）===== */
+.ptable {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: var(--gap-lg) 0;
+}
+.ptable-row {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+.ptable-label {
+  width: 180px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 10px 14px;
+  border-right: 2px solid var(--border-strong);
+}
+.ptable-label .ptable-num {
+  font-family: var(--font-tech);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+}
+.ptable-label .ptable-group {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+.ptable-cell {
+  flex: 1;
+  min-width: 0;
+  max-width: 280px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  text-align: left;
+  font-family: inherit;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background 0.3s, border-color 0.3s, transform 0.3s;
+  position: relative;
+}
+.ptable-cell:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  transform: translateY(-2px);
+}
+.ptable-cell .ptable-p {
+  font-family: var(--font-tech);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--accent);
+  font-weight: 700;
+}
+.ptable-cell .ptable-name {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+.ptable-cell.star {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+.ptable-cell.star .ptable-p {
+  color: var(--text-primary);
+}
+.ptable-cell.star .ptable-p::after {
+  content: ' ★';
+  color: var(--accent);
+}
+.ptable-cell.muted {
+  opacity: 0.35;
+  background: transparent;
+  border-style: dashed;
+}
+.ptable-cell.muted:hover { transform: none; }
+
+@media (max-width: 900px) {
+  .ptable-row { flex-direction: column; gap: 4px; }
+  .ptable-label { width: 100%; border-right: none; border-bottom: 1px solid var(--border-strong); padding: 8px 0; }
+  .ptable-label .ptable-num { font-size: 18px; }
+  .ptable-cell { max-width: none; }
+}
+
+/* ===== 五分類彩色 section eyebrow（給 domain-index 用）===== */
+.bim-section[data-cat="compliance"] .bim-section-eyebrow { color: #ef4444; }
+.bim-section[data-cat="workflow"] .bim-section-eyebrow { color: #60a5fa; }
+.bim-section[data-cat="ops"] .bim-section-eyebrow { color: #fbbf24; }
+.bim-section[data-cat="mep"] .bim-section-eyebrow { color: #4ade80; }
+.bim-section[data-cat="frame"] .bim-section-eyebrow { color: #a78bfa; }
+
+.bim-section[data-cat="compliance"] .bim-section-title::before,
+.bim-section[data-cat="workflow"] .bim-section-title::before,
+.bim-section[data-cat="ops"] .bim-section-title::before,
+.bim-section[data-cat="mep"] .bim-section-title::before,
+.bim-section[data-cat="frame"] .bim-section-title::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 12px;
+  transform: translateY(-3px);
+}
+.bim-section[data-cat="compliance"] .bim-section-title::before { background: #ef4444; }
+.bim-section[data-cat="workflow"] .bim-section-title::before { background: #60a5fa; }
+.bim-section[data-cat="ops"] .bim-section-title::before { background: #fbbf24; }
+.bim-section[data-cat="mep"] .bim-section-title::before { background: #4ade80; }
+.bim-section[data-cat="frame"] .bim-section-title::before { background: #a78bfa; }
+
+/* Domain card 強化 — 加 trigger tag 顯示 */
+.domain-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+.domain-trigger {
+  font-family: var(--font-tech);
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.04);
+  padding: 1px 7px;
+  border-radius: var(--radius-sm);
+}
+.domain-skill {
+  font-family: var(--font-tech);
+  font-size: 10px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  padding: 1px 7px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  border-bottom: none;
+}
+.domain-skill:hover { background: var(--accent-bg-strong); }

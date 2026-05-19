@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">A/B/C/D decision tree</title>
+  <desc id="desc">A fail result fans out to four possible decision paths and costs.</desc>
+  <rect width="1200" height="800" fill="#000"/>
+  <rect x="520" y="80" width="160" height="96" fill="none" stroke="#fff" stroke-width="2"/>
+  <text x="600" y="138" fill="#fff" text-anchor="middle" font-family="JetBrains Mono, Consolas, monospace" font-size="28" font-weight="700">FAIL</text>
+  <g stroke="#fff" stroke-width="2">
+    <path d="M600 176L190 340"/>
+    <path d="M600 176L460 340"/>
+    <path d="M600 176L740 340"/>
+    <path d="M600 176L1010 340"/>
+  </g>
+  <g font-family="JetBrains Mono, Consolas, monospace" text-anchor="middle" font-size="22" font-weight="700">
+    <rect x="95" y="340" width="190" height="92" fill="none" stroke="#fff" stroke-width="2"/>
+    <text x="190" y="395" fill="#fff">A / MODIFY</text>
+    <rect x="365" y="340" width="190" height="92" fill="none" stroke="#fff" stroke-width="2"/>
+    <text x="460" y="395" fill="#fff">B / DOCUMENT</text>
+    <rect x="645" y="340" width="190" height="92" fill="none" stroke="#fff" stroke-width="2"/>
+    <text x="740" y="395" fill="#fff">C / NEGOTIATE</text>
+    <rect x="915" y="340" width="190" height="92" fill="#60a5fa" stroke="#60a5fa" stroke-width="2"/>
+    <text x="1010" y="395" fill="#fff">D / ESCALATE</text>
+  </g>
+  <g fill="#fff" font-family="JetBrains Mono, Consolas, monospace" text-anchor="middle" font-size="15">
+    <text x="190" y="500">CONNECTED COST</text>
+    <text x="460" y="500">DOCUMENT BURDEN</text>
+    <text x="740" y="500">CLIENT NEGOTIATION</text>
+    <text x="1010" y="500">MEETING TIME</text>
+  </g>
+</svg>

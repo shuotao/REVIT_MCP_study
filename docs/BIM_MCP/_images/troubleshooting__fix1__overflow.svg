@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-labelledby="title desc">
+  <title id="title">Summary mode for overflow</title>
+  <desc id="desc">A terminal output is cut into summary mode.</desc>
+  <rect width="400" height="400" fill="#000"/>
+  <rect x="76" y="52" width="248" height="210" fill="none" stroke="#fff" stroke-width="2"/>
+  <g stroke="#fff" stroke-width="2">
+    <path d="M110 88h180M110 118h180M110 148h180M110 178h180M110 208h180M110 238h180M110 268h180M110 298h180"/>
+  </g>
+  <g fill="none" stroke="#60a5fa" stroke-width="5" stroke-linecap="round">
+    <circle cx="158" cy="206" r="22"/>
+    <circle cx="242" cy="206" r="22"/>
+    <path d="M178 218l44 44M222 218l-44 44"/>
+  </g>
+  <text x="200" y="344" fill="#fff" text-anchor="middle" font-family="JetBrains Mono, Consolas, monospace" font-size="18">SUMMARY MODE</text>
+</svg>

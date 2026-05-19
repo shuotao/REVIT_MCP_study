@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 500" role="img" aria-labelledby="title desc">
+  <title id="title">BIM AI early mover timeline</title>
+  <desc id="desc">A timeline from IDS 1.0 to Revit 2027 highlighting the early mover window.</desc>
+  <rect width="1600" height="500" fill="#000"/>
+  <path d="M120 255h1360" stroke="#fff" stroke-width="2"/>
+  <rect x="1048" y="190" width="300" height="130" fill="#60a5fa" opacity=".14" stroke="#60a5fa" stroke-width="1"/>
+  <text x="1198" y="228" fill="#60a5fa" text-anchor="middle" font-family="JetBrains Mono, Consolas, monospace" font-size="15" letter-spacing="2">EARLY MOVER WINDOW</text>
+  <text x="1198" y="284" fill="#fff" text-anchor="middle" font-family="JetBrains Mono, Consolas, monospace" font-size="16">12 MONTHS</text>
+  <g stroke="#fff" stroke-width="2" fill="#000">
+    <circle cx="180" cy="255" r="12" fill="#fff"/>
+    <circle cx="470" cy="255" r="12"/>
+    <circle cx="760" cy="255" r="12"/>
+    <circle cx="1080" cy="255" r="13" fill="#60a5fa" stroke="#60a5fa"/>
+    <circle cx="1420" cy="255" r="14" stroke-dasharray="4 5"/>
+  </g>
+  <g font-family="JetBrains Mono, Consolas, monospace" text-anchor="middle" fill="#fff">
+    <text x="180" y="155" font-size="17">IDS 1.0</text>
+    <text x="470" y="155" font-size="17">PROCORE AI</text>
+    <text x="760" y="155" font-size="17">DASSAULT VC</text>
+    <text x="1080" y="155" font-size="17">AUTODESK ASSIST</text>
+    <text x="1420" y="155" font-size="17">REVIT 2027</text>
+    <text x="180" y="333" font-size="15">2024-06</text>
+    <text x="470" y="333" font-size="15">2024-11</text>
+    <text x="760" y="333" font-size="15">2025-Q1</text>
+    <text x="1080" y="333" font-size="15" fill="#60a5fa">2026-04</text>
+    <text x="1420" y="333" font-size="15">2027</text>
+  </g>
+</svg>

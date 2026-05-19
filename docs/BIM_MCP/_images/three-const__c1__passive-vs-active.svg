@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" role="img" aria-labelledby="title desc">
+  <title id="title">Passive versus active MCP rule</title>
+  <desc id="desc">Active automation pierces the work loop, passive automation is invited by the user.</desc>
+  <rect width="800" height="400" fill="#000"/>
+  <path d="M400 40v320" stroke="#fff" stroke-width="1"/>
+  <g fill="none" stroke="#fff" stroke-width="2">
+    <circle cx="200" cy="170" r="68"/>
+    <circle cx="600" cy="170" r="68"/>
+  </g>
+  <g fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round">
+    <path d="M200 60v90"/>
+    <path d="M178 128l22 28 22-28"/>
+    <path d="M155 90l90 90"/>
+    <path d="M245 90l-90 90"/>
+  </g>
+  <circle cx="200" cy="60" r="8" fill="#60a5fa"/>
+  <g fill="none" stroke="#60a5fa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M560 210c36-4 64-26 82-64"/>
+    <path d="M642 146l-2 34"/>
+    <path d="M642 146l-28 18"/>
+  </g>
+  <g fill="#fff" font-family="JetBrains Mono, Consolas, monospace" text-anchor="middle" font-size="16" letter-spacing="2">
+    <text x="200" y="315">ACTIVE (BROKEN)</text>
+    <text x="600" y="315">PASSIVE (INVITED)</text>
+  </g>
+</svg>

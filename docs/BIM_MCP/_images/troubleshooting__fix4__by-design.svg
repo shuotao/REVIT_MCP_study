@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-labelledby="title desc">
+  <title id="title">By design not bug</title>
+  <desc id="desc">Raw data flows into a Domain SOP box.</desc>
+  <rect width="400" height="400" fill="#000"/>
+  <rect x="38" y="135" width="130" height="82" fill="none" stroke="#fff" stroke-width="2"/>
+  <rect x="232" y="135" width="130" height="82" fill="#60a5fa" stroke="#60a5fa" stroke-width="2"/>
+  <path d="M168 176h56" stroke="#fff" stroke-width="3"/>
+  <path d="M212 162l18 14-18 14" fill="none" stroke="#fff" stroke-width="3"/>
+  <g font-family="JetBrains Mono, Consolas, monospace" text-anchor="middle" font-weight="700">
+    <text x="103" y="170" fill="#fff" font-size="17">RAW</text>
+    <text x="103" y="194" fill="#fff" font-size="17">DATA</text>
+    <text x="297" y="170" fill="#fff" font-size="17">DOMAIN</text>
+    <text x="297" y="194" fill="#fff" font-size="17">SOP</text>
+  </g>
+  <text x="200" y="318" fill="#fff" text-anchor="middle" font-family="JetBrains Mono, Consolas, monospace" font-size="17">BY DESIGN, NOT BUG</text>
+</svg>
