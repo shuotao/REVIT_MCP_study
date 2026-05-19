@@ -185,6 +185,41 @@ Frontmatter 必須包含：
 
 ---
 
+## Phase 7：跨文件對齊（任何 OS）
+
+驗證 `CLAUDE.md`、`docs/BIM_MCP/` 網頁、`scripts/verify-qaqc.ps1` 與真實 source 的 Skill / Domain / Tool 計數一致。任何過時聲稱會直接 FAIL，避免簡報、網頁、文件三邊漂移。
+
+### 真值來源（single source of truth）
+| 項目 | 計算方式 |
+|------|---------|
+| Skills | `Get-ChildItem .claude/skills/*/SKILL.md` 數量 |
+| Domain | `Get-ChildItem domain/*.md`（排除 README.md） |
+| Tools | grep `^\s+name:\s*['"]` 在 `MCP-Server/src/tools/*.ts` 的總命中數 |
+
+### 規則
+- **7-1 Tool 計數一致**：CLAUDE.md / BIM_MCP html / `_shared.js` 不得殘留 `92 個工具|92 tools|(92`，必須與真實 Tool 數對齊
+- **7-2 Domain 計數一致**：同上不得殘留 `35+? Domain|35+? Skill|35+? markdown|35+? SOP`
+- **7-3 Skills 計數**：必須 == 19（如有變動，CLAUDE.md `## Skills（19 個）` 標題與 BIM_MCP 網頁必須同步）
+- **7-4 forward**：CLAUDE.md「Domain Knowledge & Workflow Files」表格內每個 `domain/*.md` 連結必須真實存在
+- **7-5 reverse**：每個非 meta 的 `domain/*.md` 真實檔案，必須在 CLAUDE.md 表格中出現一次
+- **7-6 BIM_MCP 死連結**：`docs/BIM_MCP/**/*.html` 內 `href="../../domain/*.md"` 與 `href="../../.claude/skills/*"` 目標必須存在
+
+### 白名單（不檢查）
+- `docs/_archive/**`（封存快照）
+- `log/**`（歷史 log，append-only）
+- `docs/0425-presentation.html`（有明示 `snapshot 2026-05-12` 標記，是時間切片）
+- `*.bundled.txt`（外部資料鏡像）
+
+### 執行
+`pwsh scripts/verify-qaqc.ps1` 自動跑 7-1 ~ 7-6（已內建 `Test-Phase7-CrossDoc` function）。
+
+### 失敗類型
+- **7-1 ~ 7-3 失敗** → FAIL（聲稱數字過時，立即修正）
+- **7-4 ~ 7-5 失敗** → FAIL（CLAUDE.md 表格與真實檔案不同步）
+- **7-6 失敗** → FAIL（網頁連結 rotted）
+
+---
+
 ## 報告輸出格式
 
 完成所有檢查後，輸出結構化報告：
@@ -201,12 +236,15 @@ Frontmatter 必須包含：
 ║  Phase 4 — 建構驗證    : ⏳ 需要 Windows   ║
 ║  Phase 5 — 部署驗證    : ⏳ 需要 Windows   ║
 ║  Phase 6 — 內容品質    : ⚠️ A/B PASS (C⚠️) ║
+║  Phase 7 — 跨文件對齊  : ✅ X/X PASS       ║
 ╠══════════════════════════════════════════════╣
 ║  Total: XX/XX PASS | X FAIL | X PENDING     ║
 ╚══════════════════════════════════════════════╝
 ```
 
 Phase 6 欄位說明：A = 通過 6-1 ~ 6-5 的檔數、B = 總檔數、C = 觸發 staleness 警告的檔數。
+
+Phase 7 欄位說明：X/X 為 7-1 ~ 7-6 共 6 條規則中 PASS 的數量。任一 FAIL 直接退出 exit 1。
 
 如有 FAIL 項目，每個都必須附上：
 1. 失敗的具體檢查項

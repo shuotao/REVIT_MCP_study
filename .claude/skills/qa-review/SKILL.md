@@ -33,6 +33,13 @@ description: "專案品質檢核：圖紙編號一致性、詳圖元件完整性
 - [ ] 所有已註冊的工具能正確回傳結果
 - [ ] Build 產物與原始碼版本一致
 
+### 6. 跨文件數字一致性（Phase 7）
+- [ ] CLAUDE.md / `docs/BIM_MCP/**/*.html` / `_shared.js` 內的 Skill / Domain / Tool 數量與 source 真值對齊
+- [ ] `domain/*.md` 每個非 meta 檔都在 CLAUDE.md「Domain Knowledge & Workflow Files」表格中出現一次（雙向）
+- [ ] BIM_MCP 網頁 `href="../../domain/*.md"`、`href="../../.claude/skills/*"` 連結目標真實存在
+
+→ 由 `scripts/verify-qaqc.ps1` 的 Phase 7 自動執行；白名單：archive、log、明示 snapshot 的歷史 HTML。
+
 ## Execution
 
 依序執行檢查：

@@ -7,6 +7,7 @@
 #   3. Build Configuration Validation
 #   4. Build Verification (skip with -SkipBuild)
 #   5. Deployment Verification (skip with -SkipDeploy)
+#   7. Cross-Document Alignment (CLAUDE.md / BIM_MCP web / scripts must report same Skill/Domain/Tool counts)
 
 param(
     [switch]$SkipBuild,
@@ -143,7 +144,7 @@ $excludedFiles = @(
 )
 
 $mdFiles = Get-ChildItem -Path $projectRoot -Filter "*.md" -Recurse -ErrorAction SilentlyContinue |
-    Where-Object { $_.FullName -notmatch "node_modules|\.claude[\\/]plugins" }
+    Where-Object { $_.FullName -notmatch "node_modules|\.claude[\\/]plugins|docs[\\/]_archive" }
 
 $staleFound = $false
 foreach ($pattern in $stalePatterns) {
@@ -387,6 +388,139 @@ else {
         Write-Check "No duplicate addin files" $true
     }
 }
+
+# ─────────────────────────────────────────────
+# Phase 7: Cross-Document Alignment
+# ─────────────────────────────────────────────
+Write-Host ""
+Write-Host "[Phase 7] Cross-Document Alignment" -ForegroundColor Yellow
+Write-Host "─────────────────────────────────────────────" -ForegroundColor DarkGray
+
+# Helpers — single source of truth for counts
+function Get-ToolCount {
+    $hits = Select-String -Path "$projectRoot\MCP-Server\src\tools\*.ts" `
+        -Pattern '^\s+name:\s*[''"]' -ErrorAction SilentlyContinue
+    return $hits.Count
+}
+
+function Get-DomainCount {
+    # All domain/*.md including meta — single grand total
+    return (Get-ChildItem -Path "$projectRoot\domain" -Filter "*.md" -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -ne 'README.md' }).Count
+}
+
+function Get-SkillCount {
+    return (Get-ChildItem -Path "$projectRoot\.claude\skills\*\SKILL.md" -ErrorAction SilentlyContinue).Count
+}
+
+function Find-StaleNumbers {
+    param([string]$Pattern, [string[]]$Paths, [string[]]$Exclude = @())
+    $results = @()
+    foreach ($p in $Paths) {
+        $hits = Select-String -Path $p -Pattern $Pattern -ErrorAction SilentlyContinue
+        foreach ($h in $hits) {
+            $isExcluded = $false
+            foreach ($ex in $Exclude) { if ($h.Path -like "*$ex*") { $isExcluded = $true; break } }
+            if (-not $isExcluded) { $results += $h }
+        }
+    }
+    return $results
+}
+
+$toolCount = Get-ToolCount
+$domainCount = Get-DomainCount
+$skillCount = Get-SkillCount
+
+Write-Host ""
+Write-Host "  7-0. Source-of-truth counts:" -ForegroundColor Cyan
+Write-Host "    Skills  = $skillCount  (.claude/skills/*/SKILL.md)" -ForegroundColor Gray
+Write-Host "    Domain  = $domainCount  (domain/*.md, ex README)" -ForegroundColor Gray
+Write-Host "    Tools   = $toolCount  (MCP-Server/src/tools/*.ts)" -ForegroundColor Gray
+
+# Exclude: archived snapshots, log files, and explicit-snapshot demo HTMLs
+$skipPatterns = @('_archive', '\log\', '0425-presentation.html', 'karpathy-wiki-reading.bundled.txt')
+
+# 7-1: Tool count consistency
+Write-Host ""
+Write-Host "  7-1. Tool count consistency ($toolCount):" -ForegroundColor Cyan
+$toolScanPaths = @(
+    "$projectRoot\CLAUDE.md",
+    "$projectRoot\docs\BIM_MCP\*.html",
+    "$projectRoot\docs\BIM_MCP\reference\*.html",
+    "$projectRoot\docs\BIM_MCP\_shared.js"
+)
+$staleTools = Find-StaleNumbers -Pattern '\b92\b.{0,4}(個|tools?|工具|commands?)' -Paths $toolScanPaths -Exclude $skipPatterns
+Write-Check "No stale 92-tool references" ($staleTools.Count -eq 0) `
+    $(if ($staleTools.Count -gt 0) { "Found $($staleTools.Count) stale '92'`: $($staleTools[0].Path):$($staleTools[0].LineNumber)" } else { "" })
+
+# 7-2: Domain count consistency
+Write-Host ""
+Write-Host "  7-2. Domain count consistency ($domainCount):" -ForegroundColor Cyan
+$domainScanPaths = @(
+    "$projectRoot\CLAUDE.md",
+    "$projectRoot\docs\BIM_MCP\*.html",
+    "$projectRoot\docs\BIM_MCP\reference\*.html",
+    "$projectRoot\docs\BIM_MCP\_shared.js"
+)
+$staleDomain = Find-StaleNumbers -Pattern '35\+?\s*(個|Domain|markdown|SOP|Skill)' -Paths $domainScanPaths -Exclude $skipPatterns
+Write-Check "No stale 35-domain references" ($staleDomain.Count -eq 0) `
+    $(if ($staleDomain.Count -gt 0) { "Found $($staleDomain.Count) stale '35'`: $($staleDomain[0].Path):$($staleDomain[0].LineNumber)" } else { "" })
+
+# 7-3: Skill count consistency (sanity — 19 is canonical)
+Write-Host ""
+Write-Host "  7-3. Skill count is 19:" -ForegroundColor Cyan
+Write-Check "Skills folder has 19 SKILL.md" ($skillCount -eq 19) `
+    $(if ($skillCount -ne 19) { "Got $skillCount, expected 19. Update CLAUDE.md '## Skills（19 個）' if intentional." } else { "" })
+
+# 7-4: CLAUDE.md table → real domain files (forward check)
+Write-Host ""
+Write-Host "  7-4. CLAUDE.md domain table -> real files:" -ForegroundColor Cyan
+$claudeMd = Get-Content "$projectRoot\CLAUDE.md" -Raw -ErrorAction SilentlyContinue
+# Match real domain paths only; reject literal placeholders like {file}.md, {name}.md
+$tablePattern = [regex]'`domain/[a-zA-Z0-9_\-\.\/]+\.md`'
+$tableRefs = $tablePattern.Matches($claudeMd) | ForEach-Object { $_.Value.Trim('`') } | Sort-Object -Unique
+$missingFiles = @()
+foreach ($ref in $tableRefs) {
+    $full = Join-Path $projectRoot $ref.Replace('/', '\')
+    if (-not (Test-Path $full)) { $missingFiles += $ref }
+}
+Write-Check "All $($tableRefs.Count) CLAUDE.md domain refs resolve" ($missingFiles.Count -eq 0) `
+    $(if ($missingFiles.Count -gt 0) { "Missing: $($missingFiles -join ', ')" } else { "" })
+
+# 7-5: Real domain files → CLAUDE.md table (reverse check)
+Write-Host ""
+Write-Host "  7-5. Real domain files -> CLAUDE.md table:" -ForegroundColor Cyan
+$metaDomain = @('README.md', 'frontmatter-standard.md', 'lessons.md', 'qa-checklist.md',
+                'path-maintenance-qa.md', 'session-context-guard.md',
+                'tool-capability-boundary.md', 'skill-authoring-standard.md')
+$realDomain = Get-ChildItem -Path "$projectRoot\domain" -Filter "*.md" |
+    Where-Object { $_.Name -notin $metaDomain } | ForEach-Object { $_.Name }
+$notInTable = @()
+foreach ($f in $realDomain) {
+    if ($claudeMd -notmatch [regex]::Escape("domain/$f")) { $notInTable += $f }
+}
+Write-Check "All real domain files appear in CLAUDE.md table" ($notInTable.Count -eq 0) `
+    $(if ($notInTable.Count -gt 0) { "Missing from table: $($notInTable -join ', ')" } else { "" })
+
+# 7-6: BIM_MCP web internal links — domain/* / .claude/skills/* targets must exist
+Write-Host ""
+Write-Host "  7-6. BIM_MCP web link resolution:" -ForegroundColor Cyan
+$webFiles = @()
+$webFiles += Get-ChildItem -Path "$projectRoot\docs\BIM_MCP" -Filter "*.html" -ErrorAction SilentlyContinue
+$webFiles += Get-ChildItem -Path "$projectRoot\docs\BIM_MCP\reference" -Filter "*.html" -ErrorAction SilentlyContinue
+$linkPattern = [regex]'href="\.\./\.\./(domain/[^"#]+\.md|\.claude/skills/[^"#]+)"'
+$brokenLinks = @()
+foreach ($wf in $webFiles) {
+    $content = Get-Content $wf.FullName -Raw -ErrorAction SilentlyContinue
+    $matches = $linkPattern.Matches($content)
+    foreach ($m in $matches) {
+        $target = $m.Groups[1].Value
+        $full = Join-Path $projectRoot $target.Replace('/', '\')
+        if (-not (Test-Path $full)) { $brokenLinks += "$($wf.Name) -> $target" }
+    }
+}
+Write-Check "No broken BIM_MCP -> source links" ($brokenLinks.Count -eq 0) `
+    $(if ($brokenLinks.Count -gt 0) { "First broken: $($brokenLinks[0])" } else { "" })
 
 # ─────────────────────────────────────────────
 # Summary
