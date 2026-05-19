@@ -628,6 +628,7 @@ Write-Host ""
 Write-Host "  7-7. Local markdown link rot lint:" -ForegroundColor Cyan
 
 $linkScanFiles = @()
+$linkScanFiles += "$projectRoot\CLAUDE.md"
 $linkScanFiles += "$projectRoot\README.md"
 $linkScanFiles += "$projectRoot\README.en.md"
 $linkScanFiles += "$projectRoot\docs\DOCS_STRUCTURE.md"
