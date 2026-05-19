@@ -1453,9 +1453,7 @@ MIT License
 | [log/README.md](./log/README.md) | 事件日誌系統說明（Karpathy LLM Wiki pattern，跨 AI 自動維護） |
 | **docs/** | |
 | [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | 文件目錄結構說明 |
-| [docs/MIGRATION_GUIDE.md](./docs/MIGRATION_GUIDE.md) | 統一建構遷移指南（舊版升級必讀） |
-| [docs/tools/](./docs/tools/) | MCP 工具 API 技術文件 |
-| [docs/workflows/](./docs/workflows/) | 工作流程設計文件 |
+| [docs/BIM_MCP/](./docs/BIM_MCP/index.html) | 公開知識站（10 頁 + 25 SVG） |
 | **scripts/** | |
 | [scripts/README.md](./scripts/README.md) | 安裝腳本使用說明 |
 | **教材/** | |

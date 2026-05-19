@@ -1407,9 +1407,7 @@ Welcome to submit Issues and Pull Requests!
 | [domain/lessons.md](./domain/lessons.md) | Development lessons learned (maintained by `/lessons` command) |
 | **docs/** | |
 | [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | Document directory structure guide |
-| [docs/MIGRATION_GUIDE.md](./docs/MIGRATION_GUIDE.md) | Unified build migration guide (required reading for upgraders) |
-| [docs/tools/](./docs/tools/) | MCP Tools API technical documentation |
-| [docs/workflows/](./docs/workflows/) | Workflow design documentation |
+| [docs/BIM_MCP/](./docs/BIM_MCP/index.html) | Public knowledge site (10 pages + 25 SVG) |
 | **scripts/** | |
 | [scripts/README.md](./scripts/README.md) | Installation script documentation |
 | **教材/** | |
