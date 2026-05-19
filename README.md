@@ -19,7 +19,7 @@
 
 **🎥 示範影片：[Revit MCP - AI 驅動的 BIM 工作流程示範](https://youtu.be/YpAYF-GxrhA)**
 
-**📚 知識站：[docs/BIM_MCP](docs/BIM_MCP/index.html)** — 三層架構 / 22 命題 / 決策框架 / 全 40 Domain + 19 Skill + 88 Tool 視覺化索引
+**📚 知識站：[docs/BIM_MCP](docs/BIM_MCP/index.html)** — 三層架構 / 22 命題 / 決策框架 / 全 36 Domain + 19 Skill + 84 Tool 視覺化索引
 
 ---
 

@@ -187,22 +187,29 @@ Frontmatter 必須包含：
 
 ## Phase 7：跨文件對齊（任何 OS）
 
-驗證 `CLAUDE.md`、`docs/BIM_MCP/` 網頁、`scripts/verify-qaqc.ps1` 與真實 source 的 Skill / Domain / Tool 計數一致。任何過時聲稱會直接 FAIL，避免簡報、網頁、文件三邊漂移。
+驗證 `CLAUDE.md`、`README.md`、`docs/BIM_MCP/` 網頁、`docs/0523-*.html` 內的 Skill / Domain / Tool 計數宣稱**精確等於**真實計數。不是只查 stale pattern，而是 grand-total claim site 的 capture group 數字必須與真值匹配；任何 mismatch 直接 FAIL 並列出 file:line。
 
 ### 真值來源（single source of truth）
 | 項目 | 計算方式 |
 |------|---------|
-| Skills | `Get-ChildItem .claude/skills/*/SKILL.md` 數量 |
-| Domain | `Get-ChildItem domain/*.md`（排除 README.md） |
-| Tools | grep `^\s+name:\s*['"]` 在 `MCP-Server/src/tools/*.ts` 的總命中數 |
+| Skills | `Get-ChildItem .claude/skills/*/SKILL.md`.Count |
+| Domain | `Get-ChildItem domain/*.md`.Count − 1 (README) + 1 (`domain/references/`) = grand total |
+| Tools | grep `^\s+name:\s*['"]` 在 `MCP-Server/src/tools/*.ts`.Count |
 
-### 規則
-- **7-1 Tool 計數一致**：CLAUDE.md / BIM_MCP html / `_shared.js` 不得殘留 `92 個工具|92 tools|(92`，必須與真實 Tool 數對齊
-- **7-2 Domain 計數一致**：同上不得殘留 `35+? Domain|35+? Skill|35+? markdown|35+? SOP`
-- **7-3 Skills 計數**：必須 == 19（如有變動，CLAUDE.md `## Skills（19 個）` 標題與 BIM_MCP 網頁必須同步）
+### 規則（exact-match）
+所有規則用 regex capture group 抓 grand-total 宣稱句中的數字 N，FAIL 條件：`N != 真實 count`。
+
+- **7-1 Tool 計數精確比對**：scan grand-total 句型——`共用 N 個工具`、`(N+ commands)`、`(N tools, ...)`、`封裝 N 個 tools`、`N 個 MCP tools`、`N 個原子工具`、`N 個語意化工具`、`Tool（N）`、`「N 工具編排平台」`、`警告：N 工具不該`、`N 個工具可以組合`。不誤殺「5 個 ARCHI 工具」這類批次計數。
+- **7-2 Domain 計數精確比對**：`Domain Knowledge（N 個`、`N Domain`、`N 個 SOP`、`N 個 domain/*.md`、`N 個 <code>domain`
+- **7-3 Skill 計數精確比對**：`## Skills（N 個）`、`Skills 索引（N 個）`、`N 個編排層 Skill`、`N Skill vs`、`Skill = 編排（N 個`、`SKILLS INDEX <span>N 個`
 - **7-4 forward**：CLAUDE.md「Domain Knowledge & Workflow Files」表格內每個 `domain/*.md` 連結必須真實存在
 - **7-5 reverse**：每個非 meta 的 `domain/*.md` 真實檔案，必須在 CLAUDE.md 表格中出現一次
 - **7-6 BIM_MCP 死連結**：`docs/BIM_MCP/**/*.html` 內 `href="../../domain/*.md"` 與 `href="../../.claude/skills/*"` 目標必須存在
+
+### 動態調整原則
+> **顯示數字必須等於當下真實計數。未完成的功能不得列入宣稱。每次 PR 合併（增/減 tool/domain/skill）後，依此 Phase 7 全面重盤點對齊一次。**
+
+執行流程：merge → Phase 7 FAIL → 依 mismatch 列表（含 file:line:claimed:expected）修各 claim site → re-run PASS → 合併才算完成。新增 claim 句型時直接擴充 `$claimSites` table（`scripts/verify-qaqc.ps1`）。
 
 ### 白名單（不檢查）
 - `docs/_archive/**`（封存快照）

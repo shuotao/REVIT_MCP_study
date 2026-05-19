@@ -45,6 +45,17 @@ function Write-Skip {
     $script:totalSkip++
 }
 
+# Robust text reader — bypasses Get-Content parameter-binding quirks on some files
+function Read-FileText {
+    param([string]$Path)
+    try {
+        if (-not $Path -or -not (Test-Path -LiteralPath $Path -PathType Leaf)) { return $null }
+        return [System.IO.File]::ReadAllText($Path)
+    } catch {
+        return $null
+    }
+}
+
 # Header
 Write-Host ""
 Write-Host "================================================================" -ForegroundColor Cyan
@@ -105,7 +116,8 @@ else {
 foreach ($redirect in @("GEMINI.md", "AGENTS.md")) {
     $path = Join-Path $projectRoot $redirect
     if (Test-Path $path) {
-        $content = (Get-Content $path -Raw).Trim()
+        $rawContent = Read-FileText $path
+        $content = if ($rawContent) { $rawContent.Trim() } else { "" }
         Write-Check "$redirect is redirect" ($content -eq "CLAUDE.md") "Content is '$content' instead of 'CLAUDE.md'"
     }
     else {
@@ -162,7 +174,7 @@ foreach ($pattern in $stalePatterns) {
         if ($normalizedPath -like "docs/0328*") { $skip = $true }
         if ($skip) { continue }
 
-        $content = Get-Content $file.FullName -Raw -ErrorAction SilentlyContinue
+        $content = Read-FileText $file.FullName
         if ($content -and $content -match $pattern[0]) {
             # Exception: CLAUDE.md "DO NOT" rules
             if ($relativePath -eq "CLAUDE.md" -and $content -match "DO NOT.*$($pattern[0])") { continue }
@@ -187,7 +199,7 @@ Write-Host "  2-2. Navigation table completeness:" -ForegroundColor Cyan
 foreach ($readme in @("README.md", "README.en.md")) {
     $path = Join-Path $projectRoot $readme
     if (Test-Path $path) {
-        $content = Get-Content $path -Raw
+        $content = Read-FileText $path
         $hasAgents = $content -match "AGENTS\.md"
         $hasLessons = $content -match "domain/lessons\.md"
         $hasSkills = $content -match "\.claude/skills"
@@ -209,7 +221,7 @@ Write-Host ""
 Write-Host "  3-1. csproj settings:" -ForegroundColor Cyan
 $csproj = Join-Path $projectRoot "MCP\RevitMCP.csproj"
 if (Test-Path $csproj) {
-    $content = Get-Content $csproj -Raw
+    $content = Read-FileText $csproj
     Write-Check "Nice3point.Revit.Sdk reference" ($content -match "Nice3point\.Revit\.Sdk") "Missing SDK reference"
     Write-Check "DeployAddin disabled" ($content -match "<DeployAddin>false</DeployAddin>") "DeployAddin must be false (Nice3point SDK 會自動產生 RevitMCP.{version}.addin 與手動 addin 衝突)"
     Write-Check "Release.R22 config" ($content -match "Release\.R22") "Missing Revit 2022 config"
@@ -226,7 +238,7 @@ Write-Host ""
 Write-Host "  3-2. addin settings:" -ForegroundColor Cyan
 $addin = Join-Path $projectRoot "MCP\RevitMCP.addin"
 if (Test-Path $addin) {
-    $content = Get-Content $addin -Raw
+    $content = Read-FileText $addin
     # Assembly 路徑應為相對路徑 — 接受 "RevitMCP.dll" 或 "RevitMCP\RevitMCP.dll"（Nice3point SDK 子資料夾）
     Write-Check "Relative assembly path" ($content -match "<Assembly>RevitMCP[\\/]?(RevitMCP\.dll|\.dll)</Assembly>|<Assembly>RevitMCP\\RevitMCP\.dll</Assembly>") "Assembly path should be relative (RevitMCP.dll or RevitMCP\RevitMCP.dll)"
     Write-Check "No absolute path in addin" (-not ($content -match "[A-Z]:\\")) "Absolute path found in addin file"
@@ -245,7 +257,7 @@ Write-Host ""
 Write-Host "  3-3. MCP Server config:" -ForegroundColor Cyan
 $pkg = Join-Path $projectRoot "MCP-Server\package.json"
 if (Test-Path $pkg) {
-    $content = Get-Content $pkg -Raw
+    $content = Read-FileText $pkg
     Write-Check "build script defined" ($content -match '"build"') "No build script in package.json"
     Write-Check "MCP SDK dependency" ($content -match "modelcontextprotocol") "Missing MCP SDK dependency"
 }
@@ -371,7 +383,7 @@ else {
         }
         elseif ($addinFiles.Count -eq 1) {
             # Verify DLL exists — 從 .addin 讀 Assembly 路徑，支援根目錄或子資料夾部署
-            $addinContent = Get-Content $addinFiles[0].FullName -Raw -ErrorAction SilentlyContinue
+            $addinContent = Read-FileText $addinFiles[0].FullName
             $dllDir = $addinFiles[0].DirectoryName
             $assemblyPath = if ($addinContent -match "<Assembly>([^<]+)</Assembly>") { $matches[1] } else { "RevitMCP.dll" }
             $dllPath = Join-Path $dllDir $assemblyPath
@@ -437,45 +449,132 @@ Write-Host "    Skills  = $skillCount  (.claude/skills/*/SKILL.md)" -ForegroundC
 Write-Host "    Domain  = $domainCount  (domain/*.md, ex README)" -ForegroundColor Gray
 Write-Host "    Tools   = $toolCount  (MCP-Server/src/tools/*.ts)" -ForegroundColor Gray
 
-# Exclude: archived snapshots, log files, and explicit-snapshot demo HTMLs
-$skipPatterns = @('_archive', '\log\', '0425-presentation.html', 'karpathy-wiki-reading.bundled.txt')
+# Exclude: archived snapshots, log files, explicit-snapshot demo HTMLs, external bundled mirrors
+$skipPatterns = @('_archive', '\log\', '0425-presentation.html',
+                  'karpathy-wiki-reading.bundled.txt', 'reference\external')
 
-# 7-1: Tool count consistency
-Write-Host ""
-Write-Host "  7-1. Tool count consistency ($toolCount):" -ForegroundColor Cyan
-$toolScanPaths = @(
+# Scan target files for claim-site checks (7-1/7-2/7-3)
+$scanPaths = @(
     "$projectRoot\CLAUDE.md",
+    "$projectRoot\README.md",
+    "$projectRoot\README.en.md",
     "$projectRoot\docs\BIM_MCP\*.html",
     "$projectRoot\docs\BIM_MCP\reference\*.html",
-    "$projectRoot\docs\BIM_MCP\_shared.js"
+    "$projectRoot\docs\BIM_MCP\_shared.js",
+    "$projectRoot\docs\0523-presentation.html",
+    "$projectRoot\docs\0523-handson.html"
 )
-$staleTools = Find-StaleNumbers -Pattern '\b92\b.{0,4}(個|tools?|工具|commands?)' -Paths $toolScanPaths -Exclude $skipPatterns
-Write-Check "No stale 92-tool references" ($staleTools.Count -eq 0) `
-    $(if ($staleTools.Count -gt 0) { "Found $($staleTools.Count) stale '92'`: $($staleTools[0].Path):$($staleTools[0].LineNumber)" } else { "" })
 
-# 7-2: Domain count consistency
-Write-Host ""
-Write-Host "  7-2. Domain count consistency ($domainCount):" -ForegroundColor Cyan
-$domainScanPaths = @(
-    "$projectRoot\CLAUDE.md",
-    "$projectRoot\docs\BIM_MCP\*.html",
-    "$projectRoot\docs\BIM_MCP\reference\*.html",
-    "$projectRoot\docs\BIM_MCP\_shared.js"
+# Known claim-site patterns — ONLY match GRAND-TOTAL claim phrases (not "5 個 ARCHI 工具" type batch counts).
+# Each: { Pattern (regex w/ 1 capture group) ; Truth ; Label }
+# Truth note: Domain Knowledge heading + N Domain refs use $domainCount+1 because 1 entry is from domain/references/
+$claimSites = @(
+    # Tool count grand-total claims
+    @{ Pattern = '共用\s*(\d+)\s*個工具';                              Truth = $toolCount;          Label = '共用 N 個工具' },
+    @{ Pattern = '個\s*Domain[、，]\s*(\d+)\s*個工具';                  Truth = $toolCount;          Label = 'N 個工具 (hero 三層)' },
+    @{ Pattern = '\((\d+)\+?\s*commands?\)';                           Truth = $toolCount;          Label = '(N+ commands)' },
+    @{ Pattern = '\((\d+)\s+tools?,';                                  Truth = $toolCount;          Label = '(N tools, ...)' },
+    @{ Pattern = '封裝\s*(\d+)\s*個\s*tools?';                          Truth = $toolCount;          Label = '封裝 N 個 tools' },
+    @{ Pattern = '(\d+)\s*個\s*MCP\s*tools?\b';                        Truth = $toolCount;          Label = '個 MCP tools' },
+    @{ Pattern = '(\d+)\s*個\s*原子工具';                              Truth = $toolCount;          Label = '個原子工具' },
+    @{ Pattern = '(\d+)\s*個\s*語意化工具';                            Truth = $toolCount;          Label = '個語意化工具' },
+    @{ Pattern = 'Tool[s]?[（(](\d+)[)）]';                             Truth = $toolCount;          Label = 'Tool（N）' },
+    @{ Pattern = '「(\d+)\s*工具編排平台';                              Truth = $toolCount;          Label = '「N 工具編排平台」' },
+    @{ Pattern = '警告：(\d+)\s*工具不該';                              Truth = $toolCount;          Label = '警告：N 工具不該' },
+    @{ Pattern = '(\d+)\s*個工具可以組合';                              Truth = $toolCount;          Label = 'N 個工具可以組合' },
+    # Domain count grand-total claims
+    @{ Pattern = 'Domain Knowledge.{0,40}（(\d+)\s*個';                Truth = ($domainCount + 1); Label = 'Domain Knowledge 標題' },
+    @{ Pattern = '(\d+)\+?\s*個?\s*Domain\b';                          Truth = ($domainCount + 1); Label = 'N Domain' },
+    @{ Pattern = '(\d+)\s*個\s*SOP';                                   Truth = ($domainCount + 1); Label = '個 SOP' },
+    @{ Pattern = '(\d+)\s*個\s*domain/\*\.md';                         Truth = ($domainCount + 1); Label = '個 domain/*.md' },
+    @{ Pattern = '(\d+)\s*個\s*<code>domain';                          Truth = ($domainCount + 1); Label = '個 <code>domain' },
+    # Skill count grand-total claims (must require explicit grand-total context)
+    @{ Pattern = '##\s*Skills（(\d+)\s*個）';                           Truth = $skillCount;         Label = '## Skills（N 個）' },
+    @{ Pattern = 'Skills\s*索引（(\d+)\s*個）';                         Truth = $skillCount;         Label = 'Skills 索引（N 個）' },
+    @{ Pattern = '(\d+)\s*個編排層\s*Skill';                            Truth = $skillCount;         Label = 'N 個編排層 Skill' },
+    @{ Pattern = '(\d+)\s*Skill\s*vs\b';                               Truth = $skillCount;         Label = 'N Skill vs ...' },
+    @{ Pattern = 'Skill\s*=\s*編排（(\d+)\s*個';                        Truth = $skillCount;         Label = 'Skill = 編排（N 個' },
+    @{ Pattern = 'SKILLS INDEX[^<]*<span[^>]*>(\d+)\s*個';              Truth = $skillCount;         Label = 'SKILLS INDEX eyebrow N 個' }
 )
-$staleDomain = Find-StaleNumbers -Pattern '35\+?\s*(個|Domain|markdown|SOP|Skill)' -Paths $domainScanPaths -Exclude $skipPatterns
-Write-Check "No stale 35-domain references" ($staleDomain.Count -eq 0) `
-    $(if ($staleDomain.Count -gt 0) { "Found $($staleDomain.Count) stale '35'`: $($staleDomain[0].Path):$($staleDomain[0].LineNumber)" } else { "" })
 
-# 7-3: Skill count consistency (sanity — 19 is canonical)
+# Resolve all paths (glob → file list)
+$scanFiles = @()
+foreach ($p in $scanPaths) {
+    if ($p -match '\*') {
+        $scanFiles += Get-ChildItem -Path $p -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+    } elseif (Test-Path -LiteralPath $p) {
+        $scanFiles += $p
+    }
+}
+# Apply skip filter
+$scanFiles = $scanFiles | Where-Object {
+    $f = $_
+    -not ($skipPatterns | Where-Object { $f -like "*$_*" })
+}
+
+# 7-1/7-2/7-3 unified exact-match scanner
+function Find-ClaimMismatches {
+    param([array]$Files, [hashtable]$Site)
+    $mismatches = @()
+    foreach ($f in $Files) {
+        $text = Read-FileText $f
+        if (-not $text) { continue }
+        $lines = $text -split "`r?`n"
+        $rx = [regex]$Site.Pattern
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            $matches = $rx.Matches($lines[$i])
+            foreach ($m in $matches) {
+                $claimed = [int]$m.Groups[1].Value
+                if ($claimed -ne $Site.Truth) {
+                    $rel = $f.Replace("$projectRoot\", "").Replace("\", "/")
+                    $mismatches += "    $rel`:$($i+1)  '$($Site.Label)' claims $claimed, truth is $($Site.Truth)"
+                }
+            }
+        }
+    }
+    return $mismatches
+}
+
+# 7-1: Tool count exact-match
 Write-Host ""
-Write-Host "  7-3. Skill count is 19:" -ForegroundColor Cyan
-Write-Check "Skills folder has 19 SKILL.md" ($skillCount -eq 19) `
-    $(if ($skillCount -ne 19) { "Got $skillCount, expected 19. Update CLAUDE.md '## Skills（19 個）' if intentional." } else { "" })
+Write-Host "  7-1. Tool count exact-match (truth = $toolCount):" -ForegroundColor Cyan
+$toolSites = $claimSites | Where-Object { $_.Truth -eq $toolCount }
+$toolMismatches = @()
+foreach ($site in $toolSites) {
+    $toolMismatches += Find-ClaimMismatches -Files $scanFiles -Site $site
+}
+Write-Check "All tool-count claims == $toolCount" ($toolMismatches.Count -eq 0) `
+    $(if ($toolMismatches.Count -gt 0) { "$($toolMismatches.Count) mismatch(es). First:`n$($toolMismatches -join "`n" | Select-Object -First 1)`nRun script for full list." } else { "" })
+if ($toolMismatches.Count -gt 0) { $toolMismatches | ForEach-Object { Write-Host $_ -ForegroundColor DarkYellow } }
+
+# 7-2: Domain count exact-match
+Write-Host ""
+Write-Host "  7-2. Domain count exact-match (truth = $($domainCount + 1) incl 1 reference):" -ForegroundColor Cyan
+$domainSites = $claimSites | Where-Object { $_.Truth -eq ($domainCount + 1) }
+$domainMismatches = @()
+foreach ($site in $domainSites) {
+    $domainMismatches += Find-ClaimMismatches -Files $scanFiles -Site $site
+}
+Write-Check "All domain-count claims == $($domainCount + 1)" ($domainMismatches.Count -eq 0) `
+    $(if ($domainMismatches.Count -gt 0) { "$($domainMismatches.Count) mismatch(es)." } else { "" })
+if ($domainMismatches.Count -gt 0) { $domainMismatches | ForEach-Object { Write-Host $_ -ForegroundColor DarkYellow } }
+
+# 7-3: Skill count exact-match
+Write-Host ""
+Write-Host "  7-3. Skill count exact-match (truth = $skillCount):" -ForegroundColor Cyan
+$skillSites = $claimSites | Where-Object { $_.Truth -eq $skillCount }
+$skillMismatches = @()
+foreach ($site in $skillSites) {
+    $skillMismatches += Find-ClaimMismatches -Files $scanFiles -Site $site
+}
+Write-Check "All skill-count claims == $skillCount" ($skillMismatches.Count -eq 0) `
+    $(if ($skillMismatches.Count -gt 0) { "$($skillMismatches.Count) mismatch(es)." } else { "" })
+if ($skillMismatches.Count -gt 0) { $skillMismatches | ForEach-Object { Write-Host $_ -ForegroundColor DarkYellow } }
 
 # 7-4: CLAUDE.md table → real domain files (forward check)
 Write-Host ""
 Write-Host "  7-4. CLAUDE.md domain table -> real files:" -ForegroundColor Cyan
-$claudeMd = Get-Content "$projectRoot\CLAUDE.md" -Raw -ErrorAction SilentlyContinue
+$claudeMd = Read-FileText "$projectRoot\CLAUDE.md"
 # Match real domain paths only; reject literal placeholders like {file}.md, {name}.md
 $tablePattern = [regex]'`domain/[a-zA-Z0-9_\-\.\/]+\.md`'
 $tableRefs = $tablePattern.Matches($claudeMd) | ForEach-Object { $_.Value.Trim('`') } | Sort-Object -Unique
@@ -511,7 +610,7 @@ $webFiles += Get-ChildItem -Path "$projectRoot\docs\BIM_MCP\reference" -Filter "
 $linkPattern = [regex]'href="\.\./\.\./(domain/[^"#]+\.md|\.claude/skills/[^"#]+)"'
 $brokenLinks = @()
 foreach ($wf in $webFiles) {
-    $content = Get-Content $wf.FullName -Raw -ErrorAction SilentlyContinue
+    $content = Read-FileText $wf.FullName
     $matches = $linkPattern.Matches($content)
     foreach ($m in $matches) {
         $target = $m.Groups[1].Value
