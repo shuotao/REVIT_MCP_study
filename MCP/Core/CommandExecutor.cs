@@ -169,6 +169,9 @@ namespace RevitMCP.Core
                     case "create_corridor_dimension":
                         result = CreateCorridorDimension(parameters);
                         break;
+                    case "analyze_corridor_width":
+                        result = AnalyzeCorridorWidth(parameters);
+                        break;
 
                     case "query_walls_by_location":
                         result = QueryWallsByLocation(parameters);
@@ -1286,7 +1289,8 @@ namespace RevitMCP.Core
                     MinY = Math.Round(bbox.Min.Y * 304.8, 2),
                     MaxX = Math.Round(bbox.Max.X * 304.8, 2),
                     MaxY = Math.Round(bbox.Max.Y * 304.8, 2)
-                } : null
+                } : null,
+                BoundarySegments = GetRoomBoundarySegments(room)
             };
         }
 
@@ -2131,6 +2135,189 @@ namespace RevitMCP.Core
                 AllPass_1600 = widthValues.All(w => w >= 1600),
                 AllPass_1200 = widthValues.All(w => w >= 1200),
                 Segments = measurements
+            };
+        }
+
+        /// <summary>
+        /// 走廊寬度分析 — 使用房間邊界線段找平行牆對，回傳寬度與各區段檢討結果
+        /// </summary>
+        private object AnalyzeCorridorWidth(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            IdType? roomId = parameters["roomId"]?.Value<IdType>();
+            string roomName = parameters["roomName"]?.Value<string>();
+            double minWidth = parameters["minWidth"]?.Value<double>() ?? 1200;
+
+            Room room = null;
+
+            if (roomId.HasValue && roomId.Value > 0)
+            {
+                room = doc.GetElement(new ElementId(roomId.Value)) as Room;
+            }
+            else if (!string.IsNullOrEmpty(roomName))
+            {
+                room = new FilteredElementCollector(doc)
+                    .OfCategory(BuiltInCategory.OST_Rooms)
+                    .WhereElementIsNotElementType()
+                    .Cast<Room>()
+                    .FirstOrDefault(r => r.Name.Contains(roomName) ||
+                                         r.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString()?.Contains(roomName) == true);
+            }
+
+            if (room == null)
+            {
+                throw new Exception(roomId.HasValue
+                    ? $"找不到房間 ID: {roomId}"
+                    : $"找不到房間名稱包含: {roomName}");
+            }
+
+            var bOptions = new SpatialElementBoundaryOptions();
+            bOptions.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Finish;
+            var segmentLoops = room.GetBoundarySegments(bOptions);
+
+            if (segmentLoops == null || segmentLoops.Count == 0)
+                throw new Exception("房間無邊界線段");
+
+            var lines = new List<Line>();
+            foreach (var seg in segmentLoops[0])
+            {
+                var curve = seg.GetCurve();
+                if (curve is Line line && line.Length > 0.3)
+                    lines.Add(line);
+            }
+
+            if (lines.Count < 2)
+                throw new Exception($"邊界線段不足（僅 {lines.Count} 條直線）");
+
+            var pairs = new List<int[]>();
+            var pairWidths = new List<double>();
+            var pairAvgLens = new List<double>();
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                XYZ dir1 = lines[i].Direction.Normalize();
+                double len1 = lines[i].Length;
+
+                for (int j = i + 1; j < lines.Count; j++)
+                {
+                    XYZ dir2 = lines[j].Direction.Normalize();
+                    double len2 = lines[j].Length;
+
+                    double dot = Math.Abs(dir1.DotProduct(dir2));
+                    if (dot < 0.996) continue;
+
+                    XYZ perp = new XYZ(-dir1.Y, dir1.X, 0).Normalize();
+                    XYZ diff = lines[j].GetEndPoint(0).Subtract(lines[i].GetEndPoint(0));
+                    double dist = Math.Abs(diff.DotProduct(perp));
+
+                    if (dist < 100.0 / 304.8) continue;
+
+                    double avgLen = (len1 + len2) / 2;
+                    if (avgLen < dist) continue;
+
+                    double s1a = lines[i].GetEndPoint(0).DotProduct(dir1);
+                    double s1b = lines[i].GetEndPoint(1).DotProduct(dir1);
+                    double s2a = lines[j].GetEndPoint(0).DotProduct(dir1);
+                    double s2b = lines[j].GetEndPoint(1).DotProduct(dir1);
+
+                    double min1 = Math.Min(s1a, s1b), max1 = Math.Max(s1a, s1b);
+                    double min2 = Math.Min(s2a, s2b), max2 = Math.Max(s2a, s2b);
+                    double oStart = Math.Max(min1, min2);
+                    double oEnd = Math.Min(max1, max2);
+                    if (oEnd <= oStart + 0.01) continue;
+
+                    pairs.Add(new[] { i, j });
+                    pairWidths.Add(dist);
+                    pairAvgLens.Add(avgLen);
+                }
+            }
+
+            if (pairs.Count == 0)
+                throw new Exception("找不到平行牆面對（可能不是走廊形狀）");
+
+            var sorted = Enumerable.Range(0, pairs.Count)
+                .OrderByDescending(k => pairAvgLens[k])
+                .ToList();
+
+            var segments = new List<object>();
+            var widthValues = new List<double>();
+
+            foreach (int k in sorted)
+            {
+                var line1 = lines[pairs[k][0]];
+                var line2 = lines[pairs[k][1]];
+                XYZ dir = line1.Direction.Normalize();
+
+                double s1a = line1.GetEndPoint(0).DotProduct(dir);
+                double s1b = line1.GetEndPoint(1).DotProduct(dir);
+                double s2a = line2.GetEndPoint(0).DotProduct(dir);
+                double s2b = line2.GetEndPoint(1).DotProduct(dir);
+
+                double min1 = Math.Min(s1a, s1b), max1 = Math.Max(s1a, s1b);
+                double min2 = Math.Min(s2a, s2b), max2 = Math.Max(s2a, s2b);
+                double oMid = (Math.Max(min1, min2) + Math.Min(max1, max2)) / 2;
+
+                double t1 = (s1b != s1a) ? (oMid - s1a) / (s1b - s1a) : 0.5;
+                double t2 = (s2b != s2a) ? (oMid - s2a) / (s2b - s2a) : 0.5;
+                t1 = Math.Max(0.01, Math.Min(0.99, t1));
+                t2 = Math.Max(0.01, Math.Min(0.99, t2));
+
+                XYZ p1 = line1.Evaluate(t1, true);
+                XYZ p2 = line2.Evaluate(t2, true);
+
+                double widthMm = Math.Round(pairWidths[k] * 304.8, 1);
+                double lengthMm = Math.Round(pairAvgLens[k] * 304.8, 1);
+                widthValues.Add(widthMm);
+
+                segments.Add(new
+                {
+                    SegmentIndex = segments.Count + 1,
+                    Width = widthMm,
+                    Length = lengthMm,
+                    Method = "boundary_accurate",
+                    Status = widthMm >= minWidth ? "PASS" : "FAIL",
+                    CenterPoint = new
+                    {
+                        X = Math.Round((p1.X + p2.X) * 304.8 / 2, 1),
+                        Y = Math.Round((p1.Y + p2.Y) * 304.8 / 2, 1)
+                    },
+                    Point1 = new
+                    {
+                        X = Math.Round(p1.X * 304.8, 1),
+                        Y = Math.Round(p1.Y * 304.8, 1)
+                    },
+                    Point2 = new
+                    {
+                        X = Math.Round(p2.X * 304.8, 1),
+                        Y = Math.Round(p2.Y * 304.8, 1)
+                    }
+                });
+            }
+
+            string resolvedRoomName = room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString() ?? room.Name;
+            string roomNumber = room.Number ?? "";
+
+            return new
+            {
+                Room = new
+                {
+                    ElementId = room.Id.GetIdValue(),
+                    Name = resolvedRoomName,
+                    Number = roomNumber,
+                    Level = doc.GetElement(room.LevelId)?.Name
+                },
+                Input = new
+                {
+                    MinWidth = minWidth,
+                    BoundarySegmentCount = lines.Count
+                },
+                Summary = new
+                {
+                    TotalSegments = segments.Count,
+                    MinWidth = widthValues.Count > 0 ? widthValues.Min() : 0,
+                    AllPass = widthValues.All(w => w >= minWidth)
+                },
+                Segments = segments
             };
         }
 
@@ -3018,6 +3205,48 @@ namespace RevitMCP.Core
                 TotalPairs = storedCount,
                 Message = $"已恢復 {rejoinedCount} 個接合關係"
             };
+        }
+
+        /// <summary>
+        /// 取得房間邊界線段 (用於精確計算走廊寬度)
+        /// </summary>
+        private List<object> GetRoomBoundarySegments(Room room)
+        {
+            var segments = new List<object>();
+            var options = new SpatialElementBoundaryOptions();
+
+            try
+            {
+                var boundarySegments = room.GetBoundarySegments(options);
+                if (boundarySegments == null || boundarySegments.Count == 0)
+                    return segments;
+
+                foreach (var loop in boundarySegments)
+                {
+                    foreach (BoundarySegment seg in loop)
+                    {
+                        var curve = seg.GetCurve();
+                        var start = curve.GetEndPoint(0);
+                        var end = curve.GetEndPoint(1);
+
+                        segments.Add(new
+                        {
+                            StartX = Math.Round(start.X * 304.8, 2),
+                            StartY = Math.Round(start.Y * 304.8, 2),
+                            EndX = Math.Round(end.X * 304.8, 2),
+                            EndY = Math.Round(end.Y * 304.8, 2),
+                            Length = Math.Round(curve.Length * 304.8, 2)
+                        });
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // 某些房間可能無法取得邊界 (未封閉、未放置等)
+                // 回傳空陣列,讓 JS 端使用 BoundingBox fallback
+            }
+
+            return segments;
         }
 
         #endregion
