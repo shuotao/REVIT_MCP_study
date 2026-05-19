@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
 <link rel="stylesheet" href="../styles.css">
-<link rel="stylesheet" href="../_nav.css">
+<link rel="stylesheet" href="../nav.css">
 <style>
   .bim-hero-figure{margin:var(--gap-lg) 0 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
   .bim-hero-figure img{display:block;width:100%;height:auto}
@@ -106,7 +106,7 @@
   <div class="bim-hero-eyebrow">TROUBLESHOOTING <span class="accent">5 classic + 4 live fixes</span></div>
   <h1 class="bim-hero-title">先分清：<span class="accent">部署</span> / 連線 / 工具語義</h1>
   <p class="bim-hero-sub">本頁綜合 CLAUDE.md troubleshooting 表與 commit <code>4975ceb</code> 的 4 個工具修復。<strong>5/18 demo 暴露的不是單純 bug list</strong>——它們也是「<a href="three-constitutions.html#constitution-2">Tool Call Data Honesty</a>」與「<a href="three-constitutions.html#constitution-3">Domain Method Compliance</a>」邊界的活體實證。先看下方診斷流程決定該翻哪節。</p>
-  <figure class="bim-hero-figure"><img src="../_images/troubleshooting__hero__9-cases.svg" alt="Nine troubleshooting scenarios" width="1600" height="900"></figure>
+  <figure class="bim-hero-figure"><img src="../images/troubleshooting__hero__9-cases.svg" alt="Nine troubleshooting scenarios" width="1600" height="900"></figure>
 </header>
 
 <!-- ============================================ -->
@@ -199,7 +199,7 @@
   <div class="fix-card resolved">
     <span class="fix-tag">FIX #1 · RESOLVED</span>
     <h3><code>check_exterior_wall_openings</code> · 輸出超限</h3>
-    <figure class="bim-card-figure"><img src="../_images/troubleshooting__fix1__overflow.svg" alt="Summary mode trims excessive output" width="400" height="400" loading="lazy"></figure>
+    <figure class="bim-card-figure"><img src="../images/troubleshooting__fix1__overflow.svg" alt="Summary mode trims excessive output" width="400" height="400" loading="lazy"></figure>
     <div class="fix-grid">
       <div class="fix-section">
         <h5>Symptom</h5>
@@ -223,7 +223,7 @@
   <div class="fix-card resolved">
     <span class="fix-tag">FIX #2 · RESOLVED</span>
     <h3><code>check_smoke_exhaust_windows</code> · 80+ 視圖污染</h3>
-    <figure class="bim-card-figure"><img src="../_images/troubleshooting__fix2__view-pollution.svg" alt="createAnnotatedViews false prevents view pollution" width="400" height="400" loading="lazy"></figure>
+    <figure class="bim-card-figure"><img src="../images/troubleshooting__fix2__view-pollution.svg" alt="createAnnotatedViews false prevents view pollution" width="400" height="400" loading="lazy"></figure>
     <div class="fix-grid">
       <div class="fix-section">
         <h5>Symptom</h5>
@@ -247,7 +247,7 @@
   <div class="fix-card resolved">
     <span class="fix-tag">FIX #3 · RESOLVED</span>
     <h3><code>check_stair_headroom</code> · 不支援 batch</h3>
-    <figure class="bim-card-figure"><img src="../_images/troubleshooting__fix3__batch.svg" alt="Batch mode checks multiple stairs at once" width="400" height="400" loading="lazy"></figure>
+    <figure class="bim-card-figure"><img src="../images/troubleshooting__fix3__batch.svg" alt="Batch mode checks multiple stairs at once" width="400" height="400" loading="lazy"></figure>
     <div class="fix-grid">
       <div class="fix-section">
         <h5>Symptom</h5>
@@ -271,7 +271,7 @@
   <div class="fix-card">
     <span class="fix-tag">FIX #4 · BY DESIGN（不是 bug）</span>
     <h3><code>get_room_daylight_info</code> · 只回 raw data</h3>
-    <figure class="bim-card-figure"><img src="../_images/troubleshooting__fix4__by-design.svg" alt="Raw data flows into the domain SOP by design" width="400" height="400" loading="lazy"></figure>
+    <figure class="bim-card-figure"><img src="../images/troubleshooting__fix4__by-design.svg" alt="Raw data flows into the domain SOP by design" width="400" height="400" loading="lazy"></figure>
     <div class="fix-grid">
       <div class="fix-section">
         <h5>Symptom</h5>
@@ -399,5 +399,5 @@
   <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-05-18 · 5 經典 + 4 個 5/18 demo live fix root cause 分析。</p>
 </footer>
 
-<script src="../_shared.js"></script><script>initAll();</script>
+<script src="../shared.js"></script><script>initAll();</script>
 </body></html>
