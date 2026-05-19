@@ -205,6 +205,7 @@ Frontmatter 必須包含：
 - **7-4 forward**：CLAUDE.md「Domain Knowledge & Workflow Files」表格內每個 `domain/*.md` 連結必須真實存在
 - **7-5 reverse**：每個非 meta 的 `domain/*.md` 真實檔案，必須在 CLAUDE.md 表格中出現一次
 - **7-6 BIM_MCP 死連結**：`docs/BIM_MCP/**/*.html` 內 `href="../../domain/*.md"` 與 `href="../../.claude/skills/*"` 目標必須存在
+- **7-7 Markdown link rot lint**：掃描 `README.md`、`README.en.md`、`docs/DOCS_STRUCTURE.md`、`domain/*.md`、`.claude/skills/*/SKILL.md` 內所有 markdown 連結 `[text](path)`，本地相對路徑（非 http/mailto/#anchor）目標必須存在。會自動跳過 code span（``\` ... \```）內的範例連結，避免 false positive
 
 ### 動態調整原則
 > **顯示數字必須等於當下真實計數。未完成的功能不得列入宣稱。每次 PR 合併（增/減 tool/domain/skill）後，依此 Phase 7 全面重盤點對齊一次。**
@@ -251,7 +252,7 @@ Frontmatter 必須包含：
 
 Phase 6 欄位說明：A = 通過 6-1 ~ 6-5 的檔數、B = 總檔數、C = 觸發 staleness 警告的檔數。
 
-Phase 7 欄位說明：X/X 為 7-1 ~ 7-6 共 6 條規則中 PASS 的數量。任一 FAIL 直接退出 exit 1。
+Phase 7 欄位說明：X/X 為 7-1 ~ 7-7 共 7 條規則中 PASS 的數量。任一 FAIL 直接退出 exit 1。
 
 如有 FAIL 項目，每個都必須附上：
 1. 失敗的具體檢查項

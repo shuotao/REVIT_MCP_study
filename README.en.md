@@ -1410,9 +1410,6 @@ Welcome to submit Issues and Pull Requests!
 | [docs/BIM_MCP/](./docs/BIM_MCP/index.html) | Public knowledge site (10 pages + 25 SVG) |
 | **scripts/** | |
 | [scripts/README.md](./scripts/README.md) | Installation script documentation |
-| **教材/** | |
-| [教材/README.md](./教材/README.md) | Course catalog (8 lessons × 3 hours) |
-| [教材/05-Skill遷移實戰篇.md](./教材/05-Skill遷移實戰篇.md) | Lesson 5: Migrating from domain/ to Agent Skill architecture |
 | **Claude Code Automation** | |
 | [.claude/skills/](./.claude/skills/) | Claude Code skills (`/build-revit`, `/deploy-addon`) |
 | [.claude/commands/](./.claude/commands/) | Slash command definitions (`/lessons`, `/domain`, `/review`) |

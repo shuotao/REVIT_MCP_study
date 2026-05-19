@@ -621,6 +621,59 @@ foreach ($wf in $webFiles) {
 Write-Check "No broken BIM_MCP -> source links" ($brokenLinks.Count -eq 0) `
     $(if ($brokenLinks.Count -gt 0) { "First broken: $($brokenLinks[0])" } else { "" })
 
+# 7-7: Local markdown-link rot lint
+# Scans README.md / README.en.md / DOCS_STRUCTURE.md / domain/*.md / .claude/skills/*/SKILL.md
+# for markdown links [text](path) where path is a local relative file. Each target must exist.
+Write-Host ""
+Write-Host "  7-7. Local markdown link rot lint:" -ForegroundColor Cyan
+
+$linkScanFiles = @()
+$linkScanFiles += "$projectRoot\README.md"
+$linkScanFiles += "$projectRoot\README.en.md"
+$linkScanFiles += "$projectRoot\docs\DOCS_STRUCTURE.md"
+$linkScanFiles += Get-ChildItem -Path "$projectRoot\domain" -Filter "*.md" -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+$linkScanFiles += Get-ChildItem -Path "$projectRoot\.claude\skills\*\SKILL.md" -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+
+# Markdown link [text](path). Capture group 1 = path.
+# Exclude: URLs (http://, https://, mailto:), in-page anchors (#...), Windows paths with drive letter
+$mdLinkRx = [regex]'\[(?:[^\]]+)\]\(([^)\s]+?)\)'
+$rotted = @()
+$totalChecked = 0
+foreach ($lf in $linkScanFiles) {
+    $text = Read-FileText $lf
+    if (-not $text) { continue }
+    $relFile = $lf.Replace("$projectRoot\", "").Replace("\", "/")
+    $fileDir = Split-Path -Parent $lf
+    $lines = $text -split "`r?`n"
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        foreach ($m in $mdLinkRx.Matches($lines[$i])) {
+            $target = $m.Groups[1].Value
+            # Skip URLs, in-page anchors, mailto, image data URIs
+            if ($target -match '^(https?:|mailto:|#|data:|ftp:)') { continue }
+            # Skip if inside a code span — odd number of backticks before this match
+            $before = $lines[$i].Substring(0, $m.Index)
+            $backticksBefore = ($before.ToCharArray() | Where-Object { $_ -eq '`' }).Count
+            if ($backticksBefore % 2 -eq 1) { continue }
+            # Strip trailing #anchor / ?query
+            $pathOnly = $target -replace '[#?].*$', ''
+            if ([string]::IsNullOrWhiteSpace($pathOnly)) { continue }
+            # Skip Windows-style absolute paths (drive letter) — unlikely in markdown but safe
+            if ($pathOnly -match '^[A-Z]:[\\/]') { continue }
+            $totalChecked++
+            # Resolve relative path from the markdown file's directory
+            $candidate = Join-Path $fileDir $pathOnly.Replace('/', '\')
+            $resolved = $null
+            try { $resolved = (Resolve-Path -LiteralPath $candidate -ErrorAction SilentlyContinue).Path } catch {}
+            if (-not $resolved -or -not (Test-Path -LiteralPath $resolved)) {
+                $rotted += "    ${relFile}:$($i+1)  -> $target"
+            }
+        }
+    }
+}
+Write-Check "All $totalChecked local markdown links resolve" ($rotted.Count -eq 0) `
+    $(if ($rotted.Count -gt 0) { "$($rotted.Count) broken link(s)" } else { "" })
+if ($rotted.Count -gt 0) { $rotted | Select-Object -First 20 | ForEach-Object { Write-Host $_ -ForegroundColor DarkYellow } }
+
 # ─────────────────────────────────────────────
 # Summary
 # ─────────────────────────────────────────────

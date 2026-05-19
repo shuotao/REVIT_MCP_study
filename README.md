@@ -55,7 +55,6 @@
 > | **想貢獻 domain 知識 / SOP / 規則** | [CONTRIBUTING.md](./CONTRIBUTING.md) | [domain/README.md](./domain/README.md) |
 > | **想開發新工具 / 修改程式碼** | [CLAUDE.md](./CLAUDE.md) | 執行 `/dev-guide` 命令 |
 > | **想了解整體架構** | [CLAUDE.md](./CLAUDE.md) | [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) |
-> | **我是學生上課** | [教材/README.md](./教材/README.md) | — |
 > | **我是 AI Agent**（Claude / Gemini / Copilot） | [CLAUDE.md](./CLAUDE.md)（**必讀**） | 依任務觸發對應 skill |
 >
 > ---
@@ -1456,9 +1455,6 @@ MIT License
 | [docs/BIM_MCP/](./docs/BIM_MCP/index.html) | 公開知識站（10 頁 + 25 SVG） |
 | **scripts/** | |
 | [scripts/README.md](./scripts/README.md) | 安裝腳本使用說明 |
-| **教材/** | |
-| [教材/README.md](./教材/README.md) | 教材總目錄（8 堂課 × 3 小時） |
-| [教材/05-Skill遷移實戰篇.md](./教材/05-Skill遷移實戰篇.md) | 第五堂：從 domain/ 升級至 Agent Skill 架構 |
 | **Claude Code 自動化** | |
 | [.claude/skills/](./\.claude/skills/) | Claude Code 技能（`/build-revit`、`/deploy-addon`） |
 | [.claude/commands/](./\.claude/commands/) | 斜線指令定義（`/lessons`、`/domain`、`/review`） |
