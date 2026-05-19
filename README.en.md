@@ -1407,7 +1407,7 @@ Welcome to submit Issues and Pull Requests!
 | [domain/lessons.md](./domain/lessons.md) | Development lessons learned (maintained by `/lessons` command) |
 | **docs/** | |
 | [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | Document directory structure guide |
-| [docs/BIM_MCP/](./docs/BIM_MCP/index.html) | Public knowledge site (10 pages + 25 SVG) |
+| [shuotao.github.io/REVIT_MCP_study](https://shuotao.github.io/REVIT_MCP_study/) | Public knowledge site (10 pages + 25 SVG, source at `docs/BIM_MCP/`) |
 | **scripts/** | |
 | [scripts/README.md](./scripts/README.md) | Installation script documentation |
 | **Claude Code Automation** | |
