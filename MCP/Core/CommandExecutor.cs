@@ -403,6 +403,11 @@ namespace RevitMCP.Core
                         result = VisualizePenetration(parameters);
                         break;
 
+                    // === 視圖與基準線調整模組 ===
+                    case "adjust_section_datums":
+                        result = AdjustSectionDatums(parameters);
+                        break;
+
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
                 }
