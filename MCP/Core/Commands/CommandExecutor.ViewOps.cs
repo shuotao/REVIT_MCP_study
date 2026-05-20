@@ -63,8 +63,20 @@ namespace RevitMCP.Core
                             continue;
                         }
 
-                        // 里程碑 1 暫行測試：只記錄視圖名稱
-                        processedViews.Add(view.Name);
+                        // 里程碑 2：自動判定並啟用裁剪框，取得邊界幾何
+                        BoundingBoxXYZ cropBox = EnsureAndGetCropBox(view);
+                        if (cropBox == null)
+                        {
+                            errors.Add($"視圖 {view.Name} 無法取得 CropBox 邊界資訊。");
+                            continue;
+                        }
+
+                        double minX = cropBox.Min.X * 304.8;
+                        double maxX = cropBox.Max.X * 304.8;
+                        double minY = cropBox.Min.Y * 304.8;
+                        double maxY = cropBox.Max.Y * 304.8;
+
+                        processedViews.Add($"{view.Name} (Crop Box X: {minX:F0} ~ {maxX:F0}, Y: {minY:F0} ~ {maxY:F0} mm)");
                     }
                     catch (Exception ex)
                     {
@@ -82,6 +94,22 @@ namespace RevitMCP.Core
                 ProcessedViews = processedViews,
                 Errors = errors
             };
+        }
+
+        /// <summary>
+        /// 確保視圖啟用裁剪框，並回傳 CropBox XYZ
+        /// </summary>
+        private BoundingBoxXYZ EnsureAndGetCropBox(View view)
+        {
+            if (view == null) return null;
+
+            if (!view.CropBoxActive)
+            {
+                view.CropBoxActive = true;
+                view.CropBoxVisible = true; // 同意自動啟用，並設為可見以方便除錯與出圖確認
+            }
+
+            return view.CropBox;
         }
     }
 }
