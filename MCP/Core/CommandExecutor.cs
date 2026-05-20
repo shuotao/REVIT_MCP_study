@@ -146,6 +146,10 @@ namespace RevitMCP.Core
                         result = GetActiveView();
                         break;
                     
+                    case "rename_view":
+                        result = RenameView(parameters);
+                        break;
+                    
                     case "set_active_view":
                         result = SetActiveView(parameters);
                         break;
@@ -1745,6 +1749,36 @@ namespace RevitMCP.Core
                 ViewId = viewId,
                 ViewName = view.Name,
                 Message = $"已切換至視圖: {view.Name}"
+            };
+        }
+
+        /// <summary>
+        /// 重新命名視圖
+        /// </summary>
+        private object RenameView(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            IdType viewId = parameters["viewId"]?.Value<IdType>() ?? 0;
+            string newName = parameters["newName"]?.Value<string>();
+
+            if (string.IsNullOrEmpty(newName))
+                throw new Exception("請指定新的視圖名稱");
+
+            View view = doc.GetElement(new ElementId(viewId)) as View;
+            if (view == null)
+                throw new Exception($"找不到視圖 ID: {viewId}");
+
+            using (Transaction trans = new Transaction(doc, "重新命名視圖"))
+            {
+                trans.Start();
+                view.Name = newName;
+                trans.Commit();
+            }
+
+            return new {
+                ViewId = viewId,
+                NewName = newName,
+                Message = $"成功將視圖重新命名為: {newName}"
             };
         }
 
@@ -3559,12 +3593,40 @@ namespace RevitMCP.Core
             var elements = selection.Select(id =>
             {
                 Element e = doc.GetElement(id);
-                return new
+                var elemData = new JObject
                 {
-                    Id = e.Id.GetIdValue(),
-                    Name = e.Name,
-                    Category = e.Category?.Name ?? "Unknown"
+                    ["Id"] = e.Id.GetIdValue(),
+                    ["Name"] = e.Name,
+                    ["Category"] = e.Category?.Name ?? "Unknown"
                 };
+
+                // 如果是視圖或是剖面標記，嘗試取得它的 Origin
+                if (e is View v && v.Origin != null)
+                {
+                    elemData["Origin"] = new JObject
+                    {
+                        ["X"] = Math.Round(v.Origin.X * 304.8, 2),
+                        ["Y"] = Math.Round(v.Origin.Y * 304.8, 2),
+                        ["Z"] = Math.Round(v.Origin.Z * 304.8, 2)
+                    };
+                }
+                else if (e.Category?.Name == "Views" || e.Category?.Name == "視圖" || e.Category?.Name == "Sections" || e.Category?.Name == "剖面")
+                {
+                    // 若選取到標記元素，其 Element.Name 等同於視圖名稱。若該 Element 有 BoundingBox 也可取中心點作為 Origin
+                    BoundingBoxXYZ bbox = e.get_BoundingBox(doc.ActiveView);
+                    if (bbox != null)
+                    {
+                        XYZ center = (bbox.Min + bbox.Max) / 2.0;
+                        elemData["Origin"] = new JObject
+                        {
+                            ["X"] = Math.Round(center.X * 304.8, 2),
+                            ["Y"] = Math.Round(center.Y * 304.8, 2),
+                            ["Z"] = Math.Round(center.Z * 304.8, 2)
+                        };
+                    }
+                }
+
+                return elemData;
             }).ToList();
 
             return new
