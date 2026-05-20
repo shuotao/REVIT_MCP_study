@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 500" role="img" aria-labelledby="title desc">
+  <title id="title">Three industry evidence statistics</title>
+  <desc id="desc">Three panels show 100x, 70 percent, and dollar impact as evidence for early BIM checks.</desc>
+  <rect width="1600" height="500" fill="#000"/>
+  <g fill="none" stroke="#fff" stroke-width="2">
+    <rect x="85" y="70" width="410" height="330"/>
+    <rect x="595" y="70" width="410" height="330"/>
+    <rect x="1105" y="70" width="410" height="330"/>
+  </g>
+  <text x="290" y="250" fill="#fff" text-anchor="middle" font-family="Arial, sans-serif" font-size="132" font-weight="800">x100</text>
+  <circle cx="800" cy="220" r="86" fill="none" stroke="#fff" stroke-width="2"/>
+  <path d="M800 220L800 134A86 86 0 1 1 718 246Z" fill="#60a5fa"/>
+  <circle cx="800" cy="220" r="86" fill="none" stroke="#fff" stroke-width="2"/>
+  <text x="1310" y="260" fill="#fff" text-anchor="middle" font-family="Arial, sans-serif" font-size="160" font-weight="800">$</text>
+  <g fill="#fff" text-anchor="middle" font-family="JetBrains Mono, Consolas, monospace" font-size="18" letter-spacing="2">
+    <text x="290" y="350">BOEHM RULE</text>
+    <text x="800" y="350">REWORK AVOIDABLE</text>
+    <text x="1310" y="350">$15-25K / 2-IN DRIFT</text>
+  </g>
+</svg>

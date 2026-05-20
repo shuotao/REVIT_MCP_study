@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Twenty two propositions as ordered dots">
+  <rect width="1600" height="900" fill="#000"/>
+  <g stroke="#fff" stroke-width="2" fill="none" opacity=".65">
+    <line x1="300" y1="210" x2="1300" y2="690"/>
+    <line x1="300" y1="690" x2="1300" y2="210"/>
+    <line x1="800" y1="145" x2="800" y2="755"/>
+  </g>
+  <g fill="#fff">
+    <circle cx="300" cy="210" r="10"/><circle cx="430" cy="270" r="10"/><circle cx="560" cy="330" r="10"/><circle cx="690" cy="390" r="10"/><circle cx="820" cy="450" r="10"/><circle cx="950" cy="510" r="10"/><circle cx="1080" cy="570" r="10"/><circle cx="1210" cy="630" r="10"/><circle cx="1300" cy="690" r="10"/>
+    <circle cx="300" cy="690" r="10"/><circle cx="430" cy="630" r="10"/><circle cx="560" cy="570" r="10"/><circle cx="690" cy="510" r="10"/><circle cx="950" cy="390" r="10"/><circle cx="1080" cy="330" r="10"/><circle cx="1210" cy="270" r="10"/><circle cx="1300" cy="210" r="10"/>
+    <circle cx="800" cy="145" r="10"/><circle cx="800" cy="265" r="10"/><circle cx="800" cy="635" r="10"/><circle cx="800" cy="755" r="10"/>
+  </g>
+  <circle cx="800" cy="450" r="18" fill="#60a5fa"/>
+  <text x="800" y="820" fill="#fff" font-family="JetBrains Mono,Consolas,monospace" font-size="34" text-anchor="middle" letter-spacing="4">22 PROPOSITIONS / ONE OPERATING MODEL</text>
+</svg>

@@ -4,8 +4,8 @@
 
 | 目錄 | 用途 | 讀者 |
 |------|------|------|
-| **`docs/tools/`** | 工具 API 技術文檔 | 開發者 |
-| **`docs/workflows/`** | 工作流程設計文檔 | 開發者 |
+| **`docs/BIM_MCP/`** | 公開知識站（10 頁：架構、22 命題、決策框架、Skill/Domain 索引） | 任何人 |
+| **`docs/_archive/`** | 開發歷程歸檔（design notes / bug post-mortems / 舊 handoff） | 維護者 |
 | **`domain/`** | 領域知識與工作流程 SOP | AI Agent |
 | **`教材/`** | 教學講義、投影片、學習筆記 | 學生 / 老師 |
 | **`.claude/commands/`** | 斜線命令定義（`/lessons`、`/domain`、`/qaqc` 等） | AI Agent + 貢獻者 |
@@ -14,35 +14,28 @@
 
 ---
 
-## docs/tools/ - 技術文檔
+## docs/BIM_MCP/ - 公開知識站
 
-**目的：** 記錄 MCP 工具的技術設計和 API 使用方式
+**目的：** 5/23 demo 後沉澱的 MCP × BIM 公開知識門戶
 
-**內容類型：**
-- 工具設計規格
-- API 參數說明
-- 使用範例代碼
+**結構：**
+- `index.html` — 入口
+- `reference/` — 10 頁長期參考（架構、22 命題、三憲法、Skill/Domain 索引、部署、troubleshoot）
+- `2026-MM/` — 月度封存（含當月簡報與 hands-on 教材）
+- `_images/` — 25 SVG 視覺資產（極簡風）
 
-**目前檔案：**
-- `override_element_color_design.md` - 元素圖形覆寫工具設計
-- `override_graphics_examples.md` - 圖形覆寫 API 範例
-
----
-
-## docs/workflows/ - 工作流程設計
-
-**目的：** 記錄特定功能的開發設計過程與 Code Review
-
-**目前檔案：**
-- `corridor_code_review.md` - 走廊分析程式碼審查
-- `corridor_dimension_review.md` - 走廊標註審查
+公開 URL：<https://shuotao.github.io/REVIT_MCP_study/docs/BIM_MCP/index.html>
 
 ---
 
-## docs/ 根目錄 - 歷史紀錄
+## docs/_archive/ - 開發歷程歸檔
 
-- `QUICK_TEST.md` - 外牆開口檢討功能測試文件
-- `Recent_Update_Review.md` - GitHub PR/Issue 解析報告
+**目的：** 已被 canonical 版本（`domain/` / `BIM_MCP/`）取代或一次性的開發紀錄
+
+**目前內容（2026-q2/）：**
+- 個人筆記與舊 PR 討論（jacky820507、0328 課程、meeting-strategy-pr30-pr32）
+- 過時 handoff（handoff-pr-chiminlu、bim_mcp_handoff_codex）
+- dev-notes/ — 工具 API 設計稿 + 走廊功能 code review/post-mortem（已被 `domain/corridor-analysis-protocol.md` 與 `domain/element-coloring-workflow.md` 取代）
 
 ---
 
@@ -118,10 +111,12 @@
 
 | 如果要記錄... | 放在... |
 |--------------|--------|
-| 工具的 API 設計和參數 | `docs/tools/` |
+| 工具的 API 設計和參數 | TSDoc 註解在 `MCP-Server/src/tools/*.ts`（就近源碼）|
 | 如何一步步執行某任務（給 AI） | `domain/` |
 | 業務規則和法規注意事項 | `domain/` |
-| 代碼範例和技術細節 | `docs/tools/` |
+| 公開知識站新頁 | `docs/BIM_MCP/reference/` |
+| 月度簡報 / hands-on 教材 | `docs/BIM_MCP/YYYY-MM/` |
 | 教學講義或學習筆記 | `教材/` |
 | 新的斜線命令儀式 | `.claude/commands/` |
 | 新的關鍵字自動觸發流程 | `.claude/skills/` |
+| 已棄用 / 一次性開發紀錄 | `docs/_archive/YYYY-qN/` |

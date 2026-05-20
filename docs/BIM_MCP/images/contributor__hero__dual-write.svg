@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Domain first then skill authoring">
+  <rect width="1600" height="900" fill="#000"/>
+  <g stroke="#fff" stroke-width="3" fill="none" font-family="JetBrains Mono,Consolas,monospace">
+    <rect x="350" y="130" width="300" height="70"/><rect x="950" y="130" width="300" height="70"/>
+    <rect x="365" y="270" width="270" height="85"/><rect x="365" y="395" width="270" height="85"/><rect x="365" y="520" width="270" height="85"/>
+    <rect x="965" y="270" width="270" height="85"/><rect x="965" y="395" width="270" height="85"/><rect x="965" y="520" width="270" height="85"/>
+    <path d="M635 312 H965"/><path d="M635 438 H965"/><path d="M635 563 H965"/>
+    <path d="M500 605 C650 735 950 735 1100 605" stroke="#60a5fa"/>
+  </g>
+  <g fill="#fff" font-family="JetBrains Mono,Consolas,monospace" font-size="28" text-anchor="middle">
+    <text x="500" y="176">DOMAIN / *.md</text><text x="1100" y="176">SKILL / YAML</text>
+    <text x="500" y="323">1 SOP</text><text x="500" y="448">2 METHOD</text><text x="500" y="573">3 TEST</text>
+    <text x="1100" y="323">1 REF</text><text x="1100" y="448">2 TOOLS</text><text x="1100" y="573">3 FLOW</text>
+    <text x="800" y="780" font-size="32" letter-spacing="3">WRITE KNOWLEDGE FIRST / ORCHESTRATE SECOND</text>
+  </g>
+</svg>

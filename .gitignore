@@ -3,6 +3,8 @@ MCP/MCP/bin/
 MCP/MCP/obj/
 MCP-Server/build/
 MCP-Server/node_modules/
+MCP.Contracts/
+MCP.CoreRuntime/
 
 # IDE and Editor files
 .vs/
@@ -40,6 +42,7 @@ npm-debug.log*
 
 # AI client 本機設定
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
 .gemini/
 
 # 開發暫存腳本（非穩定，不該共享）
@@ -47,6 +50,10 @@ MCP-Server/scratch/
 
 # Private User Guide (Excluded from Push)
 PRIVATE_INSTRUCTIONS.md
+
+# 私人內容（電子郵件 / 內部文件，不公開閱覽）
+thank.md
+docs/newsletters/
 
 # 教材（已開放，供學生練習使用）
 # 教材/
