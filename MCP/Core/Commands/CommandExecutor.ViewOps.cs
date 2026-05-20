@@ -79,6 +79,9 @@ namespace RevitMCP.Core
                         // 里程碑 3：調整網格線 (Grids) 的 2D 範圍與氣泡
                         AdjustGridsInView(doc, view, cropBox, GetViewTransform(view));
 
+                        // 里程碑 4：調整樓層線 (Levels) 的 2D 範圍（動態長度適應）與氣泡
+                        AdjustLevelsInView(doc, view, cropBox, GetViewTransform(view));
+
                         processedViews.Add($"{view.Name} (Crop Box X: {minX:F0} ~ {maxX:F0}, Y: {minY:F0} ~ {maxY:F0} mm)");
                     }
                     catch (Exception ex)
@@ -182,6 +185,75 @@ namespace RevitMCP.Core
                 catch (Exception)
                 {
                     // 容錯，不干擾其他 Grid 的處理
+                }
+            }
+        }
+
+        /// <summary>
+        /// 調整剖面視圖內 Levels 的 2D 範圍（基於字串長度動態適應）與氣泡顯示
+        /// </summary>
+        private void AdjustLevelsInView(Document doc, View view, BoundingBoxXYZ cropBox, Transform transform)
+        {
+            var levels = new FilteredElementCollector(doc, view.Id)
+                .OfClass(typeof(Level))
+                .Cast<Level>()
+                .ToList();
+
+            Transform invTrans = transform.Inverse;
+            double viewScale = view.Scale;
+
+            // 基礎字元長度估算參數（公釐）
+            double basePaperWidth = 10.0; // 氣泡本身的基本物理寬度
+            double charPaperWidth = 2.2;  // 每個字元的平均估估物理寬度
+
+            foreach (var level in levels)
+            {
+                try
+                {
+                    // 確保將端點切換成視圖特有的 2D 範圍
+                    level.SetDatumExtentType(DatumEnds.End0, view, DatumExtentType.ViewSpecific);
+                    level.SetDatumExtentType(DatumEnds.End1, view, DatumExtentType.ViewSpecific);
+
+                    IList<Curve> curves = level.GetCurvesInView(DatumExtentType.ViewSpecific, view);
+                    if (curves == null || curves.Count == 0) continue;
+
+                    Curve curve = curves[0];
+                    XYZ lP0_world = curve.GetEndPoint(0);
+                    XYZ lP1_world = curve.GetEndPoint(1);
+
+                    // 轉為視圖局部座標進行左右判定
+                    XYZ lP0_local = invTrans.OfPoint(lP0_world);
+                    XYZ lP1_local = invTrans.OfPoint(lP1_world);
+
+                    bool p0IsLeft = lP0_local.X < lP1_local.X;
+                    XYZ left_local = p0IsLeft ? lP0_local : lP1_local;
+                    XYZ right_local = p0IsLeft ? lP1_local : lP0_local;
+
+                    // 依樓層名稱長度動態計算模型偏移量（英尺）
+                    string levelName = level.Name ?? "";
+                    // 估算此樓層名稱與高度文字加總長度（Revit 預設可能顯示: 名稱 + 高度值）
+                    // 這裡取 levelName 長度，並多給予安全緩衝
+                    double paperWidth = basePaperWidth + (levelName.Length * charPaperWidth);
+                    double offsetFeet = (paperWidth * viewScale) / 304.8;
+
+                    // 左右端點水平對齊 Crop Box 並向外延伸動態計算後的 offset
+                    XYZ newLeft_local = new XYZ(cropBox.Min.X - offsetFeet, left_local.Y, left_local.Z);
+                    XYZ newRight_local = new XYZ(cropBox.Max.X + offsetFeet, right_local.Y, right_local.Z);
+
+                    XYZ newLeft_world = transform.OfPoint(newLeft_local);
+                    XYZ newRight_world = transform.OfPoint(newRight_local);
+
+                    // 重新指派 2D 線段，起點設為左側，終點設為右側
+                    Line newCurve = Line.CreateBound(newLeft_world, newRight_world);
+                    level.SetCurveInView(DatumExtentType.ViewSpecific, view, newCurve);
+
+                    // 雙側均顯示氣泡
+                    level.ShowBubbleInView(DatumEnds.End0, view);
+                    level.ShowBubbleInView(DatumEnds.End1, view);
+                }
+                catch (Exception)
+                {
+                    // 容錯，不干擾其他 Level 的處理
                 }
             }
         }
