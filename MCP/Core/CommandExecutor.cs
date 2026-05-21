@@ -105,6 +105,14 @@ namespace RevitMCP.Core
                     case "create_window":
                         result = CreateWindow(parameters);
                         break;
+
+                    case "door-window-legend-tools":
+                        result = DoorWindowLegendTools(parameters);
+                        break;
+
+                    case "list_seeds":
+                        result = ListSeeds(parameters);
+                        break;
                     
                     case "get_all_grids":
                         result = GetAllGrids();
