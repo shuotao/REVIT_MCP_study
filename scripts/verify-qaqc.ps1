@@ -461,7 +461,7 @@ $scanPaths = @(
     "$projectRoot\docs\BIM_MCP\*.html",
     "$projectRoot\docs\BIM_MCP\reference\*.html",
     "$projectRoot\docs\BIM_MCP\_shared.js",
-    "$projectRoot\docs\0523-presentation.html",
+    "$projectRoot\docs\0523-monthly.html",
     "$projectRoot\docs\0523-handson.html"
 )
 
