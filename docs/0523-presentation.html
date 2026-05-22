@@ -1018,14 +1018,16 @@
           2. 部分 FAIL，可接受 → <span style="color:#fbbf24;">RECYCLE</span><br>
           3. 部分 FAIL，死局 → <span style="color:#ef4444;">跳出找人 (P12)</span>
         </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(96,165,250,0.25);color:#60a5fa;font-size:11px;letter-spacing:1px;">⚡ 5/22 lesson</div>
+        <div style="color:rgba(255,255,255,0.75);font-size:12px;line-height:1.6;margin-top:4px;">0/1 必須建立在<strong>「現在這刻」的 anchor</strong> 上——若 anchor 過期（使用者切了視圖、樓層、檔案），0/1 也失效，光譜決策失去基準。</div>
       </div>
     </div>
     <div class="slide-content">
-      <span class="prop-badge">P13</span><span class="prop-badge">P11</span><span class="prop-badge">P12</span>
+      <span class="prop-badge">P13</span><span class="prop-badge">P11</span><span class="prop-badge">P12</span><span class="prop-badge" style="background:rgba(96,165,250,0.15);color:#60a5fa;">L-025</span>
       <div class="slide-number">6-4</div>
-      <div class="slide-title">報告解讀 + 決策路徑</div>
-      <p class="slide-summary">看報告後設計師有三條路：GO（全 PASS）/ RECYCLE（光譜接受）/ 跳出求助（死局）。對應 Stage-Gate 三元決策。</p>
-      <button class="drawer-trigger" onclick="openDrawer('drawer-6-4')">看 fallback 設計 + 失敗處理</button>
+      <div class="slide-title">報告解讀 + 決策路徑（anchored to NOW）</div>
+      <p class="slide-summary">看報告後設計師有三條路：GO / RECYCLE / 跳出求助。對應 Stage-Gate 三元決策。<strong>但 0/1 必須建立在「現在這刻」的 anchor 上</strong>——這是 5/22 dry-run 揭露的 Active State Re-Anchoring 規則（L-025）。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-6-4')">看 fallback 設計 + 失敗處理 + 5/22 lessons</button>
     </div>
   </div>
 </section>
@@ -1531,11 +1533,18 @@
     <li>不是依台灣法規設計 → FAIL 是預期的，正好做光譜決策示範</li>
     <li>不涉及 IP / 隱私（vs 用真實案子模型）</li>
   </ul>
+  <h3>Demo Anchor 不綁死 1F（5/22 redesign）</h3>
+  <ul>
+    <li>原版設計：強制切到「平面図 1階」(53189012)</li>
+    <li>5/22 dry-run 發現：使用者真實工作流會在多視圖間隨意切換（1F→6F→2F 都常見），demo 強制 1F 不貼合 P8「被動就緒」精神</li>
+    <li>新版：<strong>Step 0 read-only anchor 使用者當下視圖</strong>，後續所有步驟以該樓層為基準。對應第四憲法 Active State Re-Anchoring（L-025）</li>
+  </ul>
   <h3>Fallback 設計（Demo 失敗）</h3>
   <ul>
     <li><strong>Plan A</strong>：實機跑 Live Demo（首選）</li>
     <li><strong>Plan B</strong>：預錄影片播放（5 min 精華版）</li>
     <li><strong>Plan C</strong>：Screenshot 序列 + 講解</li>
+    <li><strong>Plan D</strong>：MCP 連線中斷 → 預演 Restart Server / 點任意視圖重建 focus（5/22 dry-run 實證可救回）</li>
   </ul>
   <h3>觀眾回家複製</h3>
   <p>用 <a href="0523-handson.html" target="_blank">練習頁</a>，跟著 10 個複製貼上的 prompt 自己試。</p>
@@ -1544,29 +1553,38 @@
 <div class="drawer" id="drawer-6-3">
   <button class="drawer-close" onclick="closeDrawer()">×</button>
   <h2>5 個 ARCHI 工具並行</h2>
-  <h3>觸發 prompt（複製貼上）</h3>
-  <pre style="background:#111;border:1px solid rgba(255,255,255,0.1);padding:14px;border-radius:6px;font-family:'SF Mono','Consolas',monospace;font-size:12px;line-height:1.6;color:#e0e0e0;white-space:pre-wrap;">我已完成 1F 建築設計（LOD 300 階段完成點）。
+  <h3>觸發 prompt（複製貼上，5/22 redesign 含 re-anchor）</h3>
+  <pre style="background:#111;border:1px solid rgba(255,255,255,0.1);padding:14px;border-radius:6px;font-family:'SF Mono','Consolas',monospace;font-size:12px;line-height:1.6;color:#e0e0e0;white-space:pre-wrap;">請先呼叫 get_active_view re-anchor 確認當前視圖 / 樓層。
+然後我已完成此樓層建築設計（LOD 300 階段完成點），
 請依台灣建築技術規則做 ARCHI 合規批次檢查，
-並行呼叫以下 5 個工具：
+並行呼叫以下 5 個工具（4 個需帶 levelName=<re-anchor 樓層>）：
 
-1. check_exterior_wall_openings — §45 / §110
-2. check_smoke_exhaust_windows — §188
-3. check_stair_headroom — 樓梯淨高
-4. get_room_daylight_info — §41 採光
-5. check_floor_effective_openings — 樓板開口
+1. check_exterior_wall_openings — §45 / §110（project-wide，不帶 level）
+2. check_smoke_exhaust_windows — §188（level-scoped）
+3. check_stair_headroom — 樓梯淨高（level-scoped）
+4. get_room_daylight_info — §41 採光（level-scoped）
+5. check_floor_effective_openings — 樓板開口（level-scoped）
 
 回報格式：
-- 每個工具 PASS / FAIL（簡短）
+- 每個工具 PASS / FAIL（簡短）+ 標明 scope（project-wide 或樓層）
 - FAIL 列出不通過項目 + 為什麼
 - 不要給「應該怎麼修」的建議</pre>
   <h3>預期觀察</h3>
   <ul>
-    <li>AI 並行（或快速序列）呼叫 5 個工具</li>
+    <li>AI 先呼叫 get_active_view re-anchor（第四憲法 Active Re-Anchoring）</li>
+    <li>並行（或快速序列）呼叫 5 個工具</li>
     <li>回報 3-4 個 <span class="pass-tag">PASS</span> + 1-2 個 <span class="fail-tag">FAIL</span></li>
     <li>不主動給「該怎麼修」（對應 P13）</li>
+    <li>主動 surface tool scope mismatch（exterior 是 project-wide，其他 4 個是 level-scoped）—— L-026</li>
+  </ul>
+  <h3>5/22 dry-run 新發現</h3>
+  <ul>
+    <li><strong>Tool Scope Mismatch（L-026）</strong>：<code>check_exterior_wall_openings</code> 不吃 level 參數，回的 8 項違規跨多個樓層（z 座標分布在 0/100/3170）。AI 應主動 surface「整案結果跨樓層，請勿假設都在當前樓層」</li>
+    <li><strong>BIM 內在不一致（L-029）</strong>：每間房有「面積」（幾何計算）vs「面積 部屋 調整値」（手填校正）兩個值，差 0.5-5%。在 2% 排煙邊界 case 上可能跨越合規門檻</li>
   </ul>
   <h3>講者互動點</h3>
   <p>問現場：「你們各位看到的 FAIL 數量一樣嗎？」（同 sample 應該結果一致——這就是 MCP 的可重現性 vs 人工檢查的隨機性）</p>
+  <p style="margin-top:8px;font-size:13px;color:rgba(255,255,255,0.7);">補：「<strong>但如果你開 1F 跑跟我開 2F 跑，結果會不同——因為 level-scoped 工具看的不是同一層</strong>。這正是第四憲法的核心場景——MCP 對齊你眼前的視圖，不是文件預設的視圖。」</p>
 </div>
 
 <div class="drawer" id="drawer-6-4">

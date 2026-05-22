@@ -446,8 +446,8 @@
       <span class="step-tag">CORE</span>
       <span class="step-num">STEP 0 / 6</span>
     </div>
-    <h3 class="step-title">確認當下視圖與模型範圍</h3>
-    <p class="step-why"><strong>為什麼這步</strong>：對應命題 P8「被動就緒」+ 憲法級「Tool Call Data Honesty」。先讓 AI 摸清楚當下狀態，再決定要查什麼。<strong>不可以省略</strong>——很多人直接問「幫我檢查這個模型」，AI 不知道你在哪個視圖、什麼樓層，要嘛亂猜要嘛回 0。</p>
+    <h3 class="step-title">Anchor — 讀使用者當下實際在哪</h3>
+    <p class="step-why"><strong>為什麼這步</strong>：對應命題 P8「被動就緒」+ 憲法級「Tool Call Data Honesty」+ 「Active State Re-Anchoring」（5/22 新增）。先讓 AI 讀使用者當下實際所在的視圖/樓層，**所有後續操作以這個 anchor 為基準**——不假設使用者在 1F，不依賴 handson 文件預設的「日本 sample 應該是 53189012」這類 hardcoded 期望。</p>
     <div class="prompt-block">
       <span class="prompt-block-label">COPY</span>
       <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請呼叫 get_active_view 告訴我我現在在 Revit 哪個視圖。
@@ -459,8 +459,12 @@
         <li>AI 回一行：「您目前在『{視圖名}』，類型『{FloorPlan/Section/...}』，樓層『{LevelName}』，ViewId=<code>{數字}</code>。」</li>
         <li><span class="pass-tag">PASS</span> 如果 AI 開始建議「您可以做 X、Y、Z」——那是它違規（沒被問就答）。命題 P8 被破壞的樣子</li>
         <li><span class="fail-tag">FAIL</span> AI 列出具體房間 ID 但你沒呼叫 <code>get_rooms_by_level</code>——違反 Tool Call Data Honesty</li>
-        <li><strong>📌 把 ViewId 與 LevelName 抄下來</strong>（日本 sample 是 ViewId=<code>53189012</code> / LevelName=<code>1FL</code>）—— Step 2 / 5 / 6 都會用到。<strong>後面工具 side effect 會改 active view</strong>，所以一定要顯式記住、顯式傳。</li>
+        <li><strong>📌 把 ViewId 與 LevelName 抄下來</strong>，但**這只是「Step 0 時的 anchor」**——後續每個 level/view-anchored 步驟（Step 2/3/5）AI 都應該重新 re-anchor，不依賴 Step 0 的 snapshot</li>
       </ul>
+    </div>
+    <div class="expect-box" style="background:rgba(96,165,250,0.06);border-color:rgba(96,165,250,0.25);">
+      <div class="expect-box-title" style="color:#60a5fa;">📌 Active State Re-Anchoring 規則（5/22 新增，憲法級）</div>
+      <p>**任何引用 view-state / level-state 的 claim 之前，AI 必須在 claim 時點重新呼叫 <code>get_active_view</code> 確認**——不能依賴 session 較早的 read 結果。使用者隨時可能切視圖（這是真實設計師工作流，一邊看作業用、一邊翻法規、一邊跳到矩計），AI 沒有任何「異常」可偵測，只是在 stale snapshot 上繼續做 claim。詳見 <code>domain/session-context-guard.md</code> 與 <code>domain/lessons.md L-025</code>。</p>
     </div>
     <div class="reflection-box">
       <div class="reflection-box-title">💭 互動反思</div>
@@ -474,27 +478,32 @@
       <span class="step-tag">CORE</span>
       <span class="step-num">STEP 1 / 6</span>
     </div>
-    <h3 class="step-title">切換到 1F 平面視圖</h3>
-    <p class="step-why"><strong>為什麼這步</strong>：日本 sample 預設打開可能在 3D 或 GL。我們的練習聚焦 1F 建築合規檢查，需先到 1F 平面。</p>
+    <h3 class="step-title">確認當下視圖是否適合後續操作（read-only intake）</h3>
+    <p class="step-why"><strong>為什麼這步</strong>：5/22 redesign。<strong>原版設計「強制切到 1F」是錯的</strong>——真實設計師不會配合 demo 文件預期，他們會繼續按自己工作流切視圖。Step 1 改為 read-only intake：確認 Step 0 抄下的視圖類型 / 樓層**適不適合**後續 ARCHI 合規檢查；若不適合（例如使用者在 3D 視圖 / 剖面視圖 / 非檢討樓層），由使用者決定要不要手動切到合適的平面。</p>
     <div class="prompt-block">
       <span class="prompt-block-label">COPY</span>
-      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請列出所有 FloorPlan 類型的視圖（呼叫 get_all_views，可帶 viewType="FloorPlan"），
-從清單找出對應「1F / 1階 / GL+1」的主平面視圖 ID（不要選 詳図/作業用/法規チェック/階段/建具/矩計/展開 等專用視圖），
-然後呼叫 set_active_view 切換過去。
-切換後再呼叫 get_active_view 跟我確認，並明確回報切換後的：ViewId、ViewName、LevelName。</span></div>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">根據 Step 0 抄下的視圖類型與樓層，請判斷後續 ARCHI 合規檢查（外牆開口、排煙、樓梯淨高、採光、樓板有效開口）是否能在這個視圖上正常進行：
+
+- 視圖類型必須是 FloorPlan（平面）——若是 3D/Section/Elevation，請告訴我「請手動切到平面視圖再繼續」
+- 樓層必須是有實際房間定義的（不能是 GL/設計GL/外構等）——若是無效樓層，請告訴我「此樓層無房間資料，請手動切到 1F-7F 任一」
+- 若視圖名稱含「詳図/作業用/法規チェック/階段/建具/矩計/展開」等專用前綴，視圖內容可能被 view template 過濾——建議切到「平面図 X 階」這類主平面視圖
+
+不要呼叫 set_active_view 替我切視圖——讓我自己決定切到哪。
+回報格式：「您目前的視圖『{name}』是 {OK/不建議}，原因：{...}。」</span></div>
     <div class="expect-box">
       <div class="expect-box-title">✓ 預期觀察</div>
       <ul>
-        <li>AI 應該呼叫 3 個工具（順序：<code>get_all_views</code> → <code>set_active_view</code> → <code>get_active_view</code>）</li>
-        <li>最後回「已切換到視圖『{1F 主平面視圖名}』」+ ViewId / LevelName 數字</li>
-        <li>Revit 畫面應同步切換</li>
-        <li><strong>📌 確認 ViewId 與 Step 0 一致</strong>（若 Step 0 已在 1F 主平面，這步應是 no-op，ViewId 不變）。日本 sample 應該是 <code>53189012</code> / <code>1FL</code></li>
-        <li>⚠️ 日本 sample 有 55 個 FloorPlan 視圖（含 7 個樓層的詳図/作業用/法規/階段/建具/矩計/展開），AI 不應該選錯——若它選了「平面詳図 1階」(scale 1:100) 而非「平面図 1階」(scale 1:300)，請手動指定</li>
+        <li>AI **不呼叫 set_active_view**——這是 read-only intake，光譜決策（要不要切視圖）在使用者端</li>
+        <li>AI 給出 OK / 不建議的判斷 + 一句原因</li>
+        <li>若視圖 OK → 直接進 Step 2，**Step 2 會以這個視圖的 LevelName 為基準**</li>
+        <li>若視圖不建議 → 你手動切到合適平面（或不切，後續結果可能異常）</li>
+        <li><span class="pass-tag">PASS</span> AI 沒幫你決定要切哪個視圖——光譜在使用者端</li>
+        <li><span class="fail-tag">FAIL</span> AI 自己 set_active_view 切到「它認為對的」視圖——這違反 Step 1 的 read-only intake 精神</li>
       </ul>
     </div>
     <div class="reflection-box">
-      <div class="reflection-box-title">⚠ 常見問題</div>
-      <p>找不到 1F → 日本 sample 樓層名可能是「1階」「GL」「1F」混用，AI 應自己判斷；若問你，請手動告訴它樓層中文/英文名。<br>沒切過去 → 看 Revit 是否有 popup dialog 擋著。</p>
+      <div class="reflection-box-title">⚠ 真實工作流場景（5/22 dry-run 實證）</div>
+      <p>5/22 dry-run 中段使用者刻意在 Step 1 後再切 6F → 2F duplicate → 不告訴 AI。**正確的 AI 應該在每個後續步驟（Step 2/3/5）開頭都重 re-anchor**，跟著使用者眼前的畫面跑，而不是綁死在 Step 0/1 抄下的 LevelName。這對應雙向 Context Sync 協議——使用者切視圖是天然行為，AI 應主動跟上。</p>
     </div>
   </article>
 
@@ -578,6 +587,15 @@
       </ul>
       <p style="margin-top:10px;font-size:13px;color:rgba(255,255,255,0.7);"><strong>5/23 demo 講者重點</strong>：這個「實機測試發現問題 → 同日 fix → 重測驗證」的歷程本身就是 0523 哲學的最佳實證——P15「死線下交付物優先」+ P12「死局求助更多人」（測出 bug 不是繞道而是 fix）+ Tool Call Data Honesty（沒掩飾 bug，直接公開）。</p>
     </div>
+    <div class="expect-box" style="background:rgba(251,191,36,0.06);border-color:rgba(251,191,36,0.25);">
+      <div class="expect-box-title" style="color:#fbbf24;">⚠ Tool Scope Mismatch（5/22 新增）— 同批 5 工具的回應範圍不一致</div>
+      <p style="margin-bottom:8px;">這 5 個工具中，<strong>1 個是 project-wide、4 個是 level-scoped</strong>：</p>
+      <ul>
+        <li><code>check_exterior_wall_openings</code> → <strong>project-wide</strong>（不吃 level 參數，掃 445 牆全跑）</li>
+        <li><code>check_smoke_exhaust_windows</code> / <code>check_stair_headroom</code> / <code>get_room_daylight_info</code> / <code>check_floor_effective_openings</code> → <strong>level-scoped</strong>（吃 <code>levelName</code> / <code>level</code> 參數）</li>
+      </ul>
+      <p style="margin-top:8px;">**這意味著**：若你在 2FL 跑這 5 工具，<code>check_exterior_wall_openings</code> 回的 8 項違規 **跨越多個樓層**（含 1F 開口 z=0/100 + 2F 高窗 z=3170），但被混在「2FL 合規報告」中容易誤判。AI 應主動 surface：「以下 5 個工具中，4 個是 X 樓層範圍、1 個是整案範圍——整案結果跨越多樓層，請勿假設它們都發生在當前樓層」。詳見 <code>domain/tool-capability-boundary.md L7</code> 與 <code>domain/lessons.md L-026</code>。</p>
+    </div>
     <div class="reflection-box">
       <div class="reflection-box-title">🎤 講者互動點</div>
       <p>問現場「你們各位看到的數字一樣嗎？」——<strong>同一 sample 應該結果一致</strong>（exterior violations=3 / smoke FAIL=3 / stair PASS=2 / floor 無開口樓層）。這是 MCP 的可重現性 vs 人工檢查的隨機性。順帶提：「如果你今天早上跑會看到工具 crash，下午就修好了——這正是開源協作的價值，也是 0523 哲學想傳達的『工具與工作流共同演化』。」</p>
@@ -642,30 +660,53 @@
       <span class="step-tag">CORE</span>
       <span class="step-num">STEP 5 / 6</span>
     </div>
-    <h3 class="step-title">視覺化「規範限制施加的位置」（染牆，不染房）</h3>
-    <p class="step-why"><strong>為什麼這步</strong>：對應 slide 6-4「報告解讀 + 決策路徑」三條路徑命題（P13 MCP 給 0/1、P11 光譜在設計師端、P12 死局求助）+ P3「限制可見」+ P4「限制顯現器」。<strong>視覺化的對象是「§45/§110 在哪幾道牆上施加限制」（規範本體），不是「AI 判定為 FAIL 的房間」（判定結果）</strong>。後者違反 P5/P6 人機分工翻轉——把 AI 判定結果包裝太顯眼就是搶走設計師的光譜決策。</p>
-    <div class="prompt-hint">把 <code>&lt;PLAN_VIEW_ID&gt;</code> 換成 Step 0/1 抄下的 1F 平面 ViewId（日本 sample 是 <code>53189012</code>）</div>
+    <h3 class="step-title">視覺化「規範限制施加的位置」（依規範類型分支：wall-anchored 直染 / room-anchored 走 proxy）</h3>
+    <p class="step-why"><strong>為什麼這步</strong>：對應 slide 6-4「報告解讀 + 決策路徑」三條路徑命題（P13 MCP 給 0/1、P11 光譜在設計師端、P12 死局求助）+ P3「限制可見」+ P4「限制顯現器」。<strong>視覺化的對象是「規範在哪裡施加限制」（規範本體），不是「AI 判定為 FAIL 的房間」（判定結果）</strong>。後者違反 P5/P6 人機分工翻轉——把 AI 判定結果包裝太顯眼就是搶走設計師的光譜決策。</p>
+    <div class="expect-box" style="background:rgba(96,165,250,0.06);border-color:rgba(96,165,250,0.25);">
+      <div class="expect-box-title" style="color:#60a5fa;">🔀 規範類型決定染色策略（5/22 新增分支）</div>
+      <p style="margin-bottom:8px;"><strong>(A) Wall-anchored 規範</strong>（§45/§110 外牆開口距地界線）→ 染色對象是「違規開口所在的牆段」。<strong>直接走下方 Branch A prompt</strong>。</p>
+      <p style="margin-bottom:8px;"><strong>(B) Room-anchored 規範</strong>（§41 採光、§101/§188 排煙、停車淨高）→ 規範施加在「房間整體屬性」，沒有「違規牆段」。<strong>走下方 Branch B prompt（hosting walls proxy）</strong>。</p>
+      <p>判斷方式：看 Step 3 哪個 FAIL 是你要視覺化的——若是 <code>check_exterior_wall_openings</code> 的 violations → Branch A；若是 <code>check_smoke_exhaust_windows</code> / 採光 / 停車 → Branch B。詳見 <code>domain/tool-capability-boundary.md L8</code> 與 <code>domain/lessons.md L-027</code>。</p>
+    </div>
+    <div class="prompt-hint">把 <code>&lt;PLAN_VIEW_ID&gt;</code> 換成 Step 0/1 抄下的當前樓層平面 ViewId（**用 re-anchor 後的，不要用 handson 預設的 53189012**）</div>
     <div class="prompt-block">
-      <span class="prompt-block-label">COPY ★ 顯式 viewId</span>
-      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請把步驟 3 中 check_exterior_wall_openings 回的 violatingOpenings 列表整理出**唯一的 wallId 清單**（同一面牆上多個違規開口算同一道牆），標上每道牆的最壞 status（Fail 或 Warning），然後用 override_element_graphics 在 1F 平面視圖上色：
+      <span class="prompt-block-label">COPY ★ Branch A — Wall-anchored（§45/§110 外牆開口）</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請先呼叫 get_active_view re-anchor 確認當前視圖 / 樓層（不要依賴 Step 0 抄下的）。
+
+然後把步驟 3 中 check_exterior_wall_openings 回的 violatingOpenings 列表整理出**唯一的 wallId 清單**（同一面牆上多個違規開口算同一道牆），標上每道牆的最壞 status（Fail 或 Warning），然後用 override_element_graphics 在當前平面視圖上色：
 
 - Fail 牆 → 紅色 surfaceFillColor={r:255,g:50,b:50}
 - Warning 牆 → 黃色 surfaceFillColor={r:255,g:200,b:50}
 
-呼叫 override_element_graphics 時**必須顯式帶** viewId=<PLAN_VIEW_ID>（Step 0/1 抄下的 1F 平面 ViewId）。
+呼叫 override_element_graphics 時**必須顯式帶** viewId=<剛剛 re-anchor 取得的 ViewId>。
 
-對日本 sample，wallId 應該是 4 道（2 Fail + 2 Warning）：
-- 53970839（Fail，distance 965.2mm 上的門 53971627）
-- 54801079（Fail，distance 971.4mm 上的門 53972406）
-- 54267249（Warning，distance 1489.6mm 上 2 扇窗）
-- 52989520（Warning，distance 2996.7mm 上的門 53094967）
+⚠ Tool Scope 警告：check_exterior_wall_openings 是 project-wide，回的違規開口可能跨多個樓層（看 z 座標判斷）。若你只想染當前樓層的違規，請先過濾 z 座標。
 
 完成後請回報：
-1. 呼叫了幾次 override_element_graphics（預期 4 次：2 紅 + 2 黃）
-2. 每次回傳的 ViewName 都是 1F 平面（驗證 viewId 生效）
-3. 在 Revit 平面是否真的看到牆段變色
+1. re-anchor 後的 ViewId / LevelName
+2. 呼叫了幾次 override_element_graphics
+3. 每次回傳的 ViewName 是否都是當前平面（驗證 viewId 生效）
+4. 在 Revit 平面是否真的看到牆段變色
 
-⚠ 不要染房間：override_element_graphics 是給有 Cut Geometry 的元素（牆/柱）用的；Room 沒有 Cut Geometry，染了 API 會 Success 但平面視圖看不到任何視覺效果（這是 5/22 dry-run 才釐清的工具邊界，見 domain/tool-capability-boundary.md L6）。</span></div>
+⚠ 不要染房間：override_element_graphics 是給有 Cut Geometry 的元素（牆/柱）用的；Room 沒有 Cut Geometry，染了 API 會 Success 但平面視圖看不到任何視覺效果（5/22 lesson L6）。</span></div>
+    <div class="prompt-block" style="margin-top:12px;">
+      <span class="prompt-block-label">COPY ★ Branch B — Room-anchored（§41 採光 / §101§188 排煙 / 停車）</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請先呼叫 get_active_view re-anchor 確認當前視圖 / 樓層。
+
+然後針對 Step 3 / Step 4 找到的 FAIL 房（如排煙 FAIL 房、採光 FAIL 房），由於這是 room-anchored 規範**沒有「違規牆段」可染**，改用 hosting walls proxy 視覺化：
+
+1. 呼叫 get_room_daylight_info 帶 level=<re-anchor 後的 LevelName> 取得房間 Openings 詳資料（含每個 opening 的 HostWallId）
+2. 從 FAIL 房的 Openings 列表蒐集出唯一 HostWallId 集合
+3. 用 override_element_graphics 把這些 hosting walls 染紅 surfaceFillColor={r:255,g:50,b:50}，顯式帶 viewId=<re-anchor 後的 ViewId>
+
+完成後請回報：
+1. FAIL 房名與 ID、它有幾個 Openings、去重後 HostWallId 有幾道
+2. 呼叫了幾次 override_element_graphics
+3. Revit 平面是否真的看到 FAIL 房的邊界牆變色
+
+📌 視覺意義：這條 proxy 表達「房間的拓樸邊界」——例如事務室 §41 採光 0% FAIL 時，染色後可清楚看到「事務室的鄰居全是內部空間，沒有任何對外牆」這個拓樸問題。
+
+⚠ 這是 proxy，不是命中規範本體：§41 限制施加在「房間的對外採光面積比」上，而非「某幾道牆」。染 hosting walls 只是讓設計師看見房間邊界，方便走光譜決策。詳見 domain/lessons.md L-027。</span></div>
     <div class="expect-box">
       <div class="expect-box-title">✓ 預期觀察（已對齊 5/22 redesign）</div>
       <ul>
@@ -878,10 +919,16 @@
 
   <table class="faq-table">
     <tr><th>症狀</th><th>可能原因</th><th>處理</th></tr>
-    <tr><td><code>get_active_view</code> 回 timeout</td><td>MCP Server 沒啟動 / 連線斷</td><td>先 <code>cd MCP-Server && npm run build</code>，再從 Revit RevitMCP 面板「Restart Server」</td></tr>
+    <tr><td><code>get_active_view</code> 回 timeout（第一次）</td><td>Revit 暫時忙 / UI thread busy</td><td>等 5 秒後重試一次（5/22 lesson L-028）</td></tr>
+    <tr><td><code>get_active_view</code> 連續 2+ 次 timeout</td><td>UI thread blocked / Server 死 / Revit 異常</td><td>**SOP 順序**：(1) Revit 點任意視圖建立 active focus → (2) RevitMCP 面板「Restart Server」→ (3) 關 Revit 重開 → (4) <code>scripts/release-port.ps1</code> 釋放 8964（需 Admin）</td></tr>
+    <tr><td>AI 還在 timeout 中卻繼續做下一步</td><td>違反 Tool Call Data Honesty Branch C</td><td>AI 應該停下、surface「不確定模型狀態，請使用者修復連線」——若 AI 繼續執行 override 之類的，立刻打斷</td></tr>
+    <tr><td>AI 用 session 前段抄下的 ViewId / LevelName 做新 claim</td><td>違反 Active State Re-Anchoring（L-025）</td><td>明示「請先 re-anchor 再執行」，或在 prompt 模板開頭固定加「請先 get_active_view 確認當前視圖再執行」</td></tr>
     <tr><td>工具呼叫 0 結果</td><td>視圖過濾掉了 / 連結模型問題</td><td>切到 3D 視圖再試；或讀 <code>domain/tool-capability-boundary.md</code> L1-L3</td></tr>
     <tr><td>AI 開始編造 ID</td><td>LM hallucination</td><td>立刻打斷它，明示「請只用 tool response 的數據」（命題 P13 / Tool Call Data Honesty）</td></tr>
     <tr><td>採光算出來跟我手算差很多</td><td>AI 沒讀 domain SOP</td><td>在 prompt 加「請先讀 <code>domain/daylight-area-check.md</code> 再計算」</td></tr>
+    <tr><td>面積 vs 仕上表 部屋 調整値 差 1-5%</td><td>BIM 模型內在不一致（5/22 lesson L-029）</td><td>這不是 MCP bug——是 BIM 模型本身「幾何 vs 手填」失同步。AI 應 surface 兩個值並存，由人決定哪個是合規基準</td></tr>
+    <tr><td>Step 5 染 Room 看不到顏色</td><td>Room 沒 Cut Geometry，override silent no-op（L6）</td><td>改用 Branch B prompt 染 hosting walls proxy（L-027）；或在 Revit 用 Color Scheme（脫離 MCP）</td></tr>
+    <tr><td>同批工具回的結果範圍不一致（如 violation 跨樓層）</td><td>Tool Scope Mismatch（L-026）</td><td>明示工具範圍——`check_exterior_wall_openings` 是 project-wide，其他 4 工具是 level-scoped。混合報告需自行分區解讀</td></tr>
     <tr><td>Revit 卡住 / 跳 dialog</td><td>工具觸發了未處理的 popup</td><td>手動關 dialog，重試。長期解：參考 <code>CommandExecutor.BeamPenetration.cs</code> 處理 dialog 的模式</td></tr>
     <tr><td>Port 8964 被佔</td><td>HTTP.sys 孤兒 binding</td><td>跑 <code>scripts/release-port.ps1</code>（需 Admin）</td></tr>
   </table>
