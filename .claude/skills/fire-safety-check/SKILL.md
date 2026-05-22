@@ -22,7 +22,7 @@ metadata:
 1. `get_category_fields` 查詢牆體 → 找到防火時效參數名稱
 2. `get_field_values` → 列出專案中所有時效等級
 3. `query_elements_with_filter` → 依時效等級篩選牆體
-4. `override_element_graphics` → 套用對應顏色
+4. `override_element_graphics` → 套用對應顏色（**wall-anchored 染色**，本 skill 對象皆為牆，直接染。若要視覺化 room-anchored 規範如 §41 採光 FAIL 房，需用 hosting walls proxy——見 `domain/lessons.md` L-027 與 `domain/element-coloring-workflow.md`）
 
 | 時效 | 顏色 |
 |------|------|

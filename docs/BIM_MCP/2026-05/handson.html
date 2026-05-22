@@ -3,25 +3,180 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026-05 Hands-on / BIM_MCP</title>
+<title>2026-05 Hands-on · 5/23 月小聚 · BIM_MCP</title>
+<meta property="og:title" content="2026-05 月小聚 Hands-on：6 步從 anchor 到光譜決策">
+<meta property="og:description" content="5/23 月小聚的實操練習：對日本 Revit Sample 跑完整 6 步合規檢查 + 視覺化 + 光譜決策。內含 5/22 dry-run 揭露的 5 條 lessons。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
 <link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../nav.css">
 </head>
 <body>
+
 <nav class="bim-topnav">
-  <div class="bim-topnav-left"><a href="../index.html" class="bim-topnav-home">BIM_MCP</a><span class="bim-topnav-sep">/</span><span class="bim-topnav-current">2026-05 hands-on</span></div>
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">2026-05 hands-on</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener" class="bim-topnav-btn bim-topnav-btn-github" title="View source on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+    <a href="../reference/three-constitutions.html" class="bim-topnav-btn">四憲法</a>
+    <a href="../index.html" class="bim-topnav-btn">回首頁</a>
+  </div>
 </nav>
+
 <header class="bim-hero">
-  <div class="bim-hero-eyebrow">HANDS-ON <span class="accent">pending</span></div>
-  <h1 class="bim-hero-title">5/23 hands-on 入口</h1>
-  <p class="bim-hero-sub">此頁先保留 demo flow 的穩定 URL。正式 hands-on 內容可接續補入。</p>
+  <div class="bim-hero-eyebrow">FIELD NOTES NO. 03 · 5/23 HANDS-ON</div>
+  <h1 class="bim-hero-title">10 個 Prompt<br>體會 MCP × Revit 的<span class="accent">未來</span></h1>
+  <p class="bim-hero-sub">5/23 月小聚的實操練習：對日本 Revit Sample 跑完整 6 步合規檢查（anchor → 房間清單 → 5 工具並行 → 採光深入算 → 視覺化 → 光譜決策）。每個 prompt 一鍵複製貼到 AI Client，10 分鐘核心 + 30 分鐘 Bonus + 5 個反思題。</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">10-45</div>
+      <div class="data-emph-label">分鐘</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">核心 + Bonus</div>
+    </div>
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">6</div>
+      <div class="data-emph-label">核心 Steps</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">0-anchor → 6-收尾</div>
+    </div>
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">5</div>
+      <div class="data-emph-label">5/22 lessons</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">dry-run 揭露</div>
+    </div>
+  </div>
 </header>
+
 <section class="bim-section">
-  <div class="bim-grid bim-grid-3">
-    <a class="bim-card" href="../reference/philosophy-22-propositions.html">22 propositions</a>
-    <a class="bim-card" href="../reference/three-constitutions.html">Three constitutions</a>
-    <a class="bim-card" href="../reference/spectrum-decision.html">Spectrum decision</a>
+  <div class="bim-section-eyebrow">PRIMARY ACCESS</div>
+  <h2 class="bim-section-title">直接開練習頁</h2>
+  <p class="bim-section-desc">完整的 10 個 prompt + 預期觀察 + Troubleshooting 在 0523 練習頁。</p>
+  <div class="bim-grid bim-grid-2">
+    <a class="bim-card bim-card-accent" href="https://github.com/shuotao/REVIT_MCP_study/blob/main/docs/0523-handson.html" target="_blank" style="text-decoration:none;color:inherit;">
+      <h3 style="color:var(--accent);">→ 0523-handson.html</h3>
+      <p>練習頁主入口（GitHub source）。Step 0-6 核心 + Step 7-10 Bonus + 5 個反思題 + 12 條 Troubleshooting。</p>
+    </a>
+    <a class="bim-card" href="https://github.com/shuotao/REVIT_MCP_study/blob/main/docs/0523-presentation.html" target="_blank" style="text-decoration:none;color:inherit;">
+      <h3>→ 0523-presentation.html</h3>
+      <p>5/23 主簡報（GitHub source）。30+ 張投影片，每張對應 1-3 個哲學命題。</p>
+    </a>
   </div>
 </section>
-<footer class="bim-footer"><a href="../index.html" class="bim-footer-btn primary">Back to hub</a></footer>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">5/22 DRY-RUN LESSONS</div>
+  <h2 class="bim-section-title">5 條 dry-run 揭露的新 lessons</h2>
+  <p class="bim-section-desc">5/22 跑完整 6 步 demo dry-run 揭露 5 個系統性發現。其中 L-025 升格為<a href="../reference/three-constitutions.html#constitution-4">第四憲法</a>。</p>
+
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">L-025 · Active State Re-Anchoring（升憲法級）</h4>
+      <p>使用者刻意在 dry-run 中切換多個視圖（1F→6F→2F）不告知 AI。AI 用 session 開頭的 viewId 做新 claim → 跟使用者眼前畫面脫鉤。<strong>升格為第四憲法</strong>：每個 stateful claim 前必須重 anchor，雙向 context sync 協議。</p>
+      <p style="font-size:13px;color:var(--text-muted);"><a href="../reference/three-constitutions.html#constitution-4">→ 第四憲法詳細</a></p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">L-026 · Tool Scope Mismatch</h4>
+      <p>Step 3 五工具批次中，<code>check_exterior_wall_openings</code> 是 project-wide（不吃 level 參數），其他 4 個是 level-scoped。AI 若統一呈現為「2FL 報告」會誤導——整案違規含跨樓層開口。</p>
+      <p style="font-size:13px;color:var(--text-muted);">→ <code>domain/tool-capability-boundary.md</code> L7</p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">L-027 · Regulation Type → Coloring Strategy</h4>
+      <p>染色策略不能跨規範類型通用：<strong>wall-anchored</strong>（§45/§110）直接染 violation 牆段；<strong>room-anchored</strong>（§41 採光、排煙）沒有「違規牆段」，需 hosting walls proxy。</p>
+      <p style="font-size:13px;color:var(--text-muted);">→ <code>domain/tool-capability-boundary.md</code> L8</p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">L-028 · MCP Failure Mode & Recovery</h4>
+      <p>5/22 dry-run 中段連續 2 次 <code>get_active_view</code> timeout。AI 拒絕用 session memory 推測視圖（避免 stale snapshot 染色）→ 等使用者點任意視圖重建 focus 修復。</p>
+      <p style="font-size:13px;color:var(--text-muted);">→ <code>domain/tool-capability-boundary.md</code> L9</p>
+    </div>
+    <div class="bim-card" style="grid-column:span 2;">
+      <h4 style="color:var(--accent);">L-029 · BIM 模型內在不一致</h4>
+      <p>日本 BIM 模板的 Room 同時有「面積」（Revit 計算）和「面積 部屋 調整値」（手填校正）兩個值，差 0.5-5%。在 2% 排煙 / 12.5% 採光的邊界 case 上可能跨越合規門檻。<strong>AI 不該替使用者選一個值——必須兩個都端出來</strong>。</p>
+      <p style="font-size:13px;color:var(--text-muted);">→ <code>domain/daylight-area-check.md</code> 末段 + <code>domain/smoke-exhaust-review.md</code> 末段</p>
+    </div>
+  </div>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">DEMO FLOW · 6 STEPS</div>
+  <h2 class="bim-section-title">5/23 demo 步驟總覽</h2>
+  <p class="bim-section-desc">完整流程的步驟總覽（細節在練習頁）：</p>
+
+  <table>
+    <thead><tr><th>Step</th><th>動作</th><th>對應命題 / 憲法</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>0 · Anchor</strong></td>
+        <td><code>get_active_view</code> 讀使用者當下實際在哪</td>
+        <td>P8 被動就緒 · 憲法 IV Active Re-Anchoring</td>
+      </tr>
+      <tr>
+        <td><strong>1 · Read-only intake</strong></td>
+        <td>判斷當下視圖適不適合後續操作（不替使用者切視圖）</td>
+        <td>P8 · P11 光譜在設計師端</td>
+      </tr>
+      <tr>
+        <td><strong>2 · 房間清單</strong></td>
+        <td><code>get_rooms_by_level</code> 列出當前樓層所有房間</td>
+        <td>P7 具象成果</td>
+      </tr>
+      <tr>
+        <td><strong>3 ★ Core Star</strong></td>
+        <td>並行 invoke 5 個 ARCHI 合規工具</td>
+        <td>P22 ARCHI 優先 · P16 編排平台 · 憲法 II Data Honesty</td>
+      </tr>
+      <tr>
+        <td><strong>4 · 採光深入</strong></td>
+        <td>對 FAIL 房套 <code>domain/daylight-area-check.md</code> 75cm 公式</td>
+        <td>憲法 III Domain Method Compliance · A/B/C/D 光譜</td>
+      </tr>
+      <tr>
+        <td><strong>5 · 視覺化規範限制</strong></td>
+        <td>染牆（wall-anchored 直染 / room-anchored 走 hosting walls proxy）</td>
+        <td>P3 限制可見 · P4 限制顯現器 · L-027</td>
+      </tr>
+      <tr>
+        <td><strong>6 · 光譜決策 + 收尾</strong></td>
+        <td>講者現場走 A/B/C/D（不呼叫工具）+ clear 牆</td>
+        <td>P11 / P12 / P13 三條路徑 · slide 6-4</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">RELATED REFERENCE</div>
+  <h2 class="bim-section-title">深度閱讀</h2>
+  <div class="bim-grid bim-grid-3">
+    <a class="bim-card" href="../reference/three-constitutions.html">
+      <h4>四條憲法</h4>
+      <p>被動就緒 / Data Honesty / Domain Method / Active Re-Anchoring</p>
+    </a>
+    <a class="bim-card" href="../reference/philosophy-22-propositions.html">
+      <h4>22 命題</h4>
+      <p>0523 哲學中軸 P1-P22</p>
+    </a>
+    <a class="bim-card" href="../reference/spectrum-decision.html">
+      <h4>光譜決策</h4>
+      <p>A/B/C/D 框架（FAIL 後的四條路）</p>
+    </a>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="../index.html" class="bim-footer-btn primary">← 回 BIM_MCP 首頁</a>
+    <a href="https://github.com/shuotao/REVIT_MCP_study/blob/main/docs/0523-handson.html" target="_blank" class="bim-footer-btn">0523 練習頁原文</a>
+    <a href="https://github.com/shuotao/REVIT_MCP_study/blob/main/docs/0523-presentation.html" target="_blank" class="bim-footer-btn">0523 主簡報</a>
+  </div>
+  <p>BIM_MCP · 2026-05 月小聚 hands-on · 5/23 demo + 5/22 dry-run lessons</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-05-22 · 5/22 dry-run 揭露 5 條 lessons（L-025 升憲法級為第四憲法）</p>
+</footer>
+
+<script src="../shared.js"></script>
+<script>initAll();</script>
 </body>
 </html>

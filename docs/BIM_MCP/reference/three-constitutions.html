@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MCP 三憲法 · BIM_MCP</title>
-<meta property="og:title" content="MCP 三憲法：被動就緒 / Tool Call Data Honesty / Domain Method Compliance">
-<meta property="og:description" content="MCP 系統設計的三條憲法級規範，超越所有 Skill / Domain / subagent。含實際違規案例與正確做法對比。">
+<title>MCP 四憲法 · BIM_MCP</title>
+<meta property="og:title" content="MCP 四憲法：被動就緒 / Tool Call Data Honesty / Domain Method Compliance / Active State Re-Anchoring">
+<meta property="og:description" content="MCP 系統設計的四條憲法級規範，超越所有 Skill / Domain / subagent。含實際違規案例與正確做法對比。2026-05-22 新增第四憲法 Active State Re-Anchoring。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
@@ -20,7 +20,7 @@
     <span class="bim-topnav-sep">/</span>
     <a href="philosophy-22-propositions.html" style="color:var(--text-secondary);border-bottom:none;">22 命題</a>
     <span class="bim-topnav-sep">/</span>
-    <span class="bim-topnav-current">三憲法</span>
+    <span class="bim-topnav-current">四憲法</span>
   </div>
   <div class="bim-topnav-actions">
     <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener" class="bim-topnav-btn bim-topnav-btn-github" title="View source on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
@@ -30,9 +30,9 @@
 </nav>
 
 <header class="bim-hero">
-  <div class="bim-hero-eyebrow">CONSTITUTIONAL RULES <span class="accent">3 條</span></div>
-  <h1 class="bim-hero-title">MCP <span class="accent">三憲法</span><br>超越所有 Skill / Domain / subagent</h1>
-  <p class="bim-hero-sub">三條憲法級規範定義 MCP × Revit 人機協作的底線。這些規則 <strong>不被任何 Skill 覆蓋</strong>——即使 Skill body 看起來允許違反，憲法仍然優先。每條都附實際違規案例與正確做法對比。</p>
+  <div class="bim-hero-eyebrow">CONSTITUTIONAL RULES <span class="accent">4 條</span></div>
+  <h1 class="bim-hero-title">MCP <span class="accent">四憲法</span><br>超越所有 Skill / Domain / subagent</h1>
+  <p class="bim-hero-sub">四條憲法級規範定義 MCP × Revit 人機協作的底線。這些規則 <strong>不被任何 Skill 覆蓋</strong>——即使 Skill body 看起來允許違反，憲法仍然優先。每條都附實際違規案例與正確做法對比。<strong>第四條於 2026-05-22 0523 demo dry-run 後新增</strong>，源於使用者刻意切視圖揭露的「stale snapshot 幻覺」失敗模式。</p>
   <div class="hero-stats">
     <div class="hero-stat">
       <div style="font-size:28px;font-weight:800;color:var(--accent);">1</div>
@@ -48,6 +48,11 @@
       <div style="font-size:28px;font-weight:800;color:var(--accent);">3</div>
       <div class="data-emph-label">Domain Method Compliance</div>
       <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">算法從哪來</div>
+    </div>
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">4</div>
+      <div class="data-emph-label">Active State Re-Anchoring</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">狀態何時刷新</div>
     </div>
   </div>
 </header>
@@ -405,12 +410,162 @@
 </section>
 
 <!-- ============================================ -->
-<!-- 三憲法的整體關係 -->
+<!-- 第四憲法：Active State Re-Anchoring -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="constitution-4">
+  <div class="bim-section-eyebrow">CONSTITUTION IV · 狀態何時刷新</div>
+  <h2 class="bim-section-title">第四憲法：Active State Re-Anchoring</h2>
+  <p class="bim-section-desc"><strong>Scope</strong>：適用任何使用或暗示使用者當前視圖 / 樓層 / 文件 / 選取狀態的回應。本規則綁定每個 tool call 序列與每個有狀態的 claim——不只在 session 開頭。</p>
+
+  <h3>使用者原文（2026-05-22 0523 dry-run）</h3>
+  <div class="user-quote">
+    我刻意無告知地在切換視 view 就是在與你討論上，設計師會切換不同的畫面在做各種圖的檢查，就會有上面的情境發生。⋯⋯而是 <strong>MCP 本身要有對應現有狀態的一個直覺的能力養成</strong>。而<strong>使用者也要有意識到要有步驟的討論 MCP 的工具呼叫才有足夠的上下文去做連貫</strong>。
+    <span class="user-quote-attr">— 使用者，2026-05-22 0523 demo dry-run</span>
+  </div>
+
+  <h3>與其他憲法的關係</h3>
+  <div class="bim-card bim-card-accent">
+    <p><strong>第二憲法 Tool Call Data Honesty</strong> 管 <em>數據從哪來</em>（tool response，非 LM 先驗）。</p>
+    <p><strong>第三憲法 Domain Method Compliance</strong> 管 <em>事實如何被轉換</em>（domain SOP，非 LM 直覺）。</p>
+    <p><strong>第四憲法 Active State Re-Anchoring</strong> 管 <em>狀態何時刷新</em>（claim 時點，非 session 開頭）。</p>
+    <p>三者構成「<strong>事實 → 算法 → 時點</strong>」三維約束——必須同時滿足。即使 tool call 是 fresh 的、算法是 domain 來的，視圖 anchor 是 stale 的仍然產出幻覺。</p>
+  </div>
+
+  <h3>核心不變式</h3>
+  <p>任何引用 view-state / level-state / active-context 的 claim（例如「您在 1F」、「查詢這層樓的房間」、「對當前平面套用 override」、「選取的元素」），<strong>必須由本 turn 的 <code>get_active_view</code>（或對應 anchor tool）支持</strong>——不是 session 早段讀的 snapshot。使用者隨時可能切視圖 / 切樓層 / 切文件 / 切選取，這是設計工作流的常態，不是例外。</p>
+
+  <h3>實際違規案例（2026-05-22, Revit 0523 demo dry-run）</h3>
+  <p>使用者在 0523 demo dry-run 中刻意切換多個視圖（1F → 6F → 2F duplicate）而不告知 AI。AI 在 Step 5 染牆時仍引用 session 開頭的 viewId <code>53189012</code>（1F 平面）作為 <code>override_element_graphics</code> 參數。實際使用者已在 2FL <code>平面図 2階 複製 1</code>（ViewId <code>56264519</code>）：</p>
+  <ul>
+    <li>雖然 API 回 <code>Success=true</code>，但 override 套在使用者沒在看的視圖上，<strong>視覺上完全脫鉤</strong></li>
+    <li><strong>雙重失誤鏈</strong>：第一次假設 override_element_graphics 對 Room 有效（後續被 L6 工具邊界規則攔下）；第二次假設視圖還停在 1F（沒有規則攔下 → 升憲法級成為本條）</li>
+  </ul>
+
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card bim-card-bad">
+      <h4 style="color:var(--bad);">❌ 違規做法</h4>
+      <p>「您剛剛在 Step 0 抄下 ViewId <code>53189012</code>，現在我用這個 viewId 對 3 間 FAIL 房做 override。」</p>
+      <p style="font-size:13px;color:var(--text-muted);">問題：Step 0 → Step 5 之間使用者切了 3 次視圖，<code>53189012</code> 早已 stale。AI 沒 re-anchor 就直接用 snapshot。</p>
+    </div>
+    <div class="bim-card bim-card-ok">
+      <h4 style="color:var(--ok);">✓ 正確做法</h4>
+      <p>「執行 override 前先呼叫 <code>get_active_view</code> re-anchor——確認當前 active view 是 <code>平面図 2階 複製 1</code>（ViewId <code>56264519</code>），於是用此 viewId 顯式傳給 <code>override_element_graphics</code>。Step 0 抄下的 ViewId 只是 Step 0 時點的 anchor，不能跨步驟沿用。」</p>
+    </div>
+  </div>
+
+  <h3>Pre-Action 自檢清單（任何有狀態 tool call 前跑）</h3>
+  <ol>
+    <li>即將執行的動作是否帶 <code>viewId</code> / <code>levelName</code> / <code>level</code> / 其他 active-context 參數？→ 進入步驟 2。</li>
+    <li>本 turn 是否已呼叫 <code>get_active_view</code>（或對應 anchor tool），且時間上跟即將執行的動作緊鄰？→ 若否，<strong>先 re-anchor</strong>。若是，繼續。</li>
+    <li>計畫帶的 <code>viewId</code> / <code>levelName</code> 值是否來自本 turn 的 tool response？→ 若來自 session 早段的 read，<strong>先 re-anchor</strong>。</li>
+    <li>動作是否會對模型產生副作用（override / 修改 / 建立）？→ 若是，<strong>re-anchor 視為強制</strong>，不論步驟 2/3 結果。</li>
+  </ol>
+
+  <h3>雙向 Context Sync 協議（使用者端責任）</h3>
+  <p>這條規則無法純由 AI 單方面執行。使用者有對應責任：</p>
+  <ul>
+    <li><strong>切換視圖 / 樓層後</strong>：可選 (a) 主動告知 (b) 不告知但信任 AI re-anchor。<strong>兩種都可</strong>。</li>
+    <li><strong>編輯模型後</strong>（移牆、加房間、改參數）做相關查詢前：告知 AI，或接受 AI 可能需要重新 fetch。</li>
+    <li><strong>切換 / 重新載入 .rvt 檔：MUST 主動告知</strong>——文件級變更的隱式偵測不可靠。</li>
+  </ul>
+
+  <h3>三個輸出分支</h3>
+  <table>
+    <thead><tr><th>分支</th><th>狀況</th><th>模板</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>A</strong></td>
+        <td>本 turn 已 re-anchor</td>
+        <td>明確引用：「Confirmed via <code>get_active_view</code>: currently on <code>{view}</code> / level <code>{level}</code>.」繼續執行。</td>
+      </tr>
+      <tr>
+        <td><strong>B</strong></td>
+        <td>anchor stale（來自早段 turn）</td>
+        <td><strong>STOP</strong>。先 re-anchor。不要假設「使用者大概還在我上次離開的地方」——這個假設正是本規則存在的失敗模式。</td>
+      </tr>
+      <tr>
+        <td><strong>C</strong></td>
+        <td>anchor tool 失敗（timeout / 連線斷）</td>
+        <td>第一次 timeout 等 5 秒重試一次。第二次 timeout 停止重試，按第二憲法 Branch C 明確標示。<strong>DO NOT</strong> 在 stale snapshot 上繼續執行 stateful 操作——同樣是幻覺模式。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>優先順序（這條規則優先於）</h3>
+  <ul>
+    <li>「使用者大概還在我上次離開的地方」——這正是本規則審查的幻覺模式</li>
+    <li>「每個 tool call 都 re-anchor 感覺多餘」——這是 stateful 互動的結構成本，不是性能 bug</li>
+    <li>Session memory 中早段的 tool response，不論多近（5 turns 前還是 stale）</li>
+    <li>「模型 state 在 tool call 之間應該不會變」——model state 是 observable 但不是 freezable</li>
+  </ul>
+
+  <div class="bim-card bim-card-accent">
+    <h4>Rule of Thumb</h4>
+    <p style="font-size:16px;font-style:italic;"><em>If you're about to use a viewId, levelName, or any active-state value: ask "did I get this from a tool response in THIS turn?" If no, re-anchor first. Session memory is a draft; live tool response is the truth.</em></p>
+  </div>
+
+  <div class="how-tech">
+    <div class="how-tech-label">WHY</div>
+    <div class="how-tech-content">設計師切視圖是工作流常態——一邊看作業用、一邊翻法規、一邊跳到矩計。AI 沒有任何「異常」可偵測，只能在 stale snapshot 上繼續做 claim。第二憲法的 Branch C「tool unavailable」很明顯，但本條的失敗模式「我以為使用者還在 1F」<strong>更隱蔽</strong>——API 全 success、數字格式對、看似正常的對話流，但內容跟使用者眼前畫面脫鉤。</div>
+    <div class="how-tech-label">HOW</div>
+    <div class="how-tech-content">任何 view-anchored / level-anchored 動作前先呼叫 <code>get_active_view</code>。<code>session-context-guard.md</code> 定義 L1（被動感知）/ L2（主動確認）/ L3（完整環境報告）三級守衛協議，本條把守衛升級為「<strong>每次 stateful claim 必須 anchor</strong>」而非「異常時才 anchor」。</div>
+    <div class="how-tech-label">TECHNIQUE</div>
+    <div class="how-tech-content technique">Pre-Action Anchor Refresh · Bilateral Context Sync · Stale-Snapshot Detection · Branch B/C State Failure Handling</div>
+    <div class="how-tech-label">CHECKLIST</div>
+    <div class="how-tech-content checklist">
+      <ul>
+        <li>每個帶 viewId / levelName 的 tool call 前，本 turn 是否已 anchor？</li>
+        <li>跨多輪對話的 viewId 是否每次重查？</li>
+        <li>切視圖後第一個查詢是否 re-anchor？</li>
+        <li>side-effect tool（override / modify / create）前是否強制 anchor？</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">stateful 互動的隱性成本</span>
+    <div class="empathy-quote-text">REST API 設計傾向 stateless——每個 request 自帶完整 context。<br>但 Revit / CAD 是 <em>stateful workspace</em>——使用者的「當前視圖」是隱式狀態，<br>API 看不到使用者切視圖的動作。<strong>AI 必須學會主動 ping 狀態，不是被通知</strong>。</div>
+    <span class="empathy-quote-context">這就是為什麼第四憲法存在——它把「<span class="lingo">re-anchor</span>」從 nice-to-have 升為 MUST。Tool Call Data Honesty 解決「<strong>數據假</strong>」的幻覺；Active Re-Anchoring 解決「<strong>狀態假</strong>」的幻覺。<strong>兩者結構完全平行</strong>——都是 LM 用 prior（內部記憶）替代了 reality（外部當前狀態）。</span>
+  </div>
+
+  <div class="further-reading">
+    <div class="further-reading-label">深度閱讀 · 第四憲法</div>
+    <ul class="further-reading-list">
+      <li>
+        <div>
+          <span class="fr-type">Domain</span><a href="https://github.com/shuotao/REVIT_MCP_study/blob/main/domain/session-context-guard.md" target="_blank">session-context-guard.md</a>
+          <span class="fr-desc">L1/L2/L3 三級守衛協議 + 5/22 補的 Active Re-Anchoring 章節</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Lesson</span><a href="https://github.com/shuotao/REVIT_MCP_study/blob/main/domain/lessons.md" target="_blank">L-025 Active State Re-Anchoring</a>
+          <span class="fr-desc">違規經驗 + 雙向協議延伸</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Case</span>2026-05-22 0523 dry-run 雙重失誤鏈
+          <span class="fr-desc">第一次 L6 工具邊界（Room override silent no-op）、第二次升憲法級成為本條（stale viewId snapshot）</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="philosophy-22-propositions.html#p8">P8 — 被動就緒</a>
+          <span class="fr-desc">「不主動跳出」的命題延伸——但被動不等於可以用過期 snapshot</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- 四憲法的整體關係 -->
 <!-- ============================================ -->
 <section data-collapse class="bim-section">
-  <div class="bim-section-eyebrow">SYNTHESIS · 三憲法整體</div>
-  <h2 class="bim-section-title">三憲法的整體結構</h2>
-  <p class="bim-section-desc">三條憲法分別管「<strong>何時</strong>介入」「<strong>數據從哪來</strong>」「<strong>算法從哪來</strong>」——構成 MCP 系統設計的完整底線。</p>
+  <div class="bim-section-eyebrow">SYNTHESIS · 四憲法整體</div>
+  <h2 class="bim-section-title">四憲法的整體結構</h2>
+  <p class="bim-section-desc">四條憲法分別管「<strong>何時</strong>介入」「<strong>數據從哪來</strong>」「<strong>算法從哪來</strong>」「<strong>狀態何時刷新</strong>」——構成 MCP 系統設計的完整底線。</p>
 
   <table>
     <thead><tr><th>憲法</th><th>管什麼</th><th>違規典型樣態</th><th>正確姿態</th></tr></thead>
@@ -433,22 +588,30 @@
         <td>用 LM「合理預設」算合規而非讀 domain 檔</td>
         <td>有對應 domain/*.md 就以該檔算法為準</td>
       </tr>
+      <tr>
+        <td><strong>IV · Active State Re-Anchoring</strong></td>
+        <td>狀態何時刷新</td>
+        <td>用 session 早段的 viewId / levelName snapshot 做新 claim</td>
+        <td>每個 stateful claim 前重 anchor，雙向 context sync</td>
+      </tr>
     </tbody>
   </table>
 
   <h3>為什麼是「憲法」級</h3>
-  <p>這三條<strong>不被任何 Skill 覆蓋</strong>。即使 Skill body 看起來允許違反，憲法仍然優先。原因：</p>
+  <p>這四條<strong>不被任何 Skill 覆蓋</strong>。即使 Skill body 看起來允許違反，憲法仍然優先。原因：</p>
   <ul>
     <li>Skill 是工作流編排（怎麼做）——可以調整、迭代、被替換</li>
     <li>憲法是底線（不能怎麼做）——一旦違反，系統的可信度崩塌</li>
     <li>BIM 場域特別嚴格——合規結果直接影響送審通過、業主簽核、營建品質</li>
+    <li>第四憲法尤其重要——stateful 工作環境的根本約束，跨 session 都得守</li>
   </ul>
 
-  <h3>三憲法的歷史</h3>
+  <h3>四憲法的歷史</h3>
   <ul>
     <li><strong>2026-04-23</strong>：Tool Call Data Honesty 違規案（Corridor ID 編造）→ 寫入 CLAUDE.md AI Guard Rails</li>
     <li><strong>2026-04-23</strong>：Domain Method Compliance 違規案（採光算法錯誤）→ 寫入 CLAUDE.md</li>
-    <li><strong>2026-05-18</strong>：第三憲法「被動就緒」從 0523 命題 P8 升級到憲法級——使用者明示「主動跳出限制我覺得很怪」</li>
+    <li><strong>2026-05-18</strong>：第一憲法「被動就緒」從 0523 命題 P8 升級到憲法級——使用者明示「主動跳出限制我覺得很怪」</li>
+    <li><strong>2026-05-22</strong>：第四憲法「Active State Re-Anchoring」從 0523 demo dry-run 雙重失誤鏈升級到憲法級——使用者刻意切視圖揭露「stale snapshot 幻覺」失敗模式，補入 CLAUDE.md + session-context-guard.md + lessons.md L-025</li>
   </ul>
 </section>
 
@@ -460,8 +623,8 @@
     <a href="https://github.com/shuotao/REVIT_MCP_study/blob/main/CLAUDE.md" target="_blank" class="bim-footer-btn">CLAUDE.md 原文</a>
   </div>
   <div>
-    BIM_MCP · 三憲法 · 超越所有 Skill / Domain<br>
-    最後更新：2026-05-18 · 來源：CLAUDE.md AI Guard Rails + 0523 命題 P8 升級
+    BIM_MCP · 四憲法 · 超越所有 Skill / Domain<br>
+    最後更新：2026-05-22 · 來源：CLAUDE.md AI Guard Rails + 0523 命題 P8 升級 + 0523 dry-run L-025 升憲法
   </div>
 </footer>
 
