@@ -1,0 +1,37 @@
+# BIM_MCP Image Assets
+
+SVG assets in this folder follow the handoff naming rule:
+
+`<page-stem>__<position>__<concept>.svg`
+
+The visual direction is deliberately minimal: black background, white geometric marks, and sparse `#60a5fa` highlights. These assets are authored as deterministic SVG files so they remain reviewable in git and can be embedded with regular `<img>` tags.
+
+## Asset Index
+
+| Asset | Used by |
+|---|---|
+| `index__hero__three-layer.svg` | `index.html` hero |
+| `index__section01__site-map.svg` | `index.html` section 01 |
+| `philosophy__hero__22-stars.svg` | `reference/philosophy-22-propositions.html` hero |
+| `three-const__hero__pyramid.svg` | `reference/three-constitutions.html` hero |
+| `three-const__c1__passive-vs-active.svg` | `reference/three-constitutions.html` constitution 1 |
+| `three-const__c2__tool-vs-prior.svg` | `reference/three-constitutions.html` constitution 2 |
+| `three-const__c3__sop-vs-intuition.svg` | `reference/three-constitutions.html` constitution 3 |
+| `industry__hero__cost-curve.svg` | `reference/industry-evidence.html` hero |
+| `industry__s01__three-stats.svg` | `reference/industry-evidence.html` section 01 |
+| `industry__s03__timeline.svg` | `reference/industry-evidence.html` section 03 |
+| `spectrum__hero__01-vs-spectrum.svg` | `reference/spectrum-decision.html` hero |
+| `spectrum__s02__decision-tree.svg` | `reference/spectrum-decision.html` section 02 |
+| `spectrum__quote__resign-king.svg` | `reference/spectrum-decision.html` quote backdrop |
+| `skills-domain__frame__concentric.svg` | `reference/skills-index.html` and `reference/domain-index.html` frame |
+| `skills__hero__19-grains.svg` | `reference/skills-index.html` catalog |
+| `domain__hero__35-grains.svg` | `reference/domain-index.html` hero |
+| `deployment__hero__one-cmd.svg` | `reference/deployment-guide.html` hero |
+| `deployment__s02__arch.svg` | `reference/deployment-guide.html` quick setup |
+| `troubleshooting__hero__9-cases.svg` | `reference/troubleshooting.html` hero |
+| `troubleshooting__fix1__overflow.svg` | `reference/troubleshooting.html` fix 1 |
+| `troubleshooting__fix2__view-pollution.svg` | `reference/troubleshooting.html` fix 2 |
+| `troubleshooting__fix3__batch.svg` | `reference/troubleshooting.html` fix 3 |
+| `troubleshooting__fix4__by-design.svg` | `reference/troubleshooting.html` fix 4 |
+| `contributor__hero__dual-write.svg` | `reference/contributor-template.html` hero |
+| `contributor__s04__6-step.svg` | `reference/contributor-template.html` example workflow |

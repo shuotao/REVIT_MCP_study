@@ -135,3 +135,47 @@ metadata:
 | `curr_view` | 目前視圖名稱 |
 | `guard_level` | 目前守衛等級 (L1/L2/L3) |
 | `trigger` | 觸發升級/降級的原因 |
+
+---
+
+## Active State Re-Anchoring（2026-05-22 補，憲法級延伸）
+
+L1/L2/L3 三級守衛偏「被動偵測」（L1）+「異常時主動」（L2/L3）。但實務上有更尖銳的場景——**使用者隨意切換視圖時，AI 沒有任何「異常」可偵測，只是在 stale snapshot 上繼續做 claim**。本節定義對應的雙向協議。
+
+### AI 端強化規則
+
+**任何引用 view-state / level-state / active-context 的 claim 之前，必須在「claim 時點」呼叫 `get_active_view` 重新確認**。不能依賴 session 較早的 read 結果。
+
+| 場景 | 正確做法 | 反模式（5/22 dry-run 實證）|
+|------|----------|----------------------------|
+| 跨多輪對話後執行 view-anchored 操作（如 `override_element_graphics`、`create_section_view`）| **先 re-anchor**：`get_active_view` 確認當前視圖 → 顯式傳該 viewId | 用 session 前段抄下的 ViewId，但使用者已切過視圖 |
+| 引用「當前樓層」做 level-anchored 查詢 | **先 re-anchor**：`get_active_view` 取 LevelName → 用此 LevelName | 假設 LevelName 跟 session 開頭一致 |
+| 報告「我看到 X」的 claim | 確認 X 是當前 turn 的 tool response 提供 | 引用 session 前段的 tool response 當「現在的事實」 |
+
+### 雙向 Context Sync 協議（人端責任）
+
+Context 同步**不是單方面 AI 責任**，使用者也有對應責任：
+
+| 操作 | 使用者責任 | AI 對應行為 |
+|------|------------|-------------|
+| 切換視圖 / 樓層 | (a) 主動告知；或 (b) 不告知但接受 AI 會 re-anchor | 收到下一個 prompt 時自動 re-anchor |
+| 編輯模型（移牆、改參數）後接著查詢 | 主動說「我剛改了 X，再查」 | 重要查詢前主動問「自上次查詢後模型有編輯嗎？」|
+| 切換到非 FloorPlan 視圖（3D / Section）後再要求 level-scoped 操作 | 意識到視圖類型可能跟操作預設衝突 | re-anchor 後若 ViewType 不對，主動 surface |
+| 模型重新載入 / 切換 .rvt 檔 | **必須告知**（隱式偵測會晚一拍）| 收到「新檔載入」訊號後強制升 L3 全面確認 |
+
+### Tool Call Data Honesty 的關係
+
+Tool Call Data Honesty（CLAUDE.md MUST 級規則）規定「數據必須來自當前 turn 的 tool response」——這條跟 Active State Re-Anchoring 是**強化關係**：
+
+- **Data Honesty 管「**數據從哪來**」**（不可 LM 先驗）
+- **Active Re-Anchoring 管「**狀態何時刷新**」**（不可用過期 snapshot）
+
+兩者交集場景：「AI 報告：『您在 1F 主平面，所以我幫你查 1FL 房間』」——若 1F 主平面是 5 輪對話前抄下的，這個 claim 同時違反兩條（snapshot 過期 + 數據不是當前 turn）。
+
+### 違規範例（2026-05-22 dry-run）
+
+使用者刻意在 session 中段切換視圖（1F → 6F → 2F → ...），且不告知 AI。AI 第一次假設視圖仍在 1F、回了一份基於 1F 的 claim。**真正的根因不是「視圖變了」，而是「AI 沒在 claim 時重新驗證」**。修正後：每個 level-anchored 操作前都呼叫 `get_active_view` re-anchor，從此再切視圖 AI 都能正確跟上。
+
+### 5/23 demo 講者觀察點
+
+讓使用者在 Step 1 後刻意切視圖（不告知）→ 觀察 AI 在 Step 2 時是否會 re-anchor。會的 AI 對應 Active Re-Anchoring 合規；不會的 AI 會繼續用 Step 0/1 抄下的 LevelName，產出跟使用者眼前畫面脫鉤的報告——**這就是 Bilateral Context Sync 失敗的活體範例**。

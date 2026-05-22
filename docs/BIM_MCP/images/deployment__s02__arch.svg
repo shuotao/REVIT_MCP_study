@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title desc">
+  <title id="title">setup.ps1 build and deploy architecture</title>
+  <desc id="desc">A vertical build flow from setup.ps1 to build and deploy to Revit addins with Node and .NET inputs.</desc>
+  <rect width="800" height="600" fill="#000"/>
+  <g fill="none" stroke="#fff" stroke-width="2">
+    <rect x="250" y="70" width="300" height="80" rx="6"/>
+    <rect x="250" y="260" width="300" height="80" rx="6"/>
+    <rect x="210" y="450" width="380" height="80" rx="6" fill="#60a5fa" stroke="#60a5fa"/>
+    <path d="M400 150v88"/>
+    <path d="M390 226l10 14 10-14"/>
+    <path d="M400 340v88"/>
+    <path d="M390 416l10 14 10-14"/>
+    <rect x="70" y="250" width="120" height="48" rx="4"/>
+    <rect x="610" y="250" width="120" height="48" rx="4"/>
+    <path d="M190 274h58"/>
+    <path d="M236 264l14 10-14 10"/>
+    <path d="M610 274h-58"/>
+    <path d="M564 264l-14 10 14 10"/>
+  </g>
+  <g font-family="JetBrains Mono, Consolas, monospace" text-anchor="middle" font-size="24" font-weight="700">
+    <text x="400" y="120" fill="#fff">setup.ps1</text>
+    <text x="400" y="310" fill="#fff">build + deploy</text>
+    <text x="400" y="500" fill="#fff">%AppData%\Revit\Addins\{ver}</text>
+  </g>
+  <g font-family="JetBrains Mono, Consolas, monospace" text-anchor="middle" font-size="16" fill="#fff">
+    <text x="130" y="281">Node.js</text>
+    <text x="670" y="281">.NET 4.8 / 8</text>
+  </g>
+</svg>

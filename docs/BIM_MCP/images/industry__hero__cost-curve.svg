@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Cost curve from requirement to field">
+  <rect width="1600" height="900" fill="#000"/>
+  <path d="M220 700 C480 680 700 610 890 480 C1080 350 1225 210 1380 130" fill="none" stroke="#fff" stroke-width="5"/>
+  <g font-family="JetBrains Mono,Consolas,monospace" fill="#fff" font-size="24">
+    <circle cx="250" cy="694" r="12" fill="#fff"/><text x="210" y="750">REQ / $1</text>
+    <circle cx="650" cy="610" r="12" fill="#fff"/><text x="595" y="665">DESIGN / $5</text>
+    <circle cx="990" cy="405" r="12" fill="#fff"/><text x="920" y="465">BUILD / $25</text>
+    <circle cx="1360" cy="140" r="20" fill="#60a5fa"/><text x="1220" y="105">FIELD / $100</text>
+    <text x="110" y="160" transform="rotate(-90 110 160)" letter-spacing="3">COST</text>
+    <text x="1340" y="790" letter-spacing="3">PHASE</text>
+  </g>
+</svg>
