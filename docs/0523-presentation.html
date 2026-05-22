@@ -923,38 +923,470 @@
   <div class="why-footer">以上 <strong style="color:#4ade80;">9</strong> 大系統、<strong style="color:#4ade80;">35 個 Domain</strong>、<strong>86 個工具</strong>已上線驗證（snapshot 更新於 2026-05-12）。<br>你的專業領域，就是第 10 個、第 11 個按鈕。</div>
 </section>
 
-<!-- ===== KARPATHY WIKI GATEWAY PAGE ===== -->
-<section class="slide" id="slide-karpathy-gateway" style="justify-content:center;text-align:center;padding:80px 40px;">
-  <div style="max-width:860px;margin:0 auto;">
-    <div style="display:inline-block;margin-bottom:20px;padding:6px 18px;background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.35);border-radius:100px;font-size:11px;letter-spacing:3px;color:#60a5fa;font-weight:600;">
-      FIELD NOTES · NO. 02 · 2026-04-21
-    </div>
-    <h1 style="font-size:52px;font-weight:800;line-height:1.2;letter-spacing:-1px;margin-bottom:20px;">
-      Karpathy 的 LLM Wiki<br>
-      <span style="color:#60a5fa;">剛好是我們在做的事</span>
-    </h1>
-    <p style="font-size:19px;color:rgba(255,255,255,0.55);font-weight:300;line-height:1.7;margin-bottom:36px;max-width:720px;margin-left:auto;margin-right:auto;">
-      2026 年初，Karpathy 提出讓 LLM 長期維護會自我交叉引用、偵測矛盾的 markdown 知識庫。<br>
-      本專案已落地：<strong style="color:#4ade80">三層 log 防線、Anthropic-compliant frontmatter、/handoff session 交接機制</strong>。
-    </p>
+<!-- ===== MAY CONTRIBUTORS MAP ===== -->
+<section class="slide" id="slide-may-contributors" style="justify-content:center;padding:60px 40px;">
+  <style>
+    #slide-may-contributors .mcm-wrap { max-width: 1240px; margin: 0 auto; width: 100%; }
+    #slide-may-contributors .mcm-header { text-align: center; margin-bottom: 36px; }
+    #slide-may-contributors .mcm-tag {
+      display: inline-block; padding: 6px 16px; margin-bottom: 16px;
+      background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.35);
+      border-radius: 100px; font-size: 11px; letter-spacing: 3px;
+      color: #4ade80; font-weight: 600;
+    }
+    #slide-may-contributors .mcm-title { font-size: 40px; font-weight: 800; line-height: 1.2; margin: 0 0 14px 0; letter-spacing:-0.5px; }
+    #slide-may-contributors .mcm-title .accent { color: #4ade80; }
+    #slide-may-contributors .mcm-lead { font-size: 15px; color: rgba(255,255,255,0.5); max-width: 760px; margin: 0 auto; line-height: 1.7; }
+    #slide-may-contributors .mcm-lead strong { font-weight: 600; }
 
-    <div style="display:inline-block;margin-bottom:40px;padding:10px 22px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.3);border-radius:100px;font-size:13px;letter-spacing:1px;color:#4ade80;">
-      ✓ 研討完成 · 建議的四招已全部落地 · 6 個 commit 已推送到 main
+    #slide-may-contributors .mcm-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    @media (max-width: 980px) { #slide-may-contributors .mcm-grid { grid-template-columns: repeat(2, 1fr); } }
+    #slide-may-contributors .mcm-card {
+      position: relative;
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px; padding: 24px 20px; cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    #slide-may-contributors .mcm-card:hover { transform: translateY(-4px); border-color: rgba(96,165,250,0.45); background: rgba(96,165,250,0.05); }
+    #slide-may-contributors .mcm-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 800; margin-bottom: 14px;
+      background: linear-gradient(135deg, var(--c1), var(--c2));
+      color: #000;
+    }
+    #slide-may-contributors .mcm-card[data-id="cyber"]   { --c1:#fbbf24; --c2:#f59e0b; }
+    #slide-may-contributors .mcm-card[data-id="kevin"]   { --c1:#60a5fa; --c2:#3b82f6; }
+    #slide-may-contributors .mcm-card[data-id="jacky"]   { --c1:#a78bfa; --c2:#8b5cf6; }
+    #slide-may-contributors .mcm-card[data-id="shuotao"] { --c1:#4ade80; --c2:#22c55e; }
+    #slide-may-contributors .mcm-name { font-size: 15px; font-weight: 700; margin-bottom: 3px; word-break: break-all; line-height: 1.2; }
+    #slide-may-contributors .mcm-handle { font-size: 10.5px; color: rgba(255,255,255,0.4); font-family: ui-monospace, Menlo, monospace; margin-bottom: 12px; }
+    #slide-may-contributors .mcm-pr-count { font-size: 12px; color: #60a5fa; margin-bottom: 10px; }
+    #slide-may-contributors .mcm-pr-count strong { font-size: 18px; font-weight: 700; }
+    #slide-may-contributors .mcm-summary { font-size: 12px; color: rgba(255,255,255,0.55); line-height: 1.5; margin-bottom: 14px; min-height: 72px; }
+    #slide-may-contributors .mcm-cta { font-size: 10.5px; color: rgba(255,255,255,0.32); letter-spacing: 1.5px; }
+    #slide-may-contributors .mcm-card:hover .mcm-cta { color: #60a5fa; }
+
+    #slide-may-contributors .mcm-detail { display: none; }
+    #slide-may-contributors .mcm-detail.active { display: block; }
+    #slide-may-contributors .mcm-grid-view { display: block; }
+    #slide-may-contributors .mcm-grid-view.hidden { display: none; }
+
+    #slide-may-contributors .mcm-back {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.7); padding: 7px 18px; border-radius: 100px;
+      font-size: 12.5px; cursor: pointer; transition: all 0.2s;
+      margin-bottom: 22px; font-family: inherit;
+    }
+    #slide-may-contributors .mcm-back:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    #slide-may-contributors .mcm-detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+    #slide-may-contributors .mcm-detail-header .mcm-avatar { margin-bottom: 0; }
+    #slide-may-contributors .mcm-detail-name { font-size: 26px; font-weight: 700; line-height: 1.1; }
+    #slide-may-contributors .mcm-detail-meta { font-size: 12.5px; color: rgba(255,255,255,0.45); margin-top: 4px; font-family: ui-monospace, Menlo, monospace; }
+
+    #slide-may-contributors .mcm-timeline { position: relative; padding: 22px 0 0 0; }
+    #slide-may-contributors .mcm-line {
+      position: absolute; left: 6%; right: 6%; top: 50px; height: 2px;
+      background: linear-gradient(90deg, rgba(96,165,250,0.45), rgba(96,165,250,0.15));
+      z-index: 1;
+    }
+    #slide-may-contributors .mcm-dots { display: flex; justify-content: space-between; position: relative; gap: 12px; }
+    #slide-may-contributors .mcm-dot-cell {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      position: relative; cursor: pointer; max-width: 280px;
+    }
+    #slide-may-contributors .mcm-dot {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #60a5fa; border: 3px solid #0a0e1a;
+      box-shadow: 0 0 0 2px rgba(96,165,250,0.45);
+      z-index: 2; transition: all 0.25s;
+    }
+    #slide-may-contributors .mcm-dot-cell:hover .mcm-dot { transform: scale(1.35); box-shadow: 0 0 0 4px rgba(96,165,250,0.6); }
+    #slide-may-contributors .mcm-dot-date {
+      margin-top: 12px; font-size: 10.5px; color: rgba(255,255,255,0.4);
+      font-family: ui-monospace, Menlo, monospace; letter-spacing: 0.3px;
+    }
+    #slide-may-contributors .mcm-dot-pr { margin-top: 3px; font-size: 13px; font-weight: 700; color: #60a5fa; }
+
+    #slide-may-contributors .mcm-dot-panel {
+      margin-top: 14px;
+      background: rgba(96,165,250,0.04); border: 1px solid rgba(96,165,250,0.18);
+      border-radius: 10px; padding: 13px 14px;
+      opacity: 0.55; transition: all 0.25s;
+      width: 100%; box-sizing: border-box;
+    }
+    #slide-may-contributors .mcm-dot-cell:hover .mcm-dot-panel,
+    #slide-may-contributors .mcm-dot-cell:focus-within .mcm-dot-panel {
+      opacity: 1; background: rgba(96,165,250,0.09); border-color: rgba(96,165,250,0.45);
+      transform: translateY(-2px);
+    }
+    #slide-may-contributors .mcm-pr-title { font-size: 11.5px; color: rgba(255,255,255,0.78); line-height: 1.5; margin-bottom: 8px; }
+    #slide-may-contributors .mcm-pr-narrative {
+      font-size: 11px; color: rgba(255,255,255,0.55); line-height: 1.65;
+      padding: 8px 10px; margin: 0 0 12px 0;
+      background: rgba(255,255,255,0.025);
+      border-left: 2px solid rgba(96,165,250,0.35);
+      border-radius: 0 6px 6px 0;
+    }
+    #slide-may-contributors .mcm-pr-narrative em { color: rgba(255,255,255,0.85); font-style: normal; font-weight: 600; }
+    #slide-may-contributors .mcm-domain-chip {
+      display: inline-block; padding: 3px 9px; margin: 2px 4px 4px 0;
+      background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.32);
+      color: #4ade80; border-radius: 6px;
+      font-size: 10.5px; font-family: ui-monospace, Menlo, monospace; word-break: break-all;
+    }
+    #slide-may-contributors .mcm-domain-chip.modified { background: rgba(74,222,128,0.04); border-style: dashed; color: rgba(74,222,128,0.7); }
+    #slide-may-contributors .mcm-tools-label {
+      font-size: 9.5px; color: rgba(255,255,255,0.38); letter-spacing: 1.6px;
+      margin: 10px 0 6px 0; text-transform: uppercase; font-weight: 600;
+    }
+    #slide-may-contributors .mcm-tool-chip {
+      display: inline-block; padding: 3px 8px; margin: 2px 3px 3px 0;
+      background: rgba(96,165,250,0.06); border: 1px solid rgba(96,165,250,0.22);
+      color: rgba(186,213,255,0.9); border-radius: 6px;
+      font-size: 10.5px; font-family: ui-monospace, Menlo, monospace;
+    }
+    #slide-may-contributors .mcm-tool-chip .new-tag {
+      display: inline-block; margin-left: 5px; padding: 1px 5px;
+      background: #fbbf24; color: #000; border-radius: 4px;
+      font-size: 8.5px; font-weight: 800; letter-spacing: 0.5px;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      vertical-align: middle;
+    }
+    #slide-may-contributors .mcm-tool-chip.rejected {
+      background: rgba(239,68,68,0.05); border-color: rgba(239,68,68,0.25);
+      color: rgba(239,68,68,0.78); text-decoration: line-through;
+    }
+    #slide-may-contributors .mcm-note {
+      font-size: 10.5px; color: rgba(255,255,255,0.45);
+      font-style: italic; margin-top: 8px; line-height: 1.5;
+    }
+    #slide-may-contributors .mcm-outro {
+      margin-top: 32px; text-align: center;
+      font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.7;
+    }
+    #slide-may-contributors .mcm-outro strong { color: rgba(96,165,250,0.9); font-weight: 600; }
+
+    @media (max-width: 900px) {
+      #slide-may-contributors .mcm-line { display: none; }
+      #slide-may-contributors .mcm-dots { flex-direction: column; gap: 18px; }
+      #slide-may-contributors .mcm-dot-cell { flex-direction: row; align-items: flex-start; gap: 14px; max-width: none; text-align: left; }
+      #slide-may-contributors .mcm-dot-cell > .mcm-dot { flex-shrink: 0; margin-top: 4px; }
+    }
+  </style>
+
+  <div class="mcm-wrap">
+    <div class="mcm-header">
+      <div class="mcm-tag">FIELD NOTES · NO. 03 · 2026-05</div>
+      <h1 class="mcm-title">5 月，<span class="accent">4 個人</span>各自補了一塊地</h1>
+      <p class="mcm-lead">
+        上一頁問「為什麼來」。<br>
+        這頁說「5 月已經有人來了」—— 共 <strong style="color:#4ade80">9 個 PR 合入 main</strong>，<strong style="color:#60a5fa">7 個新 Domain</strong>、<strong style="color:#60a5fa">7 個新 Tool</strong>。<br>
+        點任意一張卡片，看那個人這個月在做什麼。
+      </p>
     </div>
 
-    <div>
-      <a href="0425-karpathy-wiki.html" style="display:inline-flex;align-items:center;gap:12px;padding:18px 40px;background:#60a5fa;color:#000;text-decoration:none;font-size:17px;font-weight:700;letter-spacing:0.5px;border-radius:100px;transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 30px rgba(96,165,250,0.35)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-        閱讀完整導讀（~18 min）
-        <span style="font-size:20px;">→</span>
-      </a>
+    <div class="mcm-grid-view" id="mcm-grid">
+      <div class="mcm-grid">
+        <div class="mcm-card" data-id="cyber" onclick="mcmOpen('cyber')">
+          <div class="mcm-avatar">C</div>
+          <div class="mcm-name">CyberPotato0416</div>
+          <div class="mcm-handle">@CyberPotato0416</div>
+          <div class="mcm-pr-count"><strong>3</strong> PR · 全部 merged 5/12</div>
+          <div class="mcm-summary">把全球 pyRevit / MEP / PDF 出圖三個主題的研究彙整成內部 Domain，未來補 SOP 不用再從零搜尋。</div>
+          <div class="mcm-cta">點擊看時間軸 →</div>
+        </div>
+
+        <div class="mcm-card" data-id="kevin" onclick="mcmOpen('kevin')">
+          <div class="mcm-avatar">K</div>
+          <div class="mcm-name">916kevin-gif</div>
+          <div class="mcm-handle">@916kevin-gif</div>
+          <div class="mcm-pr-count"><strong>4</strong> PR · 主力 5/22 triage</div>
+          <div class="mcm-summary">把走廊分析、房間表面積、門窗圖例三個工作流從 SOP 推到「能跑」── 5500+ 行 C# 實作補完。</div>
+          <div class="mcm-cta">點擊看時間軸 →</div>
+        </div>
+
+        <div class="mcm-card" data-id="jacky" onclick="mcmOpen('jacky')">
+          <div class="mcm-avatar">J</div>
+          <div class="mcm-name">Jacky820507</div>
+          <div class="mcm-handle">@Jacky820507</div>
+          <div class="mcm-pr-count"><strong>1</strong> PR · merged 5/22</div>
+          <div class="mcm-summary">補上「IFC 結構同步」與「輕隔間牆算量」兩個 BIM 工作流知識，填齊跨工種協作的空白。</div>
+          <div class="mcm-cta">點擊看時間軸 →</div>
+        </div>
+
+        <div class="mcm-card" data-id="shuotao" onclick="mcmOpen('shuotao')">
+          <div class="mcm-avatar">S</div>
+          <div class="mcm-name">shuotao</div>
+          <div class="mcm-handle">@shuotao · 主辦人</div>
+          <div class="mcm-pr-count"><strong>1</strong> PR · merged 5/14</div>
+          <div class="mcm-summary">收編 poisonsam fork 的 2 個工具，<strong style="color:#fca5a5">並拒收 4 個</strong> ── 拒收的理由比工具本身更有價值。</div>
+          <div class="mcm-cta">點擊看時間軸 →</div>
+        </div>
+      </div>
+
+      <div class="mcm-outro">
+        他們補上的 Domain，剛好就是下一頁要講的 <strong>Karpathy「會自我交叉引用的知識庫」</strong>。
+      </div>
     </div>
 
-    <div style="margin-top:40px;font-size:12px;color:rgba(255,255,255,0.3);letter-spacing:1px;">
-      原文：<a href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f" target="_blank" style="color:rgba(96,165,250,0.7);border-bottom:1px solid rgba(96,165,250,0.25);text-decoration:none;">karpathy / gist</a>
-      &nbsp;·&nbsp;
-      鏡像：<a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" style="color:rgba(96,165,250,0.7);border-bottom:1px solid rgba(96,165,250,0.25);text-decoration:none;">shuotao / REVIT_MCP_study</a>
+    <!-- DETAIL: CYBERPOTATO0416 -->
+    <div class="mcm-detail" data-id="cyber">
+      <button class="mcm-back" onclick="mcmBack()">← 回到貢獻者列表</button>
+      <div class="mcm-detail-header">
+        <div class="mcm-avatar" style="--c1:#fbbf24;--c2:#f59e0b;">C</div>
+        <div>
+          <div class="mcm-detail-name">CyberPotato0416</div>
+          <div class="mcm-detail-meta">3 PR · 全 5/12 merged · +382 行 / 3 個新 Domain + 1 個 modified</div>
+        </div>
+      </div>
+      <div class="mcm-timeline">
+        <div class="mcm-line"></div>
+        <div class="mcm-dots">
+          <div class="mcm-dot-cell" tabindex="0">
+            <div class="mcm-dot"></div>
+            <div class="mcm-dot-date">2026-05-12</div>
+            <div class="mcm-dot-pr">PR #35</div>
+            <div class="mcm-dot-panel">
+              <div class="mcm-pr-title">補 pyRevit 5 步驟互動式 fallback 到「從屬視圖分圖」教學</div>
+              <div class="mcm-pr-narrative">
+                大型專案要把總平面切成 <em>A 區 / B 區 / C 區</em> 出圖時，原本只能用網格線自動裁——但格線不規則、或設計師有自己的分區邏輯，純自動就死路。這個 PR 讓 AI 在自動失敗時，能切到 <em>pyRevit 5 步驟互動式半自動模式</em>接手，分區邏輯不規則的案子也救得回來。
+              </div>
+              <span class="mcm-domain-chip modified">dependent-view-crop-workflow.md</span>
+              <div class="mcm-tools-label">Applied tools</div>
+              <span class="mcm-tool-chip">create_dependent_views</span>
+              <span class="mcm-tool-chip">calculate_grid_bounds</span>
+              <span class="mcm-tool-chip">get_all_grids</span>
+            </div>
+          </div>
+          <div class="mcm-dot-cell" tabindex="0">
+            <div class="mcm-dot"></div>
+            <div class="mcm-dot-date">2026-05-12</div>
+            <div class="mcm-dot-pr">PR #39</div>
+            <div class="mcm-dot-panel">
+              <div class="mcm-pr-title">彙整全球常用 pyRevit / MEP 研究指南</div>
+              <div class="mcm-pr-narrative">
+                想擴 <em>MEP 機電工具鏈</em>（管線檢核、設備標籤、CAD 整合）但 pyRevit 擴充散落各 GitHub repo，找起來費時。這個 PR 把全球常用的 MEP 工具來源、功能、適用情境整成<em>內部選材清單</em>，為下一輪「設計 MEP Skill」鋪路。
+              </div>
+              <span class="mcm-domain-chip">mep-extension-guide.md</span>
+              <div class="mcm-tools-label">Applied tools</div>
+              <div class="mcm-note">純研究文件，無工具呼叫；引用既有 MEP / 連結模型工具鏈。</div>
+            </div>
+          </div>
+          <div class="mcm-dot-cell" tabindex="0">
+            <div class="mcm-dot"></div>
+            <div class="mcm-dot-date">2026-05-12</div>
+            <div class="mcm-dot-pr">PR #46</div>
+            <div class="mcm-dot-panel">
+              <div class="mcm-pr-title">樓層線隔離 / 機械組件自動布圖 / 原生 PDF 導出 三主題技術研究</div>
+              <div class="mcm-pr-narrative">
+                機械設備（例如<em>冷凍機房單獨出一張</em>）出圖時，要在總平面上隔離無關樓層線、自動布組件，最後選對 PDF 格式給<em>文管 / 送審 / 加工發包</em>。這個 PR 把這三件事拆成可實作的研究筆記——下一波出圖 Skill 的選材庫。
+              </div>
+              <span class="mcm-domain-chip">mechanical-part-doc.md</span>
+              <span class="mcm-domain-chip">pdf-export-comparison.md</span>
+              <div class="mcm-tools-label">Applied tools</div>
+              <span class="mcm-tool-chip">create_sheets</span>
+              <span class="mcm-tool-chip">auto_renumber_sheets</span>
+              <span class="mcm-tool-chip">create_dependent_views</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAIL: KEVIN -->
+    <div class="mcm-detail" data-id="kevin">
+      <button class="mcm-back" onclick="mcmBack()">← 回到貢獻者列表</button>
+      <div class="mcm-detail-header">
+        <div class="mcm-avatar" style="--c1:#60a5fa;--c2:#3b82f6;">K</div>
+        <div>
+          <div class="mcm-detail-name">916kevin-gif</div>
+          <div class="mcm-detail-meta">4 PR · 5/12 + 5/22 · +5517 行 / 2 個新 Domain · 5 個新 Tool</div>
+        </div>
+      </div>
+      <div class="mcm-timeline">
+        <div class="mcm-line"></div>
+        <div class="mcm-dots">
+          <div class="mcm-dot-cell" tabindex="0">
+            <div class="mcm-dot"></div>
+            <div class="mcm-dot-date">2026-05-12</div>
+            <div class="mcm-dot-pr">PR #37</div>
+            <div class="mcm-dot-panel">
+              <div class="mcm-pr-title">修改 room-surface-area-review 工作流文件</div>
+              <div class="mcm-pr-narrative">
+                建築師完工要算「<em>這個房間的牆/地/天扣門窗後的表面積是多少</em>」給材料採購用，原本 SOP 寫得不夠具體，實際算量場景接不上。這個 PR 把 SOP 細節對齊到真實作業，為 <em>PR #52 真正補上 C# 實作</em>鋪路。
+              </div>
+              <span class="mcm-domain-chip modified">room-surface-area-review.md</span>
+              <div class="mcm-tools-label">Applied tools</div>
+              <span class="mcm-tool-chip">get_room_info</span>
+              <span class="mcm-tool-chip">get_rooms_by_level</span>
+            </div>
+          </div>
+          <div class="mcm-dot-cell" tabindex="0">
+            <div class="mcm-dot"></div>
+            <div class="mcm-dot-date">2026-05-22</div>
+            <div class="mcm-dot-pr">PR #51</div>
+            <div class="mcm-dot-panel">
+              <div class="mcm-pr-title">補完 2 月走廊分析 PR 的 C# 實作（+230 行 C# / +346 行 JS geometry）</div>
+              <div class="mcm-pr-narrative">
+                消防法規要求走廊淨寬 ≥ 某數值，但走廊常常有 <em>L 型、T 型分叉</em>，直線量法在轉角處量不準。這個 PR 補上幾何運算實作，能處理<em>有分支的走廊</em>，每段都量到牆面距離——一句「分析這層走廊」就能跑完整層。
+              </div>
+              <span class="mcm-domain-chip modified">corridor-analysis-protocol.md</span>
+              <div class="mcm-tools-label">Tools</div>
+              <span class="mcm-tool-chip">analyze_corridor_width<span class="new-tag">NEW</span></span>
+            </div>
+          </div>
+          <div class="mcm-dot-cell" tabindex="0">
+            <div class="mcm-dot"></div>
+            <div class="mcm-dot-date">2026-05-22</div>
+            <div class="mcm-dot-pr">PR #52</div>
+            <div class="mcm-dot-panel">
+              <div class="mcm-pr-title">房間表面積計算 + 粉刷油漆填滿圖例（3000+ 行 C# 實作）</div>
+              <div class="mcm-pr-narrative">
+                建築師交圖時要附兩件事：(1) 每個房間的牆/地/天<em>表面積</em>給材料採購估塗料用量、(2) 圖紙上的「<em>粉刷油漆圖例</em>」說明哪面塗哪種漆。這個 PR 一次做完：算面積（含開口扣除）+ 偵測 Revit 油漆工具塗的 Material + 自動畫粉刷/地坪/天花三張圖例表。
+              </div>
+              <span class="mcm-domain-chip">finish-legend-creation.md</span>
+              <div class="mcm-tools-label">Tools</div>
+              <span class="mcm-tool-chip">get_room_surface_areas<span class="new-tag">NEW</span></span>
+              <span class="mcm-tool-chip">create_finish_legend<span class="new-tag">NEW</span></span>
+            </div>
+          </div>
+          <div class="mcm-dot-cell" tabindex="0">
+            <div class="mcm-dot"></div>
+            <div class="mcm-dot-date">2026-05-22</div>
+            <div class="mcm-dot-pr">PR #55</div>
+            <div class="mcm-dot-panel">
+              <div class="mcm-pr-title">列出已使用門/窗類型並自動建立門表、窗表（1665 行 C# 實作）</div>
+              <div class="mcm-pr-narrative">
+                建築師完工要交「<em>門窗一覽表</em>」給營造廠估價：每種門/窗的尺寸、開向、數量。Revit 內建明細表版面醜、自製又繁瑣。這個 PR 自動掃專案實際用到的門/窗類型，照使用者選的 <em>Legend 範本 + 排版方向 + 每列數量</em>，自動繪整張圖例表。
+              </div>
+              <span class="mcm-domain-chip">door-window-legend-workflow.md</span>
+              <div class="mcm-tools-label">Tools</div>
+              <span class="mcm-tool-chip">door-window-legend-tools<span class="new-tag">NEW</span></span>
+              <span class="mcm-tool-chip">list_seeds<span class="new-tag">NEW</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAIL: JACKY -->
+    <div class="mcm-detail" data-id="jacky">
+      <button class="mcm-back" onclick="mcmBack()">← 回到貢獻者列表</button>
+      <div class="mcm-detail-header">
+        <div class="mcm-avatar" style="--c1:#a78bfa;--c2:#8b5cf6;">J</div>
+        <div>
+          <div class="mcm-detail-name">Jacky820507 <span style="font-size:13px;color:rgba(255,255,255,0.4);font-weight:400;">· Jacky TSAI</span></div>
+          <div class="mcm-detail-meta">1 PR · merged 5/22 · +289 行 / 2 個新 Domain</div>
+        </div>
+      </div>
+      <div class="mcm-timeline">
+        <div class="mcm-line" style="left:35%;right:35%;"></div>
+        <div class="mcm-dots" style="justify-content:center;">
+          <div class="mcm-dot-cell" tabindex="0" style="max-width:560px;">
+            <div class="mcm-dot"></div>
+            <div class="mcm-dot-date">2026-05-22</div>
+            <div class="mcm-dot-pr">PR #47</div>
+            <div class="mcm-dot-panel">
+              <div class="mcm-pr-title">IFC 結構構架同步 + 輕隔間牆算量 兩個 BIM 工作流知識</div>
+              <div class="mcm-pr-narrative">
+                跨工種協作的兩個真實痛點：(1) 結構師用 <em>Tekla / IDEA StatiCa</em> 算完丟 IFC 給建築師整合，常常對不齊位置與斷面尺寸；(2) 施工方要算「<em>這層輕隔間總長 × 單位造價 = 隔間預算</em>」也常手算到崩潰。這個 PR 寫下這兩個 SOP，編排 <em>get_linked_models / query_linked_elements / create_wall</em> 等既有 5 個工具串成協作鏈——不長新工具，但讓既有工具用得更深。
+              </div>
+              <span class="mcm-domain-chip">ifc-structural-sync.md</span>
+              <span class="mcm-domain-chip">revit-partition-takeoff.md</span>
+              <div class="mcm-tools-label">Applied tools (既有)</div>
+              <span class="mcm-tool-chip">get_linked_models</span>
+              <span class="mcm-tool-chip">query_linked_elements</span>
+              <span class="mcm-tool-chip">create_wall</span>
+              <span class="mcm-tool-chip">get_wall_info</span>
+              <span class="mcm-tool-chip">query_elements_with_filter</span>
+              <div class="mcm-note">純 SOP 工作流，無新 tool 但編排 5 個既有 tool 串成跨工種協作鏈。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAIL: SHUOTAO -->
+    <div class="mcm-detail" data-id="shuotao">
+      <button class="mcm-back" onclick="mcmBack()">← 回到貢獻者列表</button>
+      <div class="mcm-detail-header">
+        <div class="mcm-avatar" style="--c1:#4ade80;--c2:#22c55e;">S</div>
+        <div>
+          <div class="mcm-detail-name">shuotao <span style="font-size:13px;color:rgba(255,255,255,0.4);font-weight:400;">· 主辦人</span></div>
+          <div class="mcm-detail-meta">1 PR · merged 5/14 · +753 行 / 收編 2 個 + 拒收 4 個</div>
+        </div>
+      </div>
+      <div class="mcm-timeline">
+        <div class="mcm-line" style="left:25%;right:25%;"></div>
+        <div class="mcm-dots" style="justify-content:center;">
+          <div class="mcm-dot-cell" tabindex="0" style="max-width:720px;">
+            <div class="mcm-dot"></div>
+            <div class="mcm-dot-date">2026-05-14</div>
+            <div class="mcm-dot-pr">PR #49</div>
+            <div class="mcm-dot-panel">
+              <div class="mcm-pr-title">poisonsam fork 收編 — 工具收編 + 工具設計哲學沉澱（Branch C）</div>
+              <div class="mcm-pr-narrative">
+                <em>poisonsam</em> 在他自己的 fork 寫了 7 個 Revit 編輯工具，想補主專案沒有的「AI 快速操作模型」能力（移門、翻窗、改牆線、自動置房、改線粗、複製類型建門窗、跑動態 C# 腳本）。逐個審視後發現：<em>移動 / 翻轉門窗</em>確實是 AI 走不通的能力缺口（→ 收進來變成 <em>move_element / flip_element</em>）；<em>從現有元素複製類型建門窗</em>也是真需求（→ 強化既有 <em>create_door / create_window</em>）。但「改牆線」「自動置房」「改線粗」其實 <em>Revit UI 點兩下就能做</em>，AI 寫成工具反而把使用者拐到更難的路。收 2 拒 4，判準寫進 <em>L-024「Revit 既有功能優先於自寫工具」</em>。
+              </div>
+              <span class="mcm-domain-chip modified">tool-capability-boundary.md</span>
+              <span class="mcm-domain-chip modified">lessons.md (L-021..024)</span>
+              <div class="mcm-tools-label">收編的 tools</div>
+              <span class="mcm-tool-chip">move_element<span class="new-tag">NEW</span></span>
+              <span class="mcm-tool-chip">flip_element<span class="new-tag">NEW</span></span>
+              <span class="mcm-tool-chip">create_door (+sourceElementId)</span>
+              <span class="mcm-tool-chip">create_window (+sourceElementId)</span>
+              <span class="mcm-tool-chip">get_wall_info (+Flipped/Orientation)</span>
+              <div class="mcm-tools-label" style="color:rgba(252,165,165,0.55);">拒收的 tools（更有價值的決策）</div>
+              <span class="mcm-tool-chip rejected">update_wall_curve</span>
+              <span class="mcm-tool-chip rejected">auto_place_rooms</span>
+              <span class="mcm-tool-chip rejected">update_category_line_weight</span>
+              <span class="mcm-tool-chip rejected">execute_script</span>
+              <div class="mcm-note">三條拒收理由：(1) AI 自造需求 / (2) Revit UI 按鈕 1:1 包裝 / (3) 對 Revit 不熟導致 redundant tool。哲學寫進 L-024「Revit 既有功能優先於自寫工具」。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function mcmOpen(id) {
+      document.getElementById('mcm-grid').classList.add('hidden');
+      document.querySelectorAll('#slide-may-contributors .mcm-detail').forEach(d => d.classList.remove('active'));
+      document.querySelector('#slide-may-contributors .mcm-detail[data-id="' + id + '"]').classList.add('active');
+    }
+    function mcmBack() {
+      document.querySelectorAll('#slide-may-contributors .mcm-detail').forEach(d => d.classList.remove('active'));
+      document.getElementById('mcm-grid').classList.remove('hidden');
+    }
+  </script>
+</section>
+
+<!-- ===== FIELD NOTES NO. 03 — 0523 開場 ===== -->
+<section class="slide" id="slide-fieldnotes-03" style="justify-content:center;flex-direction:column;text-align:center;padding:60px 80px;">
+  <div class="cover-eyebrow">Revit MCP Study Group · Field Notes No. 03</div>
+  <h1 class="cover-title">MCP × Revit<br><span style="color:#60a5fa;">限制顯現器</span></h1>
+  <p class="cover-subtitle">站在 0425 的肩膀上看人機協作未來<br>22 條命題 · Live Demo · 跟著做的 10 個 Prompt</p>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Date</div>
+      <div class="cover-meta-value">2026.05.23 (Sat)</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Duration</div>
+      <div class="cover-meta-value">60 min + Live Demo</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Speaker</div>
+      <div class="cover-meta-value">Shuotao Chiang</div>
     </div>
   </div>
+  <a href="0523-monthly.html" style="display:inline-flex;align-items:center;gap:12px;margin-top:44px;padding:18px 44px;background:#60a5fa;color:#000;text-decoration:none;font-size:17px;font-weight:700;letter-spacing:1.5px;border-radius:100px;transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 30px rgba(96,165,250,0.35)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+    簡報開始
+    <span style="font-size:20px;">→</span>
+  </a>
 </section>
 
 <!-- ===== SETUP PAGE ===== -->
@@ -1208,7 +1640,7 @@ Copy-Item ".\bin\Release.R24\RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\2
           <div class="cmd-card-top">
             <code>/handoff</code>
             <span class="cmd-card-desc">Session 交接（跨機器 / 跨 AI）<span style="margin-left:6px;font-size:10px;background:#4ade80;color:#000;padding:1px 6px;border-radius:6px;font-weight:700;">NEW</span></span>
-            <a class="cmd-card-link" title="閱讀 Karpathy 導讀" onclick="event.stopPropagation();document.getElementById('slide-karpathy-gateway').scrollIntoView({behavior:'smooth'})"></a>
+            <a class="cmd-card-link" title="閱讀 Karpathy 導讀" href="0425-karpathy-wiki.html" target="_blank" onclick="event.stopPropagation();"></a>
           </div>
           <div class="cmd-card-detail">
             <span class="cmd-who">所有人</span>
@@ -2677,21 +3109,21 @@ git clone https://github.com/shuotao/REVIT_MCP_study.git</div>
   <div class="ending-inner">
     <div class="ending-preview">
       <div class="ending-eyebrow">NEXT MEETUP</div>
-      <h2 class="ending-title">五月小聚</h2>
-      <div class="ending-date">2026.05.23 (Sat)</div>
+      <h2 class="ending-title">六月小聚</h2>
+      <div class="ending-date">2026.06.21 (Sun)</div>
       <div style="margin-top:24px;">
         <a href="https://forms.gle/4Mn5kCaK1uFk2m9W6" target="_blank" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.4);padding:12px 24px;border-radius:100px;font-weight:700;transition:all 0.3s;" onmouseover="this.style.background='rgba(96,165,250,0.25)';this.style.borderColor='#60a5fa'" onmouseout="this.style.background='rgba(96,165,250,0.15)';this.style.borderColor='rgba(96,165,250,0.4)'">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="17" y1="11" x2="23" y2="11"/></svg>
-          立即報名五月小聚
+          立即報名六月小聚
         </a>
         <p style="margin-top:14px;font-size:13px;color:rgba(255,255,255,0.55);line-height:1.7;">
-          💰 線上 500 / 現場 200 / 首次 4,800（含歷次回放）<br>
-          📝 分享筆記到社群即免費　｜　⏰ 5/20 23:59 截止
+          💰 線上 500 / 現場 200 / 首次 5,000（含歷次回放）<br>
+          📝 分享筆記到社群即免費　｜　⏰ 06/18 23:59 截止
         </p>
       </div>
       <div style="margin-top:32px;display:flex;align-items:center;gap:16px;">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://forms.gle/4Mn5kCaK1uFk2m9W6&bgcolor=000000&color=ffffff&format=svg" alt="五月小聚報名 QR Code" width="100" height="100" style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;">
-        <div style="font-size:13px;color:rgba(255,255,255,0.3);line-height:1.5;">掃描 QR Code<br>搶先預約五月席次</div>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://forms.gle/4Mn5kCaK1uFk2m9W6&bgcolor=000000&color=ffffff&format=svg" alt="六月小聚報名 QR Code" width="100" height="100" style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;">
+        <div style="font-size:13px;color:rgba(255,255,255,0.3);line-height:1.5;">掃描 QR Code<br>搶先預約六月席次</div>
       </div>
       <p class="ending-desc">
         持續擴充法規模組（綠建築、無障礙、結構）<br>
@@ -2732,7 +3164,8 @@ lesleyliuke</textarea>
 const sections = [
   { id: 'slide-cover', label: '封面' },
   { id: 'slide-why', label: '為什麼你需要參加' },
-  { id: 'slide-karpathy-gateway', label: 'Karpathy LLM Wiki 導讀' },
+  { id: 'slide-may-contributors', label: '5 月貢獻地圖' },
+  { id: 'slide-fieldnotes-03', label: 'Field Notes No. 03 · 開場' },
   { id: 'slide-setup', label: '系統更新' },
   { id: 'slide-1-1', label: '回顧與複習' },
   { id: 'slide-2-1', label: '問題與挑戰' },
@@ -2741,18 +3174,21 @@ const sections = [
   { id: 'slide-5-1', label: '貢獻者指引' },
   { id: 'slide-7-1', label: 'Claude Code 速查表' },
   { id: 'slide-6-1', label: '未來方向' },
+  { id: 'slide-ending', label: 'Next Meetup · 抽籤' },
 ];
 
 // Map every slide id → section index
 const slideToSection = {};
 slideToSection['slide-cover'] = 0;
 slideToSection['slide-why'] = 1;
-slideToSection['slide-karpathy-gateway'] = 2;
-slideToSection['slide-setup'] = 3;
+slideToSection['slide-may-contributors'] = 2;
+slideToSection['slide-fieldnotes-03'] = 3;
+slideToSection['slide-setup'] = 4;
 document.querySelectorAll('[data-section]').forEach(el => {
   const sec = parseInt(el.dataset.section);
-  slideToSection[el.id] = sec + 3; // offset by 3 (cover, why, karpathy-gateway, setup)
+  slideToSection[el.id] = sec + 4; // offset by 4 (cover, why, may-contributors, fieldnotes-03, setup)
 });
+slideToSection['slide-ending'] = 12; // override: 結語抽籤頁有自己的 nav-dot
 
 // Build nav dots (10 sections)
 const nav = document.getElementById('navDots');

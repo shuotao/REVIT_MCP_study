@@ -422,35 +422,6 @@
 <!-- ===== NAV DOTS ===== -->
 <nav class="nav-dots" id="navDots"></nav>
 
-<!-- ===== COVER ===== -->
-<section class="cover" id="slide-cover">
-  <div class="cover-eyebrow">Revit MCP Study Group · Field Notes No. 03</div>
-  <h1 class="cover-title">MCP × Revit<br><span style="color:#60a5fa;">限制顯現器</span></h1>
-  <p class="cover-subtitle">站在 0425 的肩膀上看人機協作未來<br>22 條命題 · Live Demo · 跟著做的 10 個 Prompt</p>
-  <div class="cover-meta">
-    <div class="cover-meta-item">
-      <div class="cover-meta-label">Date</div>
-      <div class="cover-meta-value">2026.05.23 (Sat)</div>
-    </div>
-    <div class="cover-meta-item">
-      <div class="cover-meta-label">Duration</div>
-      <div class="cover-meta-value">60 min + Live Demo</div>
-    </div>
-    <div class="cover-meta-item">
-      <div class="cover-meta-label">Speaker</div>
-      <div class="cover-meta-value">Shuotao Chiang</div>
-    </div>
-    <div class="cover-meta-item">
-      <div class="cover-meta-label">Prev</div>
-      <div class="cover-meta-value"><a href="0425-presentation.html">← 0425 五月小聚</a></div>
-    </div>
-  </div>
-  <a href="0523-handson.html" class="hands-on-btn" target="_blank" style="margin-top:32px;">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-    → 跟著做（10 分鐘 Hands-on 練習頁）
-  </a>
-  <div class="cover-scroll-hint">↓ SCROLL</div>
-</section>
 
 <!-- ===== WHY PAGE: 22 命題網格 ===== -->
 <section class="why-page" id="slide-why">
@@ -1686,9 +1657,8 @@
 
 <!-- ===== JAVASCRIPT ===== -->
 <script>
-// 9 nav sections
+// 12 nav sections（cover 已移到 0523-presentation.html）
 const sections = [
-  { id: 'slide-cover', label: '封面' },
   { id: 'slide-why', label: '22 命題網格' },
   { id: 'slide-gateway', label: '為什麼越做越醜' },
   { id: 'slide-setup', label: '60 分鐘 timeline' },
@@ -1705,14 +1675,13 @@ const sections = [
 
 // Map every slide id → section index
 const slideToSection = {};
-slideToSection['slide-cover'] = 0;
-slideToSection['slide-why'] = 1;
-slideToSection['slide-gateway'] = 2;
-slideToSection['slide-setup'] = 3;
-slideToSection['slide-ending'] = 12;
+slideToSection['slide-why'] = 0;
+slideToSection['slide-gateway'] = 1;
+slideToSection['slide-setup'] = 2;
+slideToSection['slide-ending'] = 11;
 document.querySelectorAll('[data-section]').forEach(el => {
   const sec = parseInt(el.dataset.section);
-  slideToSection[el.id] = sec + 3; // offset by 4 (cover, why, gateway, setup)
+  slideToSection[el.id] = sec + 2; // offset by 3 (why, gateway, setup) — section indices start at 0
 });
 
 // Build nav dots
