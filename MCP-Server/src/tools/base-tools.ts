@@ -54,7 +54,7 @@ export const baseTools: Tool[] = [
     },
     {
         name: "get_selected_elements",
-        description: "取得使用者目前在 Revit 中選取的所有元素的基本資訊（ID、名稱、品類）。",
+        description: "取得使用者目前在 Revit 中選取的所有元素的基本資訊（ID、名稱、品類）。若是視圖或剖面標記，會一併回傳 Origin (X,Y,Z) 供空間排序使用。",
         inputSchema: { type: "object", properties: {} },
     },
 
@@ -84,6 +84,18 @@ export const baseTools: Tool[] = [
                 viewId: { type: "number", description: "要切換的視圖 Element ID" },
             },
             required: ["viewId"],
+        },
+    },
+    {
+        name: "rename_view",
+        description: "重新命名指定的 Revit 視圖（包含剖面圖、平面圖等），此工具不受軟體語系本地化影響。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                viewId: { type: "number", description: "視圖的 Element ID" },
+                newName: { type: "string", description: "新的視圖名稱" },
+            },
+            required: ["viewId", "newName"],
         },
     },
     {
