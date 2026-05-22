@@ -642,45 +642,61 @@
       <span class="step-tag">CORE</span>
       <span class="step-num">STEP 5 / 6</span>
     </div>
-    <h3 class="step-title">視覺化 FAIL 房間（顯式 viewId，避免 side effect 跑錯視圖）</h3>
-    <p class="step-why"><strong>為什麼這步</strong>：報告是文字，視覺化才是 BIM 的力量。對應 0425 講過的 <code>element-coloring</code> skill。<strong>關鍵：必須顯式傳 viewId</strong>——Step 3 的 smoke_exhaust 已悄悄把 active view 改到附屬立面視圖，若不指定 viewId，override 會跑錯地方（這是 5/18 實機踩到的 trap）。</p>
+    <h3 class="step-title">視覺化「規範限制施加的位置」（染牆，不染房）</h3>
+    <p class="step-why"><strong>為什麼這步</strong>：對應 slide 6-4「報告解讀 + 決策路徑」三條路徑命題（P13 MCP 給 0/1、P11 光譜在設計師端、P12 死局求助）+ P3「限制可見」+ P4「限制顯現器」。<strong>視覺化的對象是「§45/§110 在哪幾道牆上施加限制」（規範本體），不是「AI 判定為 FAIL 的房間」（判定結果）</strong>。後者違反 P5/P6 人機分工翻轉——把 AI 判定結果包裝太顯眼就是搶走設計師的光譜決策。</p>
     <div class="prompt-hint">把 <code>&lt;PLAN_VIEW_ID&gt;</code> 換成 Step 0/1 抄下的 1F 平面 ViewId（日本 sample 是 <code>53189012</code>）</div>
     <div class="prompt-block">
       <span class="prompt-block-label">COPY ★ 顯式 viewId</span>
-      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請把步驟 3 中 smoke_exhaust 跑出的 FAIL 房間用紅色 override：
-- Room 52842358（店舗 26，或你跑出來的對應 ID）
-- Room 52842360（駐車場 27）
-- Room 55040759（ピロティ 141）
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請把步驟 3 中 check_exterior_wall_openings 回的 violatingOpenings 列表整理出**唯一的 wallId 清單**（同一面牆上多個違規開口算同一道牆），標上每道牆的最壞 status（Fail 或 Warning），然後用 override_element_graphics 在 1F 平面視圖上色：
 
-呼叫 override_element_graphics 時必須顯式帶：
-- viewId=<PLAN_VIEW_ID>（Step 0/1 抄下的 1F 平面 ViewId，例如日本 sample 是 53189012）
-- surfaceFillColor={r:255,g:50,b:50}
+- Fail 牆 → 紅色 surfaceFillColor={r:255,g:50,b:50}
+- Warning 牆 → 黃色 surfaceFillColor={r:255,g:200,b:50}
 
-⚠ 不要染綠色 PASS：smoke_exhaust 本次回報「3 間檢查全 FAIL，0 間 PASS」，剩下 17 間是「面積≤50m² 免檢」（≠PASS）——若用綠色染會誤導為合格。
+呼叫 override_element_graphics 時**必須顯式帶** viewId=<PLAN_VIEW_ID>（Step 0/1 抄下的 1F 平面 ViewId）。
+
+對日本 sample，wallId 應該是 4 道（2 Fail + 2 Warning）：
+- 53970839（Fail，distance 965.2mm 上的門 53971627）
+- 54801079（Fail，distance 971.4mm 上的門 53972406）
+- 54267249（Warning，distance 1489.6mm 上 2 扇窗）
+- 52989520（Warning，distance 2996.7mm 上的門 53094967）
 
 完成後請回報：
-1. 呼叫了幾次 override_element_graphics
-2. 每次回傳的 ViewName 是否都是 1F 平面（驗證沒跑錯視圖）
-3. 在 Revit 平面是否真的看到 3 間紅色房間</span></div>
+1. 呼叫了幾次 override_element_graphics（預期 4 次：2 紅 + 2 黃）
+2. 每次回傳的 ViewName 都是 1F 平面（驗證 viewId 生效）
+3. 在 Revit 平面是否真的看到牆段變色
+
+⚠ 不要染房間：override_element_graphics 是給有 Cut Geometry 的元素（牆/柱）用的；Room 沒有 Cut Geometry，染了 API 會 Success 但平面視圖看不到任何視覺效果（這是 5/22 dry-run 才釐清的工具邊界，見 domain/tool-capability-boundary.md L6）。</span></div>
     <div class="expect-box">
-      <div class="expect-box-title">✓ 預期觀察（已對齊 5/18 實機）</div>
+      <div class="expect-box-title">✓ 預期觀察（已對齊 5/22 redesign）</div>
       <ul>
-        <li>AI 呼叫 <code>override_element_graphics</code> <strong>3 次</strong>（FAIL × 3）+ <strong>0 次</strong>綠色（無 PASS）</li>
-        <li>每次回傳 ViewName 應該是「平面図 1階」(或你的 1F 視圖名)，<strong>不是「排煙檢討_南立面図_...」之類附屬視圖</strong></li>
-        <li>Revit 1F 平面立刻變色——3 間紅色 FAIL 房（店舗 / 駐車場 / ピロティ）顯眼</li>
-        <li>你的眼睛 1 秒就看懂「哪間有問題」（文字報告要看 30 秒）</li>
-        <li><span class="pass-tag">PASS</span> AI 主動拒絕染綠色「免檢」房間——對應 Tool Call Data Honesty + P13「不該編造 PASS 狀態」</li>
-        <li><span class="fail-tag">FAIL</span> AI 忽略 viewId 直接用 active view → 跑到 smoke_exhaust 副作用建出的立面視圖（要它重做並顯式傳 viewId）</li>
+        <li>AI 從 Step 3 的 violatingOpenings 列表**自己去重 wallId**（不是被餵 4 個 ID）——對應 Tool Call Data Honesty「Σ 來自 tool response」</li>
+        <li>AI 呼叫 <code>override_element_graphics</code> <strong>4 次</strong>（2 紅 + 2 黃），全部顯式 viewId</li>
+        <li>每次回傳 ViewName 都是「平面図 1階」，且 PatternMode=Cut</li>
+        <li>Revit 1F 平面：4 道外牆段視覺上明確變色（牆有 Cut Geometry，跟 Room 不同）</li>
+        <li><span class="pass-tag">PASS</span> AI 沒去染 Room——對應 5/22 lessons：override_element_graphics 不支援 Room</li>
+        <li><span class="pass-tag">PASS</span> AI 沒染 PASS 牆綠色——AI 沒為視覺對稱而擴大宣稱（其餘 32 牆是「§45/§110 過關」≠「PASS 該被表揚」）</li>
+        <li><span class="fail-tag">FAIL</span> AI 染 3 間 Room（用舊版 prompt 的話）——這是工具邊界，會 API success 但視覺 no-op</li>
+        <li><span class="fail-tag">FAIL</span> AI 自己編了 8 個 wallId（沒去重 violatingOpenings 的重複行）——違反「Σ 來自 tool response」</li>
       </ul>
     </div>
-    <div class="expect-box" style="background:rgba(251,191,36,0.06);border-color:rgba(251,191,36,0.25);">
-      <div class="expect-box-title" style="color:#fbbf24;">⚠ MCP 工具「隱式 active state」是個 trap</div>
-      <p>不少工具預設「不傳 viewId 就用當前視圖」——看似方便，但前面工具的 side effect（例如 Step 3 的 smoke_exhaust 建 80+ 視圖）會悄悄改 active view。批次工作流中：<strong>所有需要 view context 的工具呼叫都應該顯式傳 viewId，不依賴 Revit 當下的 active state</strong>。這條教訓建議寫進你自己的 SOP。</p>
+    <div class="expect-box" style="background:rgba(74,222,128,0.06);border-color:rgba(74,222,128,0.25);">
+      <div class="expect-box-title" style="color:#4ade80;">✅ 修復歷程（2026-05-22 dry-run + 同日 redesign）— 練習頁的第二個活體案例</div>
+      <p style="margin-bottom:8px;">5/22 早上 dry-run 跑這條 path，原 Step 5 設計是「染 3 間 FAIL 房紅色」，實機跑下來：</p>
+      <ul>
+        <li>C# API 回 <code>Success=true</code>（3 次 override_element_graphics 全部成功）</li>
+        <li>但 Revit 1F 平面**看不到任何紅色房間**——Room 在 FloorPlan 沒有 Cut Geometry，<code>SetCutForegroundPatternColor</code> 雖然存入 OverrideGraphicSettings，平面視圖視覺上是 no-op</li>
+      </ul>
+      <p style="margin-top:8px;margin-bottom:8px;">調查發現雙重斷裂：</p>
+      <ul>
+        <li><strong>工具斷裂</strong>：override_element_graphics 在 5 個既有 skill（element-coloring、fire-safety-check、wall-orientation-check、parking-check、element-query）中的對象都是有 3D 幾何的元素（牆/柱/Parking）。Room 從未在任何 skill 中作為上色對象出現——因為 Room 在平面視圖染色靠 Color Scheme，不靠 SetElementOverrides</li>
+        <li><strong>概念斷裂（更嚴重）</strong>：染 FAIL 房 = 把 <strong>AI 判定結果</strong>視覺化 → 違反 slide 6-4 命題「MCP 給 0/1、設計師走光譜」。設計師才是「判定哪裡是問題」的人，AI 不該把答案包裝得太顯眼搶戲。視覺化該做的是「<strong>把規範限制本身畫進模型</strong>」（如 fire-safety-check 染防火等級牆），不是「把 AI 判定包裝得搶眼」</li>
+      </ul>
+      <p style="margin-top:8px;">同日 redesign：Step 5 改成染 check_exterior_wall_openings 回的 violation 牆段（§45/§110 限制施加位置）。lessons 寫進 <code>domain/tool-capability-boundary.md</code> L6。</p>
+      <p style="margin-top:10px;font-size:13px;color:rgba(255,255,255,0.7);"><strong>5/23 demo 講者重點</strong>：5/18 是修工具 bug、5/22 是修 demo 設計。前者是「工具與工作流共同演化」的小演化，後者是「命題對齊」的大演化。<strong>兩者並列才是 0523 哲學的完整呈現</strong>——demo 不只是展示作品，是展示作品如何向命題靠攏的過程。對應 P9 滾動式集眾人開源 + P15 死線下交付物優先 + Tool Call Data Honesty（沒掩飾工具邊界）。</p>
     </div>
     <div class="reflection-box">
       <div class="reflection-box-title">🎤 講者互動點</div>
-      <p>「現在你關掉 AI、關掉電腦，這 3 個紅色還在你的模型上。<strong>MCP 不是黑魔法，是把規範變成你能看見的顏色。</strong>」<br>
-      順帶提醒：「我們沒染綠色——因為沒房間 PASS。AI 沒有為了視覺對稱而編造 PASS 狀態，這就是 Tool Call Data Honesty 的活體實踐。」</p>
+      <p>「為什麼染牆不染房？因為 §45/§110 是<strong>對牆下限制</strong>——『開口距地界線太近』是<strong>這道牆上的這個門/窗的問題</strong>，不是『這間房 FAIL』。把規範本身畫進模型，設計師才看得到『限制在哪』，才能決定怎麼跟限制協商（A 改開口 / B 接受 / C 改地界線協議 / D 找鄰地主談）。<strong>MCP 不是判定機，是限制顯現器。</strong>」</p>
     </div>
   </article>
 
@@ -688,38 +704,55 @@
   <article class="step-card core" id="step-6">
     <div class="step-card-head">
       <span class="step-tag">CORE</span>
-      <span class="step-num">STEP 6 / 6 — 收尾</span>
+      <span class="step-num">STEP 6 / 6 — 光譜決策 + 視覺收尾</span>
     </div>
-    <h3 class="step-title">清掉顏色（顯式 viewId + 收拾 side effect 污染）</h3>
-    <p class="step-why"><strong>為什麼這步</strong>：對應命題 P7「階段完成點」——檢查完就回到設計，不要把檢查視覺留下污染後續思考。<strong>同樣關鍵：必須顯式傳 viewId</strong>，且若 Step 5 過程中曾意外染到其他視圖（5/18 實機踩過：第一次 override 跑到 smoke_exhaust 副作用建出的立面視圖），這步也要去清那些視圖。</p>
-    <div class="prompt-hint">把 <code>&lt;PLAN_VIEW_ID&gt;</code> 換成 Step 0/1 抄下的 1F 平面 ViewId（日本 sample 是 <code>53189012</code>）</div>
+    <h3 class="step-title">站在 4 道紅黃牆前現場走 A/B/C/D（純哲學，不呼叫工具）+ 清牆</h3>
+    <p class="step-why"><strong>為什麼這步</strong>：對應 slide 6-4 三條路徑 + slide 6-2「同步協作會議」終極場景的縮影。Step 3-5 已經完成「MCP 給 0/1」——現在輪到「設計師走光譜」。<strong>這步刻意不呼叫任何 MCP 工具</strong>——演示「人機分工」是把光譜決策還給人，不是讓 AI 替人決定。最後再 clear 牆收尾，呼應 P7「階段完成點」。</p>
     <div class="prompt-block">
-      <span class="prompt-block-label">COPY ★ 顯式 viewId</span>
-      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請清除步驟 5 套上的 override：
-- Room 52842358（店舗 26，或你跑的對應 ID）
-- Room 52842360（駐車場 27）
-- Room 55040759（ピロティ 141）
+      <span class="prompt-block-label">COPY ★ 純哲學決策</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請**不要呼叫任何工具**。我們現在站在 Step 5 染出來的 4 道紅黃牆前面，從中選 1 道 Fail 牆（53970839 或 54801079）做光譜決策示範。
 
-呼叫 clear_element_override 時必須顯式帶 viewId=<PLAN_VIEW_ID>（Step 0/1 抄下的 1F 平面 ViewId）。
+請以「設計師立場」幫我把 A/B/C/D 四條路徑各寫一段話（每段 2-3 行）：
+- A 修方案 → 把這道牆上違規的開口移位 / 縮小 / 改類型，工程上做得到嗎？美學上犧牲什麼？
+- B 接受規範 → §45/§110 是法定要求，「接受」意味著什麼（基本上不成立，這條路通常死）
+- C 改空間定義 → 重新檢視這道牆所在的空間用途 / 邊界線位置（地界線可以協商嗎？這道牆其實是內牆嗎？）
+- D 跳出找人 → 跳出 MCP 找誰？業主 / 結構技師 / 鄰地主 / 主管機關？
 
-⚠ 額外：請先告訴我 Step 5 過程中，是否有任何一次 override_element_graphics 回傳的 ViewName 不是 1F 平面（例如跑到「排煙檢討_..._立面図_...」這類副視圖）？若有，那些視圖上的 override 也要清掉——請對每個受影響的 ViewId 都跑一次 clear_element_override（顯式傳對應的 viewId）。
-
-完成後請回報：
-1. 清了幾個房間 × 幾個視圖（如：3 房間 × 1 視圖 = 3 次呼叫；若副視圖也被污染則為 3 房間 × N 視圖）
-2. Revit 1F 平面是否回到原本灰色</span></div>
+寫完後**只回答這四段**，不要做任何選擇、不要建議「最好的方案」、不要替我決定——光譜在我這端。</span></div>
     <div class="expect-box">
       <div class="expect-box-title">✓ 預期觀察</div>
       <ul>
-        <li>AI 至少呼叫 <code>clear_element_override</code> <strong>3 次</strong>（3 個房間 × 1 個 1F 平面視圖）</li>
-        <li>若 Step 5 有 side effect 跑錯視圖，AI 應該 <strong>主動回顧 Step 5 的 tool 回應</strong>找出污染的 ViewId 並追加清除（不該假裝沒發生）</li>
+        <li>AI **完全沒有呼叫 MCP 工具**（包括 query 類）—— 對應 P8 被動就緒，光譜決策不需要更多資料</li>
+        <li>AI 寫出四段 A/B/C/D 各自的論述，但**沒選哪個是「最好」**——對應 P11 光譜在設計師端、P13 MCP 不是判定機</li>
+        <li><span class="pass-tag">PASS</span> AI 對 D 的建議明確標出「不是技術問題，是溝通協調問題」——對應 P12 死局求助更多人</li>
+        <li><span class="fail-tag">FAIL</span> AI 自己選了一個方案說「我建議 A 因為...」——這就是它違規 P11 P13，搶走設計師的決策權</li>
+        <li><span class="fail-tag">FAIL</span> AI 主動呼叫 query_elements / get_wall_info 想多查資料——違反 P8，「光譜決策不靠加資料，靠人做選擇」</li>
+      </ul>
+    </div>
+    <div class="prompt-block">
+      <span class="prompt-block-label">COPY 視覺收尾</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">光譜決策示範完，請清掉 Step 5 染的 4 道牆 override：
+- 53970839、54801079、54267249、52989520
+
+呼叫 clear_element_override 時必須顯式帶 viewId=<PLAN_VIEW_ID>（Step 0/1 抄下的 1F 平面 ViewId）。
+
+完成後回報：4 次呼叫的 ViewName 都是 1F 平面 → Revit 平面是否回到原本灰色。</span></div>
+    <div class="expect-box">
+      <div class="expect-box-title">✓ 預期觀察</div>
+      <ul>
+        <li>AI 呼叫 <code>clear_element_override</code> <strong>4 次</strong>（4 道牆 × 1 個視圖）</li>
         <li>Revit 1F 平面顏色全消失，回到原本灰色</li>
-        <li><span class="pass-tag">PASS</span> AI 誠實列出「曾染到 view X、view Y」並全部清掉——對應 Tool Call Data Honesty</li>
-        <li><span class="fail-tag">FAIL</span> AI 只清 1F 平面，忽略 Step 5 副作用——殘留污染會影響後續</li>
+        <li><span class="pass-tag">PASS</span> 對應 P7「階段完成點」：限制可見化 → 光譜決策 → 視覺收尾，回到「設計師繼續設計」的狀態</li>
       </ul>
     </div>
     <div class="reflection-box">
-      <div class="reflection-box-title">💭 收尾的意義</div>
-      <p>P7「階段完成點」不只指「檢查完進下一階段」，也指「<strong>把檢查留下的所有副作用清乾淨</strong>」。MCP 工具有 side effect 是常態，每個批次工作流都該配套自己的「收尾步驟」——這不是 MCP 的責任，是工作流設計者（你）的責任。</p>
+      <div class="reflection-box-title">💭 收尾的意義 — slide 6-4 命題收束</div>
+      <p>整場 Live Demo 走完一輪 slide 6-4 三條路徑：<br>
+      <strong>Step 3</strong> = MCP 給 0/1（5 個工具 PASS/FAIL）<br>
+      <strong>Step 4</strong> = MCP 給更精細的 0/1（採光比 0.58% vs §41 12.5%）<br>
+      <strong>Step 5</strong> = 規範限制視覺化（§45/§110 在哪幾道牆上）<br>
+      <strong>Step 6</strong> = 設計師走光譜（A/B/C/D）+ 視覺收尾<br><br>
+      「現在你關掉 AI、關掉電腦、關掉 Revit。<strong>你頭腦裡留下的不是『AI 告訴我哪裡有問題』，是『我看到了規範限制，我選擇了 A/B/C/D 哪一條』。</strong>這就是 P5/P6 翻轉的意義——AI 揭露限制、人類放大膽追美學。MCP 給 0/1，光譜永遠在你這端。」</p>
     </div>
   </article>
 </section>
