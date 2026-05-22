@@ -1364,6 +1364,216 @@
   </script>
 </section>
 
+<!-- ===== HJ-PR-PROPOSAL — 知識的反向流動 ===== -->
+<section class="slide" id="slide-hj-bridge" style="justify-content:center;padding:60px 40px;">
+  <style>
+    #slide-hj-bridge .hjp-wrap { max-width: 1240px; margin: 0 auto; width: 100%; }
+    #slide-hj-bridge .hjp-header { text-align: center; margin-bottom: 36px; }
+    #slide-hj-bridge .hjp-tag {
+      display: inline-block; padding: 6px 16px; margin-bottom: 16px;
+      background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.35);
+      border-radius: 100px; font-size: 11px; letter-spacing: 3px;
+      color: #22d3ee; font-weight: 600;
+    }
+    #slide-hj-bridge .hjp-title { font-size: 40px; font-weight: 800; line-height: 1.2; margin: 0 0 14px 0; letter-spacing:-0.5px; }
+    #slide-hj-bridge .hjp-title .accent { color: #22d3ee; }
+    #slide-hj-bridge .hjp-lead { font-size: 15px; color: rgba(255,255,255,0.55); max-width: 800px; margin: 0 auto; line-height: 1.7; }
+    #slide-hj-bridge .hjp-lead strong { color: rgba(255,255,255,0.85); font-weight: 600; }
+
+    /* Flow diagram: 3 boxes + 2 arrows */
+    #slide-hj-bridge .hjp-flow {
+      display: grid; grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: 14px; align-items: stretch; margin: 0 auto 32px;
+      max-width: 1100px;
+    }
+    #slide-hj-bridge .hjp-flow-box {
+      padding: 20px 18px; border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      text-align: center;
+    }
+    #slide-hj-bridge .hjp-flow-box.src { border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.04); }
+    #slide-hj-bridge .hjp-flow-box.mid { border-color: rgba(34,211,238,0.45); background: rgba(34,211,238,0.06); }
+    #slide-hj-bridge .hjp-flow-box.dst { border-color: rgba(251,191,36,0.35); background: rgba(251,191,36,0.04); }
+    #slide-hj-bridge .hjp-flow-label {
+      font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+      color: rgba(255,255,255,0.4); margin-bottom: 8px; font-weight: 600;
+    }
+    #slide-hj-bridge .hjp-flow-name { font-size: 15px; font-weight: 700; margin-bottom: 8px; line-height: 1.3; }
+    #slide-hj-bridge .hjp-flow-box.src .hjp-flow-name { color: #86efac; }
+    #slide-hj-bridge .hjp-flow-box.mid .hjp-flow-name { color: #22d3ee; }
+    #slide-hj-bridge .hjp-flow-box.dst .hjp-flow-name { color: #fbbf24; }
+    #slide-hj-bridge .hjp-flow-sub { font-size: 11.5px; color: rgba(255,255,255,0.5); line-height: 1.55; font-family: ui-monospace, Menlo, monospace; }
+    #slide-hj-bridge .hjp-arrow {
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; color: rgba(34,211,238,0.6); font-weight: 700;
+      letter-spacing: -2px;
+    }
+
+    /* 4-step grid */
+    #slide-hj-bridge .hjp-steps {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+      max-width: 1100px; margin: 0 auto 28px;
+    }
+    #slide-hj-bridge .hjp-step {
+      padding: 16px 14px; border-radius: 12px;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(34,211,238,0.18);
+      position: relative;
+    }
+    #slide-hj-bridge .hjp-step-num {
+      position: absolute; top: -10px; left: 14px;
+      width: 24px; height: 24px; border-radius: 50%;
+      background: #22d3ee; color: #000;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800;
+    }
+    #slide-hj-bridge .hjp-step-title { font-size: 13.5px; font-weight: 700; color: rgba(255,255,255,0.85); margin: 6px 0 6px 0; }
+    #slide-hj-bridge .hjp-step-desc { font-size: 11.5px; color: rgba(255,255,255,0.5); line-height: 1.55; }
+    #slide-hj-bridge .hjp-step-desc code {
+      background: rgba(34,211,238,0.08); color: #22d3ee;
+      padding: 1px 5px; border-radius: 4px; font-size: 10.5px;
+      font-family: ui-monospace, Menlo, monospace;
+    }
+
+    /* Activation callout */
+    #slide-hj-bridge .hjp-callout {
+      max-width: 1100px; margin: 0 auto 22px;
+      background: rgba(34,211,238,0.04);
+      border: 1px solid rgba(34,211,238,0.25);
+      border-left: 3px solid #22d3ee;
+      border-radius: 0 12px 12px 0;
+      padding: 16px 22px;
+    }
+    #slide-hj-bridge .hjp-callout-label {
+      font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+      color: #22d3ee; font-weight: 700; margin-bottom: 8px;
+    }
+    #slide-hj-bridge .hjp-callout-quote {
+      font-size: 13.5px; color: rgba(255,255,255,0.85); line-height: 1.6;
+      font-family: ui-monospace, Menlo, monospace;
+    }
+    #slide-hj-bridge .hjp-callout-quote code {
+      background: rgba(34,211,238,0.12); color: #22d3ee;
+      padding: 1px 6px; border-radius: 4px;
+    }
+
+    #slide-hj-bridge .hjp-after {
+      max-width: 1100px; margin: 0 auto 22px;
+      padding: 12px 20px;
+      background: rgba(255,255,255,0.025);
+      border: 1px dashed rgba(255,255,255,0.15);
+      border-radius: 10px;
+      font-size: 12px; color: rgba(255,255,255,0.55);
+      line-height: 1.7;
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    #slide-hj-bridge .hjp-after-label {
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.75);
+      padding: 3px 10px; border-radius: 100px;
+      font-size: 10.5px; font-weight: 700; letter-spacing: 1px;
+    }
+    #slide-hj-bridge .hjp-after code {
+      background: rgba(34,211,238,0.1); color: #22d3ee;
+      padding: 1px 6px; border-radius: 4px;
+      font-family: ui-monospace, Menlo, monospace; font-size: 11.5px;
+    }
+    #slide-hj-bridge .hjp-after em {
+      color: rgba(252,165,165,0.85); font-style: normal; font-weight: 600;
+    }
+    #slide-hj-bridge .hjp-outro {
+      text-align: center; font-size: 13px;
+      color: rgba(255,255,255,0.4); line-height: 1.7;
+    }
+    #slide-hj-bridge .hjp-outro strong { color: rgba(96,165,250,0.9); font-weight: 600; }
+
+    @media (max-width: 980px) {
+      #slide-hj-bridge .hjp-flow { grid-template-columns: 1fr; }
+      #slide-hj-bridge .hjp-arrow { transform: rotate(90deg); padding: 4px 0; }
+      #slide-hj-bridge .hjp-steps { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+
+  <div class="hjp-wrap">
+    <div class="hjp-header">
+      <div class="hjp-tag">FIELD NOTES · 知識的反向流動</div>
+      <h1 class="hjp-title">你補的這塊，<span class="accent">也可以往外送</span></h1>
+      <p class="hjp-lead">
+        上一頁說「<strong>5 月有 4 個人來這裡補上 7 個 Domain</strong>」——知識流進來。<br>
+        這頁說：你已經補上的這些知識，也能反向流出去到 <a href="https://github.com/h30190/HJPLUS_Taiwan_Architect_KB" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:3px 12px;margin:0 2px;background:rgba(34,211,238,0.12);border:1px solid rgba(34,211,238,0.45);color:#22d3ee;text-decoration:none;border-radius:100px;font-weight:700;font-size:14px;transition:all 0.2s;vertical-align:baseline;" onmouseover="this.style.background='rgba(34,211,238,0.22)';this.style.borderColor='#22d3ee';this.style.transform='translateY(-1px)'" onmouseout="this.style.background='rgba(34,211,238,0.12)';this.style.borderColor='rgba(34,211,238,0.45)';this.style.transform=''"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.4 3-.405 1.02.005 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>HJPLUS 台灣建築師技能知識庫</a>。<br>
+        最近做的 <code style="background:rgba(34,211,238,0.1);color:#22d3ee;padding:2px 8px;border-radius:5px;font-family:ui-monospace,Menlo,monospace;font-size:13px;">/hj-pr-proposal</code> Skill 就是這座橋。
+      </p>
+    </div>
+
+    <!-- FLOW: source → translator → target -->
+    <div class="hjp-flow">
+      <div class="hjp-flow-box src">
+        <div class="hjp-flow-label">SOURCE · 你已經有的</div>
+        <div class="hjp-flow-name">本專案內容</div>
+        <div class="hjp-flow-sub">domain/*.md<br>.claude/skills/<br>MCP-Server/src/tools/</div>
+      </div>
+      <div class="hjp-arrow">→</div>
+      <div class="hjp-flow-box mid">
+        <div class="hjp-flow-label">TRANSLATOR · Skill</div>
+        <div class="hjp-flow-name">/hj-pr-proposal</div>
+        <div class="hjp-flow-sub">4 步驟轉譯<br>中文給人 + 英文給 AI<br>HJ 雙層結構</div>
+      </div>
+      <div class="hjp-arrow">→</div>
+      <div class="hjp-flow-box dst">
+        <div class="hjp-flow-label">TARGET · 等你確認</div>
+        <div class="hjp-flow-name">HJPLUS PR 草案</div>
+        <div class="hjp-flow-sub">變更摘要<br>PR 標題 / 內文<br>branch 命名建議</div>
+      </div>
+    </div>
+
+    <!-- 4-STEP WORKFLOW -->
+    <div class="hjp-steps">
+      <div class="hjp-step">
+        <div class="hjp-step-num">1</div>
+        <div class="hjp-step-title">fork 狀態檢查</div>
+        <div class="hjp-step-desc">確認 HJPLUS repo 是否已 fork、本地有對應 remote、是否需新開 <code>proposal/*</code> 分支。fork 不存在就先提示建立。</div>
+      </div>
+      <div class="hjp-step">
+        <div class="hjp-step-num">2</div>
+        <div class="hjp-step-title">內容三分類</div>
+        <div class="hjp-step-desc">把來源拆成 <code>domain</code>（知識/法規/SOP）/ <code>skill</code>（流程/觸發/步驟）/ <code>tools</code>（命令/腳本/MCP）。決定哪些走 HJ、哪些留本 repo。</div>
+      </div>
+      <div class="hjp-step">
+        <div class="hjp-step-num">3</div>
+        <div class="hjp-step-title">雙層轉譯</div>
+        <div class="hjp-step-desc">中文層 <code>domain.md</code> 給建築師讀；英文層 <code>SKILL.md</code> 給 AI 讀（含 frontmatter + 觸發 + 步驟 + reference）。B 類保留台灣適配、C 類補資料來源。</div>
+      </div>
+      <div class="hjp-step">
+        <div class="hjp-step-num">4</div>
+        <div class="hjp-step-title">PR 草案輸出</div>
+        <div class="hjp-step-desc">產出變更摘要、影響範圍、待確認清單、PR 標題 / 內文、建議 branch 名。<strong style="color:#fca5a5;">不自動 push、不自動開 PR</strong>——等你拍板。</div>
+      </div>
+    </div>
+
+    <!-- ACTIVATION CALLOUT -->
+    <div class="hjp-callout">
+      <div class="hjp-callout-label">⌨ 一句話啟動</div>
+      <div class="hjp-callout-quote">
+        使用 <code>/hj-pr-proposal</code>，目標 repo 是 HJPLUS 台灣建築師知識庫，來源內容是我自己的 domain / skill / tools，請先檢查 fork 狀態，再幫我轉成可提交的 PR 草案。
+      </div>
+    </div>
+
+    <!-- AFTER 拍板 FOOTNOTE -->
+    <div class="hjp-after">
+      <span class="hjp-after-label">拍板之後</span>
+      <span>
+        你授權 → AI 跑 <code>git push origin proposal/xxx</code> + <code>gh pr create --repo h30190/HJPLUS_Taiwan_Architect_KB ...</code> 送出。<em>預設不會主動送</em>，因為 PR 公開可見、對外 repo 需要明確指令（對應 L-023）。
+      </span>
+    </div>
+
+    <div class="hjp-outro">
+      把外部社群與你的橋鋪好之後，接下來——<strong>進入今天的 22 條命題</strong>。
+    </div>
+  </div>
+</section>
+
 <!-- ===== FIELD NOTES NO. 03 — 0523 開場 ===== -->
 <section class="slide" id="slide-fieldnotes-03" style="justify-content:center;flex-direction:column;text-align:center;padding:60px 80px;">
   <div class="cover-eyebrow">Revit MCP Study Group · Field Notes No. 03</div>
@@ -3165,6 +3375,7 @@ const sections = [
   { id: 'slide-cover', label: '封面' },
   { id: 'slide-why', label: '為什麼你需要參加' },
   { id: 'slide-may-contributors', label: '5 月貢獻地圖' },
+  { id: 'slide-hj-bridge', label: '反向流動 · HJ-PR-Proposal' },
   { id: 'slide-fieldnotes-03', label: 'Field Notes No. 03 · 開場' },
   { id: 'slide-setup', label: '系統更新' },
   { id: 'slide-1-1', label: '回顧與複習' },
@@ -3182,13 +3393,14 @@ const slideToSection = {};
 slideToSection['slide-cover'] = 0;
 slideToSection['slide-why'] = 1;
 slideToSection['slide-may-contributors'] = 2;
-slideToSection['slide-fieldnotes-03'] = 3;
-slideToSection['slide-setup'] = 4;
+slideToSection['slide-hj-bridge'] = 3;
+slideToSection['slide-fieldnotes-03'] = 4;
+slideToSection['slide-setup'] = 5;
 document.querySelectorAll('[data-section]').forEach(el => {
   const sec = parseInt(el.dataset.section);
-  slideToSection[el.id] = sec + 4; // offset by 4 (cover, why, may-contributors, fieldnotes-03, setup)
+  slideToSection[el.id] = sec + 5; // offset by 5 (cover, why, may-contributors, hj-bridge, fieldnotes-03, setup)
 });
-slideToSection['slide-ending'] = 12; // override: 結語抽籤頁有自己的 nav-dot
+slideToSection['slide-ending'] = 13; // override: 結語抽籤頁有自己的 nav-dot
 
 // Build nav dots (10 sections)
 const nav = document.getElementById('navDots');
