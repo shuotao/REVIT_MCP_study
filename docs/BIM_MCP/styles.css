@@ -1,0 +1,838 @@
+/* ===========================================================================
+   BIM_MCP 共用樣式 — 沿用 0425/0523 黑底藍 accent 視覺系統
+   日期：2026-05-18 / 版本：v1.0
+   給 reference/ + 2026-XX/ + hands-on-latest/ + index 使用
+   =========================================================================== */
+
+/* ===== CSS VARIABLES ===== */
+:root {
+  /* 色票 */
+  --bg: #000;
+  --bg-elevated: #0a0a0a;
+  --bg-card: rgba(255,255,255,0.03);
+  --bg-card-hover: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.2);
+
+  --text-primary: #fff;
+  --text-secondary: rgba(255,255,255,0.7);
+  --text-muted: rgba(255,255,255,0.5);
+  --text-faint: rgba(255,255,255,0.3);
+
+  --accent: #60a5fa;
+  --accent-bg: rgba(96,165,250,0.08);
+  --accent-bg-strong: rgba(96,165,250,0.15);
+  --accent-border: rgba(96,165,250,0.3);
+
+  --warn: #fbbf24;
+  --warn-bg: rgba(251,191,36,0.06);
+  --warn-border: rgba(251,191,36,0.25);
+
+  --ok: #4ade80;
+  --ok-bg: rgba(74,222,128,0.06);
+  --ok-border: rgba(74,222,128,0.25);
+
+  --bad: #ef4444;
+  --bad-bg: rgba(239,68,68,0.06);
+  --bad-border: rgba(239,68,68,0.3);
+
+  /* 字型 — 加入 JetBrains Mono 編碼感（GENAI 借鏡） */
+  --font-sans: 'Helvetica Neue', 'Inter', 'Noto Sans TC', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  --font-tech: 'JetBrains Mono', monospace;  /* 純技術標籤專用 */
+
+  /* 間距 */
+  --gap-xs: 6px;
+  --gap-sm: 12px;
+  --gap-md: 20px;
+  --gap-lg: 32px;
+  --gap-xl: 48px;
+  --gap-2xl: 80px;
+
+  /* 圓角 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 100px;
+}
+
+/* ===== RESET ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+::selection { background: var(--text-primary); color: var(--bg); }
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent-border);
+  transition: border-color 0.3s;
+}
+a:hover { border-color: var(--accent); }
+
+/* ===== TOP NAV — 統一 breadcrumb 回 BIM_MCP/index ===== */
+.bim-topnav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 13px;
+}
+.bim-topnav-left { display: flex; align-items: center; gap: 12px; }
+.bim-topnav-home {
+  color: var(--text-secondary);
+  font-weight: 600; letter-spacing: 1px;
+  border: none;
+}
+.bim-topnav-home:hover { color: var(--text-primary); }
+.bim-topnav-sep { color: var(--text-faint); }
+.bim-topnav-current {
+  color: var(--accent);
+  font-weight: 600;
+}
+.bim-topnav-actions { display: flex; gap: 10px; }
+.bim-topnav-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.bim-topnav-btn:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.08);
+}
+.bim-topnav-btn-primary {
+  background: rgba(96,165,250,0.12);
+  border-color: rgba(96,165,250,0.6);
+  color: var(--accent);
+}
+.bim-topnav-btn-primary:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #000;
+}
+.bim-topnav-btn-github svg {
+  width: 14px; height: 14px; fill: currentColor; display: block;
+}
+
+/* ===== PAGE HEADER ===== */
+.bim-hero {
+  padding: 100px 40px 60px;
+  max-width: 1100px; margin: 0 auto;
+  border-bottom: 1px solid var(--border);
+}
+.bim-hero-eyebrow {
+  font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--text-faint); margin-bottom: 18px;
+}
+.bim-hero-eyebrow .accent {
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  padding: 3px 10px; border-radius: var(--radius-sm);
+  margin-left: 8px;
+}
+.bim-hero-title {
+  font-size: 48px; font-weight: 800; letter-spacing: 0;
+  line-height: 1.15; margin-bottom: 18px;
+}
+.bim-hero-title .accent { color: var(--accent); }
+.bim-hero-sub {
+  font-size: 18px; color: var(--text-secondary);
+  font-weight: 300; line-height: 1.7; max-width: 800px;
+}
+
+/* ===== CONTAINER ===== */
+.bim-section {
+  padding: 60px 40px;
+  max-width: 1100px; margin: 0 auto;
+  border-bottom: 1px solid var(--border);
+}
+.bim-section:last-of-type { border-bottom: none; }
+.bim-section-eyebrow {
+  font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--accent); font-weight: 600; margin-bottom: 12px;
+}
+.bim-section-title {
+  font-size: 32px; font-weight: 800; letter-spacing: 0;
+  line-height: 1.2; margin-bottom: 16px;
+}
+.bim-section-desc {
+  font-size: 16px; color: var(--text-secondary);
+  line-height: 1.7; margin-bottom: var(--gap-lg);
+  max-width: 800px;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h2 { font-size: 28px; font-weight: 700; letter-spacing: 0; margin: var(--gap-xl) 0 var(--gap-md) 0; }
+h3 { font-size: 22px; font-weight: 700; letter-spacing: 0; margin: var(--gap-lg) 0 var(--gap-sm) 0; color: var(--text-primary); }
+h4 { font-size: 17px; font-weight: 600; margin: var(--gap-md) 0 var(--gap-sm) 0; color: var(--text-primary); }
+p { margin-bottom: var(--gap-sm); color: var(--text-secondary); }
+strong { color: var(--text-primary); font-weight: 700; }
+em { color: var(--text-primary); font-style: italic; }
+
+ul, ol { padding-left: 24px; margin-bottom: var(--gap-md); color: var(--text-secondary); }
+li { margin-bottom: 6px; line-height: 1.7; }
+
+blockquote {
+  border-left: 3px solid var(--accent-border);
+  background: var(--accent-bg);
+  padding: 16px 24px;
+  margin: var(--gap-md) 0;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  color: var(--text-secondary);
+}
+blockquote p { margin-bottom: 8px; }
+blockquote cite {
+  display: block; margin-top: 10px;
+  font-size: 13px; color: var(--text-muted);
+  font-style: normal;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: rgba(96,165,250,0.12);
+  color: var(--accent);
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+}
+
+pre {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin: var(--gap-md) 0;
+  overflow-x: auto;
+  position: relative;
+}
+pre code {
+  background: transparent;
+  color: #e0e0e0;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.75;
+  white-space: pre;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--gap-md) 0;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+th, td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+th {
+  background: rgba(255,255,255,0.04);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+td { color: var(--text-secondary); }
+tr:last-child td { border-bottom: none; }
+
+/* ===== COMMON COMPONENTS ===== */
+
+/* Card */
+.bim-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  margin-bottom: var(--gap-md);
+  transition: border-color 0.3s, background 0.3s;
+}
+.bim-card:hover {
+  border-color: var(--accent-border);
+  background: var(--bg-card-hover);
+}
+
+.bim-card-accent {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+.bim-card-warn {
+  background: var(--warn-bg);
+  border-color: var(--warn-border);
+}
+.bim-card-ok {
+  background: var(--ok-bg);
+  border-color: var(--ok-border);
+}
+.bim-card-bad {
+  background: var(--bad-bg);
+  border-color: var(--bad-border);
+}
+
+/* Grid */
+.bim-grid {
+  display: grid;
+  gap: var(--gap-md);
+  margin: var(--gap-md) 0;
+}
+.bim-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.bim-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.bim-grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* Prop badge (P1-P22) */
+.prop-badge {
+  display: inline-block;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 2px;
+  padding: 4px 12px;
+  background: var(--accent-bg-strong);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-pill);
+  margin-right: 6px; margin-bottom: 6px;
+}
+.prop-badge.large { font-size: 13px; padding: 6px 16px; letter-spacing: 3px; }
+.prop-badge.muted { opacity: 0.5; }
+
+/* PASS / FAIL tags */
+.pass-tag {
+  display: inline-block;
+  padding: 2px 9px; border-radius: var(--radius-pill);
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  background: rgba(74,222,128,0.15); color: var(--ok);
+  border: 1px solid rgba(74,222,128,0.35);
+}
+.fail-tag {
+  display: inline-block;
+  padding: 2px 9px; border-radius: var(--radius-pill);
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  background: rgba(239,68,68,0.15); color: var(--bad);
+  border: 1px solid rgba(239,68,68,0.35);
+}
+
+/* User quote (使用者原文) */
+.user-quote {
+  border: 1px solid var(--border-strong);
+  background: rgba(255,255,255,0.02);
+  padding: 24px 32px;
+  margin: var(--gap-md) 0;
+  font-style: italic;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.8;
+  border-radius: var(--radius-md);
+  position: relative;
+}
+.user-quote::before {
+  content: '"';
+  position: absolute; top: -8px; left: 14px;
+  font-size: 48px;
+  color: rgba(255,255,255,0.2);
+  font-family: serif;
+}
+.user-quote-attr {
+  display: block;
+  margin-top: 14px;
+  font-size: 12px;
+  font-style: normal;
+  color: var(--text-faint);
+  letter-spacing: 1px;
+}
+
+/* Data emphasis (大字數據) */
+.data-emph {
+  font-size: 56px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0;
+  line-height: 1;
+  display: inline-block;
+}
+
+/* Figure assets */
+.bim-hero-figure,
+.bim-figure {
+  margin: var(--gap-lg) 0 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #000;
+}
+.bim-figure {
+  margin-bottom: var(--gap-lg);
+}
+.bim-hero-figure img,
+.bim-figure img,
+.bim-card-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.bim-figure figcaption {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: var(--font-tech);
+  letter-spacing: 0;
+}
+.bim-card-figure {
+  width: 120px;
+  max-width: 40%;
+  margin: 0 0 var(--gap-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #000;
+}
+.quote-backdrop {
+  margin-bottom: var(--gap-md);
+}
+.data-emph-label {
+  font-size: 12px;
+  color: var(--text-faint);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Hero stats grid */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap-md);
+  margin: var(--gap-lg) 0;
+  text-align: center;
+}
+.hero-stat {
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-lg);
+  padding: var(--gap-lg) var(--gap-md);
+}
+
+/* Section divider */
+.bim-divider {
+  text-align: center;
+  padding: 32px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin: var(--gap-xl) 0;
+}
+.bim-divider h2 {
+  font-size: 14px; letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-weight: 400;
+  margin: 0;
+}
+
+/* Copy button for pre/code */
+.copy-btn {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(96,165,250,0.1);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 11px; font-family: inherit; font-weight: 600;
+  transition: all 0.2s;
+}
+.copy-btn:hover { background: var(--accent-bg-strong); }
+.copy-btn.copied {
+  background: rgba(74,222,128,0.15);
+  border-color: rgba(74,222,128,0.4);
+  color: var(--ok);
+}
+
+/* TOC sidebar (optional, on wide screens) */
+.bim-toc {
+  position: fixed; right: 24px; top: 100px;
+  width: 220px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  font-size: 13px;
+  max-height: calc(100vh - 130px);
+  overflow-y: auto;
+}
+.bim-toc-title {
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--text-faint); margin-bottom: 10px;
+}
+.bim-toc a {
+  display: block;
+  padding: 4px 0;
+  color: var(--text-secondary);
+  border-bottom: none;
+  font-size: 13px;
+}
+.bim-toc a:hover { color: var(--accent); }
+.bim-toc a.active { color: var(--accent); font-weight: 600; }
+
+/* Footer */
+.bim-footer {
+  padding: var(--gap-xl) var(--gap-md);
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 13px;
+  border-top: 1px solid var(--border);
+}
+.bim-footer-actions {
+  display: flex; gap: var(--gap-sm);
+  justify-content: center; flex-wrap: wrap;
+  margin-bottom: var(--gap-md);
+}
+.bim-footer-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 13px; font-weight: 600;
+}
+.bim-footer-btn:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+.bim-footer-btn.primary {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+.bim-footer-btn.primary:hover { background: var(--text-primary); border-color: var(--text-primary); }
+
+/* Anchored section (for deep linking to propositions) */
+.bim-anchor {
+  scroll-margin-top: 80px;
+}
+
+/* ===========================================================================
+   GENAI 借鏡新組件（2026-05-18 升級）
+   =========================================================================== */
+
+/* HOW / Technique 雙欄 box — 借自 GENAI/web 的 how-tech-box */
+.how-tech {
+  margin: var(--gap-lg) 0;
+  padding: 22px 26px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(10,10,10,0.55);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-md);
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 18px 24px;
+  align-items: start;
+}
+.how-tech-label {
+  font-family: var(--font-tech);
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  padding-top: 2px;
+}
+.how-tech-content {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+.how-tech-content.technique {
+  font-family: var(--font-tech);
+  font-size: 13px;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+  background: rgba(96,165,250,0.06);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border-left: 2px solid var(--accent-border);
+}
+.how-tech-content.checklist ul {
+  padding-left: 18px;
+  margin: 0;
+}
+.how-tech-content.checklist li {
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+.how-tech-content.checklist li::marker {
+  color: var(--accent);
+}
+
+/* 共感句 / 行話 quote — 借自 GENAI Section 07「外包是期待奇蹟的懶惰」風格 */
+.empathy-quote {
+  margin: var(--gap-lg) 0;
+  padding: 28px 36px;
+  border-left: 3px solid var(--warn);
+  background: rgba(251,191,36,0.04);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  position: relative;
+}
+.empathy-quote-label {
+  font-family: var(--font-tech);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--warn);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 10px;
+  opacity: 0.85;
+}
+.empathy-quote-text {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.55;
+  letter-spacing: 0;
+}
+.empathy-quote-text em {
+  color: var(--warn);
+  font-style: normal;
+  font-weight: 700;
+}
+.empathy-quote-context {
+  display: block;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  font-style: italic;
+}
+
+/* 外部參考 — Reading list 風格 */
+.further-reading {
+  margin: var(--gap-lg) 0;
+  padding: 20px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  border-top: 2px solid var(--accent-border);
+}
+.further-reading-label {
+  font-family: var(--font-tech);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.further-reading-label::before {
+  content: '⌥';
+  font-size: 14px;
+}
+.further-reading-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.further-reading-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 14px;
+  line-height: 1.6;
+  display: flex;
+  gap: 10px;
+}
+.further-reading-list li:last-child { border-bottom: none; }
+.further-reading-list li::before {
+  content: '→';
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+.further-reading-list .fr-type {
+  font-family: var(--font-tech);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  margin-right: 6px;
+  padding: 2px 6px;
+  background: rgba(255,255,255,0.04);
+  border-radius: var(--radius-sm);
+  display: inline-block;
+}
+.further-reading-list .fr-desc {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  margin-left: 0;
+}
+
+/* Pitfalls 警告框 — 借自 GENAI/web pitfalls-box */
+.pitfalls {
+  margin: var(--gap-lg) 0;
+  padding: 22px 28px;
+  border: 1px solid rgba(239,68,68,0.2);
+  background: rgba(239,68,68,0.04);
+  border-left: 3px solid var(--bad);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+.pitfalls-title {
+  font-family: var(--font-tech);
+  font-size: 12px;
+  letter-spacing: 2.5px;
+  color: var(--bad);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.pitfalls-title::before { content: '⚠ '; }
+.pitfalls ul { padding-left: 20px; }
+.pitfalls li {
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.pitfalls li strong { color: var(--bad); }
+
+/* 微互動升級 — GENAI 借鏡 */
+
+/* prop-card 升級：hover 後 prop-card-num 放大 + glow */
+.bim-card {
+  transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+.bim-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.bim-card .prop-badge {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.bim-card:hover .prop-badge {
+  transform: scale(1.08);
+  box-shadow: 0 0 12px rgba(96,165,250,0.25);
+}
+
+/* Topnav home link — hover glow */
+.bim-topnav-home {
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+  position: relative;
+}
+.bim-topnav-home:hover {
+  text-shadow: 0 0 8px rgba(96,165,250,0.3);
+}
+
+/* Section divider — hover 強化 */
+.bim-divider h2 {
+  transition: color 0.4s ease, letter-spacing 0.4s ease;
+}
+.bim-divider:hover h2 {
+  color: var(--text-secondary);
+  letter-spacing: 5px;
+}
+
+/* Footer btn — 微 scale + shadow */
+.bim-footer-btn {
+  transition: all 0.3s ease;
+}
+.bim-footer-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(96,165,250,0.15);
+}
+.bim-footer-btn.primary:hover {
+  box-shadow: 0 6px 20px rgba(96,165,250,0.35);
+}
+
+/* User quote — 加引號裝飾動畫 */
+.user-quote {
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+.user-quote:hover {
+  border-color: rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.04);
+}
+.user-quote::before {
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+.user-quote:hover::before {
+  color: rgba(255,255,255,0.4);
+  transform: scale(1.1);
+}
+
+/* Slot for monospace text inline */
+.mono {
+  font-family: var(--font-tech);
+  font-size: 0.92em;
+  letter-spacing: 0.3px;
+}
+
+/* 行話標籤（Insider Lingo / Inside Joke 風格）— 共感性裝飾 */
+.lingo {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(251,191,36,0.1);
+  color: var(--warn);
+  border: 1px dashed rgba(251,191,36,0.35);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-tech);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  margin: 0 2px;
+}
+
+/* 響應式：how-tech 在小螢幕改成單欄堆疊 */
+@media (max-width: 700px) {
+  .how-tech {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .how-tech-label {
+    font-size: 10px;
+    padding-top: 0;
+  }
+  .empathy-quote-text {
+    font-size: 16px;
+  }
+  .empathy-quote {
+    padding: 20px 22px;
+  }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .bim-topnav { padding: 12px 16px; }
+  .bim-hero { padding: 80px 20px 40px; }
+  .bim-hero-title { font-size: 32px; }
+  .bim-hero-sub { font-size: 15px; }
+  .bim-section { padding: 40px 20px; }
+  .bim-section-title { font-size: 24px; }
+  .bim-grid-2, .bim-grid-3, .bim-grid-4 { grid-template-columns: 1fr; }
+  .hero-stats { grid-template-columns: 1fr; }
+  .data-emph { font-size: 40px; }
+  .bim-toc { display: none; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 10px; }
+  blockquote { padding: 12px 16px; }
+  pre { padding: 14px 14px; font-size: 12px; }
+  .user-quote { padding: 18px 22px; }
+}
+
+/* ===== PRINT ===== */
+@media print {
+  .bim-topnav, .bim-toc, .copy-btn, .bim-footer { display: none !important; }
+  body { background: #fff; color: #000; }
+  a { color: #2563eb; }
+  pre { background: #f5f5f5; color: #000; border: 1px solid #ccc; }
+  pre code { color: #000; }
+  .bim-hero, .bim-section { padding: 30px 0; max-width: 100%; }
+  .bim-card { border-color: #ccc; background: #fff; break-inside: avoid; }
+}

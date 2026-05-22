@@ -29,7 +29,7 @@ A 5th "embedded" option bypasses the MCP Server entirely — a WPF chat window i
 | 行為指引 | CLAUDE.md | GEMINI.md → CLAUDE.md | .github/copilot-instructions.md |
 | Skills | `.claude/skills/SKILL.md` | `.gemini/skills/SKILL.md`（[官方文件](https://geminicli.com/docs/cli/skills/)） | instructions 引導 |
 | Domain 文件 | 共用 `domain/` | 共用 `domain/` | 共用 `domain/` |
-| MCP Tools | 共用 88 個工具 | 共用 88 個工具 | 共用 88 個工具 |
+| MCP Tools | 共用 89 個工具 | 共用 89 個工具 | 共用 89 個工具 |
 | Event Log | 共用 `log/` | 共用 `log/` | 共用 `log/` |
 
 SKILL.md 格式遵循 [Agent Skills 開放標準](https://agentskills.io)（YAML frontmatter + Markdown body），Claude Code 與 Gemini CLI 皆原生支援。
@@ -121,13 +121,13 @@ npm run watch    # tsc --watch (development)
 | File | Role |
 |------|------|
 | `MCP/Application.cs` | Revit IExternalApplication entry point, creates ribbon panel |
-| `MCP/Core/CommandExecutor.cs` | Central command dispatcher (88+ commands), largest file |
+| `MCP/Core/CommandExecutor.cs` | Central command dispatcher (89+ commands), largest file |
 | `MCP/Core/SocketService.cs` | HttpListener-based WebSocket server in Revit |
 | `MCP/Core/RevitCompatibility.cs` | Cross-version compatibility layer (ElementId int→long for 2025+) |
 | `MCP/Core/ExternalEventManager.cs` | Ensures commands execute on Revit UI thread |
 | `MCP-Server/src/index.ts` | MCP Server entry (StdioServerTransport) |
 | `MCP-Server/src/socket.ts` | RevitSocketClient — WebSocket client to Revit |
-| `MCP-Server/src/tools/` | Tool definitions (88 tools, 分 14 個模組) |
+| `MCP-Server/src/tools/` | Tool definitions (89 tools, 分 16 個模組) |
 | `scripts/setup.ps1` | One-click setup for new users (prereqs, build, deploy, AI config) |
 
 ## Code Conventions
@@ -155,7 +155,7 @@ npm run watch    # tsc --watch (development)
 3. **查閱法規知識** → 讀取 Domain 文件（`domain/*.md`）
 
 ### 為什麼
-MCP Server 已封裝 88 個 tools，處理了格式轉換、錯誤處理、重連機制。自寫腳本會：
+MCP Server 已封裝 89 個 tools，處理了格式轉換、錯誤處理、重連機制。自寫腳本會：
 - 繞過既有的錯誤處理與格式驗證
 - 產生 process 掛起（如自動重連導致無法退出）
 - 與 Revit API 的 PascalCase 欄位不一致而靜默失敗
@@ -227,6 +227,49 @@ When a task maps to a `domain/*.md` file in the trigger table, the computation p
 **違規範例（Violation case, 2026-04-23, Revit — 採光分析）**：
 使用者請求「L2 居室採光分析」。AI 正確呼叫 `get_room_daylight_info` 取得 tool response（Data Honesty 過關），但**未讀 `domain/daylight-area-check.md`** 即自行套用簡化算法：排除所有外牆門、未套 75cm 台度扣除公式。結果 Room 203/204/205 的有效採光面積被系統性低估 1.38–4.14 m²。同時間另一 AI 遵照 domain SOP（納入外牆門 + 套用 `Effective Height = HeadHeight - 750mm`）計算，數值與官方公式一致。
 **正確做法（Branch A）**：
+> 「執行前先讀 `domain/daylight-area-check.md` 步驟 3、4：納入外牆門（含玻璃部分）且對 `SillHeight < 750mm` 的開口套 `Effective Height = HeadHeight - 750mm` 公式。據此 Room 203 = 4 扇外牆窗（SH 全 >750mm，合計 7.742 m²）+ 1 扇外牆門（Effective Height = 2260.6 - 750 = 1510.6mm；面積 = 0.9144 × 1.5106 = 1.381 m²）= **9.123 m²**，採光比 9.123/55.08 = **16.56%**，≥ 12.5% 合格。」
+
+### Active State Re-Anchoring (MUST — Supersedes Session Memory Snapshots)
+
+**Scope**: Applies whenever a response uses or implies state about the user's current view, level, document, selection, or any other anchor that the user can change at any time (typically through Revit/CAD UI actions invisible to the conversation). This rule binds every tool call sequence and every state-dependent claim — not just at session start.
+
+**Relationship to other constitutions**:
+- **Tool Call Data Honesty** governs *where facts come from* (tool response, not LM prior).
+- **Domain Method Compliance** governs *how those facts are transformed* (domain SOP, not LM intuition).
+- **Active State Re-Anchoring** governs *when state was last verified* (claim time, not session start). Together they form three orthogonal constraints; all must be satisfied simultaneously. A fresh tool call with stale view context still produces a hallucinated answer.
+
+**Core invariant**:
+Any claim that references view-state / level-state / active-context (e.g. "you are in 1F", "querying this floor's rooms", "applying override to current plan", "the selected element") MUST be backed by a `get_active_view` (or equivalent anchor tool) call made AT the claim's preparation time — NOT from a snapshot read earlier in the session. The user may have switched views, levels, documents, or selections without telling the AI; this is a normal, frequent behavior in design workflows, not an exception.
+
+**Pre-action self-check (run BEFORE any tool call that depends on active state)**:
+1. Does the upcoming action take a `viewId`, `levelName`, `level`, or any active-context parameter? → proceed to step 2.
+2. Was `get_active_view` (or equivalent) called THIS turn, within the same conversational beat as the planned action? → If no, **re-anchor first**. If yes, proceed.
+3. Does the planned `viewId`/`levelName` parameter value originate from a tool response in this turn? → If it came from session memory of an earlier turn's read, **re-anchor first**.
+4. Will this action have side effects on the model (override, modify, create)? → If yes, treat the re-anchor as mandatory regardless of step 2/3.
+
+**Output branches**:
+- **Branch A — anchor fresh this turn**: Proceed. Optionally cite: "Confirmed via `get_active_view`: currently on `{view}` / level `{level}`."
+- **Branch B — anchor stale (from earlier turn)**: STOP. Re-anchor first. Do not assume "the user is probably still where I left them" — this assumption is the failure mode this rule exists to prevent.
+- **Branch C — anchor tool unavailable (timeout / connection error)**: First timeout, retry once after 5 seconds. Second timeout, STOP and surface the limitation explicitly per Tool Call Data Honesty Branch C. Do NOT proceed with state-dependent operations on stale snapshots even if "the user probably hasn't moved" — that's the same hallucination pattern.
+
+**Bilateral Context Sync Protocol (the human-side complement)**:
+This rule is not unilaterally enforceable by AI. The user has a reciprocal responsibility:
+- After switching views/levels: either tell the AI explicitly OR trust the AI to re-anchor (both are valid).
+- After editing the model (moving walls, adding rooms, changing parameters): tell the AI before a related query, or accept that the AI may need to re-fetch.
+- **After reloading or switching .rvt files: MUST tell the AI explicitly** — implicit detection of document-level changes is lagged and unreliable.
+
+**Precedence (this rule outranks)**:
+- "The user probably hasn't moved since I last checked" — this is exactly the hallucination pattern under audit.
+- "Re-anchoring on every tool call feels redundant" — it is the structural cost of stateful interaction, not a performance bug.
+- Session memory of earlier tool responses, no matter how recent (5 turns ago is still stale).
+- The instinct to chain tool calls assuming the model state is frozen between them — model state is observable but not freezable.
+
+**Rule of thumb**: *If you're about to use a viewId, levelName, or any active-state value: ask "did I get this from a tool response in THIS turn?" If no, re-anchor first. Session memory is a draft; live tool response is the truth.*
+
+**違規範例（Violation case, 2026-05-22, Revit dry-run）**：
+使用者刻意在 0523 demo dry-run 中切換多個視圖（1F → 6F → 2F duplicate）而不告知 AI。AI 在 Step 5 染牆時仍引用 session 開頭的 viewId `53189012`（1F 平面）作為 `override_element_graphics` 參數。實際使用者已在 2FL `平面図 2階 複製 1`（ViewId 56264519）。雖然 API 回 `Success=true`，但 override 套在使用者沒在看的視圖上，視覺上完全脫鉤。**雙重失誤鏈**：第一次假設 override_element_graphics 對 Room 有效（後續被 L6 工具邊界規則攔下）；第二次假設視圖還停在 1F（沒有規則攔下 → 升憲法級成為本條）。
+**正確做法（Branch A 或 B）**：
+> 「執行 override 前先呼叫 `get_active_view` re-anchor——確認當前 active view 是 `平面図 2階 複製 1`（ViewId 56264519），於是用此 viewId 顯式傳給 `override_element_graphics`。Step 0 抄下的 ViewId 53189012 只是 Step 0 時點的 anchor，不能跨步驟沿用。」
 > 「執行前先讀 `domain/daylight-area-check.md` 步驟 3、4：納入外牆門（含玻璃部分）且對 `SillHeight < 750mm` 的開口套 `Effective Height = HeadHeight - 750mm` 公式。據此 Room 203 = 4 扇外牆窗（SH 全 >750mm，合計 7.742 m²）+ 1 扇外牆門（Effective Height = 2260.6 - 750 = 1510.6mm；面積 = 0.9144 × 1.5106 = 1.381 m²）= **9.123 m²**，採光比 9.123/55.08 = **16.56%**，≥ 12.5% 合格。」
 
 ## Domain vs Skill 架構原則
@@ -302,7 +345,7 @@ All AI clients connect to the MCP Server via the same config format. Replace `{a
 | Port 8964 被 System (PID: 4) 佔用 | Revit 異常關閉後 HTTP.sys 孤兒 Request Queue | 執行 `scripts\release-port.ps1`，或手動：`net stop http /y && net start http` |
 | Commands not responding in Revit | Revit UI thread issue | Ensure `ExternalEventManager` is used; check `%AppData%\RevitMCP\Logs\` |
 
-## Domain Knowledge & Workflow Files（35 個 + 1 reference）
+## Domain Knowledge & Workflow Files（40 個）
 
 The `domain/` directory contains BIM compliance workflows that AI must consult before executing related tasks:
 
@@ -344,6 +387,10 @@ The `domain/` directory contains BIM compliance workflows that AI must consult b
 | 樓梯法規, stair compliance, 淨高, 級高級深 | `domain/stair-compliance-check.md` |
 | 碰撞, 干涉, clash, MEP, 管線穿牆, 套管, penetration | `domain/mep-csa-clash-detection.md` |
 | frontmatter, metadata, YAML 標頭, 欄位規範 | `domain/frontmatter-standard.md` |
+| IFC, 結構構架, 鋼構同步, IFC sync, structural framing | `domain/ifc-structural-sync.md` |
+| 輕隔間, partition, 隔間牆算量, takeoff, 數量統計 | `domain/revit-partition-takeoff.md` |
+| 粉刷, 油漆, finish legend, 圖例, FilledRegion, 飾面圖例 | `domain/finish-legend-creation.md` |
+| 門表, 窗表, door schedule, window schedule, 圖例表, seed Legend | `domain/door-window-legend-workflow.md` |
 
 ## Deployment Rules (DO NOT VIOLATE)
 

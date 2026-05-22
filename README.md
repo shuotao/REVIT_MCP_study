@@ -19,6 +19,8 @@
 
 **🎥 示範影片：[Revit MCP - AI 驅動的 BIM 工作流程示範](https://youtu.be/YpAYF-GxrhA)**
 
+**📚 知識站：<https://shuotao.github.io/REVIT_MCP_study/>** — 三層架構 / 22 命題 / 決策框架 / 全 40 Domain + 19 Skill + 89 Tool 視覺化索引
+
 ---
 
 > [!IMPORTANT]
@@ -48,11 +50,11 @@
 >
 > | 你的身份 | 先讀這個 | 再讀這個 |
 > |---|---|---|
+> | **想理解這個專案在做什麼** | [shuotao.github.io/REVIT_MCP_study](https://shuotao.github.io/REVIT_MCP_study/)（知識站） | — |
 > | **想安裝使用 Revit MCP** | 本檔下方「一鍵安裝」段 | — |
 > | **想貢獻 domain 知識 / SOP / 規則** | [CONTRIBUTING.md](./CONTRIBUTING.md) | [domain/README.md](./domain/README.md) |
 > | **想開發新工具 / 修改程式碼** | [CLAUDE.md](./CLAUDE.md) | 執行 `/dev-guide` 命令 |
 > | **想了解整體架構** | [CLAUDE.md](./CLAUDE.md) | [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) |
-> | **我是學生上課** | [教材/README.md](./教材/README.md) | — |
 > | **我是 AI Agent**（Claude / Gemini / Copilot） | [CLAUDE.md](./CLAUDE.md)（**必讀**） | 依任務觸發對應 skill |
 >
 > ---
@@ -1450,14 +1452,9 @@ MIT License
 | [log/README.md](./log/README.md) | 事件日誌系統說明（Karpathy LLM Wiki pattern，跨 AI 自動維護） |
 | **docs/** | |
 | [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | 文件目錄結構說明 |
-| [docs/MIGRATION_GUIDE.md](./docs/MIGRATION_GUIDE.md) | 統一建構遷移指南（舊版升級必讀） |
-| [docs/tools/](./docs/tools/) | MCP 工具 API 技術文件 |
-| [docs/workflows/](./docs/workflows/) | 工作流程設計文件 |
+| [shuotao.github.io/REVIT_MCP_study](https://shuotao.github.io/REVIT_MCP_study/) | 公開知識站（10 頁 + 25 SVG，源碼於 `docs/BIM_MCP/`） |
 | **scripts/** | |
 | [scripts/README.md](./scripts/README.md) | 安裝腳本使用說明 |
-| **教材/** | |
-| [教材/README.md](./教材/README.md) | 教材總目錄（8 堂課 × 3 小時） |
-| [教材/05-Skill遷移實戰篇.md](./教材/05-Skill遷移實戰篇.md) | 第五堂：從 domain/ 升級至 Agent Skill 架構 |
 | **Claude Code 自動化** | |
 | [.claude/skills/](./\.claude/skills/) | Claude Code 技能（`/build-revit`、`/deploy-addon`） |
 | [.claude/commands/](./\.claude/commands/) | 斜線指令定義（`/lessons`、`/domain`、`/review`） |

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 600" role="img" aria-labelledby="title desc">
+  <title id="title">Resigned king quote backdrop</title>
+  <desc id="desc">A quiet quote backdrop with a small king mark and line.</desc>
+  <rect width="1600" height="600" fill="#000"/>
+  <circle cx="800" cy="245" r="72" fill="none" stroke="#fff" stroke-width="3"/>
+  <circle cx="800" cy="245" r="8" fill="#60a5fa"/>
+  <text x="800" y="270" fill="#fff" text-anchor="middle" font-family="JetBrains Mono, Consolas, monospace" font-size="62" font-weight="700">K</text>
+  <path d="M520 380h560" stroke="#fff" stroke-width="2"/>
+</svg>
