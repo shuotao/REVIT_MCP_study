@@ -17,7 +17,7 @@
 
 ## 與 MCP 主系統的關係
 
-- **非整合於 84 個 MCP tools**：本目錄的功能 *不是* 透過 `MCP-Server/src/tools/` 開放給 AI Client 的 tool。Claude / Gemini 看不到、也叫不到它
+- **非整合於 89 個 MCP tools**：本目錄的功能 *不是* 透過 `MCP-Server/src/tools/` 開放給 AI Client 的 tool。Claude / Gemini 看不到、也叫不到它
 - **備援/參考實現**：當環境無法跑 MCP（如離線、Revit add-in 未部署），設計師仍可用此按鈕完成 MEP 採購明細表
 - **被 domain 文件引用**：`domain/dependent-view-crop-workflow.md` 提到「AI 可參考此程式碼邏輯，引導使用者自行建立 Python 腳本」
 
