@@ -65,6 +65,19 @@ metadata:
 | **限制** | `get_all_views` 可列出 `ViewSchedule` 類型的視圖，但目前 MCP 工具無法讀取 Revit 明細表/報表的內容 |
 | **未來方案** | 開發 `query_schedule_data` C# 擴充 |
 
+### L6: override_element_graphics 在 Room 上 silent no-op（2026-05-22 新增）
+
+| 項目 | 詳細說明 |
+|------|------|
+| **限制** | `override_element_graphics` 對 Room（房間）呼叫時，C# `view.SetElementOverrides()` 會回 `Success=true` 且 Transaction commit 成功，**但在 FloorPlan 視覺上不顯示任何顏色變化**——因為 Room 不是 3D 實體、沒有 Cut Geometry，`SetCutForegroundPatternColor` 雖然存入 OverrideGraphicSettings 但平面視圖無從套用 |
+| **典型場景** | 想用顏色標記「FAIL 房間」做視覺戲劇效果（如 0523 demo 原 Step 5 的「染 3 間排煙 FAIL 房紅色」） |
+| **辨識方式** | (a) API 回 `Success=true` 但使用者反映「畫面沒變化」；(b) 對象 ElementId 用 `get_element_info` 查回 Category=Rooms |
+| **AI 應對策略** | 收到「染房間 / colorize rooms / 房間上色」請求時，**立即說明工具邊界**並提供兩條替代路徑：<br>(a) **染圍繞 Room 的牆**（用 query / get_room_info 取得 bounding wallIds，再對牆 override）<br>(b) **設計師在 Revit UI 設 Color Scheme**（View Properties → Color Scheme → 依參數分類）——脫離 MCP 範圍但是 Revit 給設計師的標準作法 |
+| **更上游的判斷** | 「染 FAIL 房」這個需求本身可能就違反 slide 6-4「MCP 給 0/1、設計師走光譜」命題——把 AI 判定結果視覺化會搶走設計師的光譜決策。優先考慮改成「視覺化規範限制本身施加的位置」（如染 §45/§110 違規牆段），而不是「視覺化 AI 判定為 FAIL 的容器」 |
+| **未來方案** | (i) `override_element_graphics` 對 Room 應主動 reject 並回 `Error: Rooms in plan view require a Color Scheme, not SetElementOverrides`；或 (ii) 新增 `apply_color_scheme_to_view` 工具，內部處理 Color Scheme 設定 |
+
+**lesson 起源**：5/22 dry-run 0523 demo Step 5「染 3 間排煙 FAIL 房紅色」，API 全 Success 但 Revit 平面看不到變色。調查發現 5 個既有 skill（element-coloring / fire-safety-check / wall-orientation-check / parking-check / element-query）對 override_element_graphics 的對象都是有 3D 幾何的元素，Room 從未出現——Room 從一開始就不在工具設計範圍內，是 0523 handson 文件單方面假設了該支援。同日 redesign 改為「染 check_exterior_wall_openings 回的 violation 牆段」（規範限制可見化），同時避開 L6 工具邊界 + 對齊 slide 6-4 命題。
+
 ---
 
 ## 緊急停止模式
