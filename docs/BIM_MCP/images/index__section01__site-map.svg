@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 600" role="img" aria-label="Reference archive and latest route map">
+  <rect width="1600" height="600" fill="#000"/>
+  <g stroke="#fff" stroke-width="3" fill="none">
+    <rect x="165" y="180" width="300" height="180"/>
+    <rect x="650" y="180" width="300" height="180"/>
+    <rect x="1135" y="180" width="300" height="180"/>
+    <line x1="465" y1="270" x2="650" y2="270"/>
+    <line x1="950" y1="270" x2="1135" y2="270"/>
+  </g>
+  <circle cx="800" cy="270" r="18" fill="#60a5fa"/>
+  <g fill="#fff" font-family="JetBrains Mono,Consolas,monospace" text-anchor="middle">
+    <text x="315" y="275" font-size="30">REFERENCE</text>
+    <text x="800" y="275" font-size="30">ARCHIVE</text>
+    <text x="1285" y="275" font-size="30">LATEST</text>
+  </g>
+</svg>

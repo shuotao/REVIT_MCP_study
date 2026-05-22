@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="BIM MCP three layer navigation mark">
+  <rect width="1600" height="900" fill="#000"/>
+  <g fill="none" stroke="#fff" stroke-linecap="round">
+    <line x1="560" y1="330" x2="1040" y2="330" stroke-width="8"/>
+    <line x1="460" y1="450" x2="1140" y2="450" stroke-width="8"/>
+    <line x1="340" y1="570" x2="1260" y2="570" stroke-width="8"/>
+  </g>
+  <g fill="#60a5fa">
+    <circle cx="1040" cy="330" r="16"/>
+    <circle cx="1140" cy="450" r="16"/>
+    <circle cx="1260" cy="570" r="16"/>
+  </g>
+  <text x="800" y="710" fill="#fff" font-family="JetBrains Mono,Consolas,monospace" font-size="36" text-anchor="middle" letter-spacing="4">BIM_MCP</text>
+</svg>

@@ -1407,14 +1407,9 @@ Welcome to submit Issues and Pull Requests!
 | [domain/lessons.md](./domain/lessons.md) | Development lessons learned (maintained by `/lessons` command) |
 | **docs/** | |
 | [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | Document directory structure guide |
-| [docs/MIGRATION_GUIDE.md](./docs/MIGRATION_GUIDE.md) | Unified build migration guide (required reading for upgraders) |
-| [docs/tools/](./docs/tools/) | MCP Tools API technical documentation |
-| [docs/workflows/](./docs/workflows/) | Workflow design documentation |
+| [shuotao.github.io/REVIT_MCP_study](https://shuotao.github.io/REVIT_MCP_study/) | Public knowledge site (10 pages + 25 SVG, source at `docs/BIM_MCP/`) |
 | **scripts/** | |
 | [scripts/README.md](./scripts/README.md) | Installation script documentation |
-| **教材/** | |
-| [教材/README.md](./教材/README.md) | Course catalog (8 lessons × 3 hours) |
-| [教材/05-Skill遷移實戰篇.md](./教材/05-Skill遷移實戰篇.md) | Lesson 5: Migrating from domain/ to Agent Skill architecture |
 | **Claude Code Automation** | |
 | [.claude/skills/](./.claude/skills/) | Claude Code skills (`/build-revit`, `/deploy-addon`) |
 | [.claude/commands/](./.claude/commands/) | Slash command definitions (`/lessons`, `/domain`, `/review`) |

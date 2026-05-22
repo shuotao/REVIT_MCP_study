@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="One command fans out to five Revit versions">
+  <rect width="1600" height="900" fill="#000"/>
+  <rect x="435" y="190" width="730" height="120" rx="8" fill="none" stroke="#fff" stroke-width="3"/>
+  <text x="800" y="265" fill="#fff" font-family="JetBrains Mono,Consolas,monospace" font-size="34" text-anchor="middle">$ dotnet build -c Release.R{YY}</text>
+  <g stroke="#fff" stroke-width="3" fill="none">
+    <line x1="800" y1="310" x2="330" y2="560"/><line x1="800" y1="310" x2="565" y2="560"/><line x1="800" y1="310" x2="800" y2="560"/><line x1="800" y1="310" x2="1035" y2="560"/><line x1="800" y1="310" x2="1270" y2="560"/>
+  </g>
+  <g font-family="JetBrains Mono,Consolas,monospace" font-size="30" text-anchor="middle">
+    <rect x="265" y="560" width="130" height="70" fill="none" stroke="#fff" stroke-width="3"/><text x="330" y="606" fill="#fff">R22</text>
+    <rect x="500" y="560" width="130" height="70" fill="none" stroke="#fff" stroke-width="3"/><text x="565" y="606" fill="#fff">R23</text>
+    <rect x="735" y="560" width="130" height="70" fill="#60a5fa"/><text x="800" y="606" fill="#fff">R24</text>
+    <rect x="970" y="560" width="130" height="70" fill="none" stroke="#fff" stroke-width="3"/><text x="1035" y="606" fill="#fff">R25</text>
+    <rect x="1205" y="560" width="130" height="70" fill="none" stroke="#fff" stroke-width="3"/><text x="1270" y="606" fill="#fff">R26</text>
+  </g>
+  <text x="800" y="760" fill="#fff" font-family="JetBrains Mono,Consolas,monospace" font-size="32" text-anchor="middle" letter-spacing="3">ONE COMMAND / FIVE REVIT VERSIONS</text>
+</svg>

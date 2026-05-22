@@ -16,7 +16,7 @@ description: "牆壁內外方向檢查：檢測外牆的 Exterior/Interior Side 
 `get_wall_info` 取得每面外牆的位置線方向 → 與建築外輪廓比對判斷內外側
 
 ### 步驟 3：視覺化標記
-`override_element_graphics` 上色：
+`override_element_graphics` 上色（**wall-anchored** 直接染，無 type mismatch 問題；對 room-anchored 規範染色策略見 `domain/lessons.md` L-027）：
 - 綠色：方向正確
 - 紅色：方向可能錯誤
 - 黃色：需要人工確認

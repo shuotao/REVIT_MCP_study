@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Nineteen skill grid</title>
+  <desc id="desc">Nineteen square skill markers grouped by category color.</desc>
+  <rect width="1200" height="900" fill="#000"/>
+  <g font-family="JetBrains Mono, Consolas, monospace" font-size="18" text-anchor="middle" fill="#fff">
+    <g transform="translate(260 120)">
+      <rect x="0" y="0" width="80" height="80" fill="none" stroke="#60a5fa" stroke-width="3"/><text x="40" y="50">01</text>
+      <rect x="110" y="0" width="80" height="80" fill="none" stroke="#60a5fa" stroke-width="3"/><text x="150" y="50">02</text>
+      <rect x="220" y="0" width="80" height="80" fill="none" stroke="#60a5fa" stroke-width="3"/><text x="260" y="50">03</text>
+      <rect x="330" y="0" width="80" height="80" fill="none" stroke="#60a5fa" stroke-width="3"/><text x="370" y="50">04</text>
+      <rect x="440" y="0" width="80" height="80" fill="none" stroke="#60a5fa" stroke-width="3"/><text x="480" y="50">05</text>
+      <rect x="0" y="110" width="80" height="80" fill="none" stroke="#4ade80" stroke-width="3"/><text x="40" y="160">06</text>
+      <rect x="110" y="110" width="80" height="80" fill="none" stroke="#4ade80" stroke-width="3"/><text x="150" y="160">07</text>
+      <rect x="220" y="110" width="80" height="80" fill="none" stroke="#4ade80" stroke-width="3"/><text x="260" y="160">08</text>
+      <rect x="330" y="110" width="80" height="80" fill="none" stroke="#4ade80" stroke-width="3"/><text x="370" y="160">09</text>
+      <rect x="440" y="110" width="80" height="80" fill="none" stroke="#fff" stroke-width="3"/><text x="480" y="160">10</text>
+      <rect x="0" y="220" width="80" height="80" fill="none" stroke="#fff" stroke-width="3"/><text x="40" y="270">11</text>
+      <rect x="110" y="220" width="80" height="80" fill="none" stroke="#fff" stroke-width="3"/><text x="150" y="270">12</text>
+      <rect x="220" y="220" width="80" height="80" fill="none" stroke="#fff" stroke-width="3"/><text x="260" y="270">13</text>
+      <rect x="330" y="220" width="80" height="80" fill="none" stroke="#fff" stroke-width="3"/><text x="370" y="270">14</text>
+      <rect x="440" y="220" width="80" height="80" fill="none" stroke="#fbbf24" stroke-width="3"/><text x="480" y="270">15</text>
+      <rect x="0" y="330" width="80" height="80" fill="none" stroke="#fbbf24" stroke-width="3"/><text x="40" y="380">16</text>
+      <rect x="110" y="330" width="80" height="80" fill="none" stroke="#777" stroke-width="3"/><text x="150" y="380">17</text>
+      <rect x="220" y="330" width="80" height="80" fill="none" stroke="#777" stroke-width="3"/><text x="260" y="380">18</text>
+      <rect x="330" y="330" width="80" height="80" fill="none" stroke="#777" stroke-width="3"/><text x="370" y="380">19</text>
+    </g>
+  </g>
+  <g font-family="JetBrains Mono, Consolas, monospace" font-size="15" fill="#fff">
+    <text x="260" y="710" fill="#60a5fa">A COMPLIANCE</text>
+    <text x="470" y="710" fill="#4ade80">B DESIGN</text>
+    <text x="640" y="710">C WORKFLOW</text>
+    <text x="830" y="710" fill="#fbbf24">D QA</text>
+    <text x="965" y="710" fill="#aaa">E OPS</text>
+  </g>
+</svg>
