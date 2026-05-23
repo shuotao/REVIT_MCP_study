@@ -1,0 +1,315 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Structure;
+using Autodesk.Revit.UI;
+using Newtonsoft.Json.Linq;
+using RevitMCP.Models;
+
+#if REVIT2025_OR_GREATER
+using IdType = System.Int64;
+#else
+using IdType = System.Int32;
+#endif
+
+namespace RevitMCP.Core
+{
+    public partial class CommandExecutor
+    {
+        /// <summary>
+        /// 1. 掃描目前視圖中所有被套管穿過的梁 (V3.0)
+        /// </summary>
+        private object ScanPenetratedBeamsInView(JObject parameters)
+        {
+            Document mainDoc = _uiApp.ActiveUIDocument.Document;
+            View activeView = mainDoc.ActiveView;
+            
+            // 獲取視圖中所有套管
+            var sleeves = new FilteredElementCollector(mainDoc, activeView.Id)
+                .WhereElementIsNotElementType()
+                .WherePasses(new ElementMulticategoryFilter(new List<BuiltInCategory> { 
+                    BuiltInCategory.OST_PipeAccessory, 
+                    BuiltInCategory.OST_GenericModel 
+                })).ToList();
+
+            var results = new Dictionary<string, dynamic>();
+
+            // 獲取視圖中所有連結模型
+            var linkInstances = new FilteredElementCollector(mainDoc, activeView.Id)
+                .OfClass(typeof(RevitLinkInstance))
+                .Cast<RevitLinkInstance>()
+                .ToList();
+
+            foreach (var sleeve in sleeves)
+            {
+                BoundingBoxXYZ sleeveBBox = sleeve.get_BoundingBox(null);
+                if (sleeveBBox == null) continue;
+
+                foreach (var li in linkInstances)
+                {
+                    Document linkDoc = li.GetLinkDocument();
+                    if (linkDoc == null) continue;
+
+                    Transform tr = li.GetTotalTransform();
+                    Outline sleeveOutline = new Outline(tr.Inverse.OfPoint(sleeveBBox.Min), tr.Inverse.OfPoint(sleeveBBox.Max));
+
+                    // 只針對視圖中「看得到」的梁進行幾何碰撞
+                    var linkBeams = new FilteredElementCollector(linkDoc)
+                        .OfCategory(BuiltInCategory.OST_StructuralFraming)
+                        .WherePasses(new BoundingBoxIntersectsFilter(sleeveOutline))
+                        .WhereElementIsNotElementType();
+
+                    foreach (var b in linkBeams)
+                    {
+                        string key = $"{li.Id.GetIdValue()}_{b.Id.GetIdValue()}";
+                        if (!results.ContainsKey(key))
+                        {
+                            results[key] = new { 
+                                BeamId = b.Id.GetIdValue(), 
+                                LinkId = li.Id.GetIdValue(), 
+                                Name = b.Name, 
+                                Level = GetReferenceLevelName(b), 
+                                SleeveIds = new List<IdType>() 
+                            };
+                        }
+                        results[key].SleeveIds.Add(sleeve.Id.GetIdValue());
+                    }
+                }
+            }
+            return new { Count = results.Count, Beams = results.Values.ToList() };
+        }
+
+        /// <summary>
+        /// 2. 深度分析穿梁幾何
+        /// </summary>
+        private object AnalyzeBeamPenetration(JObject parameters)
+        {
+            try {
+                IdType beamId = parameters["beamId"]?.Value<IdType>() ?? 0;
+                IdType linkId = parameters["linkInstanceId"]?.Value<IdType>() ?? 0;
+
+                Document mainDoc = _uiApp.ActiveUIDocument.Document;
+                Document doc = mainDoc;
+                Transform tr = Transform.Identity;
+                
+                if (linkId != 0) {
+                    var link = mainDoc.GetElement(new ElementId(linkId)) as RevitLinkInstance;
+                    if (link == null) throw new Exception($"找不到連結模型實體 (ID: {linkId})");
+                    doc = link.GetLinkDocument();
+                    if (doc == null) throw new Exception("無法取得連結模型的文件 (Document 為 null)");
+                    tr = link.GetTotalTransform();
+                }
+
+                Element beamElem = doc.GetElement(new ElementId(beamId));
+                if (beamElem == null) throw new Exception($"在目標文件中找不到梁 (ID: {beamId})");
+                
+                FamilyInstance beam = beamElem as FamilyInstance;
+                if (beam == null) throw new Exception($"元素 (ID: {beamId}) 不是 FamilyInstance (目前為 {beamElem.GetType().Name})");
+
+                string beamLevel = GetReferenceLevelName(beam);
+                double beamDepth = GetBeamDepth(beam);
+                double beamWidth = GetBeamWidth(beam);
+
+                BoundingBoxXYZ beamBox = beam.get_BoundingBox(null);
+                if (beamBox == null) throw new Exception($"無法取得梁 (ID: {beamId}) 的 BoundingBox");
+
+                // 將梁的 BoundingBox 轉換為世界座標中的 Outline
+                XYZ worldMin = tr.OfPoint(beamBox.Min);
+                XYZ worldMax = tr.OfPoint(beamBox.Max);
+                Outline beamOutline = new Outline(
+                    new XYZ(Math.Min(worldMin.X, worldMax.X), Math.Min(worldMin.Y, worldMax.Y), Math.Min(worldMin.Z, worldMax.Z)),
+                    new XYZ(Math.Max(worldMin.X, worldMax.X), Math.Max(worldMin.Y, worldMax.Y), Math.Max(worldMin.Z, worldMax.Z))
+                );
+
+                // 在主模型的當前視圖中，尋找與梁相交的套管
+                View activeView = mainDoc.ActiveView;
+                var sleeves = new FilteredElementCollector(mainDoc, activeView.Id)
+                    .WhereElementIsNotElementType()
+                    .WherePasses(new BoundingBoxIntersectsFilter(beamOutline))
+                    .WherePasses(new ElementMulticategoryFilter(new List<BuiltInCategory> { 
+                        BuiltInCategory.OST_PipeAccessory, 
+                        BuiltInCategory.OST_GenericModel 
+                    })).ToList();
+
+                var checkResults = new List<object>();
+
+                foreach (var sleeve in sleeves)
+                {
+                    BoundingBoxXYZ sleeveBBox = sleeve.get_BoundingBox(null);
+                    if (sleeveBBox == null) continue;
+
+                    string comments = sleeve.LookupParameter("備註")?.AsString() ?? "";
+                    string familyName = (sleeve as FamilyInstance)?.Symbol?.FamilyName ?? "";
+                    string typeName = sleeve.Name;
+
+                    bool hasSleeveKeyword = familyName.IndexOf("Sleeve", StringComparison.OrdinalIgnoreCase) >= 0 || 
+                                           typeName.IndexOf("Sleeve", StringComparison.OrdinalIgnoreCase) >= 0;
+                    bool isSleeve = comments.Contains("穿梁") || familyName.Contains("穿梁") || familyName.Contains("套管") || hasSleeveKeyword;
+
+                    if (!isSleeve) continue;
+
+                    XYZ sleeveCenter = (sleeveBBox.Min + sleeveBBox.Max) * 0.5;
+                    double sleeveD = GetSleeveDiameter(sleeve, sleeveBBox);
+                    string sleeveLevel = GetReferenceLevelName(sleeve);
+
+                    double distToStart = -1;
+                    double distToEnd = -1;
+                    double minDist = -1;
+
+                    LocationCurve beamLoc = beam.Location as LocationCurve;
+                    if (beamLoc != null)
+                    {
+                        Curve bc = beamLoc.Curve;
+                        XYZ localSleeveCenter = tr.Inverse.OfPoint(sleeveCenter);
+                        IntersectionResult ir = bc.Project(localSleeveCenter);
+                        if (ir != null)
+                        {
+                            distToStart = ir.XYZPoint.DistanceTo(bc.GetEndPoint(0));
+                            distToEnd = ir.XYZPoint.DistanceTo(bc.GetEndPoint(1));
+                            minDist = Math.Min(distToStart, distToEnd);
+                        }
+                    }
+
+                    double beamTopZ = worldMax.Z;
+                    double beamBottomZ = worldMin.Z;
+
+                    checkResults.Add(new {
+                        SleeveId = sleeve.Id.GetIdValue(),
+                        SleeveLevel = sleeveLevel,
+                        BeamId = beamId,
+                        BeamName = beam.Name,
+                        BeamLevel = beamLevel,
+                        BeamUsage = DetermineBeamUsage(beam),
+                        IsNearWall = CheckIsIntersectsWithWall(mainDoc, sleeve),
+                        BeamDepth = beamDepth * 304.8, // mm
+                        BeamWidth = beamWidth * 304.8, // mm
+                        SleeveDiameter = sleeveD * 304.8, // mm
+                        SleeveLength = GetSleeveLength(sleeve) * 304.8, // mm
+                        DistanceToStart = distToStart * 304.8,
+                        DistanceToEnd = distToEnd * 304.8,
+                        MinDistance = minDist * 304.8,
+                        SleeveZ = sleeveCenter.Z * 304.8,
+                        BeamTopZ = beamTopZ * 304.8,
+                        BeamBottomZ = beamBottomZ * 304.8
+                    });
+                }
+
+                return new { 
+                    Success = true, 
+                    Results = checkResults 
+                };
+            } catch (Exception ex) {
+                return new { Success = false, Error = "分析失敗: " + ex.Message + "\n" + ex.StackTrace };
+            }
+        }
+
+        private string DetermineBeamUsage(FamilyInstance beam)
+        {
+            var usage = beam.StructuralUsage;
+            return usage == StructuralInstanceUsage.Joist ? "Minor" : "Major";
+        }
+
+        private bool CheckIsIntersectsWithWall(Document doc, Element sleeve)
+        {
+            BoundingBoxXYZ bbox = sleeve.get_BoundingBox(null);
+            if (bbox == null) return false;
+            
+            Outline outline = new Outline(bbox.Min, bbox.Max);
+            var walls = new FilteredElementCollector(doc, doc.ActiveView.Id)
+                .OfCategory(BuiltInCategory.OST_Walls)
+                .WherePasses(new BoundingBoxIntersectsFilter(outline))
+                .WhereElementIsNotElementType()
+                .ToList();
+                
+            return walls.Count > 0;
+        }
+
+        private object GetSrcBeamMapping(JObject parameters) { return new { Success = true }; }
+
+        /// <summary>
+        /// 3. 自動化標註與視覺化
+        /// </summary>
+        private object VisualizePenetration(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            JArray results = parameters["results"] as JArray;
+
+            using (Transaction trans = new Transaction(doc, "自動化穿梁標註"))
+            {
+                trans.Start();
+                foreach (var res in results)
+                {
+                    IdType id = res["SleeveId"].Value<IdType>();
+                    bool isOk = res["IsOk"].Value<bool>();
+                    string msg = res["Message"].Value<string>();
+
+                    Element sleeve = doc.GetElement(new ElementId(id));
+                    if (sleeve == null) continue;
+
+                    Color color = isOk ? new Color(0, 200, 0) : new Color(255, 0, 0);
+                    OverrideGraphicSettings ogs = new OverrideGraphicSettings();
+                    
+                    // 同時設定線條與填充顏色，確保清晰可見
+                    ogs.SetProjectionLineColor(color);
+                    ogs.SetSurfaceForegroundPatternColor(color);
+                    // 嘗試抓取固體填充樣式
+                    FillPatternElement solidFill = new FilteredElementCollector(doc).OfClass(typeof(FillPatternElement)).Cast<FillPatternElement>().FirstOrDefault(x => x.GetFillPattern().IsSolidFill);
+                    if (solidFill != null) ogs.SetSurfaceForegroundPatternId(solidFill.Id);
+
+                    doc.ActiveView.SetElementOverrides(sleeve.Id, ogs);
+
+                    // 文字標註強制放在視圖平面高度
+                    XYZ pos = XYZ.Zero;
+                    BoundingBoxXYZ bb = sleeve.get_BoundingBox(null);
+                    if (bb != null) pos = (bb.Min + bb.Max) * 0.5;
+                    
+                    // 取得視圖切割平面高度
+                    PlanViewRange vr = (doc.ActiveView as ViewPlan)?.GetViewRange();
+                    if (vr != null) {
+                        double cutPlaneH = (doc.ActiveView as ViewPlan).GenLevel.Elevation + vr.GetOffset(PlanViewPlane.CutPlane);
+                        pos = new XYZ(pos.X, pos.Y, cutPlaneH);
+                    }
+
+                    // 獲取預設的文字類型 ID (Revit 2017+ 需要有效的類型)
+                    ElementId defaultTextTypeId = doc.GetDefaultElementTypeId(ElementTypeClass.TextNoteType);
+                    if (defaultTextTypeId == ElementId.InvalidElementId) {
+                        defaultTextTypeId = new FilteredElementCollector(doc).OfClass(typeof(TextNoteType)).FirstElementId();
+                    }
+                    TextNote.Create(doc, doc.ActiveView.Id, pos, isOk ? "● PASS" : "● FAIL: " + msg, defaultTextTypeId);
+                }
+                trans.Commit();
+            }
+            return new { Success = true };
+        }
+
+        private double GetBeamWidth(Element beam) {
+            Parameter p = beam.LookupParameter("b") ?? beam.LookupParameter("梁寬") ?? beam.LookupParameter("Width");
+            return (p != null && p.HasValue) ? p.AsDouble() : 0.4 / 0.3048;
+        }
+        private double GetSleeveLength(Element sleeve) {
+            Parameter p = sleeve.LookupParameter("長度") ?? sleeve.LookupParameter("Length");
+            return (p != null && p.HasValue) ? p.AsDouble() : 0.6 / 0.3048;
+        }
+        private string GetReferenceLevelName(Element elem) {
+            // 嘗試多種可能的樓層參數名稱
+            Parameter p = elem.get_Parameter(BuiltInParameter.INSTANCE_REFERENCE_LEVEL_PARAM) 
+                       ?? elem.get_Parameter(BuiltInParameter.LEVEL_PARAM)
+                       ?? elem.LookupParameter("Reference Level")
+                       ?? elem.LookupParameter("樓層")
+                       ?? elem.LookupParameter("參考樓層");
+
+            if (p != null && p.HasValue) {
+                ElementId id = p.AsElementId();
+                if (id != ElementId.InvalidElementId) return elem.Document.GetElement(id)?.Name;
+            }
+            return "Unknown";
+        }
+        private Outline TransformOutline(Outline outline, Transform tr) {
+            XYZ min = tr.OfPoint(outline.MinimumPoint);
+            XYZ max = tr.OfPoint(outline.MaximumPoint);
+            return new Outline(new XYZ(Math.Min(min.X, max.X), Math.Min(min.Y, max.Y), Math.Min(min.Z, max.Z)),
+                               new XYZ(Math.Max(min.X, max.X), Math.Max(min.Y, max.Y), Math.Max(min.Z, max.Z)));
+        }
+    }
+}
