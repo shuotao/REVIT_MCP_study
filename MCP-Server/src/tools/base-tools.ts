@@ -254,5 +254,23 @@ export const baseTools: Tool[] = [
             },
             required: ["viewIds"]
         }
+    },
+    {
+        name: "analyze_floor_slopes",
+        description: "分析樓板頂面排水坡度：以 Solid→PlanarFace 法向量與 Z 軸夾角計算每片朝上頂面的坡度百分比，回傳每片樓板的 Min/Max 坡度，並可回寫至指定參數（預設 Comments）。未指定 elementIds 時自動收集 Function=Exterior 的樓板。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                elementIds: {
+                    type: "array",
+                    items: { type: "number" },
+                    description: "要分析的樓板 Element ID 陣列；省略則自動收集所有 Function=Exterior 樓板"
+                },
+                paramName: {
+                    type: "string",
+                    description: "坡度回寫的目標參數名稱，預設 Comments"
+                }
+            }
+        }
     }
 ];

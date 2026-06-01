@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Skills 索引（20 個）· BIM_MCP</title>
 <meta property="og:title" content="RevitMCP Skills 索引：20 個編排層工作流">
-<meta property="og:description" content="19 個 Skill × 描述 × 觸發關鍵字 × 對應 Domain 表。Skill 是編排（何時/順序），Domain 是知識（法規/SOP）。從 CLAUDE.md 抽出。">
+<meta property="og:description" content="20 個 Skill × 描述 × 觸發關鍵字 × 對應 Domain 表。Skill 是編排（何時/順序），Domain 是知識（法規/SOP）。從 CLAUDE.md 抽出。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
@@ -120,7 +120,7 @@
 <header class="bim-hero">
   <div class="bim-hero-eyebrow">SKILLS INDEX <span class="accent">20 個</span></div>
   <h1 class="bim-hero-title">Skills · <span class="accent">編排層</span><br>何時觸發 / 什麼順序</h1>
-  <p class="bim-hero-sub">Skills 是<strong>編排</strong>（orchestration），不是知識本身。一個 Skill 規定「<em>什麼關鍵字觸發 / 呼叫哪些工具 / 套用哪個 Domain SOP</em>」。Skill metadata 永遠常駐於 AI Client context；body 與 Domain 被引用時才載入。本頁列 19 個 Skill 的描述、觸發關鍵字與對應 Domain。</p>
+  <p class="bim-hero-sub">Skills 是<strong>編排</strong>（orchestration），不是知識本身。一個 Skill 規定「<em>什麼關鍵字觸發 / 呼叫哪些工具 / 套用哪個 Domain SOP</em>」。Skill metadata 永遠常駐於 AI Client context；body 與 Domain 被引用時才載入。本頁列 20 個 Skill 的描述、觸發關鍵字與對應 Domain。</p>
 </header>
 
 <section data-collapse class="bim-section">
@@ -129,26 +129,26 @@
   <div class="bim-grid bim-grid-3">
     <div class="bim-card">
       <h4>Skill（編排）</h4>
-      <p style="font-size:13px;">何時觸發 + 呼叫哪些 tool + 什麼順序。19 個。</p>
+      <p style="font-size:13px;">何時觸發 + 呼叫哪些 tool + 什麼順序。20 個。</p>
     </div>
     <div class="bim-card">
       <h4><a href="domain-index.html" style="border-bottom:1px solid var(--accent-border);">Domain（知識）</a></h4>
-      <p style="font-size:13px;">法規條文、SOP、計算公式。40 個。被 Skill 引用。</p>
+      <p style="font-size:13px;">法規條文、SOP、計算公式。43 個。被 Skill 引用。</p>
     </div>
     <div class="bim-card">
       <h4>Tool（執行）</h4>
-      <p style="font-size:13px;">原子操作（query / create / modify）。91 個 MCP tools。</p>
+      <p style="font-size:13px;">原子操作（query / create / modify）。92 個 MCP tools。</p>
     </div>
   </div>
   <p class="bim-section-desc" style="margin-top:var(--gap-md);">「<strong>不要把每個 Domain 都升級成 Skill</strong>」——這是本專案的核心架構原則。詳見 <a href="philosophy-22-propositions.html">22 命題</a>。</p>
 </section>
 
 <!-- ============================================ -->
-<!-- 19 個 Skill 列表 -->
+<!-- 20 個 Skill 列表 -->
 <!-- ============================================ -->
 <section data-collapse class="bim-section bim-anchor" id="skills">
-  <div class="bim-section-eyebrow">CATALOG · 19 個 Skill</div>
-  <h2 class="bim-section-title">19 個 Skill · 依用途分組</h2>
+  <div class="bim-section-eyebrow">CATALOG · 20 個 Skill</div>
+  <h2 class="bim-section-title">20 個 Skill · 依用途分組</h2>
 
   <div class="cat-header">A · 法規檢核（5 個）</div>
 
@@ -386,7 +386,7 @@
     </div>
   </div>
 
-  <div class="cat-header">E · 開發運維（3 個）</div>
+  <div class="cat-header">E · 開發運維（4 個）</div>
 
   <div class="skill-card">
     <div>
@@ -426,6 +426,20 @@
       <div class="skill-meta">
         <span class="trigger-tag">claude.md 同步</span><span class="trigger-tag">驗證一致性</span><span class="trigger-tag">merge 後檢查</span><span class="trigger-tag">skill 新增後</span>
         <a href="domain-index.html#path-maintenance-qa" class="domain-link">→ path-maintenance-qa</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="skill-card">
+    <div>
+      <div class="skill-name">/hj-pr-proposal</div>
+      <div class="skill-cat">E · 開發運維</div>
+    </div>
+    <div>
+      <div class="skill-desc">將使用者自己的 domain、skill 與 tool 內容轉譯為 HJPLUS 台灣建築師知識庫可提交的 PR 草案，涵蓋 fork 檢查、內容對齊、檔案重編、作者確認與提交流程。</div>
+      <div class="skill-meta">
+        <span class="trigger-tag">HJ PR</span><span class="trigger-tag">fork</span><span class="trigger-tag">提案草案</span><span class="trigger-tag">domain 轉 skill</span><span class="trigger-tag">貢獻草案</span>
+        <a href="domain-index.html#skill-authoring-standard" class="domain-link">→ skill-authoring-standard</a>
       </div>
     </div>
   </div>
@@ -476,7 +490,7 @@
 <!-- ============================================ -->
 <section data-collapse class="bim-section bim-anchor" id="why-not-merge">
   <div class="bim-section-eyebrow">RATIONALE · 為什麼不每個 Domain 都升級成 Skill</div>
-  <h2 class="bim-section-title">20 Skill vs 42 Domain — 為什麼數量不同？</h2>
+  <h2 class="bim-section-title">20 Skill vs 43 Domain — 為什麼數量不同？</h2>
 
   <div class="bim-grid bim-grid-2">
     <div class="bim-card bim-card-bad">
@@ -514,7 +528,7 @@
     <a href="../index.html" class="bim-footer-btn">回 BIM_MCP 首頁</a>
   </div>
   <p>BIM_MCP · reference / skills-index</p>
-  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-05-18 · 從 CLAUDE.md 抽取 19 個 Skill 與其觸發關鍵字、Domain 對應。</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-05-18 · 從 CLAUDE.md 抽取 20 個 Skill 與其觸發關鍵字、Domain 對應。</p>
 </footer>
 
 <script src="../shared.js"></script>

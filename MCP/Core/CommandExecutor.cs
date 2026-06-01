@@ -413,6 +413,11 @@ namespace RevitMCP.Core
                         result = AdjustSectionDatums(parameters);
                         break;
 
+                    // === 樓板坡度分析（Issue #45, 原作者 yunchen-kt）===
+                    case "analyze_floor_slopes":
+                        result = FloorSlopeAnalyzer.Run(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
                 }
