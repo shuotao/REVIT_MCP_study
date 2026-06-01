@@ -228,4 +228,19 @@ export const baseTools: Tool[] = [
             required: ["elementId"],
         },
     },
+    {
+        name: "adjust_section_datums",
+        description: "自動調整剖面視圖的網格線 (Grids) 與樓層線 (Levels) 2D 範圍與氣泡顯示。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                viewIds: {
+                    type: "array",
+                    items: { type: "number" },
+                    description: "要調整的剖面視圖或剖面標記的 Element ID 列表"
+                }
+            },
+            required: ["viewIds"]
+        }
+    }
 ];
