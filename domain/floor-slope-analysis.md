@@ -28,7 +28,7 @@ metadata:
 1. 對每片樓板取 `get_Geometry(Options{ DetailLevel=Fine })` 的 `Solid`。
 2. 走訪 `Solid.Faces`，僅取 `PlanarFace`（平面）。
 3. 取面法向量 `FaceNormal` 並正規化，得 `n`。
-4. **僅保留朝上頂面**：`n.Z > 0.1`（排除側面 `n.Z≈0` 與底面 `n.Z<0`）。
+4. **僅保留朝上排水頂面**：`n.Z > 0.7`（與水平夾角 45° 內；排除側面 `n.Z≈0`、底面 `n.Z<0`、以及近垂直的板側/倒角面，後者會吐出數百 % 的假坡度）。幾何走訪會遞迴進入 `GeometryInstance`，避免巢狀幾何的頂面被漏算。
 5. `n.Z` 即法向量與垂直 Z 軸夾角的餘弦：
    - `θ = acos(n.Z)`
    - `坡度% = tan(θ) × 100`

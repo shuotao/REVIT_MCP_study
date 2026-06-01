@@ -22,8 +22,10 @@ namespace RevitMCP.Core
     /// </summary>
     internal static class FloorSlopeAnalyzer
     {
-        // 朝上頂面判定門檻：法向量正規化後 Z 分量 > 此值才視為「頂面」，排除側面 / 底面。
-        private const double UpwardNormalThreshold = 0.1;
+        // 朝上頂面判定門檻：法向量正規化後 Z 分量 > 此值才視為「排水頂面」。
+        // 0.7 ≈ 與水平夾角 45° 內，可納入緩坡與斜坡排水面，同時排除近垂直的板側 / 倒角面
+        // （那些 n.Z 接近 0，會吐出數百 % 的假坡度）。排水檢討屬緩坡（1~2%），此門檻不會誤殺真頂面。
+        private const double UpwardNormalThreshold = 0.7;
 
         /// <summary>
         /// 命令入口。解析 parameters（elementIds / paramName），分析坡度並回寫，回傳結構化結果。
@@ -175,39 +177,45 @@ namespace RevitMCP.Core
             GeometryElement geo = floor.get_Geometry(opt);
             if (geo == null) return null;
 
-            double min = double.MaxValue;
-            double max = double.MinValue;
-            int count = 0;
+            var slopes = new List<double>();
+            CollectUpwardSlopes(geo, slopes);
 
-            foreach (GeometryObject obj in geo)
+            if (slopes.Count == 0) return null;
+            return Tuple.Create(slopes.Min(), slopes.Max(), slopes.Count);
+        }
+
+        /// <summary>
+        /// 走訪幾何，蒐集所有朝上 PlanarFace 的坡度%。會遞迴進入 GeometryInstance，
+        /// 避免巢狀幾何（被 instance 包住的 Solid）被漏算而誤判為「無頂面」。
+        /// </summary>
+        private static void CollectUpwardSlopes(IEnumerable<GeometryObject> geometry, List<double> slopes)
+        {
+            foreach (GeometryObject obj in geometry)
             {
-                Solid solid = obj as Solid;
-                if (solid == null || solid.Faces.Size == 0) continue;
-
-                foreach (Face face in solid.Faces)
+                if (obj is Solid solid)
                 {
-                    PlanarFace pf = face as PlanarFace;
-                    if (pf == null) continue;
+                    if (solid.Faces.Size == 0) continue;
+                    foreach (Face face in solid.Faces)
+                    {
+                        if (!(face is PlanarFace pf)) continue;
 
-                    XYZ n = pf.FaceNormal;
-                    if (n.GetLength() < 1e-9) continue;
-                    n = n.Normalize();
+                        XYZ n = pf.FaceNormal;
+                        if (n.GetLength() < 1e-9) continue;
+                        n = n.Normalize();
 
-                    // 僅取朝上頂面；n.Z = 法向量與垂直 Z 軸夾角的餘弦。
-                    if (n.Z <= UpwardNormalThreshold) continue;
+                        // 僅取朝上頂面；n.Z = 法向量與垂直 Z 軸夾角的餘弦。
+                        if (n.Z <= UpwardNormalThreshold) continue;
 
-                    double cos = Math.Min(1.0, Math.Max(-1.0, n.Z));
-                    double angleRad = Math.Acos(cos);
-                    double slopePct = Math.Tan(angleRad) * 100.0;
-
-                    if (slopePct < min) min = slopePct;
-                    if (slopePct > max) max = slopePct;
-                    count++;
+                        double cos = Math.Min(1.0, Math.Max(-1.0, n.Z));
+                        double slopePct = Math.Tan(Math.Acos(cos)) * 100.0;
+                        slopes.Add(slopePct);
+                    }
+                }
+                else if (obj is GeometryInstance gi)
+                {
+                    CollectUpwardSlopes(gi.GetInstanceGeometry(), slopes);
                 }
             }
-
-            if (count == 0) return null;
-            return Tuple.Create(min, max, count);
         }
     }
 }
