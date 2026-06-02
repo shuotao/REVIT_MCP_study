@@ -485,6 +485,27 @@ namespace RevitMCP.Core
             using (Transaction trans = new Transaction(doc, "自動化穿梁標註"))
             {
                 trans.Start();
+
+                // 1. 先清除該視圖中舊有的穿梁標註與詳圖線
+                var oldElements = new FilteredElementCollector(doc, doc.ActiveView.Id)
+                    .WhereElementIsNotElementType()
+                    .Where(x => {
+                        Parameter p = x.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
+                        if (p != null && p.HasValue && p.AsString() == "BeamPenetration_Helper") return true;
+                        if (x is TextNote tn && (tn.Text.StartsWith("● PASS") || tn.Text.StartsWith("● FAIL"))) return true;
+                        return false;
+                    })
+                    .Select(x => x.Id)
+                    .ToList();
+                
+                if (oldElements.Count > 0) {
+                    try {
+                        doc.Delete(oldElements);
+                    } catch {
+                        // 忽略某些無法刪除的元素
+                    }
+                }
+
                 foreach (var res in results)
                 {
                     IdType id = res["SleeveId"].Value<IdType>();
@@ -529,6 +550,18 @@ namespace RevitMCP.Core
                     OverrideGraphicSettings textOgs = new OverrideGraphicSettings();
                     textOgs.SetProjectionLineColor(color);
                     doc.ActiveView.SetElementOverrides(tn.Id, textOgs);
+
+                    // 2. 獲取梁 ID 並建立套管到梁端點的水平尺寸標註 (Dimension)
+                    if (res["BeamId"] != null)
+                    {
+                        IdType beamId = res["BeamId"].Value<IdType>();
+                        Transform beamTr;
+                        Element beam = FindElementInMainOrLinks(doc, beamId, out beamTr);
+                        if (beam != null)
+                        {
+                            CreatePenetrationDimension(doc, doc.ActiveView, sleeve, beam, beamTr);
+                        }
+                    }
                 }
                 trans.Commit();
             }
@@ -609,6 +642,103 @@ namespace RevitMCP.Core
             XYZ max = tr.OfPoint(outline.MaximumPoint);
             return new Outline(new XYZ(Math.Min(min.X, max.X), Math.Min(min.Y, max.Y), Math.Min(min.Z, max.Z)),
                                new XYZ(Math.Max(min.X, max.X), Math.Max(min.Y, max.Y), Math.Max(min.Z, max.Z)));
+        }
+
+        private Element FindElementInMainOrLinks(Document mainDoc, IdType elementId, out Transform totalTransform)
+        {
+            totalTransform = Transform.Identity;
+            Element el = mainDoc.GetElement(new ElementId(elementId));
+            if (el != null) return el;
+
+            var linkInstances = new FilteredElementCollector(mainDoc)
+                .OfClass(typeof(RevitLinkInstance))
+                .Cast<RevitLinkInstance>()
+                .ToList();
+
+            foreach (var li in linkInstances)
+            {
+                Document linkDoc = li.GetLinkDocument();
+                if (linkDoc == null) continue;
+
+                Element linkEl = linkDoc.GetElement(new ElementId(elementId));
+                if (linkEl != null)
+                {
+                    totalTransform = li.GetTotalTransform();
+                    return linkEl;
+                }
+            }
+            return null;
+        }
+
+        private void CreatePenetrationDimension(Document doc, View view, Element sleeve, Element beam, Transform tr)
+        {
+            try
+            {
+                BoundingBoxXYZ sleeveBBox = sleeve.get_BoundingBox(view);
+                if (sleeveBBox == null) return;
+                XYZ sleeveCenter = (sleeveBBox.Min + sleeveBBox.Max) * 0.5;
+
+                LocationCurve beamLoc = beam.Location as LocationCurve;
+                if (beamLoc == null) return;
+
+                XYZ p0 = tr.OfPoint(beamLoc.Curve.GetEndPoint(0));
+                XYZ p1 = tr.OfPoint(beamLoc.Curve.GetEndPoint(1));
+
+                XYZ localSleeveCenter = tr.Inverse.OfPoint(sleeveCenter);
+                IntersectionResult ir = beamLoc.Curve.Project(localSleeveCenter);
+                if (ir == null) return;
+                XYZ projPoint = tr.OfPoint(ir.XYZPoint);
+
+                double d0 = projPoint.DistanceTo(p0);
+                double d1 = projPoint.DistanceTo(p1);
+                XYZ targetEnd = (d0 < d1) ? p0 : p1;
+
+                XYZ beamDir = (p1 - p0).Normalize();
+                XYZ perpDir = new XYZ(-beamDir.Y, beamDir.X, 0).Normalize();
+
+                XYZ sleeveToBeam = (sleeveCenter - projPoint).Normalize();
+                XYZ offsetDir = perpDir;
+                if (sleeveToBeam.DotProduct(perpDir) < 0)
+                {
+                    offsetDir = perpDir.Negate();
+                }
+
+                // 偏移距離：500mm
+                double offsetFeet = 500.0 / 304.8;
+                // 詳圖線延伸長度：650mm (從梁內 150mm 到梁外 500mm)
+                double startOffsetFeet = -150.0 / 304.8;
+                double endOffsetFeet = 500.0 / 304.8;
+
+                XYZ pt1_start = targetEnd.Add(offsetDir.Multiply(startOffsetFeet));
+                XYZ pt1_end = targetEnd.Add(offsetDir.Multiply(endOffsetFeet));
+
+                XYZ pt2_start = projPoint.Add(offsetDir.Multiply(startOffsetFeet));
+                XYZ pt2_end = projPoint.Add(offsetDir.Multiply(endOffsetFeet));
+
+                // 尺寸線在偏移 400mm 處
+                double dimOffsetFeet = 400.0 / 304.8;
+                XYZ dimStart = targetEnd.Add(offsetDir.Multiply(dimOffsetFeet));
+                XYZ dimEnd = projPoint.Add(offsetDir.Multiply(dimOffsetFeet));
+
+                Line dimLine = Line.CreateBound(dimStart, dimEnd);
+
+                DetailCurve dc1 = doc.Create.NewDetailCurve(view, Line.CreateBound(pt1_start, pt1_end));
+                DetailCurve dc2 = doc.Create.NewDetailCurve(view, Line.CreateBound(pt2_start, pt2_end));
+
+                ReferenceArray refArray = new ReferenceArray();
+                refArray.Append(dc1.GeometryCurve.Reference);
+                refArray.Append(dc2.GeometryCurve.Reference);
+
+                Dimension dim = doc.Create.NewDimension(view, dimLine, refArray);
+                
+                dc1.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("BeamPenetration_Helper");
+                dc2.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("BeamPenetration_Helper");
+                dim.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("BeamPenetration_Helper");
+            }
+            catch (Exception)
+            {
+                // 靜默失敗以避免干擾主要上色與標籤流程
+            }
         }
     }
 }
