@@ -43,9 +43,8 @@ namespace RevitMCP.Core
                     BoundingBoxXYZ sleeveBBox = sleeve.get_BoundingBox(null);
                     if (sleeveBBox == null) continue;
 
-                    // 幾何碰撞第一層篩選：優先排除穿牆與穿板套管
-                    if (CheckIsIntersectsWithWall(mainDoc, sleeve)) continue;
-                    if (CheckIsIntersectsWithFloor(mainDoc, sleeve)) continue;
+                    // 幾何碰撞第一層篩選已移至內部：不在此處直接 continue 排除碰牆/碰板的套管，
+                    // 以免誤判「梁側貼牆/貼板」的合法穿梁套管。改由後續長度匹配度判定。
 
                     string comments = sleeve.LookupParameter("備註")?.AsString() ?? "";
                     string familyName = (sleeve as FamilyInstance)?.Symbol?.FamilyName ?? "";

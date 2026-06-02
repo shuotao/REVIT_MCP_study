@@ -46,9 +46,8 @@ namespace RevitMCP.Core
                 BoundingBoxXYZ sleeveBBox = sleeve.get_BoundingBox(null);
                 if (sleeveBBox == null) continue;
 
-                // 物理幾何碰撞第一層篩選：優先排除穿牆與穿板套管
-                if (CheckIsIntersectsWithWall(mainDoc, sleeve)) continue;
-                if (CheckIsIntersectsWithFloor(mainDoc, sleeve)) continue;
+                // 幾何碰撞第一層篩選已移至內部 linkBeams 迴圈：
+                // 不在此處直接 continue 排除碰牆/碰板的套管，以免誤判梁側貼牆的合法套管。
 
                 foreach (var li in linkInstances)
                 {
@@ -66,6 +65,20 @@ namespace RevitMCP.Core
 
                     foreach (var b in linkBeams)
                     {
+                        // 判定貼梁牆/貼梁板之過濾排除：
+                        // 如果套管同時與牆或板相交，且套管長度與該相交梁的寬度不匹配 (誤差 > 10mm)，則排除。
+                        bool intersectsWall = CheckIsIntersectsWithWall(mainDoc, sleeve);
+                        bool intersectsFloor = CheckIsIntersectsWithFloor(mainDoc, sleeve);
+                        if (intersectsWall || intersectsFloor)
+                        {
+                            double sleeveLen = GetSleeveLength(sleeve) * 304.8;
+                            double beamWidthMM = GetBeamWidth(b) * 304.8;
+                            if (Math.Abs(sleeveLen - beamWidthMM) > 10.0)
+                            {
+                                continue; // 長度不匹配且碰了牆/板，跳過
+                            }
+                        }
+
                         string key = $"{li.Id.GetIdValue()}_{b.Id.GetIdValue()}";
                         if (!results.ContainsKey(key))
                         {
@@ -159,9 +172,8 @@ namespace RevitMCP.Core
                     BoundingBoxXYZ sleeveBBox = sleeve.get_BoundingBox(null);
                     if (sleeveBBox == null) continue;
 
-                    // 物理幾何碰撞第一層篩選：優先排除穿牆與穿板套管，以避免族群一致時的誤判
-                    if (CheckIsIntersectsWithWall(mainDoc, sleeve)) continue;
-                    if (CheckIsIntersectsWithFloor(mainDoc, sleeve)) continue;
+                    // 幾何碰撞第一層篩選已移至內部：不在此處直接 continue 排除碰牆/碰板的套管，
+                    // 以免誤判「梁側貼牆/貼板」的合法穿梁套管。改由後續長度匹配度判定。
 
                     string comments = sleeve.LookupParameter("備註")?.AsString() ?? "";
                     string familyName = (sleeve as FamilyInstance)?.Symbol?.FamilyName ?? "";
