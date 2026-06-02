@@ -73,9 +73,23 @@ namespace RevitMCP.Core
                         {
                             double sleeveLen = GetSleeveLength(sleeve) * 304.8;
                             double beamWidthMM = GetBeamWidth(b) * 304.8;
-                            if (Math.Abs(sleeveLen - beamWidthMM) > 10.0)
+                            
+                            double perpDistXY = 0;
+                            LocationCurve beamLoc = b.Location as LocationCurve;
+                            if (beamLoc != null)
                             {
-                                continue; // 長度不匹配且碰了牆/板，跳過
+                                XYZ sleeveCenter = (sleeveBBox.Min + sleeveBBox.Max) * 0.5;
+                                XYZ localSleeveCenter = tr.Inverse.OfPoint(sleeveCenter);
+                                IntersectionResult ir = beamLoc.Curve.Project(localSleeveCenter);
+                                if (ir != null)
+                                {
+                                    perpDistXY = new XYZ(localSleeveCenter.X - ir.XYZPoint.X, localSleeveCenter.Y - ir.XYZPoint.Y, 0).GetLength() * 304.8;
+                                }
+                            }
+
+                            if (sleeveLen < beamWidthMM - 10.0 || perpDistXY > (beamWidthMM / 2.0) + 100.0)
+                            {
+                                continue; // 長度小於梁寬或偏離過遠，跳過
                             }
                         }
 
@@ -192,6 +206,9 @@ namespace RevitMCP.Core
                     double distToStart = -1;
                     double distToEnd = -1;
                     double minDist = -1;
+                    double perpDistXY = 0;
+                    double connDepthStart = -1;
+                    double connDepthEnd = -1;
 
                     LocationCurve beamLoc = beam.Location as LocationCurve;
                     if (beamLoc != null)
@@ -204,11 +221,44 @@ namespace RevitMCP.Core
                             distToStart = ir.XYZPoint.DistanceTo(bc.GetEndPoint(0));
                             distToEnd = ir.XYZPoint.DistanceTo(bc.GetEndPoint(1));
                             minDist = Math.Min(distToStart, distToEnd);
+                            perpDistXY = new XYZ(localSleeveCenter.X - ir.XYZPoint.X, localSleeveCenter.Y - ir.XYZPoint.Y, 0).GetLength() * 304.8;
+                        }
+
+                        // 偵測起點(0)相連梁梁深
+                        var conn0 = beamLoc.get_ElementsAtJoin(0);
+                        if (conn0 != null)
+                        {
+                            foreach (ElementId cid in conn0)
+                            {
+                                if (cid == beam.Id) continue;
+                                Element elem = doc.GetElement(cid);
+                                if (elem != null && elem.Category != null && elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_StructuralFraming)
+                                {
+                                    connDepthStart = GetBeamDepth(elem) * 304.8;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // 偵測終點(1)相連梁梁深
+                        var conn1 = beamLoc.get_ElementsAtJoin(1);
+                        if (conn1 != null)
+                        {
+                            foreach (ElementId cid in conn1)
+                            {
+                                if (cid == beam.Id) continue;
+                                Element elem = doc.GetElement(cid);
+                                if (elem != null && elem.Category != null && elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_StructuralFraming)
+                                {
+                                    connDepthEnd = GetBeamDepth(elem) * 304.8;
+                                    break;
+                                }
+                            }
                         }
                     }
 
-                    double beamTopZ = worldMax.Z;
                     double beamBottomZ = worldMin.Z;
+                    double beamTopZ = beamBottomZ + beamDepth; // 扣除梁頂增築：以梁底標高加上型號梁深作為結構梁原本頂標高
 
                     XYZ worldP0 = XYZ.Zero;
                     XYZ worldP1 = XYZ.Zero;
@@ -230,11 +280,14 @@ namespace RevitMCP.Core
                         BeamWidth = beamWidth * 304.8, // mm
                         SleeveDiameter = sleeveD * 304.8, // mm
                         SleeveLength = GetSleeveLength(sleeve, lenParams) * 304.8, // mm
-                        IsExcluded = Math.Abs(GetSleeveLength(sleeve, lenParams) * 304.8 - beamWidth * 304.8) > 10.0,
-                        ExclusionReason = Math.Abs(GetSleeveLength(sleeve, lenParams) * 304.8 - beamWidth * 304.8) > 10.0 ? "套管長度與梁寬不匹配" : "",
+                        IsExcluded = GetSleeveLength(sleeve, lenParams) * 304.8 < beamWidth * 304.8 - 10.0 || perpDistXY > (beamWidth * 304.8 / 2.0) + 100.0,
+                        ExclusionReason = GetSleeveLength(sleeve, lenParams) * 304.8 < beamWidth * 304.8 - 10.0 ? "套管長度小於梁寬，無法穿梁" : (perpDistXY > (beamWidth * 304.8 / 2.0) + 100.0 ? "套管偏離梁中心線過遠，疑似平行穿牆套管" : ""),
                         DistanceToStart = distToStart * 304.8,
                         DistanceToEnd = distToEnd * 304.8,
                         MinDistance = minDist * 304.8,
+                        PerpDistXY = perpDistXY,
+                        ConnectedBeamDepthStart = connDepthStart,
+                        ConnectedBeamDepthEnd = connDepthEnd,
                         SleeveZ = sleeveCenter.Z * 304.8,
                         BeamTopZ = beamTopZ * 304.8,
                         BeamBottomZ = beamBottomZ * 304.8,
@@ -691,9 +744,38 @@ namespace RevitMCP.Core
 
                 double d0 = projPoint.DistanceTo(p0);
                 double d1 = projPoint.DistanceTo(p1);
-                XYZ targetEnd = (d0 < d1) ? p0 : p1;
+                int endIdx = (d0 < d1) ? 0 : 1;
+                XYZ targetEnd = (endIdx == 0) ? p0 : p1;
+
+                // 物理補償：若梁端點相連於牆或柱，將 targetEnd 朝向 beam 內側偏移相連寬度的一半
+                double offsetToInside = 0;
+                var connectedIds = beamLoc.get_ElementsAtJoin(endIdx);
+                if (connectedIds != null)
+                {
+                    foreach (ElementId cid in connectedIds)
+                    {
+                        if (cid == beam.Id) continue;
+                        Element elem = beam.Document.GetElement(cid);
+                        if (elem != null)
+                        {
+                            if (elem.Category != null && elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Walls)
+                            {
+                                double wallThickness = (elem as Wall)?.WallType.Width ?? (150.0 / 304.8);
+                                offsetToInside = wallThickness / 2.0;
+                                break;
+                            }
+                            else if (elem.Category != null && elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_StructuralColumns)
+                            {
+                                double colWidth = GetColumnWidth(elem);
+                                offsetToInside = colWidth / 2.0;
+                                break;
+                            }
+                        }
+                    }
+                }
 
                 XYZ beamDir = (p1 - p0).Normalize();
+                XYZ correctedTargetEnd = targetEnd + (endIdx == 0 ? beamDir : -beamDir) * offsetToInside;
                 XYZ perpDir = new XYZ(-beamDir.Y, beamDir.X, 0).Normalize();
 
                 XYZ sleeveToBeam = (sleeveCenter - projPoint).Normalize();
@@ -703,13 +785,37 @@ namespace RevitMCP.Core
                     offsetVal = -500.0;
                 }
 
+                // 計算套管外邊緣：投影點朝梁端點移動半徑 (D/2) 距離
+                double sleeveD = GetSleeveDiameter(sleeve, sleeveBBox);
+                double radiusFeet = sleeveD / 2.0;
+                XYZ toEndDir = (correctedTargetEnd - projPoint).Normalize();
+                XYZ sleeveEdgePoint = projPoint + toEndDir * radiusFeet;
+
                 // 呼叫現有工具庫的標註建立核心方法，不重複製作輪子
-                CreateDimensionInternal(doc, view, targetEnd.X * 304.8, targetEnd.Y * 304.8, projPoint.X * 304.8, projPoint.Y * 304.8, offsetVal);
+                CreateDimensionInternal(doc, view, correctedTargetEnd.X * 304.8, correctedTargetEnd.Y * 304.8, sleeveEdgePoint.X * 304.8, sleeveEdgePoint.Y * 304.8, offsetVal);
             }
             catch (Exception)
             {
                 // 靜默失敗以避免干擾主要上色與標籤流程
             }
+        }
+
+        private double GetColumnWidth(Element col)
+        {
+            Element type = col.Document.GetElement(col.GetTypeId());
+            if (type != null)
+            {
+                string[] paramNames = new string[] { "寬度", "b", "Width", "B", "D", "深度", "Depth" };
+                foreach (string paramName in paramNames)
+                {
+                    Parameter p = type.LookupParameter(paramName);
+                    if (p != null && p.HasValue && p.StorageType == StorageType.Double)
+                    {
+                        return p.AsDouble();
+                    }
+                }
+            }
+            return 600.0 / 304.8; // 預設 600mm
         }
     }
 }

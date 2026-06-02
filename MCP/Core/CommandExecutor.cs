@@ -1869,6 +1869,22 @@ namespace RevitMCP.Core
             dc1.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("BeamPenetration_Helper");
             dc2.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("BeamPenetration_Helper");
 
+            // 設為不可見線型以隱藏輔助線段
+            try
+            {
+                Category invisibleCat = doc.Settings.Categories.get_Item(BuiltInCategory.OST_InvisibleLines);
+                if (invisibleCat != null)
+                {
+                    GraphicsStyle gs = invisibleCat.GetGraphicsStyle(GraphicsStyleType.Projection);
+                    if (gs != null)
+                    {
+                        dc1.LineStyle = gs;
+                        dc2.LineStyle = gs;
+                    }
+                }
+            }
+            catch { /* 靜默失敗以防止有些專案無此線型 */ }
+
             refArray.Append(dc1.GeometryCurve.Reference);
             refArray.Append(dc2.GeometryCurve.Reference);
 

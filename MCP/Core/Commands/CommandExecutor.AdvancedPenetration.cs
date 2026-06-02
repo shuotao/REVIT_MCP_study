@@ -103,6 +103,9 @@ namespace RevitMCP.Core
                             double distToStart = -1;
                             double distToEnd = -1;
                             double minDist = -1;
+                            double perpDistXY = 0;
+                            double connDepthStart = -1;
+                            double connDepthEnd = -1;
 
                             LocationCurve beamLoc = b.Location as LocationCurve;
                             if (beamLoc != null)
@@ -115,12 +118,45 @@ namespace RevitMCP.Core
                                     distToStart = ir.XYZPoint.DistanceTo(bc.GetEndPoint(0));
                                     distToEnd = ir.XYZPoint.DistanceTo(bc.GetEndPoint(1));
                                     minDist = Math.Min(distToStart, distToEnd);
+                                    perpDistXY = new XYZ(localSleeveCenter.X - ir.XYZPoint.X, localSleeveCenter.Y - ir.XYZPoint.Y, 0).GetLength() * 304.8;
+                                }
+
+                                // 偵測起點(0)相連梁梁深
+                                var conn0 = beamLoc.get_ElementsAtJoin(0);
+                                if (conn0 != null)
+                                {
+                                    foreach (ElementId cid in conn0)
+                                    {
+                                        if (cid == b.Id) continue;
+                                        Element elem = linkDoc.GetElement(cid);
+                                        if (elem != null && elem.Category != null && elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_StructuralFraming)
+                                        {
+                                            connDepthStart = GetBeamDepth(elem) * 304.8;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                // 偵測終點(1)相連梁梁深
+                                var conn1 = beamLoc.get_ElementsAtJoin(1);
+                                if (conn1 != null)
+                                {
+                                    foreach (ElementId cid in conn1)
+                                    {
+                                        if (cid == b.Id) continue;
+                                        Element elem = linkDoc.GetElement(cid);
+                                        if (elem != null && elem.Category != null && elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_StructuralFraming)
+                                        {
+                                            connDepthEnd = GetBeamDepth(elem) * 304.8;
+                                            break;
+                                        }
+                                    }
                                 }
                             }
 
                             BoundingBoxXYZ beamBox = b.get_BoundingBox(null);
-                            double beamTopZ = beamBox != null ? beamBox.Max.Z : 0;
                             double beamBottomZ = beamBox != null ? beamBox.Min.Z : 0;
+                            double beamTopZ = beamBottomZ + beamDepth; // 扣除梁頂增築：以梁底標高加上型號梁深作為結構梁原本頂標高
 
                             checkResults.Add(new {
                                 SleeveId = sleeve.Id.GetIdValue(),
@@ -134,11 +170,14 @@ namespace RevitMCP.Core
                                 BeamWidth = beamWidth * 304.8, // convert to mm
                                 SleeveDiameter = sleeveD * 304.8, // convert to mm
                                 SleeveLength = GetSleeveLength(sleeve) * 304.8, // convert to mm
-                                IsExcluded = Math.Abs(GetSleeveLength(sleeve) * 304.8 - beamWidth * 304.8) > 10.0,
-                                ExclusionReason = Math.Abs(GetSleeveLength(sleeve) * 304.8 - beamWidth * 304.8) > 10.0 ? "套管長度與梁寬不匹配" : "",
+                                IsExcluded = GetSleeveLength(sleeve) * 304.8 < beamWidth * 304.8 - 10.0 || perpDistXY > (beamWidth * 304.8 / 2.0) + 100.0,
+                                ExclusionReason = GetSleeveLength(sleeve) * 304.8 < beamWidth * 304.8 - 10.0 ? "套管長度小於梁寬，無法穿梁" : (perpDistXY > (beamWidth * 304.8 / 2.0) + 100.0 ? "套管偏離梁中心線過遠，疑似平行穿牆套管" : ""),
                                 DistanceToStart = distToStart * 304.8,
                                 DistanceToEnd = distToEnd * 304.8,
                                 MinDistance = minDist * 304.8,
+                                PerpDistXY = perpDistXY,
+                                ConnectedBeamDepthStart = connDepthStart,
+                                ConnectedBeamDepthEnd = connDepthEnd,
                                 SleeveZ = sleeveCenter.Z * 304.8,
                                 BeamTopZ = beamTopZ * 304.8,
                                 BeamBottomZ = beamBottomZ * 304.8
