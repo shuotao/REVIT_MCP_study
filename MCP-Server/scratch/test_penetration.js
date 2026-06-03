@@ -164,7 +164,24 @@ ws.on('open', () => {
 
         for (const beamId in activeBeamGroups) {
             const sleevesOnBeam = activeBeamGroups[beamId];
-            // 排序
+            // 分兩群：靠近起點的、靠近終點的
+            const startGroup = sleevesOnBeam.filter(s => s.DistanceToStart <= s.DistanceToEnd);
+            const endGroup = sleevesOnBeam.filter(s => s.DistanceToStart > s.DistanceToEnd);
+
+            // 靠近起點的群組：以距起點距離由小到大排序
+            startGroup.sort((a, b) => a.DistanceToStart - b.DistanceToStart);
+            // 如果前面的套管沒問題，後面的就不需要標註到柱邊(第一層標註)
+            for (let i = 1; i < startGroup.length; i++) {
+                startGroup[i].DrawFirstLayerDim = false;
+            }
+
+            // 靠近終點的群組：以距終點距離由小到大排序
+            endGroup.sort((a, b) => a.DistanceToEnd - b.DistanceToEnd);
+            for (let i = 1; i < endGroup.length; i++) {
+                endGroup[i].DrawFirstLayerDim = false;
+            }
+
+            // 原本的淨距檢核：依然依照起點距離統一排序來檢核兩兩淨距
             sleevesOnBeam.sort((a, b) => a.DistanceToStart - b.DistanceToStart);
             
             for (let i = 0; i < sleevesOnBeam.length; i++) {

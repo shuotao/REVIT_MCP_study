@@ -773,6 +773,29 @@ namespace RevitMCP.Core
 
                     for (int i = 0; i < sortedSlvs.Count - 1; i++)
                     {
+                        BoundingBoxXYZ bb1 = sortedSlvs[i].get_BoundingBox(null);
+                        BoundingBoxXYZ bb2 = sortedSlvs[i + 1].get_BoundingBox(null);
+                        if (bb1 != null && bb2 != null)
+                        {
+                            XYZ c1 = (bb1.Min + bb1.Max) * 0.5;
+                            XYZ c2 = (bb2.Min + bb2.Max) * 0.5;
+                            if (c1.DistanceTo(c2) * 304.8 > 3000.0) continue; // 距離過遠(>3m)則不標註
+
+                            Outline midOutline = new Outline(
+                                new XYZ(Math.Min(c1.X, c2.X) - 1, Math.Min(c1.Y, c2.Y) - 1, Math.Min(c1.Z, c2.Z) - 1),
+                                new XYZ(Math.Max(c1.X, c2.X) + 1, Math.Max(c1.Y, c2.Y) + 1, Math.Max(c1.Z, c2.Z) + 1)
+                            );
+                            
+                            bool hasBeam = new FilteredElementCollector(doc)
+                                .OfCategory(BuiltInCategory.OST_StructuralFraming)
+                                .WherePasses(new BoundingBoxIntersectsFilter(midOutline))
+                                .WhereElementIsNotElementType()
+                                .Cast<FamilyInstance>()
+                                .Any(b => b.Id != bElem.Id);
+                            
+                            if (hasBeam) continue; // 中間有小梁則不標註
+                        }
+
                         if (!beamDimCounts.ContainsKey(bId)) beamDimCounts[bId] = 0;
                         int staggerIndex = beamDimCounts[bId]++;
                         CreateSleeveSpacingDimension(doc, doc.ActiveView, sortedSlvs[i], sortedSlvs[i + 1], bElem, bTr, staggerIndex);
@@ -899,22 +922,78 @@ namespace RevitMCP.Core
 
                 XYZ p0 = tr.OfPoint(beamLoc.Curve.GetEndPoint(0));
                 XYZ p1 = tr.OfPoint(beamLoc.Curve.GetEndPoint(1));
+                XYZ beamDir = (p1 - p0).Normalize();
 
                 XYZ localSleeveCenter = tr.Inverse.OfPoint(sleeveCenter);
                 IntersectionResult ir = beamLoc.Curve.Project(localSleeveCenter);
                 if (ir == null) return;
                 XYZ projPoint = tr.OfPoint(ir.XYZPoint);
 
-                double d0 = projPoint.DistanceTo(p0);
-                double d1 = projPoint.DistanceTo(p1);
+                // Use the physical solid of the beam to find the exact end faces (which account for cutbacks/joins to columns)
+                XYZ faceEnd0 = p0;
+                XYZ faceEnd1 = p1;
+                Options opt = new Options() { ComputeReferences = true, DetailLevel = ViewDetailLevel.Fine };
+                GeometryElement geomElem = beam.get_Geometry(opt);
+                if (geomElem != null)
+                {
+                    double minDot0 = double.MaxValue;
+                    double minDot1 = double.MaxValue;
+                    
+                    foreach (GeometryObject geomObj in geomElem)
+                    {
+                        Solid solid = geomObj as Solid;
+                        if (solid == null && geomObj is GeometryInstance geomInst)
+                        {
+                            solid = geomInst.GetInstanceGeometry().OfType<Solid>().FirstOrDefault(s => s.Faces.Size > 0);
+                        }
+                        if (solid != null && solid.Faces.Size > 0)
+                        {
+                            foreach (Face face in solid.Faces)
+                            {
+                                if (face is PlanarFace pf)
+                                {
+                                    // 判斷面是否垂直於梁方向 (法向量與梁方向平行)
+                                    double dot = Math.Abs(pf.FaceNormal.DotProduct(tr.Inverse.OfVector(beamDir)));
+                                    if (dot > 0.99)
+                                    {
+                                        XYZ faceCenter = pf.Evaluate(new UV(0.5, 0.5));
+                                        XYZ globalFaceCenter = tr.OfPoint(faceCenter);
+                                        // 判斷是屬於哪一端
+                                        if (globalFaceCenter.DistanceTo(p0) < globalFaceCenter.DistanceTo(p1))
+                                        {
+                                            double distTo0 = globalFaceCenter.DistanceTo(projPoint); // 修改：尋找距離套管最近的面
+                                            if (distTo0 < minDot0)
+                                            {
+                                                minDot0 = distTo0;
+                                                // 投影到梁中心線上
+                                                IntersectionResult fr = beamLoc.Curve.Project(tr.Inverse.OfPoint(globalFaceCenter));
+                                                if (fr != null) faceEnd0 = tr.OfPoint(fr.XYZPoint);
+                                                else faceEnd0 = globalFaceCenter;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            double distTo1 = globalFaceCenter.DistanceTo(projPoint); // 修改：尋找距離套管最近的面
+                                            if (distTo1 < minDot1)
+                                            {
+                                                minDot1 = distTo1;
+                                                IntersectionResult fr = beamLoc.Curve.Project(tr.Inverse.OfPoint(globalFaceCenter));
+                                                if (fr != null) faceEnd1 = tr.OfPoint(fr.XYZPoint);
+                                                else faceEnd1 = globalFaceCenter;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                double d0 = projPoint.DistanceTo(faceEnd0);
+                double d1 = projPoint.DistanceTo(faceEnd1);
                 int endIdx = (d0 < d1) ? 0 : 1;
-                XYZ targetEnd = (endIdx == 0) ? p0 : p1;
+                XYZ correctedTargetEnd = (endIdx == 0) ? faceEnd0 : faceEnd1;
 
-                XYZ beamDir = (p1 - p0).Normalize();
-                double colWidth = GetCollisionWidthAtPoint(doc, targetEnd, beamDir, beam.Id);
-                double offsetToInside = colWidth / 2.0;
-
-                XYZ correctedTargetEnd = targetEnd + (endIdx == 0 ? beamDir : -beamDir) * offsetToInside;
                 XYZ perpDir = new XYZ(-beamDir.Y, beamDir.X, 0).Normalize();
 
                 XYZ sleeveToBeam = (sleeveCenter - projPoint).Normalize();
