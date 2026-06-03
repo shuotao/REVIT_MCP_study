@@ -61,10 +61,13 @@ ws.on('open', () => {
             
             const H = s.BeamDepth;
             const D = s.SleeveDiameter;
-            const dist = s.MinDistance - D / 2.0;
+            const dist = (s.MinDistanceFace || s.MinDistance) - D / 2.0;
             let reqVert = 200; 
             let limitD = H / 3.0; 
             let reqDistLimit = 1.0 * H;
+            
+            s.DrawFirstLayerDim = true;
+            s.DrawSecondLayerDim = false;
 
             // 規則 2, 3, 4: 開孔位置分區判定 (大梁與小梁分流)
             if (s.BeamUsage === 'Minor') {
@@ -104,15 +107,23 @@ ws.on('open', () => {
                     }
                 }
 
-                // 第二優先檢核：與相交小梁的邊緣距離
-                sideRelations.forEach(sr => {
-                    const distToBeamSide = sr.PerpDistXY - sr.BeamWidth / 2.0 - D / 2.0;
-                    const reqDistLimitB = 0.5 * sr.BeamDepth; // 相交梁深的一半
-                    if (distToBeamSide < reqDistLimitB) {
+                // 第二優先檢核：與相交小梁的邊緣距離 (從 C# 傳來的 NearestSideBeam 資訊)
+                if (s.NearestSideBeamId && s.NearestSideBeamId !== 0) {
+                    s.DrawSecondLayerDim = true;
+                    // DistToNearestSideBeamCenter 是從套管中心到小梁中心線的距離
+                    const distToSideBeamEdge = s.DistToNearestSideBeamCenter - (s.NearestSideBeamWidth / 2.0) - (D / 2.0);
+                    const reqDistLimitB = 0.5 * s.NearestSideBeamDepth; // 相交梁深的一半
+                    
+                    if (distToSideBeamEdge < reqDistLimitB) {
                         isOk = false;
-                        reasons.push(`大梁套管距相交梁(${sr.BeamName})邊緣不足(${distToBeamSide.toFixed(0)} < 0.5*H_minor=${reqDistLimitB.toFixed(0)})`);
+                        reasons.push(`大梁套管距正交小梁(${s.NearestSideBeamName})邊緣不足(${distToSideBeamEdge.toFixed(0)} < 0.5*H_minor=${reqDistLimitB.toFixed(0)})`);
                     }
-                });
+                    
+                    // 第三層檢核邏輯：如果第一層(柱邊距離)通過，就只保留第二層(正交小梁)的標註
+                    if (dist >= 1.0 * H) {
+                        s.DrawFirstLayerDim = false;
+                    }
+                }
             }
 
             // 規則 6: 垂直位置 (梁頂底間距 >= 1/3H 且符合絕對底限)
@@ -180,13 +191,14 @@ ws.on('open', () => {
             if (s.FinalStatus === 'PASS') passCount++; else failCount++;
 
             // 找出此套管緊鄰側面（相鄰小梁）的梁 ID
-            const relations = sleeveGroups[s.SleeveId];
-            const sideRelations = relations ? relations.filter(r => r.IsExcluded && r.ExclusionReason && r.ExclusionReason.includes("偏離")) : [];
-            const sideBeamIds = sideRelations.map(sr => sr.BeamId);
+            let sideBeamIds = [];
+            if (s.DrawSecondLayerDim && s.NearestSideBeamId) {
+                sideBeamIds.push(s.NearestSideBeamId);
+            }
 
             visualizationResults.push({
                 SleeveId: s.SleeveId,
-                BeamId: s.BeamId,
+                BeamId: s.DrawFirstLayerDim ? s.BeamId : null,
                 SideBeamIds: sideBeamIds,
                 IsOk: s.FinalStatus === 'PASS',
                 Message: s.FinalReason || "PASS"
