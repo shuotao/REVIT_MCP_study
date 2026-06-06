@@ -99,7 +99,7 @@ dry-run 中段，連續 2 次 `get_active_view` timeout。AI 拒絕用 session m
 | ID | 名稱 | 影響範圍 | 落地檔 |
 |----|------|----------|--------|
 | **L-025** | Active State Re-Anchoring（升第四憲法） | 跨所有 view-anchored / level-anchored 操作 | `CLAUDE.md`（憲法 III）+ `session-context-guard.md`（Active Re-Anchoring 段）+ `lessons.md` + BIM_MCP `three-constitutions.html`（第四憲法 section） |
-| **L-026** | Tool Scope Mismatch | 多工具批次調用時的範圍認知 | `tool-capability-boundary.md` L7 + `0523-handson.html` Step 3 footnote + `0523-presentation.html` drawer-6-3 |
+| **L-026** | Tool Scope Mismatch | 多工具批次調用時的範圍認知 | `tool-capability-boundary.md` L7 + `0523-handson.html` Step 3 footnote + `0523-monthly.html` drawer-6-3 |
 | **L-027** | Regulation Type → Coloring Strategy | 所有 override-based 視覺化 | `tool-capability-boundary.md` L8 + `element-coloring-workflow.md` + 4 個 skill (element-coloring / fire-safety-check / parking-check / wall-orientation-check) |
 | **L-028** | MCP Failure Mode & Recovery | 所有 MCP tool 呼叫 | `tool-capability-boundary.md` L9 + `0523-handson.html` Troubleshooting 表 |
 | **L-029** | BIM 模型內在不一致（面積雙值） | 採光 / 排煙 / 容積等所有以 Room Area 為基底的檢核 | `daylight-area-check.md` 末段 + `smoke-exhaust-review.md` 末段 + `lessons.md` |
@@ -144,7 +144,7 @@ dry-run 中段，連續 2 次 `get_active_view` timeout。AI 拒絕用 session m
 
 **相關連結**：
 - 練習頁：`docs/0523-handson.html`
-- 主簡報：`docs/0523-presentation.html`
+- 主簡報（5/23 demo 紀錄）：`docs/0523-monthly.html`
 - 四憲法：`docs/BIM_MCP/reference/three-constitutions.html`
 - Lessons full list：`domain/lessons.md`
 - Session log：`log/2026-05.md`（搜尋 `2026-05-22 16:30 lessons`）

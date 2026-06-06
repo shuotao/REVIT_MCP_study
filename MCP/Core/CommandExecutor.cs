@@ -146,6 +146,10 @@ namespace RevitMCP.Core
                         result = GetActiveView();
                         break;
                     
+                    case "rename_view":
+                        result = RenameView(parameters);
+                        break;
+                    
                     case "set_active_view":
                         result = SetActiveView(parameters);
                         break;
@@ -400,6 +404,16 @@ namespace RevitMCP.Core
                     case "visualize_penetration": result = VisualizePenetration(parameters); break;
                     case "test_dimension": result = TestCreateDimension(parameters); break;
                     case "advanced_analyze": result = AdvancedAnalyzeAndTag(parameters); break;
+
+                    // === 視圖與基準線調整模組 ===
+                    case "adjust_section_datums":
+                        result = AdjustSectionDatums(parameters);
+                        break;
+
+                    // === 樓板坡度分析（Issue #45, 原作者 yunchen-kt）===
+                    case "analyze_floor_slopes":
+                        result = FloorSlopeAnalyzer.Run(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
 
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
@@ -3542,12 +3556,40 @@ namespace RevitMCP.Core
             var elements = selection.Select(id =>
             {
                 Element e = doc.GetElement(id);
-                return new
+                var elemData = new JObject
                 {
-                    Id = e.Id.GetIdValue(),
-                    Name = e.Name,
-                    Category = e.Category?.Name ?? "Unknown"
+                    ["Id"] = e.Id.GetIdValue(),
+                    ["Name"] = e.Name,
+                    ["Category"] = e.Category?.Name ?? "Unknown"
                 };
+
+                // 如果是視圖或是剖面標記，嘗試取得它的 Origin
+                if (e is View v && v.Origin != null)
+                {
+                    elemData["Origin"] = new JObject
+                    {
+                        ["X"] = Math.Round(v.Origin.X * 304.8, 2),
+                        ["Y"] = Math.Round(v.Origin.Y * 304.8, 2),
+                        ["Z"] = Math.Round(v.Origin.Z * 304.8, 2)
+                    };
+                }
+                else if (e.Category?.Name == "Views" || e.Category?.Name == "視圖" || e.Category?.Name == "Sections" || e.Category?.Name == "剖面")
+                {
+                    // 若選取到標記元素，其 Element.Name 等同於視圖名稱。若該 Element 有 BoundingBox 也可取中心點作為 Origin
+                    BoundingBoxXYZ bbox = e.get_BoundingBox(doc.ActiveView);
+                    if (bbox != null)
+                    {
+                        XYZ center = (bbox.Min + bbox.Max) / 2.0;
+                        elemData["Origin"] = new JObject
+                        {
+                            ["X"] = Math.Round(center.X * 304.8, 2),
+                            ["Y"] = Math.Round(center.Y * 304.8, 2),
+                            ["Z"] = Math.Round(center.Z * 304.8, 2)
+                        };
+                    }
+                }
+
+                return elemData;
             }).ToList();
 
             return new
