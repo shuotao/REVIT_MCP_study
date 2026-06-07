@@ -418,6 +418,10 @@ namespace RevitMCP.Core
                         result = FloorSlopeAnalyzer.Run(_uiApp.ActiveUIDocument.Document, parameters);
                         break;
 
+                    case "import_dwg_to_levels":
+                        result = ImportDwgToLevels(parameters);
+                        break;
+
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
                 }

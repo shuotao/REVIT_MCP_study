@@ -56,6 +56,14 @@ namespace RevitMCP
                 settingsButtonData.ToolTip = "開啟 MCP 設定視窗";
                 panel.AddItem(settingsButtonData);
 
+                // 4. DWG Grid Registration
+                PushButtonData dwgGridButtonData = new PushButtonData(
+                    "DwgGridRegistration",
+                    "DWG\n放樣",
+                    assemblyPath,
+                    "RevitMCP.Commands.DwgGridRegistrationCommand");
+                dwgGridButtonData.ToolTip = "選擇 DWG 並匯入到 CAD 放樣_{LevelName} 樓層平面視圖";
+                panel.AddItem(dwgGridButtonData);
                 // 初始化 ExternalEventManager (必須在 UI 執行緒建立)
                 _ = ExternalEventManager.Instance;
 
