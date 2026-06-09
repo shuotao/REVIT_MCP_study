@@ -372,6 +372,22 @@ namespace RevitMCP.Core
                         result = TraceStairGeometry(parameters);
                         break;
 
+                    // === 樓層建立 ===
+                    case "create_level":
+                        result = CreateLevel(parameters);
+                        break;
+
+                    // === DWG 圖層批次建柱模組 ===
+                    case "get_dwg_column_layers":
+                        result = DwgColumnExecutor.GetDwgColumnLayers(_uiApp.ActiveUIDocument.Document);
+                        break;
+                    case "preview_dwg_columns":
+                        result = DwgColumnExecutor.PreviewDwgColumns(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+                    case "create_columns_from_dwg":
+                        result = DwgColumnExecutor.CreateColumnsFromDwg(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+
                     case "get_linked_models":
                         result = GetLinkedModels();
                         break;
@@ -2709,12 +2725,18 @@ namespace RevitMCP.Core
             }
             else // auto
             {
-                // 平面圖、天花板平面圖使用切割樣式
+                // 平面圖、天花板平面圖預設使用切割樣式（牆/柱/門窗等被剖切面切到的元素）
                 // 立面圖、剖面圖、3D 視圖使用表面樣式
-                useCutPattern = (view.ViewType == ViewType.FloorPlan || 
-                                 view.ViewType == ViewType.CeilingPlan ||
-                                 view.ViewType == ViewType.AreaPlan ||
-                                 view.ViewType == ViewType.EngineeringPlan);
+                bool isPlanView = view.ViewType == ViewType.FloorPlan ||
+                                  view.ViewType == ViewType.CeilingPlan ||
+                                  view.ViewType == ViewType.AreaPlan ||
+                                  view.ViewType == ViewType.EngineeringPlan;
+                // 例外：樓板/屋頂在平面圖位於剖切面之下、以「表面投影」顯示，不被剖切。
+                // 對它們套切割樣式會看不到顏色（樓板坡度檢討上色課題），故改用表面樣式。
+                IdType? catId = element.Category?.Id.GetIdValue();
+                bool isProjectedFloorLike = catId == (IdType)BuiltInCategory.OST_Floors ||
+                                            catId == (IdType)BuiltInCategory.OST_Roofs;
+                useCutPattern = isPlanView && !isProjectedFloorLike;
             }
 
             using (Transaction trans = new Transaction(doc, "Override Element Graphics"))
