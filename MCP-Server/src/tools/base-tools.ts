@@ -18,6 +18,24 @@ export const baseTools: Tool[] = [
         inputSchema: { type: "object", properties: {} },
     },
     {
+        name: "create_level",
+        description: "在 Revit 中建立一個新的樓層 (Level)。指定標高（公釐）與可選名稱；若名稱已存在 Revit 會自動附加尾號。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                elevation: {
+                    type: "number",
+                    description: "樓層標高（公釐，會自動轉成 Revit 內部單位 feet）",
+                },
+                name: {
+                    type: "string",
+                    description: "樓層名稱（選填，例如 '3F'、'RF'）。未填則使用 Revit 預設名稱",
+                },
+            },
+            required: ["elevation"],
+        },
+    },
+    {
         name: "get_element_info",
         description: "取得指定元素的詳細資訊，包括參數、幾何資訊等。",
         inputSchema: {

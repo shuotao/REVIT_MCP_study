@@ -383,6 +383,22 @@ namespace RevitMCP.Core
                         result = TraceStairGeometry(parameters);
                         break;
 
+                    // === 樓層建立 ===
+                    case "create_level":
+                        result = CreateLevel(parameters);
+                        break;
+
+                    // === DWG 圖層批次建柱模組 ===
+                    case "get_dwg_column_layers":
+                        result = DwgColumnExecutor.GetDwgColumnLayers(_uiApp.ActiveUIDocument.Document);
+                        break;
+                    case "preview_dwg_columns":
+                        result = DwgColumnExecutor.PreviewDwgColumns(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+                    case "create_columns_from_dwg":
+                        result = DwgColumnExecutor.CreateColumnsFromDwg(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+
                     case "get_linked_models":
                         result = GetLinkedModels();
                         break;
