@@ -93,3 +93,7 @@ Recent_Update_Review.md
 REVIT_MCP.code-workspace
 domain/MCP knowledge/
 
+# Fork 逆向盤點報告（點名個人活動，私密、本地保留，不入庫）
+# 腳本 scripts/fork-audit.ps1 仍入庫；只有產出報告排除。
+docs/fork-audit/
+
