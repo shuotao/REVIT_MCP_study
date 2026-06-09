@@ -374,8 +374,8 @@ Microsoft (R) Build Engine version ...
 確認 DLL 已成功產生：
 
 ```powershell
-# 所有版本統一輸出路徑
-dir MCP\bin\Release\RevitMCP.dll
+# Revit 2024 example output path
+dir MCP\bin\Release.R24\RevitMCP.dll
 ```
 
 如果看到檔案資訊（檔案大小、修改時間），表示建置成功！
@@ -421,7 +421,7 @@ New-Item -ItemType Directory -Path "C:\ProgramData\Autodesk\Revit\Addins\2024\Re
 
 ```powershell
 # 複製 DLL（Revit 2024 為例，其他版本替換路徑中的 2024）
-Copy-Item "MCP\bin\Release\RevitMCP.dll" "C:\ProgramData\Autodesk\Revit\Addins\2024\RevitMCP\" -Force
+Copy-Item "MCP\bin\Release.R24\RevitMCP.dll" "C:\ProgramData\Autodesk\Revit\Addins\2024\RevitMCP\" -Force
 
 # 複製 .addin 檔案
 Copy-Item "MCP\RevitMCP.addin" "C:\ProgramData\Autodesk\Revit\Addins\2024\RevitMCP\" -Force

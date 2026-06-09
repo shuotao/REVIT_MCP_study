@@ -18,6 +18,24 @@ export const baseTools: Tool[] = [
         inputSchema: { type: "object", properties: {} },
     },
     {
+        name: "create_level",
+        description: "在 Revit 中建立一個新的樓層 (Level)。指定標高（公釐）與可選名稱；若名稱已存在 Revit 會自動附加尾號。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                elevation: {
+                    type: "number",
+                    description: "樓層標高（公釐，會自動轉成 Revit 內部單位 feet）",
+                },
+                name: {
+                    type: "string",
+                    description: "樓層名稱（選填，例如 '3F'、'RF'）。未填則使用 Revit 預設名稱",
+                },
+            },
+            required: ["elevation"],
+        },
+    },
+    {
         name: "get_element_info",
         description: "取得指定元素的詳細資訊，包括參數、幾何資訊等。",
         inputSchema: {
@@ -54,7 +72,7 @@ export const baseTools: Tool[] = [
     },
     {
         name: "get_selected_elements",
-        description: "取得使用者目前在 Revit 中選取的所有元素的基本資訊（ID、名稱、品類）。",
+        description: "取得使用者目前在 Revit 中選取的所有元素的基本資訊（ID、名稱、品類）。若是視圖或剖面標記，會一併回傳 Origin (X,Y,Z) 供空間排序使用。",
         inputSchema: { type: "object", properties: {} },
     },
 
@@ -84,6 +102,18 @@ export const baseTools: Tool[] = [
                 viewId: { type: "number", description: "要切換的視圖 Element ID" },
             },
             required: ["viewId"],
+        },
+    },
+    {
+        name: "rename_view",
+        description: "重新命名指定的 Revit 視圖（包含剖面圖、平面圖等），此工具不受軟體語系本地化影響。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                viewId: { type: "number", description: "視圖的 Element ID" },
+                newName: { type: "string", description: "新的視圖名稱" },
+            },
+            required: ["viewId", "newName"],
         },
     },
     {
@@ -228,4 +258,37 @@ export const baseTools: Tool[] = [
             required: ["elementId"],
         },
     },
+    {
+        name: "adjust_section_datums",
+        description: "自動調整剖面視圖的網格線 (Grids) 與樓層線 (Levels) 2D 範圍與氣泡顯示。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                viewIds: {
+                    type: "array",
+                    items: { type: "number" },
+                    description: "要調整的剖面視圖或剖面標記的 Element ID 列表"
+                }
+            },
+            required: ["viewIds"]
+        }
+    },
+    {
+        name: "analyze_floor_slopes",
+        description: "分析樓板頂面排水坡度：以 Solid→PlanarFace 法向量與 Z 軸夾角計算每片朝上頂面的坡度百分比，回傳每片樓板的 Min/Max 坡度，並可回寫至指定參數（預設 Comments）。未指定 elementIds 時自動收集 Function=Exterior 的樓板。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                elementIds: {
+                    type: "array",
+                    items: { type: "number" },
+                    description: "要分析的樓板 Element ID 陣列；省略則自動收集所有 Function=Exterior 樓板"
+                },
+                paramName: {
+                    type: "string",
+                    description: "坡度回寫的目標參數名稱，預設 Comments"
+                }
+            }
+        }
+    }
 ];

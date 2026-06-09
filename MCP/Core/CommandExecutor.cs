@@ -158,6 +158,10 @@ namespace RevitMCP.Core
                         result = GetActiveView();
                         break;
                     
+                    case "rename_view":
+                        result = RenameView(parameters);
+                        break;
+                    
                     case "set_active_view":
                         result = SetActiveView(parameters);
                         break;
@@ -379,6 +383,22 @@ namespace RevitMCP.Core
                         result = TraceStairGeometry(parameters);
                         break;
 
+                    // === 樓層建立 ===
+                    case "create_level":
+                        result = CreateLevel(parameters);
+                        break;
+
+                    // === DWG 圖層批次建柱模組 ===
+                    case "get_dwg_column_layers":
+                        result = DwgColumnExecutor.GetDwgColumnLayers(_uiApp.ActiveUIDocument.Document);
+                        break;
+                    case "preview_dwg_columns":
+                        result = DwgColumnExecutor.PreviewDwgColumns(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+                    case "create_columns_from_dwg":
+                        result = DwgColumnExecutor.CreateColumnsFromDwg(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+
                     case "get_linked_models":
                         result = GetLinkedModels();
                         break;
@@ -402,6 +422,16 @@ namespace RevitMCP.Core
                         break;
                     case "flip_element":
                         result = FlipElement(parameters);
+                        break;
+
+                    // === 視圖與基準線調整模組 ===
+                    case "adjust_section_datums":
+                        result = AdjustSectionDatums(parameters);
+                        break;
+
+                    // === 樓板坡度分析（Issue #45, 原作者 yunchen-kt）===
+                    case "analyze_floor_slopes":
+                        result = FloorSlopeAnalyzer.Run(_uiApp.ActiveUIDocument.Document, parameters);
                         break;
 
                     default:
@@ -2885,12 +2915,18 @@ namespace RevitMCP.Core
             }
             else // auto
             {
-                // 平面圖、天花板平面圖使用切割樣式
+                // 平面圖、天花板平面圖預設使用切割樣式（牆/柱/門窗等被剖切面切到的元素）
                 // 立面圖、剖面圖、3D 視圖使用表面樣式
-                useCutPattern = (view.ViewType == ViewType.FloorPlan || 
-                                 view.ViewType == ViewType.CeilingPlan ||
-                                 view.ViewType == ViewType.AreaPlan ||
-                                 view.ViewType == ViewType.EngineeringPlan);
+                bool isPlanView = view.ViewType == ViewType.FloorPlan ||
+                                  view.ViewType == ViewType.CeilingPlan ||
+                                  view.ViewType == ViewType.AreaPlan ||
+                                  view.ViewType == ViewType.EngineeringPlan;
+                // 例外：樓板/屋頂在平面圖位於剖切面之下、以「表面投影」顯示，不被剖切。
+                // 對它們套切割樣式會看不到顏色（樓板坡度檢討上色課題），故改用表面樣式。
+                IdType? catId = element.Category?.Id.GetIdValue();
+                bool isProjectedFloorLike = catId == (IdType)BuiltInCategory.OST_Floors ||
+                                            catId == (IdType)BuiltInCategory.OST_Roofs;
+                useCutPattern = isPlanView && !isProjectedFloorLike;
             }
 
             using (Transaction trans = new Transaction(doc, "Override Element Graphics"))
@@ -3774,12 +3810,40 @@ namespace RevitMCP.Core
             var elements = selection.Select(id =>
             {
                 Element e = doc.GetElement(id);
-                return new
+                var elemData = new JObject
                 {
-                    Id = e.Id.GetIdValue(),
-                    Name = e.Name,
-                    Category = e.Category?.Name ?? "Unknown"
+                    ["Id"] = e.Id.GetIdValue(),
+                    ["Name"] = e.Name,
+                    ["Category"] = e.Category?.Name ?? "Unknown"
                 };
+
+                // 如果是視圖或是剖面標記，嘗試取得它的 Origin
+                if (e is View v && v.Origin != null)
+                {
+                    elemData["Origin"] = new JObject
+                    {
+                        ["X"] = Math.Round(v.Origin.X * 304.8, 2),
+                        ["Y"] = Math.Round(v.Origin.Y * 304.8, 2),
+                        ["Z"] = Math.Round(v.Origin.Z * 304.8, 2)
+                    };
+                }
+                else if (e.Category?.Name == "Views" || e.Category?.Name == "視圖" || e.Category?.Name == "Sections" || e.Category?.Name == "剖面")
+                {
+                    // 若選取到標記元素，其 Element.Name 等同於視圖名稱。若該 Element 有 BoundingBox 也可取中心點作為 Origin
+                    BoundingBoxXYZ bbox = e.get_BoundingBox(doc.ActiveView);
+                    if (bbox != null)
+                    {
+                        XYZ center = (bbox.Min + bbox.Max) / 2.0;
+                        elemData["Origin"] = new JObject
+                        {
+                            ["X"] = Math.Round(center.X * 304.8, 2),
+                            ["Y"] = Math.Round(center.Y * 304.8, 2),
+                            ["Z"] = Math.Round(center.Z * 304.8, 2)
+                        };
+                    }
+                }
+
+                return elemData;
             }).ToList();
 
             return new
