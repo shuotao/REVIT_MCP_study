@@ -33,8 +33,8 @@ These counts must be derived from source, not copied by memory.
 
 | Item | Current Count | Source of Truth |
 |---|---:|---|
-| Runtime MCP tools | 92 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 43 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
+| Runtime MCP tools | 88 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 44 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
 | Claude skills | 20 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, `README.en.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
