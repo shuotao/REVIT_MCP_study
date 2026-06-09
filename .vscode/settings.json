@@ -3,5 +3,6 @@
     "git.enabled": true,
     "git.autorefresh": true,
     "git.autofetch": true,
-    "scm.defaultViewMode": "tree"
+    "scm.defaultViewMode": "tree",
+    "workbench.colorTheme": "Light+"
 }
