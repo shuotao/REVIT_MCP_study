@@ -88,7 +88,8 @@ namespace RevitMCP.Core
             var geoms = CollectLayerGeometry(doc, vp, layerName);
             if (geoms.Count == 0) throw new Exception($"圖層「{layerName}」中找不到幾何物件");
 
-            var cols = Extract(geoms);
+            var diag = new List<string>();
+            var cols = Extract(geoms, diag);
 
             var colList = cols.Select(c => new
             {
@@ -110,7 +111,8 @@ namespace RevitMCP.Core
                 count = cols.Count,
                 sizeSummary = sizeGroups,
                 columns = colList,
-                message = cols.Count == 0 ? $"圖層「{layerName}」中沒有識別到封閉矩形" : null
+                debug = diag,
+                message = cols.Count == 0 ? $"圖層「{layerName}」中沒有識別到封閉矩形（debug 欄位有收集到的型別與原始尺寸）" : null
             };
         }
 
@@ -146,7 +148,7 @@ namespace RevitMCP.Core
             var geoms = CollectLayerGeometry(doc, vp, layerName);
             if (geoms.Count == 0) throw new Exception($"圖層「{layerName}」中找不到幾何物件");
 
-            var cols = Extract(geoms);
+            var cols = Extract(geoms, null);
             if (cols.Count == 0) throw new Exception($"圖層「{layerName}」中無封閉矩形");
 
             string wp = null, dp = null;
@@ -237,6 +239,9 @@ namespace RevitMCP.Core
                     if (ig == null) continue;
                     foreach (var obj in ig)
                     {
+                        // 圖塊(INSERT)一律收集，交由 FromBlockInstance 以點群判斷
+                        //（圖塊本身 GraphicsStyleId 常為 Invalid，無法靠 style 過濾）
+                        if (obj is GeometryInstance) { result.Add(obj); continue; }
                         if (obj.GraphicsStyleId == ElementId.InvalidElementId) continue;
                         var gs = doc.GetElement(obj.GraphicsStyleId) as GraphicsStyle;
                         if (gs?.GraphicsStyleCategory?.Name == layerName)
@@ -250,19 +255,31 @@ namespace RevitMCP.Core
         // ────────────────────────────────────────────────
         // 矩形解析
         // ────────────────────────────────────────────────
-        static List<ColData> Extract(List<GeometryObject> geoms)
+        static List<ColData> Extract(List<GeometryObject> geoms, List<string> diag)
         {
             var res = new List<ColData>();
             foreach (var obj in geoms)
             {
                 if (obj is PolyLine pl)
                 {
-                    var pts = pl.GetCoordinates();
-                    if (pts.Count >= 4) { var c = MakeRect(pts.ToList()); if (c != null) res.Add(c); }
+                    var pts = pl.GetCoordinates().ToList();
+                    var c = MakeRect(pts);                          // 嚴格矩形優先（向後相容）
+                    if (c == null && pts.Count >= 3)                // 退而求其次：通用外接矩形
+                        c = BuildColFromPoints(pts, LongestEdgeAngle(pts), diag, "PolyLine(" + pts.Count + "pt)");
+                    if (c != null) res.Add(c);
+                }
+                else if (obj is GeometryInstance gi)
+                {
+                    var c = FromBlockInstance(gi, diag);
+                    if (c != null) res.Add(c);
                 }
             }
             var lns = geoms.OfType<Line>().ToList();
             if (lns.Count >= 4) res.AddRange(RectsFromLines(lns));
+            if (diag != null)
+                diag.Add("geoms=" + geoms.Count + " polyline=" + geoms.OfType<PolyLine>().Count() +
+                         " line=" + lns.Count + " inst=" + geoms.OfType<GeometryInstance>().Count() +
+                         " -> candidates=" + res.Count);
 
             double t = 50.0 * MmFt;
             var uni = new List<ColData>();
@@ -270,6 +287,103 @@ namespace RevitMCP.Core
                 if (!uni.Any(u => Math.Sqrt(Math.Pow(c.X - u.X, 2) + Math.Pow(c.Y - u.Y, 2)) < t))
                     uni.Add(c);
             return uni;
+        }
+
+        // ────────────────────────────────────────────────
+        // CAD 圖塊 (INSERT) → 柱：重心 + transform 旋轉角 + 去旋轉 bounding box 尺寸
+        // ────────────────────────────────────────────────
+        static ColData FromBlockInstance(GeometryInstance gi, List<string> diag)
+        {
+            var pts = new List<XYZ>();
+            CollectInstancePoints(gi.GetInstanceGeometry(), pts, 0);
+            if (pts.Count < 3) return null;
+            // 圖塊：旋轉角取自 instance transform 的 X 基底向量
+            double rot = Math.Atan2(gi.Transform.BasisX.Y, gi.Transform.BasisX.X);
+            return BuildColFromPoints(pts, rot, diag, "block(" + pts.Count + "pt)");
+        }
+
+        // 點群最長邊的方向角（封閉圖形的主軸估計，給 PolyLine/線段用）
+        static double LongestEdgeAngle(List<XYZ> pts)
+        {
+            double best = -1, ang = 0;
+            for (int i = 0; i < pts.Count; i++)
+            {
+                var a = pts[i]; var b = pts[(i + 1) % pts.Count];
+                double dx = b.X - a.X, dy = b.Y - a.Y;
+                double len = dx * dx + dy * dy;
+                if (len > best) { best = len; ang = Math.Atan2(dy, dx); }
+            }
+            return ang;
+        }
+
+        // 通用：點群 + 主方向 → 柱資料（去旋轉外接矩形 + 形心 + 5mm 量化 + 尺寸過濾）。
+        // 封閉 PolyLine / 四線段 / 圖塊共用此法，不挑畫法。
+        static ColData BuildColFromPoints(List<XYZ> pts, double rot, List<string> diag, string src)
+        {
+            if (pts.Count < 3) return null;
+            double cx0 = pts.Average(p => p.X);
+            double cy0 = pts.Average(p => p.Y);
+
+            double cosN = Math.Cos(-rot), sinN = Math.Sin(-rot);
+            double minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
+            foreach (var p in pts)
+            {
+                double dx = p.X - cx0, dy = p.Y - cy0;
+                double rx = dx * cosN - dy * sinN;
+                double ry = dx * sinN + dy * cosN;
+                if (rx < minX) minX = rx;
+                if (rx > maxX) maxX = rx;
+                if (ry < minY) minY = ry;
+                if (ry > maxY) maxY = ry;
+            }
+
+            double wRaw = (maxX - minX) * FtMm, dRaw = (maxY - minY) * FtMm;
+            double wMm = Math.Round(wRaw / 5.0) * 5;
+            double dMm = Math.Round(dRaw / 5.0) * 5;
+            if (diag != null) diag.Add(src + " raw " + ((int)wRaw) + "x" + ((int)dRaw) + "mm");
+            if (wMm < 100 || wMm > 3000 || dMm < 100 || dMm > 3000) return null;
+
+            double bcx = (minX + maxX) / 2.0, bcy = (minY + maxY) / 2.0;
+            double cosR = Math.Cos(rot), sinR = Math.Sin(rot);
+            double mx = cx0 + (bcx * cosR - bcy * sinR);
+            double my = cy0 + (bcx * sinR + bcy * cosR);
+
+            double a = rot;
+            while (a <= -Math.PI / 2.0) a += Math.PI;
+            while (a > Math.PI / 2.0) a -= Math.PI;
+            if (Math.Abs(wMm - dMm) < Tol) a = 0;
+
+            return new ColData { X = mx, Y = my, W = wMm, D = dMm, A = a };
+        }
+
+        // 遞迴收集圖塊內所有曲線端點（模型座標）；含嵌套圖塊，限制深度避免病態檔案
+        static void CollectInstancePoints(GeometryElement ge, List<XYZ> pts, int depth)
+        {
+            if (ge == null || depth > 5) return;
+            foreach (var obj in ge)
+            {
+                if (obj is Line ln)
+                {
+                    pts.Add(ln.GetEndPoint(0));
+                    pts.Add(ln.GetEndPoint(1));
+                }
+                else if (obj is PolyLine pl)
+                {
+                    pts.AddRange(pl.GetCoordinates());
+                }
+                else if (obj is Arc ar)
+                {
+                    foreach (var q in ar.Tessellate()) pts.Add(q);
+                }
+                else if (obj is Curve cv)
+                {
+                    foreach (var q in cv.Tessellate()) pts.Add(q);
+                }
+                else if (obj is GeometryInstance ngi)
+                {
+                    CollectInstancePoints(ngi.GetInstanceGeometry(), pts, depth + 1);
+                }
+            }
         }
 
         static ColData MakeRect(List<XYZ> points)
