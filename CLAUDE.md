@@ -33,9 +33,9 @@ These counts must be derived from source, not copied by memory.
 
 | Item | Current Count | Source of Truth |
 |---|---:|---|
-| Runtime MCP tools | 88 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
+| Runtime MCP tools | 96 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
 | Domain SOP files | 44 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
-| Claude skills | 20 | `.claude/skills/*/SKILL.md` |
+| Claude skills | 21 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, `README.en.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
 
@@ -243,6 +243,7 @@ Read the matching file before applying a workflow or calculation.
 | curtain wall, panel pattern, curtain panel | `domain/curtain-wall-pattern.md` |
 | daylight, daylight area, natural lighting | `domain/daylight-area-check.md` |
 | dependent view, crop, grid crop, view split | `domain/dependent-view-crop-workflow.md` |
+| dwg, cad, 柱匯入, 圖層建柱, 批次建柱, column from dwg | `domain/dwg-column-import.md` |
 | detail component, detail sync, annotation component | `domain/detail-component-sync.md` |
 | door legend, window legend, schedule legend | `domain/door-window-legend-workflow.md` |
 | element coloring, visualization, graphic override | `domain/element-coloring-workflow.md` |
@@ -301,6 +302,7 @@ Available Claude skills:
 - `/deploy-addon`
 - `/detail-component-sync`
 - `/detect-clashes`
+- `/dwg-column-import`
 - `/element-coloring`
 - `/element-query`
 - `/facade-generation`
