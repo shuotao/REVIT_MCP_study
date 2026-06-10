@@ -418,6 +418,15 @@ namespace RevitMCP.Core
                         result = DwgBeamExecutor.CreateBeamsFromDwg(_uiApp.ActiveUIDocument.Document, parameters);
                         break;
 
+                    // === CAD 連結模組 ===
+                    case "link_cad_to_view":
+                        result = CadLinkExecutor.LinkCadToView(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+                    case "link_cads_by_floor":
+                        result = CadLinkExecutor.LinkCadsByFloor(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+
+                    // === 連結模型與碰撞偵測模組 ===
                     case "get_linked_models":
                         result = GetLinkedModels();
                         break;
