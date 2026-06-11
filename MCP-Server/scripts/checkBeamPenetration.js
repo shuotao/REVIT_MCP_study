@@ -196,10 +196,12 @@ ws.on('open', () => {
             if (s.FinalStatus === 'PASS') passCount++; else failCount++;
 
             visualizationResults.push({
-                SleeveId: s.SleeveId,
-                BeamId: s.BeamId, // 永遠傳遞 BeamId 以便 C# 進行間距分組與排序
-                IsOk: s.FinalStatus === 'PASS',
-                Message: s.FinalReason || "PASS"
+                SleeveId:     s.SleeveId,
+                SleeveLinkId: s.SleeveLinkId || 0,
+                BeamId:       s.BeamId,
+                BeamLinkId:   s.BeamLinkId   || 0,
+                IsOk:         s.FinalStatus === 'PASS',
+                Message:      s.FinalReason || "PASS"
             });
         });
 

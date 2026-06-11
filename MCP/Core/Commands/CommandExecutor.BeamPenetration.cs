@@ -614,6 +614,39 @@ namespace RevitMCP.Core
         /// <summary>
         /// 3. 自動化標註與視覺化
         /// </summary>
+        /// <summary>
+        /// 從主模型或指定連結模型取得套管元素與其世界座標 BoundingBox 中心
+        /// </summary>
+        private Element ResolveSleeve(Document mainDoc, IdType sleeveId, IdType sleeveLinkId, out XYZ worldCenter, out Transform sleeveTransform)
+        {
+            worldCenter = XYZ.Zero;
+            sleeveTransform = Transform.Identity;
+
+            Element sleeve;
+            if (sleeveLinkId != 0)
+            {
+                var li = mainDoc.GetElement(new ElementId(sleeveLinkId)) as RevitLinkInstance;
+                Document linkDoc = li?.GetLinkDocument();
+                if (linkDoc == null) return null;
+                sleeve = linkDoc.GetElement(new ElementId(sleeveId));
+                sleeveTransform = li.GetTotalTransform();
+            }
+            else
+            {
+                sleeve = mainDoc.GetElement(new ElementId(sleeveId));
+            }
+
+            if (sleeve == null) return null;
+
+            BoundingBoxXYZ bb = sleeve.get_BoundingBox(null);
+            if (bb != null)
+            {
+                XYZ localCenter = (bb.Min + bb.Max) * 0.5;
+                worldCenter = sleeveTransform.OfPoint(localCenter);
+            }
+            return sleeve;
+        }
+
         private object VisualizePenetration(JObject parameters)
         {
             Document doc = _uiApp.ActiveUIDocument.Document;
@@ -623,7 +656,7 @@ namespace RevitMCP.Core
             {
                 trans.Start();
 
-                // 1. 先清除該視圖中舊有的穿梁標註與詳圖線
+                // 1. 清除舊有穿梁標註與輔助線
                 var oldElements = new FilteredElementCollector(doc, doc.ActiveView.Id)
                     .WhereElementIsNotElementType()
                     .Where(x => {
@@ -634,113 +667,112 @@ namespace RevitMCP.Core
                     })
                     .Select(x => x.Id)
                     .ToList();
-                
-                if (oldElements.Count > 0) {
-                    try {
-                        doc.Delete(oldElements);
-                    } catch {
-                        // 忽略某些無法刪除的元素
-                    }
+
+                if (oldElements.Count > 0)
+                    try { doc.Delete(oldElements); } catch { }
+
+                // 準備文字類型（無邊框）
+                ElementId defaultTextTypeId = doc.GetDefaultElementTypeId(ElementTypeGroup.TextNoteType);
+                if (defaultTextTypeId == ElementId.InvalidElementId)
+                    defaultTextTypeId = new FilteredElementCollector(doc).OfClass(typeof(TextNoteType)).FirstElementId();
+
+                TextNoteType baseType = doc.GetElement(defaultTextTypeId) as TextNoteType;
+                TextNoteType noBorderType = new FilteredElementCollector(doc)
+                    .OfClass(typeof(TextNoteType))
+                    .Cast<TextNoteType>()
+                    .FirstOrDefault(t => t.get_Parameter(BuiltInParameter.TEXT_BOX_VISIBILITY)?.AsInteger() == 0);
+
+                if (noBorderType == null && baseType != null)
+                {
+                    noBorderType = baseType.Duplicate(baseType.Name + "_NoBorder") as TextNoteType;
+                    noBorderType.get_Parameter(BuiltInParameter.TEXT_BOX_VISIBILITY)?.Set(0);
                 }
+                ElementId finalTypeId = noBorderType != null ? noBorderType.Id : defaultTextTypeId;
 
-                // 為了讓標註錯開不重疊，紀錄每根梁目前已經標註的數量
-                Dictionary<IdType, int> beamDimCounts = new Dictionary<IdType, int>();
+                FillPatternElement solidFill = new FilteredElementCollector(doc)
+                    .OfClass(typeof(FillPatternElement))
+                    .Cast<FillPatternElement>()
+                    .FirstOrDefault(x => x.GetFillPattern().IsSolidFill);
 
+                // 2. 上色 + TextNote
                 foreach (var res in results)
                 {
-                    IdType id = res["SleeveId"].Value<IdType>();
-                    bool isOk = res["IsOk"].Value<bool>();
-                    string msg = res["Message"].Value<string>();
+                    IdType id          = res["SleeveId"].Value<IdType>();
+                    IdType sleeveLinkId = res["SleeveLinkId"]?.Value<IdType>() ?? 0;
+                    bool isOk          = res["IsOk"].Value<bool>();
 
-                    Element sleeve = doc.GetElement(new ElementId(id));
+                    XYZ worldCenter;
+                    Transform sleeveTr;
+                    Element sleeve = ResolveSleeve(doc, id, sleeveLinkId, out worldCenter, out sleeveTr);
                     if (sleeve == null) continue;
 
                     Color color = isOk ? new Color(0, 200, 0) : new Color(255, 0, 0);
-                    OverrideGraphicSettings ogs = new OverrideGraphicSettings();
-                    
-                    // 同時設定線條與填充顏色，確保清晰可見
-                    ogs.SetProjectionLineColor(color);
-                    ogs.SetSurfaceForegroundPatternColor(color);
-                    // 嘗試抓取固體填充樣式
-                    FillPatternElement solidFill = new FilteredElementCollector(doc).OfClass(typeof(FillPatternElement)).Cast<FillPatternElement>().FirstOrDefault(x => x.GetFillPattern().IsSolidFill);
-                    if (solidFill != null) ogs.SetSurfaceForegroundPatternId(solidFill.Id);
 
-                    doc.ActiveView.SetElementOverrides(sleeve.Id, ogs);
-
-                    // 文字標註強制放在視圖平面高度
-                    XYZ pos = XYZ.Zero;
-                    BoundingBoxXYZ bb = sleeve.get_BoundingBox(null);
-                    if (bb != null) pos = (bb.Min + bb.Max) * 0.5;
-                    
-                    // 取得視圖切割平面高度
-                    PlanViewRange vr = (doc.ActiveView as ViewPlan)?.GetViewRange();
-                    if (vr != null) {
-                        double cutPlaneH = (doc.ActiveView as ViewPlan).GenLevel.Elevation + vr.GetOffset(PlanViewPlane.CutPlane);
-                        pos = new XYZ(pos.X, pos.Y, cutPlaneH);
-                    }
-
-                    // 獲取預設的文字類型 ID (Revit 2017+ 需要有效的類型)
-                    ElementId defaultTextTypeId = doc.GetDefaultElementTypeId(ElementTypeGroup.TextNoteType);
-                    if (defaultTextTypeId == ElementId.InvalidElementId) {
-                        defaultTextTypeId = new FilteredElementCollector(doc).OfClass(typeof(TextNoteType)).FirstElementId();
-                    }
-
-                    // 確保文字標註沒有外框
-                    TextNoteType baseType = doc.GetElement(defaultTextTypeId) as TextNoteType;
-                    TextNoteType noBorderType = new FilteredElementCollector(doc)
-                        .OfClass(typeof(TextNoteType))
-                        .Cast<TextNoteType>()
-                        .FirstOrDefault(t => t.get_Parameter(BuiltInParameter.TEXT_BOX_VISIBILITY) != null && t.get_Parameter(BuiltInParameter.TEXT_BOX_VISIBILITY).AsInteger() == 0);
-
-                    if (noBorderType == null && baseType != null)
+                    // 主模型套管才能直接上色；連結模型套管 Revit API 不支援單元素 Override
+                    if (sleeveLinkId == 0)
                     {
-                        noBorderType = baseType.Duplicate(baseType.Name + "_NoBorder") as TextNoteType;
-                        noBorderType.get_Parameter(BuiltInParameter.TEXT_BOX_VISIBILITY)?.Set(0);
+                        OverrideGraphicSettings ogs = new OverrideGraphicSettings();
+                        ogs.SetProjectionLineColor(color);
+                        ogs.SetSurfaceForegroundPatternColor(color);
+                        if (solidFill != null) ogs.SetSurfaceForegroundPatternId(solidFill.Id);
+                        doc.ActiveView.SetElementOverrides(sleeve.Id, ogs);
                     }
-                    
-                    ElementId finalTypeId = noBorderType != null ? noBorderType.Id : defaultTextTypeId;
 
-                    // 將文字方塊往右上角偏移 (2ft)，避免擋住套管
+                    // TextNote 位置：套管中心投影至視圖平面
+                    XYZ pos = worldCenter;
+                    PlanViewRange vr = (doc.ActiveView as ViewPlan)?.GetViewRange();
+                    if (vr != null)
+                    {
+                        double cutH = (doc.ActiveView as ViewPlan).GenLevel.Elevation + vr.GetOffset(PlanViewPlane.CutPlane);
+                        pos = new XYZ(pos.X, pos.Y, cutH);
+                    }
+
+                    string label = isOk ? "● PASS" : "● FAIL";
+                    // 連結模型套管在標籤加上來源提示
+                    if (sleeveLinkId != 0) label += " [Link]";
+
                     XYZ textPos = new XYZ(pos.X + 2.0, pos.Y + 2.0, pos.Z);
-                    TextNote tn = TextNote.Create(doc, doc.ActiveView.Id, textPos, isOk ? "● PASS" : "● FAIL", finalTypeId);
-                    
-                    // 加入指引箭頭指向套管中心
+                    TextNote tn = TextNote.Create(doc, doc.ActiveView.Id, textPos, label, finalTypeId);
                     Leader leader = tn.AddLeader(TextNoteLeaderTypes.TNLT_STRAIGHT_L);
                     leader.End = pos;
-                    
                     tn.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("BeamPenetration_Helper");
-                    
+
                     OverrideGraphicSettings textOgs = new OverrideGraphicSettings();
                     textOgs.SetProjectionLineColor(color);
                     doc.ActiveView.SetElementOverrides(tn.Id, textOgs);
-
                 }
 
-                // 3. 處理同一根大梁上所有節點的排序與淨距標註
-                Dictionary<IdType, List<Element>> beamSleeves = new Dictionary<IdType, List<Element>>();
+                // 3. 依梁分組，建立順序標註
+                // key = beamId, value = list of (sleeve, worldCenter, sleeveLinkId)
+                var beamSleeveMap = new Dictionary<IdType, List<(Element Slv, XYZ Center)>>();
+
                 foreach (var res in results)
                 {
-                    IdType id = res["SleeveId"].Value<IdType>();
-                    IdType bId = (res["BeamId"] != null && res["BeamId"].Type != Newtonsoft.Json.Linq.JTokenType.Null) ? res["BeamId"].Value<IdType>() : 0;
+                    IdType id          = res["SleeveId"].Value<IdType>();
+                    IdType sleeveLinkId = res["SleeveLinkId"]?.Value<IdType>() ?? 0;
+                    IdType bId = (res["BeamId"] != null && res["BeamId"].Type != Newtonsoft.Json.Linq.JTokenType.Null)
+                                 ? res["BeamId"].Value<IdType>() : 0;
                     if (bId == 0) continue;
-                    Element slv = doc.GetElement(new ElementId(id));
+
+                    XYZ worldCenter;
+                    Transform sleeveTr;
+                    Element slv = ResolveSleeve(doc, id, sleeveLinkId, out worldCenter, out sleeveTr);
                     if (slv == null) continue;
-                    if (!beamSleeves.ContainsKey(bId)) beamSleeves[bId] = new List<Element>();
-                    beamSleeves[bId].Add(slv);
+
+                    if (!beamSleeveMap.ContainsKey(bId))
+                        beamSleeveMap[bId] = new List<(Element, XYZ)>();
+                    beamSleeveMap[bId].Add((slv, worldCenter));
                 }
 
-                foreach (var kvp in beamSleeves)
+                foreach (var kvp in beamSleeveMap)
                 {
-                    IdType bId = kvp.Key;
-                    List<Element> slvs = kvp.Value;
-
                     Transform bTr;
-                    Element bElem = FindElementInMainOrLinks(doc, bId, out bTr);
+                    Element bElem = FindElementInMainOrLinks(doc, kvp.Key, out bTr);
                     if (bElem == null) continue;
-                    LocationCurve bLoc = bElem.Location as LocationCurve;
-                    if (bLoc == null) continue;
 
-                    CreateSequentialDimensions(doc, doc.ActiveView, bElem, slvs, bTr);
+                    // 傳遞套管元素清單給標註邏輯（worldCenter 已包含在元素的 BoundingBox 計算中）
+                    CreateSequentialDimensions(doc, doc.ActiveView, bElem,
+                        kvp.Value.Select(x => x.Slv).ToList(), bTr);
                 }
 
                 trans.Commit();
