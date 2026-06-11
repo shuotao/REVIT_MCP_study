@@ -331,6 +331,7 @@ Available Claude skills:
 - `/deploy-addon`
 - `/detail-component-sync`
 - `/detect-clashes`
+- `/dll-to-mcp-tool`
 - `/domain-diagram`
 - `/dwg-beam-import`
 - `/dwg-column-import`
