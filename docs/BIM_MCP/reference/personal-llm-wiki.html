@@ -34,6 +34,24 @@
   .bim-steps li > p{font-size:13px;margin:4px 0 0 0;color:var(--text-secondary)}
   .bim-steps li pre{margin:8px 0 0 0;font-size:11px}
   @media(max-width:800px){.flywheel{grid-template-columns:1fr}.flywheel div:not(:last-child)::after{content:"↓";right:50%;top:auto;bottom:-18px;transform:translateX(50%)}}
+  /* ── 精靈式導覽（一步一頁） ── */
+  body.wizard section.bim-section{display:none}
+  body.wizard section.bim-section.wiz-active{display:block;animation:wizIn .25s ease}
+  body.wizard .bim-hero{display:none}
+  body.wizard.wiz-first .bim-hero{display:block}
+  body.wizard .bim-footer{display:none}
+  body.wizard.wiz-last .bim-footer{display:block}
+  @keyframes wizIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .wiz-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:14px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:40}
+  .wiz-pill{font-family:var(--font-tech);font-size:11px;letter-spacing:1px;padding:6px 12px;border:1px solid var(--border);border-radius:100px;color:var(--text-muted);cursor:pointer;background:var(--bg-card);user-select:none}
+  .wiz-pill.done{color:var(--ok);border-color:rgba(74,222,128,.45)}
+  .wiz-pill.active{color:#000;background:var(--accent);border-color:var(--accent);font-weight:700}
+  .wiz-ctrl{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:38px 0 6px;border-top:1px solid var(--border);padding-top:22px}
+  .wiz-btn{font-family:var(--font-tech);font-size:13px;letter-spacing:1px;padding:12px 26px;border-radius:100px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;transition:all .2s}
+  .wiz-btn:hover{border-color:var(--accent-border);color:var(--accent)}
+  .wiz-btn.primary{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
+  .wiz-btn[disabled]{opacity:.3;cursor:default}
+  .wiz-progress{font-family:var(--font-tech);font-size:11px;letter-spacing:2px;color:var(--text-faint)}
 </style>
 </head>
 <body data-prev="contributor-template.html" data-next="../index.html">
@@ -120,8 +138,33 @@
   </table>
 </section>
 
+<section class="bim-section bim-anchor" id="whomakes">
+  <div class="bim-section-eyebrow">SECTION 04 / WHO MAKES WHAT</div>
+  <h2 class="bim-section-title">哪些是 pull 下來的？哪些是你電腦上生出來的？</h2>
+  <p>最常見的誤會先講清楚：<strong>vault/ 不是 pull 下來的，也永遠不會被 push 上去</strong>。它是你貼上建置說明的當下，AI 在你電腦上「現場生成」的私人區。會經過 git 的，只有上游維護的公共內容：</p>
+  <table class="map-table">
+    <tr><th>檔案</th><th>誰生成</th><th>怎麼到你電腦</th><th>會不會被 push</th></tr>
+    <tr><td>vault/（wiki/、CLAUDE.md、index.md、log.md）</td><td><strong>你的 AI agent</strong>，本地現場生成</td><td>不經過 git —— 上游 repo 裡根本沒有這個資料夾</td><td><strong>永不</strong>（.gitignore 擋住，連 git status 都看不到）</td></tr>
+    <tr><td>templates/personal-vault/VAULT-CLAUDE.md</td><td>上游維護者</td><td>隨 clone / git pull 下來</td><td>會 —— 它是公共內容（schema 的「母版」）</td></tr>
+    <tr><td>.gitignore（含 /vault/ 與 /.obsidian/）</td><td>上游維護者</td><td>隨 clone / git pull 下來</td><td>會 —— 它就是擋住個人區的閘門本身</td></tr>
+  </table>
+  <div class="vault-tree">上游 repo（公共）                         你的電腦（私人）
+─────────────────                        ─────────────────
+templates/personal-vault/   ──pull──▶    templates/...（母版到位）
+VAULT-CLAUDE.md                               │
+                                              │ agent 逐字複製
+.gitignore (/vault/)        ──pull──▶         ▼
+                                         vault/CLAUDE.md（私人副本）
+                                         vault/wiki/  index.md  log.md
+                                         （agent 本地生成，git 看不見）
+                                              │
+                                              ✗ push 被 .gitignore 擋住
+                                              ✓ 唯一回上游的路 = PR 提案</div>
+  <p><strong>範本走公共血管、副本住私人區。</strong>templates/ 裡的是母版，隨 pull 保持最新；vault/CLAUDE.md 是你的私人副本。將來母版升版（schema_version 1.1 → 1.2），你下次 pull 拿到新母版，lint 比對版本號發現副本落後就提示升級 —— Fixed Core 整段換新、Personal 區保留。大家的規則就是這樣持續收斂的。</p>
+</section>
+
 <section class="bim-section bim-anchor" id="flywheel">
-  <div class="bim-section-eyebrow">SECTION 04 / FLYWHEEL</div>
+  <div class="bim-section-eyebrow">SECTION 05 / FLYWHEEL</div>
   <h2 class="bim-section-title">正向循環：集體 → 個人 → 變體 → 回到集體</h2>
   <p>這個 vault 不只是讀書工具 —— 它是小聚往上進階的下一步。公共智慧進入個人、個人深化出獨立變體、變體產生新知識、新知識回饋到開源的共同智慧：</p>
   <div class="flywheel">
@@ -135,7 +178,7 @@
 </section>
 
 <section class="bim-section bim-anchor" id="prereq">
-  <div class="bim-section-eyebrow">SECTION 05 / PREREQUISITES</div>
+  <div class="bim-section-eyebrow">SECTION 06 / PREREQUISITES</div>
   <h2 class="bim-section-title">前置條件</h2>
   <table class="map-table">
     <tr><th>需要</th><th>說明</th><th>已在用 Revit MCP 的你</th></tr>
@@ -147,7 +190,7 @@
 </section>
 
 <section class="bim-section bim-anchor" id="copy">
-  <div class="bim-section-eyebrow">SECTION 06 / COPY THIS</div>
+  <div class="bim-section-eyebrow">SECTION 07 / COPY THIS</div>
   <h2 class="bim-section-title">複製這段，貼給你的 AI Agent</h2>
   <p>下面是完整的「想法檔」（idea file）。複製全文，貼到 Claude Code / Gemini CLI / Antigravity 的對話裡，AI 會跟你協作把 vault 建出來。</p>
   <p><strong>不同 Agent、不同模型，建出來會不會不一樣？</strong>會 —— 而且我們把「該一樣的」和「該不一樣的」切開管理：</p>
@@ -364,7 +407,7 @@ This document is intentionally abstract. It describes the idea, not a specific i
 </section>
 
 <section class="bim-section bim-anchor" id="firstrun">
-  <div class="bim-section-eyebrow">SECTION 07 / FIRST RUN</div>
+  <div class="bim-section-eyebrow">SECTION 08 / FIRST RUN</div>
   <h2 class="bim-section-title">第一次操作（10 分鐘）</h2>
   <ol class="bim-steps">
     <li><strong>裝 Obsidian</strong><p>從 obsidian.md 下載安裝（免費）。先不用設定任何東西。</p></li>
@@ -396,6 +439,84 @@ document.getElementById("copyIdea").addEventListener("click", function(){
     setTimeout(function(){ btn.textContent = "📋 複製全文"; btn.classList.remove("copied"); }, 2600);
   });
 });
+
+/* ── 精靈式導覽：一步一頁，完成這頁再往下一頁 ── */
+(function(){
+  var steps = Array.prototype.slice.call(document.querySelectorAll("section.bim-section"));
+  if (!steps.length) return;
+  var labels = ["為什麼", "公共 Wiki", "結構", "誰生成什麼", "循環", "前置條件", "複製說明", "上手"];
+  var KEY = "pllmwiki-step";
+  document.body.classList.add("wizard");
+
+  var bar = document.createElement("div");
+  bar.className = "wiz-bar";
+  steps.forEach(function(s, i){
+    var pill = document.createElement("span");
+    pill.className = "wiz-pill";
+    pill.textContent = (i + 1) + " " + (labels[i] || s.id);
+    pill.addEventListener("click", function(){ go(i); });
+    bar.appendChild(pill);
+  });
+  var nav = document.querySelector(".bim-topnav");
+  nav.parentNode.insertBefore(bar, nav.nextSibling);
+  var pills = Array.prototype.slice.call(bar.children);
+
+  steps.forEach(function(s, i){
+    var ctrl = document.createElement("div");
+    ctrl.className = "wiz-ctrl";
+    var prev = document.createElement("button");
+    prev.className = "wiz-btn";
+    prev.textContent = "← 上一步";
+    if (i === 0) prev.disabled = true;
+    else prev.addEventListener("click", function(){ go(i - 1); });
+    var prog = document.createElement("span");
+    prog.className = "wiz-progress";
+    prog.textContent = "STEP " + (i + 1) + " / " + steps.length;
+    var next = document.createElement("button");
+    next.className = "wiz-btn primary";
+    if (i < steps.length - 1) {
+      next.textContent = "完成，下一步：" + (labels[i + 1] || "") + " →";
+      next.addEventListener("click", function(){ go(i + 1); });
+    } else {
+      next.textContent = "✓ 全部完成，回到第 1 步";
+      next.addEventListener("click", function(){ go(0); });
+    }
+    ctrl.appendChild(prev); ctrl.appendChild(prog); ctrl.appendChild(next);
+    s.appendChild(ctrl);
+  });
+
+  function go(i){
+    steps.forEach(function(s, j){
+      s.classList.toggle("wiz-active", j === i);
+      pills[j].classList.toggle("active", j === i);
+      pills[j].classList.toggle("done", j < i);
+    });
+    document.body.classList.toggle("wiz-first", i === 0);
+    document.body.classList.toggle("wiz-last", i === steps.length - 1);
+    try { localStorage.setItem(KEY, String(i)); } catch (e) {}
+    window.scrollTo(0, 0);
+  }
+
+  /* 站內 # 錨點改成跳到對應步驟（含 topnav 的「複製建置說明」） */
+  document.addEventListener("click", function(e){
+    var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a) return;
+    var id = a.getAttribute("href").slice(1);
+    if (!id) return;
+    for (var i = 0; i < steps.length; i++) {
+      if (steps[i].id === id || steps[i].querySelector("#" + id)) {
+        e.preventDefault();
+        go(i);
+        return;
+      }
+    }
+  });
+
+  var saved = 0;
+  try { saved = parseInt(localStorage.getItem(KEY) || "0", 10) || 0; } catch (e) {}
+  if (saved < 0 || saved >= steps.length) saved = 0;
+  go(saved);
+})();
 </script>
 </body>
 </html>
