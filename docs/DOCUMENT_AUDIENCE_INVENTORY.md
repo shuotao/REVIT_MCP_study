@@ -15,9 +15,9 @@ This inventory defines which project documents are for AI agents, human readers,
 
 | Item | Count | Source |
 |---|---:|---|
-| Runtime MCP tools | 92 | `registerRevitTools()` |
-| Domain SOP files | 43 | `domain/*.md` except README, plus `domain/references/*.md` |
-| Claude skills | 20 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 96 | `registerRevitTools()` |
+| Domain SOP files | 44 | `domain/*.md` except README, plus `domain/references/*.md` |
+| Claude skills | 21 | `.claude/skills/*/SKILL.md` |
 
 ## AI-Only Documents
 
@@ -59,6 +59,11 @@ These must remain understandable by both sides.
 | `docs/BIM_MCP/**` | public knowledge site | Teaching and visual explanations |
 | `docs/troubleshoot-first-install.md` | users | First-install troubleshooting |
 | `docs/slides.md` | presenters | Slide index |
+| `Antigravity_MCP_Complete_Guide.md` | Antigravity users | Manual MCP setup for Antigravity client |
+| `docs/UPDATE-PULL-GUIDE.md`, `docs/branch-index.md` | users and maintainers | Update flow and branch overview |
+| `docs/claude-code-cheatsheet.html`, `docs/karpathy-gist-zh-tw.html` | readers | Reference pages |
+| other `docs/*.md` topic guides | mixed | Per-topic guides (agent handoff, guard rails, architecture, slope analysis, docs structure); classify individually if promoted to canonical |
+| root-level Chinese notes (`HJPLUS *.md`, `[好學生筆記]*.md`) | community readers | Event notes and adoption guides |
 
 ## Historical or Archive Documents
 
@@ -67,6 +72,8 @@ These must remain understandable by both sides.
 | `docs/_archive/**` | Preserve by default |
 | old event logs | Preserve by default |
 | bundled external references | Preserve source snapshot |
+| date-prefixed `docs/MMDD-*.html` (e.g. `0425-presentation.html`, `0523-monthly.html`) | Immutable event snapshots. Must carry a `data-snapshot="YYYY-MM-DD"` banner. Their counts reflect the event date and are intentionally excluded from count sync (QAQC Phase 7). |
+| `docs/0523-dry-run-retrospective.md` | Event retrospective; preserve as written |
 
 ## Future Writing Rules
 

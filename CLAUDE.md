@@ -66,6 +66,14 @@ Before claiming live Revit state:
 
 If the Revit MCP tools are unavailable, state that limitation and provide generic guidance only.
 
+## Single-Connection Limitation
+
+The Revit-side WebSocket service (`MCP/Core/SocketService.cs`) holds one MCP connection at a time. A newly connected MCP server replaces the previous connection. Consequences:
+
+- Multiple AI clients are used by switching, never concurrently.
+- Do not advise users to run two MCP-connected AI clients against the same Revit session.
+- If a connection misbehaves, the reset path is: restart the MCP service from the Revit ribbon.
+
 ## Build Commands
 
 ### MCP Server
@@ -215,7 +223,7 @@ Re-anchor before using:
 - level name
 - side-effecting view overrides or model edits
 
-Use `get_active_view` or the nearest equivalent tool before the dependent operation. Do not reuse a view ID or level name from an earlier turn.
+Use `get_active_view` before the dependent operation; if it is unavailable, call `get_all_views` and identify the active view from its result. Do not reuse a view ID or level name from an earlier turn.
 
 If the anchor tool times out, retry once. If it still fails, stop and report the limitation.
 
@@ -253,7 +261,7 @@ Read the matching file before applying a workflow or calculation.
 | finish legend, room finish legend | `domain/finish-legend-creation.md` |
 | fire rating, fireproofing | `domain/fire-rating-check.md` |
 | floor area, FAR review, gross floor area | `domain/floor-area-review.md` |
-| floor slope, drainage slope, slab slope | `domain/floor-slope-analysis.md` |
+| floor slope, drainage slope, slab slope, 樓板坡度, 排水坡度, 洩水 | `domain/floor-slope-analysis.md` |
 | IFC, structural sync, imported structural framing | `domain/ifc-structural-sync.md` |
 | mechanical part, assembly, BIP, mechanical documentation | `domain/mechanical-part-doc.md` |
 | MEP clash, CSA clash, penetration, beam penetration | `domain/mep-csa-clash-detection.md` |
@@ -267,7 +275,6 @@ Read the matching file before applying a workflow or calculation.
 | room boundary, room boundary model | `domain/room-boundary.md` |
 | room numbering, automatic room numbering | `domain/room-numbering-workflow.md` |
 | room surface area, finish surface area | `domain/room-surface-area-review.md` |
-| floor slope, drainage slope, 樓板坡度, 排水坡度, 洩水 | `domain/floor-slope-analysis.md` |
 | section numbering, auto section numbering | `domain/section-auto-numbering.md` |
 | section datum, crop box, section adjustment | `domain/section-datum-adjustment.md` |
 | sheet, viewport, titleblock, sheet management | `domain/sheet-viewport-management.md` |
@@ -355,9 +362,7 @@ VS Code config:
       "type": "stdio",
       "command": "node",
       "args": ["${workspaceFolder}/MCP-Server/build/index.js"],
-      "env": {
-        "REVIT_VERSION": "2024"
-      }
+      "env": {}
     }
   }
 }
@@ -400,6 +405,9 @@ QA/QC must cover:
 - local markdown link rot
 - AI/human/shared document audience classification
 - mojibake risk in AI-only and human-facing canonical docs
+- markdown count-table claims (`| Runtime MCP tools | N |` style) in CLAUDE.md, README, README.en, and the audience inventory
+- client config template portability (no hardcoded user paths; `<YOUR_PROJECT_PATH>` placeholder required)
+- snapshot banner (`data-snapshot="YYYY-MM-DD"`) on date-prefixed `docs/MMDD-*.html`
 
 ## Logging Protocol
 
@@ -428,6 +436,7 @@ Rules:
 5. Domain files may use bilingual headings and terminology when useful.
 6. Any new domain file must include frontmatter consistent with `domain/frontmatter-standard.md`.
 7. Any new AI instruction file must declare whether it is canonical, redirect, command, skill, or local-only.
+8. Date-prefixed `docs/MMDD-*.html` files are immutable event snapshots: they must carry a `data-snapshot="YYYY-MM-DD"` banner, their numbers are never re-synced, and QA/QC count checks intentionally skip them.
 
 ## Final Pre-Response Checklist
 

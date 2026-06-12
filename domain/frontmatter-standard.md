@@ -13,6 +13,7 @@ metadata:
   referenced_by:
     - "/domain command"
     - "/qaqc Phase 6"
+    - hj-pr-proposal
   tags: [frontmatter, metadata, 規範, lint, quality]
 ---
 

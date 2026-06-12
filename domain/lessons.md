@@ -13,8 +13,11 @@ metadata:
   related: []  # TODO: 月小聚補相關 domain（檔名）
   referenced_by:
     - auto-dimension
+    - element-coloring
     - element-query
     - fire-safety-check
+    - parking-check
+    - wall-orientation-check
   tags: [lessons, 開發經驗, 避坑, 經驗, 教訓, append-only]
 ---
 

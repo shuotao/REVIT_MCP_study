@@ -12,9 +12,9 @@ Revit MCP lets AI clients call Autodesk Revit tools through the Model Context Pr
 
 | Item | Count | Source |
 |---|---:|---|
-| Runtime MCP tools | 92 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 43 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
-| Claude skills | 20 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 96 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 44 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
+| Claude skills | 21 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, this file, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and run:
 
@@ -156,15 +156,33 @@ VS Code config in `.vscode/mcp.json`:
       "type": "stdio",
       "command": "node",
       "args": ["${workspaceFolder}/MCP-Server/build/index.js"],
-      "env": {
-        "REVIT_VERSION": "2024"
-      }
+      "env": {}
     }
   }
 }
 ```
 
 Other AI clients use the same concept: launch `MCP-Server/build/index.js` with `node`.
+
+Config template per client:
+
+| AI Client | Config location | Template |
+|---|---|---|
+| Claude Code | project root `.mcp.json` | built in, works out of the box |
+| Claude Desktop | `%APPDATA%\Claude\claude_desktop_config.json` | `MCP-Server/claude_desktop_config.json` |
+| Gemini CLI | `~/.gemini/settings.json` | `MCP-Server/gemini_mcp_config.json` |
+| VS Code Copilot | `.vscode/mcp.json` | built in |
+| Antigravity | UI settings | `Antigravity_MCP_Complete_Guide.md` |
+
+Replace `<YOUR_PROJECT_PATH>` in the templates with the actual project path on your machine.
+
+### Switching Between AI Clients
+
+The Revit-side WebSocket service accepts only one MCP connection at a time: a newly connected MCP server replaces the previous connection. Multiple AI clients are therefore used by switching, not concurrently:
+
+1. Close the current AI client (or disable its MCP server).
+2. Start the other AI client; once its MCP server connects to `localhost:8964`, it takes over.
+3. If the connection misbehaves, restart the MCP service from the Revit ribbon to reset it.
 
 ## Startup Flow
 

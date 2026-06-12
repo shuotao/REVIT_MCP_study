@@ -275,6 +275,20 @@ if (Test-Path $pkg) {
     Write-Check "MCP SDK dependency" ($content -match "modelcontextprotocol") "Missing MCP SDK dependency"
 }
 
+# 3-4: Client config template portability — templates must use <YOUR_PROJECT_PATH>, never a hardcoded user path
+Write-Host ""
+Write-Host "  3-4. Client config template portability:" -ForegroundColor Cyan
+$templateFiles = Get-ChildItem -Path "$projectRoot\MCP-Server\*_config.json" -ErrorAction SilentlyContinue
+$nonPortable = @()
+foreach ($tf in $templateFiles) {
+    $content = Read-FileText $tf.FullName
+    if ($content -and ($content -match '[A-Za-z]:[\\/]+Users[\\/]')) {
+        $nonPortable += $tf.Name
+    }
+}
+Write-Check "Config templates contain no hardcoded user paths" ($nonPortable.Count -eq 0) `
+    $(if ($nonPortable.Count -gt 0) { "Hardcoded user path in: $($nonPortable -join ', '). Use <YOUR_PROJECT_PATH> placeholder." } else { "" })
+
 # ─────────────────────────────────────────────
 # Phase 4: Build Verification (Windows only)
 # ─────────────────────────────────────────────
@@ -541,26 +555,30 @@ Write-Host "    Skills  = $skillCount  (.claude/skills/*/SKILL.md)" -ForegroundC
 Write-Host "    Domain  = $domainCount  (domain/*.md ex README + domain/references/*.md)" -ForegroundColor Gray
 Write-Host "    Tools   = $toolCount  (runtime registerRevitTools())" -ForegroundColor Gray
 
-# Exclude: archived snapshots, log files, explicit-snapshot demo HTMLs, external bundled mirrors
-$skipPatterns = @('_archive', '\log\', '0425-presentation.html',
-                  'karpathy-wiki-reading.bundled.txt', 'reference\external')
+# Exclude: archived snapshots, log files, immutable date-prefixed snapshot HTMLs, external bundled mirrors
+# Snapshot policy: every docs/MMDD-*.html is an immutable event snapshot — its numbers reflect
+# the event date and are never re-synced. Living documents (BIM_MCP reference) stay in scope.
+$skipPatterns = @('_archive', '\log\', '\docs\0425-', '\docs\0523-', 'reference\external')
 
 # Scan target files for claim-site checks (7-1/7-2/7-3)
 $scanPaths = @(
     "$projectRoot\CLAUDE.md",
     "$projectRoot\README.md",
     "$projectRoot\README.en.md",
+    "$projectRoot\docs\DOCUMENT_AUDIENCE_INVENTORY.md",
     "$projectRoot\docs\BIM_MCP\*.html",
     "$projectRoot\docs\BIM_MCP\reference\*.html",
-    "$projectRoot\docs\BIM_MCP\_shared.js",
-    "$projectRoot\docs\0523-monthly.html",
-    "$projectRoot\docs\0523-handson.html"
+    "$projectRoot\docs\BIM_MCP\_shared.js"
 )
 
 # Known claim-site patterns — ONLY match GRAND-TOTAL claim phrases (not "5 個 ARCHI 工具" type batch counts).
 # Each: { Pattern (regex w/ 1 capture group) ; Truth ; Label }
 # Truth note: Domain Knowledge heading + N Domain refs use $domainCount+1 because 1 entry is from domain/references/
 $claimSites = @(
+    # Markdown count-table claims (CLAUDE.md / README.md / README.en.md / DOCUMENT_AUDIENCE_INVENTORY.md)
+    @{ Pattern = '\|\s*Runtime MCP tools\s*\|\s*(\d+)\s*\|';           Truth = $toolCount;          Label = '| Runtime MCP tools | N |' },
+    @{ Pattern = '\|\s*Domain SOP files\s*\|\s*(\d+)\s*\|';            Truth = $domainCount;        Label = '| Domain SOP files | N |' },
+    @{ Pattern = '\|\s*Claude skills\s*\|\s*(\d+)\s*\|';               Truth = $skillCount;         Label = '| Claude skills | N |' },
     # Tool count grand-total claims
     @{ Pattern = '共用\s*(\d+)\s*個工具';                              Truth = $toolCount;          Label = '共用 N 個工具' },
     @{ Pattern = '個\s*Domain[、，]\s*(\d+)\s*個工具';                  Truth = $toolCount;          Label = 'N 個工具 (hero 三層)' },
@@ -766,6 +784,23 @@ foreach ($lf in $linkScanFiles) {
 Write-Check "All $totalChecked local markdown links resolve" ($rotted.Count -eq 0) `
     $(if ($rotted.Count -gt 0) { "$($rotted.Count) broken link(s)" } else { "" })
 if ($rotted.Count -gt 0) { $rotted | Select-Object -First 20 | ForEach-Object { Write-Host $_ -ForegroundColor DarkYellow } }
+
+# 7-8: Snapshot banner — every date-prefixed docs/MMDD-*.html must declare itself an
+# immutable snapshot via a data-snapshot="YYYY-MM-DD" attribute, so readers know its
+# numbers are historical and QAQC count-sync intentionally skips it.
+Write-Host ""
+Write-Host "  7-8. Snapshot banner on date-prefixed HTML:" -ForegroundColor Cyan
+$snapshotHtml = Get-ChildItem -Path "$projectRoot\docs\*.html" -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -match '^\d{4}-' }
+$missingBanner = @()
+foreach ($sf in $snapshotHtml) {
+    $content = Read-FileText $sf.FullName
+    if (-not $content -or $content -notmatch 'data-snapshot="\d{4}-\d{2}-\d{2}"') {
+        $missingBanner += $sf.Name
+    }
+}
+Write-Check "All $($snapshotHtml.Count) date-prefixed HTMLs carry data-snapshot banner" ($missingBanner.Count -eq 0) `
+    $(if ($missingBanner.Count -gt 0) { "Missing banner: $($missingBanner -join ', ')" } else { "" })
 
 # ─────────────────────────────────────────────
 # Phase 8: Document Audience and Encoding Hygiene
