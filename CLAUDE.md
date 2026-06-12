@@ -347,6 +347,8 @@ Available Claude skills:
 - `/smoke-exhaust`
 - `/stair-hidden-line`
 - `/wall-orientation-check`
+- `/wall-section-batch`
+- `/wall-section-batch`
 
 Use the smallest relevant skill set. If a skill and a domain file conflict on the method, the domain file wins.
 

@@ -313,6 +313,14 @@ namespace RevitMCP.Core
                         result = CreateFacadeFromAnalysis(parameters);
                         break;
 
+                    // === 牆面平行剖面 ===
+                    case "create_parallel_section_view":
+                        result = CreateParallelSectionView(parameters);
+                        break;
+                    case "batch_create_wall_sections":
+                        result = BatchCreateWallSections(parameters);
+                        break;
+
                     // === 排煙窗模組 (PR#12) ===
                     case "check_smoke_exhaust_windows":
                         result = CheckSmokeExhaustWindows(parameters);
