@@ -272,6 +272,10 @@ repo 本身就是 raw 層；個人區是 repo 內的 vault/ 資料夾，上游 .
        templates/personal-vault/VAULT-CLAUDE.md —— 落後就提示升級
        （新版 Fixed Core 整段覆蓋，Personal 區保留）
 
+補充：若你是 Claude Code，本 repo 已內建 /ingest、/lint、/wiki 三個
+斜線指令，內容就是轉接到以上定義；其他 CLI（Codex / Gemini）以
+自然語言觸發，新 session 第一句建議先說「讀 vault/CLAUDE.md」。
+
 ## 紀律（必須遵守）
 
 1. 個人操作永不寫入 vault/ 以外的任何檔案；個人筆記永不 commit 到
@@ -425,6 +429,10 @@ This document is intentionally abstract. It describes the idea, not a specific i
   <div class="why-card">
     <h4>Q2：開整個 repo，Obsidian 會不會讀錯 CLAUDE.md？</h4>
     <p>不會，因為 <strong>Obsidian 根本不讀 CLAUDE.md</strong> —— 它是給 AI agent 的指令檔，對 Obsidian 來說只是一篇可以點開看的普通筆記，不會執行也不會遵守。真正讀它的是 AI agent，而兩份 CLAUDE.md 的分工已寫死在規則裡：根目錄那份管「開發本專案」（並明文永不寫入 vault/）；vault/CLAUDE.md 管你的個人知識庫（並明文個人操作永不寫 vault/ 以外）。各管各的，互相有護欄。</p>
+  </div>
+  <div class="why-card">
+    <h4>Q3：AI 怎麼知道我現在是要問 wiki、還是要操作 Revit？</h4>
+    <p>靠你那句話的語意，而且兩者可以疊加（「跑這棟的排煙檢討，結果存進我的筆記」就是 MCP 行動＋wiki 歸檔一次完成）。想要明確指定的話：<strong>Claude Code 老師有三個現成指令</strong> —— <code>/ingest</code>（pull＋增量消化）、<code>/lint</code>(健檢）、<code>/wiki 你的問題</code>（明確從你的 wiki 回答）。<strong>Codex / Gemini CLI 老師</strong>沒有斜線指令，養成一個習慣即可：新 session 的第一句話帶路標 ——「讀 vault/CLAUDE.md，然後 ingest」，之後同 session 直接說 ingest / lint 就通。另外：graph view 想只看自己的筆記，在 filter 欄輸入 <code>path:vault</code> 即可，不用換資料夾。</p>
   </div>
 </section>
 
