@@ -104,8 +104,9 @@
     .claude/skills/        ← 21 個 Skill
     CLAUDE.md              ← 公共 schema
     log/                   ← 公共時間軸
+    templates/personal-vault/VAULT-CLAUDE.md  ← 你的 schema 的上游範本
   wiki/                    ← 你的個人 wiki（AI 寫、你讀、[[連結]] 活在這裡）
-  CLAUDE.md                ← 你的 schema（AI 的紀律設定檔）
+  CLAUDE.md                ← 你的 schema（從上游範本逐字複製，只填 Personal 區）
   index.md                 ← 你的 wiki 目錄
   log.md                   ← 你的操作時間軸</div>
   <p>日常只有三個動作，全部用一句話交給 AI：</p>
@@ -146,7 +147,15 @@
 <section class="bim-section bim-anchor" id="copy">
   <div class="bim-section-eyebrow">SECTION 06 / COPY THIS</div>
   <h2 class="bim-section-title">複製這段，貼給你的 AI Agent</h2>
-  <p>下面是完整的「想法檔」（idea file）。複製全文，貼到 Claude Code / Gemini CLI / Antigravity 的對話裡，AI 會跟你協作把 vault 建出來 —— 每個人建出來的都不一樣，這正是重點。</p>
+  <p>下面是完整的「想法檔」（idea file）。複製全文，貼到 Claude Code / Gemini CLI / Antigravity 的對話裡，AI 會跟你協作把 vault 建出來。</p>
+  <p><strong>不同 Agent、不同模型，建出來會不會不一樣？</strong>會 —— 而且我們把「該一樣的」和「該不一樣的」切開管理：</p>
+  <table class="map-table">
+    <tr><th>層</th><th>一致性策略</th><th>機制</th></tr>
+    <tr><td>Schema（vault CLAUDE.md）</td><td>必須完全一致</td><td>不讓模型生成 —— 從 raw/templates/personal-vault/VAULT-CLAUDE.md <strong>逐字複製</strong>，只填 Personal 區。複製沒有變異。</td></tr>
+    <tr><td>結構與格式（資料夾、log/index/溯源格式）</td><td>必須一致</td><td>建置完 AI 要跑<strong>驗收清單</strong>逐項回報；範本有 schema_version，之後每次 lint 比對上游版本，飄了會自我修復。</td></tr>
+    <tr><td>概念理解</td><td>逼近一致</td><td>idea file 尾部附 <strong>Karpathy 原文全文</strong>當錨點，AI 不確定時回原文判斷，不憑記憶腦補。</td></tr>
+    <tr><td>wiki/ 內容</td><td><strong>刻意不一致</strong></td><td>個人壓縮是這整件事的目的 —— 內容的差異是 feature，不是 bug。</td></tr>
+  </table>
   <div class="idea-wrap">
     <button class="copy-btn" id="copyIdea">📋 複製全文</button>
     <pre id="ideaFile"># 個人 BIM 知識庫（LLM Wiki）— 給 AI Agent 的建置說明
@@ -181,7 +190,12 @@ wiki 由你寫和維護，我幾乎不動手。我負責：提供來源、引導
    比較頁、綜述頁。允許 Obsidian 的 [[雙向連結]]。用我的語言、我的分類、
    我的重點 —— 這是「個人壓縮」，不必跟上游長一樣。
 3. vault 根目錄的 CLAUDE.md（schema）—— 你的紀律設定檔。
-   建置完成後把我們議定的慣例寫進去，之後隨使用共同演化。
+   ※ 重要：這個檔不由你生成，而是從
+   raw/templates/personal-vault/VAULT-CLAUDE.md 逐字複製過來
+   （Fixed Core 區塊一個字都不能改寫、濃縮或重新表述；
+   只有最後的 Personal 區由我們一起填）。
+   這是讓每位使用者、每種 AI Agent、每個模型等級建出來的 vault
+   規則一致的機制：一致性靠複製，不靠模型自律。
 
 兩個特殊檔：
 - index.md：wiki 目錄。每頁一行連結＋一句摘要，每次 ingest 後更新。
@@ -203,6 +217,9 @@ wiki 由你寫和維護，我幾乎不動手。我負責：提供來源、引導
    (b) 頁面之間的矛盾
    (c) 沒有任何連入連結的孤兒頁
    (d) 值得回饋上游的發現，整理成「可提案清單」
+   (e) 我的 CLAUDE.md Fixed Core 的 schema_version 是否落後
+       raw/templates/personal-vault/VAULT-CLAUDE.md —— 落後就提示升級
+       （新版 Fixed Core 整段覆蓋，Personal 區保留）
 
 ## 紀律（必須遵守）
 
@@ -226,11 +243,103 @@ wiki 由你寫和維護，我幾乎不動手。我負責：提供來源、引導
 
 1. 與我確認 vault 位置，以及 raw/ 要用新 clone 還是我既有的 REVIT_MCP clone。
 2. 建立資料夾結構與空的 index.md、log.md。
-3. 起草本 vault 的 CLAUDE.md（把以上慣例寫進去），並問我 2-3 個
-   個人化問題：我的專業領域？我最常用哪些 Domain？我偏好的筆記語言與粒度？
-4. 做第一次 ingest：從我的專業最相關的兩三個 Domain 檔開始，
+3. 把 raw/templates/personal-vault/VAULT-CLAUDE.md 逐字複製為
+   vault 根目錄的 CLAUDE.md（Fixed Core 不得改寫），然後問我幾個
+   個人化問題填入 Personal 區：我的專業領域？我最常用哪些 Domain？
+   我偏好的筆記語言與粒度？
+4. 執行驗收清單，逐項回報給我：
+   [ ] raw/、wiki/、CLAUDE.md、index.md、log.md 都存在
+   [ ] CLAUDE.md 的 Fixed Core 與 raw/templates/personal-vault/
+       VAULT-CLAUDE.md 逐字一致（用 diff 確認），schema_version 相同
+   [ ] raw/ 是乾淨的 git repo（git status 無本地修改）
+   [ ] log.md 已寫入第一筆標準格式條目
+   [ ] 之後每個源自上游的 wiki 頁都會帶 source 與 source_version
+5. 做第一次 ingest：從我的專業最相關的兩三個 Domain 檔開始，
    不要一次吞 44 個。
-5. 提醒我打開 Obsidian、把 vault 加進去、看 graph view。</pre>
+6. 提醒我打開 Obsidian、把 vault 加進去、看 graph view。
+
+## 附錄：Andrej Karpathy「LLM Wiki」原文全文
+
+以下用三引號包住的是這個模式的原始出處全文（英文）。請完整讀過它
+作為概念錨點 —— 當你不確定某個設計該怎麼做時，回到原文的精神判斷，
+不要憑記憶腦補。原文與本說明衝突時，以本說明的 REVIT_MCP 特化規則為準。
+
+"""
+# LLM Wiki
+
+A pattern for building personal knowledge bases using LLMs.
+
+This is an idea file, it is designed to be copy pasted to your own LLM Agent (e.g. OpenAI Codex, Claude Code, OpenCode / Pi, or etc.). Its goal is to communicate the high level idea, but your agent will build out the specifics in collaboration with you.
+
+## The core idea
+
+Most people's experience with LLMs and documents looks like RAG: you upload a collection of files, the LLM retrieves relevant chunks at query time, and generates an answer. This works, but the LLM is rediscovering knowledge from scratch on every question. There's no accumulation. Ask a subtle question that requires synthesizing five documents, and the LLM has to find and piece together the relevant fragments every time. Nothing is built up. NotebookLM, ChatGPT file uploads, and most RAG systems work this way.
+
+The idea here is different. Instead of just retrieving from raw documents at query time, the LLM incrementally builds and maintains a persistent wiki — a structured, interlinked collection of markdown files that sits between you and the raw sources. When you add a new source, the LLM doesn't just index it for later retrieval. It reads it, extracts the key information, and integrates it into the existing wiki — updating entity pages, revising topic summaries, noting where new data contradicts old claims, strengthening or challenging the evolving synthesis. The knowledge is compiled once and then kept current, not re-derived on every query.
+
+This is the key difference: the wiki is a persistent, compounding artifact. The cross-references are already there. The contradictions have already been flagged. The synthesis already reflects everything you've read. The wiki keeps getting richer with every source you add and every question you ask.
+
+You never (or rarely) write the wiki yourself — the LLM writes and maintains all of it. You're in charge of sourcing, exploration, and asking the right questions. The LLM does all the grunt work — the summarizing, cross-referencing, filing, and bookkeeping that makes a knowledge base actually useful over time. In practice, I have the LLM agent open on one side and Obsidian open on the other. The LLM makes edits based on our conversation, and I browse the results in real time — following links, checking the graph view, reading the updated pages. Obsidian is the IDE; the LLM is the programmer; the wiki is the codebase.
+
+This can apply to a lot of different contexts. A few examples:
+
+- Personal: tracking your own goals, health, psychology, self-improvement — filing journal entries, articles, podcast notes, and building up a structured picture of yourself over time.
+- Research: going deep on a topic over weeks or months — reading papers, articles, reports, and incrementally building a comprehensive wiki with an evolving thesis.
+- Reading a book: filing each chapter as you go, building out pages for characters, themes, plot threads, and how they connect. By the end you have a rich companion wiki. Think of fan wikis like Tolkien Gateway — thousands of interlinked pages covering characters, places, events, languages, built by a community of volunteers over years. You could build something like that personally as you read, with the LLM doing all the cross-referencing and maintenance.
+- Business/team: an internal wiki maintained by LLMs, fed by Slack threads, meeting transcripts, project documents, customer calls. Possibly with humans in the loop reviewing updates. The wiki stays current because the LLM does the maintenance that no one on the team wants to do.
+- Competitive analysis, due diligence, trip planning, course notes, hobby deep-dives — anything where you're accumulating knowledge over time and want it organized rather than scattered.
+
+## Architecture
+
+There are three layers:
+
+Raw sources — your curated collection of source documents. Articles, papers, images, data files. These are immutable — the LLM reads from them but never modifies them. This is your source of truth.
+
+The wiki — a directory of LLM-generated markdown files. Summaries, entity pages, concept pages, comparisons, an overview, a synthesis. The LLM owns this layer entirely. It creates pages, updates them when new sources arrive, maintains cross-references, and keeps everything consistent. You read it; the LLM writes it.
+
+The schema — a document (e.g. CLAUDE.md for Claude Code or AGENTS.md for Codex) that tells the LLM how the wiki is structured, what the conventions are, and what workflows to follow when ingesting sources, answering questions, or maintaining the wiki. This is the key configuration file — it's what makes the LLM a disciplined wiki maintainer rather than a generic chatbot. You and the LLM co-evolve this over time as you figure out what works for your domain.
+
+## Operations
+
+Ingest. You drop a new source into the raw collection and tell the LLM to process it. An example flow: the LLM reads the source, discusses key takeaways with you, writes a summary page in the wiki, updates the index, updates relevant entity and concept pages across the wiki, and appends an entry to the log. A single source might touch 10-15 wiki pages. Personally I prefer to ingest sources one at a time and stay involved — I read the summaries, check the updates, and guide the LLM on what to emphasize. But you could also batch-ingest many sources at once with less supervision. It's up to you to develop the workflow that fits your style and document it in the schema for future sessions.
+
+Query. You ask questions against the wiki. The LLM searches for relevant pages, reads them, and synthesizes an answer with citations. Answers can take different forms depending on the question — a markdown page, a comparison table, a slide deck (Marp), a chart (matplotlib), a canvas. The important insight: good answers can be filed back into the wiki as new pages. A comparison you asked for, an analysis, a connection you discovered — these are valuable and shouldn't disappear into chat history. This way your explorations compound in the knowledge base just like ingested sources do.
+
+Lint. Periodically, ask the LLM to health-check the wiki. Look for: contradictions between pages, stale claims that newer sources have superseded, orphan pages with no inbound links, important concepts mentioned but lacking their own page, missing cross-references, data gaps that could be filled with a web search. The LLM is good at suggesting new questions to investigate and new sources to look for. This keeps the wiki healthy as it grows.
+
+## Indexing and logging
+
+Two special files help the LLM (and you) navigate the wiki as it grows. They serve different purposes:
+
+index.md is content-oriented. It's a catalog of everything in the wiki — each page listed with a link, a one-line summary, and optionally metadata like date or source count. Organized by category (entities, concepts, sources, etc.). The LLM updates it on every ingest. When answering a query, the LLM reads the index first to find relevant pages, then drills into them. This works surprisingly well at moderate scale (~100 sources, ~hundreds of pages) and avoids the need for embedding-based RAG infrastructure.
+
+log.md is chronological. It's an append-only record of what happened and when — ingests, queries, lint passes. A useful tip: if each entry starts with a consistent prefix (e.g. ## [2026-04-02] ingest | Article Title), the log becomes parseable with simple unix tools — grep "^## \[" log.md | tail -5 gives you the last 5 entries. The log gives you a timeline of the wiki's evolution and helps the LLM understand what's been done recently.
+
+## Optional: CLI tools
+
+At some point you may want to build small tools that help the LLM operate on the wiki more efficiently. A search engine over the wiki pages is the most obvious one — at small scale the index file is enough, but as the wiki grows you want proper search. qmd is a good option: it's a local search engine for markdown files with hybrid BM25/vector search and LLM re-ranking, all on-device. It has both a CLI (so the LLM can shell out to it) and an MCP server (so the LLM can use it as a native tool). You could also build something simpler yourself — the LLM can help you vibe-code a naive search script as the need arises.
+
+## Tips and tricks
+
+- Obsidian Web Clipper is a browser extension that converts web articles to markdown. Very useful for quickly getting sources into your raw collection.
+- Download images locally. In Obsidian Settings → Files and links, set "Attachment folder path" to a fixed directory (e.g. raw/assets/). Then in Settings → Hotkeys, search for "Download" to find "Download attachments for current file" and bind it to a hotkey (e.g. Ctrl+Shift+D). After clipping an article, hit the hotkey and all images get downloaded to local disk. This is optional but useful — it lets the LLM view and reference images directly instead of relying on URLs that may break. Note that LLMs can't natively read markdown with inline images in one pass — the workaround is to have the LLM read the text first, then view some or all of the referenced images separately to gain additional context. It's a bit clunky but works well enough.
+- Obsidian's graph view is the best way to see the shape of your wiki — what's connected to what, which pages are hubs, which are orphans.
+- Marp is a markdown-based slide deck format. Obsidian has a plugin for it. Useful for generating presentations directly from wiki content.
+- Dataview is an Obsidian plugin that runs queries over page frontmatter. If your LLM adds YAML frontmatter to wiki pages (tags, dates, source counts), Dataview can generate dynamic tables and lists.
+- The wiki is just a git repo of markdown files. You get version history, branching, and collaboration for free.
+
+## Why this works
+
+The tedious part of maintaining a knowledge base is not the reading or the thinking — it's the bookkeeping. Updating cross-references, keeping summaries current, noting when new data contradicts old claims, maintaining consistency across dozens of pages. Humans abandon wikis because the maintenance burden grows faster than the value. LLMs don't get bored, don't forget to update a cross-reference, and can touch 15 files in one pass. The wiki stays maintained because the cost of maintenance is near zero.
+
+The human's job is to curate sources, direct the analysis, ask good questions, and think about what it all means. The LLM's job is everything else.
+
+The idea is related in spirit to Vannevar Bush's Memex (1945) — a personal, curated knowledge store with associative trails between documents. Bush's vision was closer to this than to what the web became: private, actively curated, with the connections between documents as valuable as the documents themselves. The part he couldn't solve was who does the maintenance. The LLM handles that.
+
+## Note
+
+This document is intentionally abstract. It describes the idea, not a specific implementation. The exact directory structure, the schema conventions, the page formats, the tooling — all of that will depend on your domain, your preferences, and your LLM of choice. Everything mentioned above is optional and modular — pick what's useful, ignore what isn't. For example: your sources might be text-only, so you don't need image handling at all. Your wiki might be small enough that the index file is all you need, no search engine required. You might not care about slide decks and just want markdown pages. You might want a completely different set of output formats. The right way to use this is to share it with your LLM agent and work together to instantiate a version that fits your needs. The document's only job is to communicate the pattern. Your LLM can figure out the rest.
+"""</pre>
   </div>
 </section>
 
@@ -240,7 +349,7 @@ wiki 由你寫和維護，我幾乎不動手。我負責：提供來源、引導
   <ol class="bim-steps">
     <li><strong>裝 Obsidian</strong><p>從 obsidian.md 下載安裝（免費）。先不用設定任何東西。</p></li>
     <li><strong>開一個資料夾，啟動你的 AI Agent</strong><p>例如 <code>D:\MyBIMVault</code>。在這個資料夾開 Claude Code（或 Gemini CLI / Antigravity）。</p></li>
-    <li><strong>貼上面那段建置說明</strong><p>AI 會跟你確認 vault 位置、建好結構、起草你的 schema CLAUDE.md，並問你幾個個人化問題。</p></li>
+    <li><strong>貼上面那段建置說明</strong><p>AI 會跟你確認 vault 位置、建好結構、從 raw/ 的範本逐字複製你的 schema CLAUDE.md、問你幾個個人化問題填 Personal 區，最後跑驗收清單逐項回報。</p></li>
     <li><strong>第一次 ingest</strong><p>跟 AI 說你的專業（例如「我主要做消防審查」），它會從最相關的 Domain 開始消化 —— 例如 fire-rating-check、corridor-analysis-protocol、smoke-exhaust-review。</p></li>
     <li><strong>用 Obsidian 打開 vault，看 graph view</strong><p>左邊 agent、右邊 Obsidian —— 這就是 Karpathy 說的工作畫面：Obsidian 是 IDE，AI 是工程師，wiki 是你的知識程式碼庫。</p></li>
     <li><strong>之後每次：pull + ingest</strong><p>上游有新東西（月小聚後通常會有），跟 AI 說「pull 一下，ingest 有變動的」就完成更新。發現值得回饋的，請 AI 幫你整理提案。</p></li>

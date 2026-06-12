@@ -33,6 +33,7 @@ These should be English-first.
 | `.github/copilot-instructions.md` | AI rules if present | Must align with `CLAUDE.md` |
 | `.mcp.json` | machine config | Project-level MCP server config |
 | `.vscode/mcp.json` | machine config | VS Code MCP server config |
+| `templates/personal-vault/VAULT-CLAUDE.md` | local-only template | Personal vault schema; Fixed Core copied verbatim by users' agents, never loaded by this repo's agents |
 
 ## Shared Human + AI Documents
 
