@@ -417,6 +417,15 @@ This document is intentionally abstract. It describes the idea, not a specific i
     <li><strong>用 Obsidian 打開 REVIT_MCP 資料夾，看 graph view</strong><p>開整個 repo（不是只開 vault/），並在 Settings → Files and links → Excluded files 排除 <code>MCP-Server/</code> 與 <code>MCP/</code>。graph view 會同時顯示公共 domain 和你的 wiki —— 你的 [[連結]] 連到 domain 檔就是圖上的邊，公共＋個人合一的知識族譜。左邊 agent、右邊 Obsidian：Obsidian 是 IDE，AI 是工程師，wiki 是你的知識程式碼庫。</p></li>
     <li><strong>之後每次：pull + ingest</strong><p>上游有新東西（月小聚後通常會有），跟 AI 說「pull 一下，ingest 有變動的」就完成更新 —— 同一個 pull 也同時更新了你的 MCP 工具和 schema 範本。發現值得回饋的，請 AI 幫你整理提案。</p></li>
   </ol>
+  <h2 class="bim-section-title" style="margin-top:48px">最常見的兩個疑問</h2>
+  <div class="why-card">
+    <h4>Q1：Obsidian 的 vault 跟我們的 vault/ 是同一個東西嗎？</h4>
+    <p>不是，這是命名撞車。<strong>Obsidian 說的「vault」= 它打開的那整個資料夾，也就是 REVIT_MCP 根目錄</strong>；我們的 <code>vault/</code> 子資料夾只是個人區的名字，不是給 Obsidian 開的。如果只開 <code>vault/</code>，你的 [[連結]] 連不到 domain 檔（Obsidian 連結出不了它的 vault 範圍），graph view 就只剩自己的筆記、沒有知識族譜了。</p>
+  </div>
+  <div class="why-card">
+    <h4>Q2：開整個 repo，Obsidian 會不會讀錯 CLAUDE.md？</h4>
+    <p>不會，因為 <strong>Obsidian 根本不讀 CLAUDE.md</strong> —— 它是給 AI agent 的指令檔，對 Obsidian 來說只是一篇可以點開看的普通筆記，不會執行也不會遵守。真正讀它的是 AI agent，而兩份 CLAUDE.md 的分工已寫死在規則裡：根目錄那份管「開發本專案」（並明文永不寫入 vault/）；vault/CLAUDE.md 管你的個人知識庫（並明文個人操作永不寫 vault/ 以外）。各管各的，互相有護欄。</p>
+  </div>
 </section>
 
 <footer class="bim-footer">
