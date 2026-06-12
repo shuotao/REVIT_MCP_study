@@ -274,8 +274,7 @@ namespace RevitMCP.Core
                                 if (elem == null || elem.Id == beam.Id) continue;
                                 if (elem.Category != null)
                                 {
-                                    int catId = elem.Category.Id.IntegerValue;
-                                    if (catId == (int)BuiltInCategory.OST_StructuralFraming) {
+                                    if (elem.Category.Id.GetIdValue() == (IdType)(int)BuiltInCategory.OST_StructuralFraming) {
                                         connDepthStart = GetBeamDepth(elem) * 304.8;
                                         break;
                                     }
@@ -293,8 +292,7 @@ namespace RevitMCP.Core
                                 if (elem == null || elem.Id == beam.Id) continue;
                                 if (elem.Category != null)
                                 {
-                                    int catId = elem.Category.Id.IntegerValue;
-                                    if (catId == (int)BuiltInCategory.OST_StructuralFraming) {
+                                    if (elem.Category.Id.GetIdValue() == (IdType)(int)BuiltInCategory.OST_StructuralFraming) {
                                         connDepthEnd = GetBeamDepth(elem) * 304.8;
                                         break;
                                     }
@@ -458,7 +456,7 @@ namespace RevitMCP.Core
                     if (elem == null) continue;
 
                     // 檢查相連元素的品類是否為結構柱
-                    if (elem.Category != null && elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_StructuralColumns)
+                    if (elem.Category != null && elem.Category.Id.GetIdValue() == (IdType)(int)BuiltInCategory.OST_StructuralColumns)
                     {
                         return true;
                     }
@@ -767,12 +765,12 @@ namespace RevitMCP.Core
                 foreach (var kvp in beamSleeveMap)
                 {
                     Transform bTr;
-                    Element bElem = FindElementInMainOrLinks(doc, kvp.Key, out bTr);
+                    RevitLinkInstance beamLink;
+                    Element bElem = FindElementInMainOrLinks(doc, kvp.Key, out bTr, out beamLink);
                     if (bElem == null) continue;
 
-                    // 傳遞套管元素清單給標註邏輯（worldCenter 已包含在元素的 BoundingBox 計算中）
                     CreateSequentialDimensions(doc, doc.ActiveView, bElem,
-                        kvp.Value.Select(x => x.Slv).ToList(), bTr);
+                        kvp.Value.Select(x => x.Slv).ToList(), bTr, beamLink);
                 }
 
                 trans.Commit();
@@ -786,13 +784,19 @@ namespace RevitMCP.Core
             public XYZ RightEdge;
             public double CenterDist;
             public string NodeType; // "Boundary", "Sleeve", "OrthogonalBeam"
+            public Reference LeftRef;   // non-null → use element face Reference; null → create DetailLine
+            public Reference RightRef;
         }
 
-        private void GetBeamEndFaces(Element beam, Transform tr, XYZ p0, XYZ p1, out XYZ faceEnd0, out XYZ faceEnd1)
+        private void GetBeamEndFaces(Element beam, Transform tr, XYZ p0, XYZ p1,
+            out XYZ faceEnd0, out XYZ faceEnd1, out Reference ref0, out Reference ref1,
+            RevitLinkInstance beamLink = null)
         {
             faceEnd0 = p0;
             faceEnd1 = p1;
-            
+            ref0 = null;
+            ref1 = null;
+
             LocationCurve beamLoc = beam.Location as LocationCurve;
             if (beamLoc == null) return;
             Curve bc = beamLoc.Curve;
@@ -826,24 +830,26 @@ namespace RevitMCP.Core
                                 {
                                     XYZ faceCenter = pf.Evaluate(new UV(0.5, 0.5));
                                     XYZ globalFaceCenter = tr.OfPoint(faceCenter);
-                                    
+
                                     IntersectionResult ir = bc.Project(tr.Inverse.OfPoint(globalFaceCenter));
                                     if (ir != null)
                                     {
                                         double distToP0 = globalFaceCenter.DistanceTo(p0);
                                         double distToP1 = globalFaceCenter.DistanceTo(p1);
-                                        
-                                        // 確保我們找到的截斷面「真的是在端點附近」，而不是因為穿牆而在梁中段產生的內部面
-                                        double beamLength = p0.DistanceTo(p1);
+
                                         // 截斷面距離不可超過梁長的 1/3，且絕對值不超過 2 公尺 (2000mm)
+                                        double beamLength = p0.DistanceTo(p1);
                                         double maxAllowedCutback = Math.Min(beamLength / 3.0, 2000.0 / 304.8);
-                                        
+
                                         if (distToP0 < distToP1)
                                         {
                                             if (distToP0 < minDot0 && distToP0 <= maxAllowedCutback)
                                             {
                                                 minDot0 = distToP0;
                                                 faceEnd0 = tr.OfPoint(ir.XYZPoint);
+                                                ref0 = pf.Reference != null
+                                                    ? (beamLink != null ? pf.Reference.CreateLinkReference(beamLink) : pf.Reference)
+                                                    : null;
                                             }
                                         }
                                         else
@@ -852,6 +858,9 @@ namespace RevitMCP.Core
                                             {
                                                 minDot1 = distToP1;
                                                 faceEnd1 = tr.OfPoint(ir.XYZPoint);
+                                                ref1 = pf.Reference != null
+                                                    ? (beamLink != null ? pf.Reference.CreateLinkReference(beamLink) : pf.Reference)
+                                                    : null;
                                             }
                                         }
                                     }
@@ -863,7 +872,8 @@ namespace RevitMCP.Core
             }
         }
 
-        private void CreateSequentialDimensions(Document doc, View view, Element bElem, List<Element> slvs, Transform bTr)
+        private void CreateSequentialDimensions(Document doc, View view, Element bElem, List<Element> slvs,
+            Transform bTr, RevitLinkInstance beamLink = null)
         {
             try
             {
@@ -875,13 +885,15 @@ namespace RevitMCP.Core
                 XYZ p1 = bTr.OfPoint(bc.GetEndPoint(1));
                 XYZ beamDir = (p1 - p0).Normalize();
 
-                GetBeamEndFaces(bElem, bTr, p0, p1, out XYZ faceEnd0, out XYZ faceEnd1);
+                GetBeamEndFaces(bElem, bTr, p0, p1,
+                    out XYZ faceEnd0, out XYZ faceEnd1, out Reference bRef0, out Reference bRef1,
+                    beamLink);
 
                 List<DimNode> nodes = new List<DimNode>();
 
                 // 1. Boundary Nodes (表示梁本身的端點/相連柱/相交大梁等邊界)
-                nodes.Add(new DimNode { LeftEdge = faceEnd0, RightEdge = faceEnd0, CenterDist = p0.DistanceTo(faceEnd0), NodeType = "Boundary" });
-                nodes.Add(new DimNode { LeftEdge = faceEnd1, RightEdge = faceEnd1, CenterDist = p0.DistanceTo(faceEnd1), NodeType = "Boundary" });
+                nodes.Add(new DimNode { LeftEdge = faceEnd0, RightEdge = faceEnd0, CenterDist = p0.DistanceTo(faceEnd0), NodeType = "Boundary", LeftRef = bRef0, RightRef = bRef0 });
+                nodes.Add(new DimNode { LeftEdge = faceEnd1, RightEdge = faceEnd1, CenterDist = p0.DistanceTo(faceEnd1), NodeType = "Boundary", LeftRef = bRef1, RightRef = bRef1 });
 
                 // 2. Sleeve Nodes (套管)
                 foreach (var s in slvs)
@@ -893,15 +905,59 @@ namespace RevitMCP.Core
                     if (ir == null) continue;
                     XYZ projPoint = bTr.OfPoint(ir.XYZPoint);
                     double d = p0.DistanceTo(projPoint);
-                    
+
                     double sleeveD = GetSleeveDiameter(s, sbb);
                     double radius = sleeveD / 2.0;
 
+                    // 嘗試從 FamilyInstance 的參考平面取得沿梁方向兩側的 Reference
+                    Reference slvLeftRef = null, slvRightRef = null;
+                    if (s is FamilyInstance slvFi)
+                    {
+                        // 遍歷 Left/Right/Front/Back 四組參考平面，找最接近梁方向的那組
+                        var refTypes = new[]
+                        {
+                            FamilyInstanceReferenceType.Left,
+                            FamilyInstanceReferenceType.Right,
+                            FamilyInstanceReferenceType.Front,
+                            FamilyInstanceReferenceType.Back,
+                        };
+                        double bestDot = -1;
+                        Reference candLeft = null, candRight = null;
+                        for (int ri = 0; ri < refTypes.Length - 1; ri += 2)
+                        {
+                            var rA = slvFi.GetReferences(refTypes[ri]);
+                            var rB = slvFi.GetReferences(refTypes[ri + 1]);
+                            if (rA == null || rA.Count == 0 || rB == null || rB.Count == 0) continue;
+
+                            // 從兩個 Reference 推算它們所代表的平面方向
+                            // 用套管 BoundingBox 兩極端點之差來判斷哪對最接近梁方向
+                            XYZ bbDiff = sbb.Max - sbb.Min;
+                            // 選 bbDiff 在 beamDir 上投影量最大的分量
+                            double dX = Math.Abs(bbDiff.X * beamDir.X);
+                            double dY = Math.Abs(bbDiff.Y * beamDir.Y);
+                            // 第一對 (Left/Right) 對應 X-axis，第二對 (Front/Back) 對應 Y-axis
+                            double dot = (ri == 0) ? dX : dY;
+                            if (dot > bestDot)
+                            {
+                                bestDot = dot;
+                                candLeft  = rA[0];
+                                candRight = rB[0];
+                            }
+                        }
+                        if (candLeft != null && bestDot > 0.01)
+                        {
+                            slvLeftRef  = candLeft;
+                            slvRightRef = candRight;
+                        }
+                    }
+
                     nodes.Add(new DimNode {
-                        LeftEdge = projPoint - beamDir * radius,
+                        LeftEdge  = projPoint - beamDir * radius,
                         RightEdge = projPoint + beamDir * radius,
                         CenterDist = d,
-                        NodeType = "Sleeve"
+                        NodeType = "Sleeve",
+                        LeftRef  = slvLeftRef,
+                        RightRef = slvRightRef
                     });
                 }
 
@@ -981,16 +1037,54 @@ namespace RevitMCP.Core
                                 {
                                     XYZ leftP = bTr.OfPoint(bc.Evaluate(minParam, false));
                                     XYZ rightP = bTr.OfPoint(bc.Evaluate(maxParam, false));
-                                    
+
                                     // 確保 LeftEdge 永遠是靠近 p0 的那一端
                                     double dLeft = p0.DistanceTo(leftP);
                                     double dRight = p0.DistanceTo(rightP);
+                                    XYZ obLeftP  = dLeft < dRight ? leftP  : rightP;
+                                    XYZ obRightP = dLeft < dRight ? rightP : leftP;
+
+                                    // 找出正交梁法向量平行於主梁方向的面，作為直接標註的 Reference
+                                    Reference obLeftRef = null, obRightRef = null;
+                                    {
+                                        double bestLD = double.MaxValue, bestRD = double.MaxValue;
+                                        XYZ localBeamDir = bTr.Inverse.OfVector(beamDir).Normalize();
+                                        Stack<GeometryObject> fGeoms = new Stack<GeometryObject>();
+                                        foreach (GeometryObject fg in ob.get_Geometry(new Options { ComputeReferences = true, DetailLevel = ViewDetailLevel.Fine }))
+                                            fGeoms.Push(fg);
+                                        while (fGeoms.Count > 0)
+                                        {
+                                            GeometryObject fg = fGeoms.Pop();
+                                            if (fg is GeometryInstance fgi)
+                                                foreach (GeometryObject fgg in fgi.GetInstanceGeometry()) fGeoms.Push(fgg);
+                                            else if (fg is Solid fs && fs.Faces.Size > 0 && fs.Volume > 0)
+                                            {
+                                                foreach (Face ff in fs.Faces)
+                                                {
+                                                    if (ff is PlanarFace fpf && fpf.Reference != null)
+                                                    {
+                                                        double d = Math.Abs(fpf.FaceNormal.DotProduct(localBeamDir));
+                                                        if (d > 0.7)
+                                                        {
+                                                            XYZ wfc = bTr.OfPoint(fpf.Evaluate(new UV(0.5, 0.5)));
+                                                            double toL = wfc.DistanceTo(obLeftP);
+                                                            double toR = wfc.DistanceTo(obRightP);
+                                                            if (toL < bestLD && toL < toR) { bestLD = toL; obLeftRef  = fpf.Reference; }
+                                                            if (toR < bestRD && toR < toL) { bestRD = toR; obRightRef = fpf.Reference; }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
 
                                     nodes.Add(new DimNode {
-                                        LeftEdge = dLeft < dRight ? leftP : rightP,
-                                        RightEdge = dLeft < dRight ? rightP : leftP,
+                                        LeftEdge  = obLeftP,
+                                        RightEdge = obRightP,
                                         CenterDist = (dLeft + dRight) / 2.0,
-                                        NodeType = "OrthogonalBeam"
+                                        NodeType = "OrthogonalBeam",
+                                        LeftRef  = obLeftRef,
+                                        RightRef = obRightRef
                                     });
                                 }
                             }
@@ -1018,13 +1112,62 @@ namespace RevitMCP.Core
                             int staggerIndex = i % 2;
                             double offsetVal = 500.0 + (staggerIndex * 250.0);
                             
-                            // 統一呼叫尺寸標註方法 (從 A 的右邊緣 到 B 的左邊緣)
-                            CreateDimensionInternal(doc, view, A.RightEdge.X * 304.8, A.RightEdge.Y * 304.8, B.LeftEdge.X * 304.8, B.LeftEdge.Y * 304.8, offsetVal);
+                            // 有 Reference 時直接標在元素面上，否則 fallback 建立 DetailLine
+                            CreateDimensionByRef(doc, view, A.RightEdge, A.RightRef, B.LeftEdge, B.LeftRef, offsetVal);
                         }
                     }
                 }
             }
             catch (Exception) { }
+        }
+
+        /// <summary>
+        /// 建立尺寸標註。若 refA / refB 為 null，自動在該點建立隱藏 DetailLine 作為 fallback Reference。
+        /// </summary>
+        private void CreateDimensionByRef(Document doc, View view,
+            XYZ posA, Reference refA, XYZ posB, Reference refB, double offsetMm)
+        {
+            try
+            {
+                // 攤平到 Z=0：平面圖標註線與 DetailLine 都必須在 XY 平面
+                XYZ a2d = new XYZ(posA.X, posA.Y, 0);
+                XYZ b2d = new XYZ(posB.X, posB.Y, 0);
+
+                XYZ dir = b2d - a2d;
+                if (dir.GetLength() < 1e-6) return;
+                dir = dir.Normalize();
+                XYZ perp = new XYZ(-dir.Y, dir.X, 0).Normalize();
+                double offFt = offsetMm / 304.8;
+
+                ReferenceArray refArray = new ReferenceArray();
+
+                // Helper: create perpendicular invisible DetailLine when no face Reference available
+                Reference Resolve(XYZ pos2d, Reference existingRef)
+                {
+                    if (existingRef != null) return existingRef;
+                    double half = 0.5; // 0.5 ft ≈ 150 mm
+                    DetailCurve dc = doc.Create.NewDetailCurve(view,
+                        Line.CreateBound(pos2d - perp * half, pos2d + perp * half));
+                    dc.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("BeamPenetration_Helper");
+                    try
+                    {
+                        Category cat = doc.Settings.Categories.get_Item(BuiltInCategory.OST_InvisibleLines);
+                        GraphicsStyle gs = cat?.GetGraphicsStyle(GraphicsStyleType.Projection);
+                        if (gs != null) dc.LineStyle = gs;
+                    }
+                    catch { }
+                    return dc.GeometryCurve.Reference;
+                }
+
+                refArray.Append(Resolve(a2d, refA));
+                refArray.Append(Resolve(b2d, refB));
+
+                Line dimLine = Line.CreateBound(a2d + perp * offFt, b2d + perp * offFt);
+
+                Dimension dim = doc.Create.NewDimension(view, dimLine, refArray);
+                dim?.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("BeamPenetration_Helper");
+            }
+            catch { }
         }
 
         /// <summary>
@@ -1105,16 +1248,21 @@ namespace RevitMCP.Core
 
         private Element FindElementInMainOrLinks(Document mainDoc, IdType elementId, out Transform totalTransform)
         {
+            RevitLinkInstance _;
+            return FindElementInMainOrLinks(mainDoc, elementId, out totalTransform, out _);
+        }
+
+        private Element FindElementInMainOrLinks(Document mainDoc, IdType elementId,
+            out Transform totalTransform, out RevitLinkInstance linkInst)
+        {
             totalTransform = Transform.Identity;
+            linkInst = null;
             Element el = mainDoc.GetElement(new ElementId(elementId));
             if (el != null) return el;
 
-            var linkInstances = new FilteredElementCollector(mainDoc)
+            foreach (var li in new FilteredElementCollector(mainDoc)
                 .OfClass(typeof(RevitLinkInstance))
-                .Cast<RevitLinkInstance>()
-                .ToList();
-
-            foreach (var li in linkInstances)
+                .Cast<RevitLinkInstance>())
             {
                 Document linkDoc = li.GetLinkDocument();
                 if (linkDoc == null) continue;
@@ -1123,6 +1271,7 @@ namespace RevitMCP.Core
                 if (linkEl != null)
                 {
                     totalTransform = li.GetTotalTransform();
+                    linkInst = li;
                     return linkEl;
                 }
             }

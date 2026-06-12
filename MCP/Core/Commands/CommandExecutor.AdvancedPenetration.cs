@@ -134,6 +134,7 @@ namespace RevitMCP.Core
                             double distToStartFace = -1, distToEndFace = -1;
                             double connDepthStart = -1, connDepthEnd = -1;
                             XYZ worldP0 = XYZ.Zero, worldP1 = XYZ.Zero;
+                            bool isStartAtColumn = false, isEndAtColumn = false;
 
                             LocationCurve beamLoc = b.Location as LocationCurve;
                             if (beamLoc != null)
@@ -159,22 +160,30 @@ namespace RevitMCP.Core
                                 distToStartFace = distToStart - offsetStart / 2.0;
                                 distToEndFace   = distToEnd   - offsetEnd   / 2.0;
 
-                                // 起點相連梁深
+                                // 起點：偵測相連梁深 & 是否連接柱/牆
                                 var conn0 = beamLoc.get_ElementsAtJoin(0);
                                 if (conn0 != null) foreach (Element elem in conn0)
                                 {
                                     if (elem == null || elem.Id == b.Id) continue;
-                                    if (elem.Category?.Id.IntegerValue == (int)BuiltInCategory.OST_StructuralFraming)
-                                    { connDepthStart = GetBeamDepth(elem) * 304.8; break; }
+                                    var cId = elem.Category?.Id.GetIdValue() ?? 0;
+                                    if (cId == (IdType)(int)BuiltInCategory.OST_StructuralFraming)
+                                    { connDepthStart = GetBeamDepth(elem) * 304.8; }
+                                    if (cId == (IdType)(int)BuiltInCategory.OST_StructuralColumns ||
+                                        cId == (IdType)(int)BuiltInCategory.OST_Walls)
+                                    { isStartAtColumn = true; }
                                 }
 
-                                // 終點相連梁深
+                                // 終點：偵測相連梁深 & 是否連接柱/牆
                                 var conn1 = beamLoc.get_ElementsAtJoin(1);
                                 if (conn1 != null) foreach (Element elem in conn1)
                                 {
                                     if (elem == null || elem.Id == b.Id) continue;
-                                    if (elem.Category?.Id.IntegerValue == (int)BuiltInCategory.OST_StructuralFraming)
-                                    { connDepthEnd = GetBeamDepth(elem) * 304.8; break; }
+                                    var cId = elem.Category?.Id.GetIdValue() ?? 0;
+                                    if (cId == (IdType)(int)BuiltInCategory.OST_StructuralFraming)
+                                    { connDepthEnd = GetBeamDepth(elem) * 304.8; }
+                                    if (cId == (IdType)(int)BuiltInCategory.OST_StructuralColumns ||
+                                        cId == (IdType)(int)BuiltInCategory.OST_Walls)
+                                    { isEndAtColumn = true; }
                                 }
                             }
 
@@ -275,7 +284,9 @@ namespace RevitMCP.Core
                                 NearestSideBeamWidth = nearestSideBeamWidth,
                                 DistToNearestSideBeamCenter = minSideBeamDist == double.MaxValue ? -1 : minSideBeamDist * 304.8,
                                 SleeveX = sleeveCenter.X * 304.8,
-                                SleeveY = sleeveCenter.Y * 304.8
+                                SleeveY = sleeveCenter.Y * 304.8,
+                                IsStartAtColumn = isStartAtColumn,
+                                IsEndAtColumn   = isEndAtColumn
                             });
                         }
                     }

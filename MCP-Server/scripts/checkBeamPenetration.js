@@ -85,14 +85,20 @@ ws.on('open', () => {
             } else {
                 // 大梁規則 (Zone A, B, C)
                 reqVert = 200;
-                
-                // 第一優先檢核：與大梁端點(柱邊)的距離
-                reqDistLimit = 1.0 * H;
-                if (dist < reqDistLimit) {
+
+                // 判斷較近端是否連接柱/牆 — 只有柱端才套用 1.0H 禁開規定
+                const isNearerToStart = s.DistanceToStart <= s.DistanceToEnd;
+                const nearEndIsColumn = isNearerToStart
+                    ? (s.IsStartAtColumn !== false)
+                    : (s.IsEndAtColumn !== false);
+
+                // 第一優先檢核：與大梁端點(柱邊)的距離 (僅柱端有效)
+                reqDistLimit = nearEndIsColumn ? 1.0 * H : 0;
+                if (nearEndIsColumn && dist < 1.0 * H) {
                     isOk = false;
-                    limitD = 0; 
+                    limitD = 0;
                     reasons.push(`大梁柱端禁開區:距柱邊不足(${dist.toFixed(0)}<1.0H=${(1.0*H).toFixed(0)})`);
-                } else if (dist >= 1.0 * H && dist < 1.5 * H) {
+                } else if (nearEndIsColumn && dist < 1.5 * H) {
                     limitD = H / 4.0;
                     if (D > limitD) {
                         isOk = false;
