@@ -71,11 +71,11 @@
   </div>
   <div class="why-card">
     <h4>3. 獨立又保鮮：pull + ingest 的更新邏輯</h4>
-    <p>你的 vault 完全在自己手上（離線可用、永不依賴別人的伺服器）。但它不會跟公共智慧脫節 —— <code>git pull</code> 更新 raw/，AI 讀 diff 只消化「變動的部分」，告訴你「上游這三個 SOP 更新了，你的相關筆記要不要跟上」。獨立，但不孤立。</p>
+    <p>你的 vault 完全在自己手上（離線可用、永不依賴別人的伺服器）。但它不會跟公共智慧脫節 —— 在 repo 裡 <code>git pull</code>，AI 讀 diff 只消化「變動的部分」，告訴你「上游這三個 SOP 更新了，你的相關筆記要不要跟上」。獨立，但不孤立。</p>
   </div>
   <div class="why-card">
     <h4>4. 零稀釋：個人需求永遠污染不到公共層</h4>
-    <p>raw/ 唯讀、wiki/ 隨你長。你想怎麼分類、怎麼加 [[雙向連結]]、怎麼寫個人心得都可以 —— 上游的 domain/*.md 一個字都不會被動到。</p>
+    <p>公共層唯讀對待、vault/ 隨你長，而且 vault/ 被上游 .gitignore 排除，個人筆記永遠不會被 push 上去。你想怎麼分類、怎麼加 [[雙向連結]]、怎麼寫個人心得都可以 —— 上游的 domain/*.md 一個字都不會被動到。</p>
   </div>
 </section>
 
@@ -85,34 +85,36 @@
   <p>Karpathy 的架構是三層：Raw sources（不可變來源）/ The wiki（LLM 維護的知識頁）/ The schema（紀律設定檔），加上 index、log 兩個特殊檔與 Ingest / Query / Lint 三個操作。對照一下 REVIT_MCP —— 每一層都已經存在，你不是在學新東西，是把一個已經運轉的模式複製成個人版：</p>
   <table class="map-table">
     <tr><th>Karpathy LLM Wiki</th><th>REVIT_MCP 公共版（已在運轉）</th><th>你的個人版（這頁要建的）</th></tr>
-    <tr><td>Raw sources</td><td>建築法規、Revit 實機資料</td><td>raw/ = REVIT_MCP 的 git clone（唯讀）</td></tr>
+    <tr><td>Raw sources</td><td>建築法規、Revit 實機資料</td><td>你的 REVIT_MCP clone 本身（唯讀對待，git pull 更新）</td></tr>
     <tr><td>The wiki</td><td>domain/*.md —— 44 個 Domain，各領域老師貢獻、有 frontmatter 互相引用</td><td>wiki/ = AI 為你維護的個人筆記</td></tr>
     <tr><td>The schema</td><td>CLAUDE.md（連檔名都一樣）</td><td>vault 根目錄的 CLAUDE.md，從本頁範本起手</td></tr>
     <tr><td>index.md</td><td>CLAUDE.md 觸發關鍵字表 + domain/README.md</td><td>你的 index.md</td></tr>
     <tr><td>log.md（可 grep 的條目格式）</td><td>log/YYYY-MM.md —— 條目格式完全相同</td><td>你的 log.md（沿用同一格式）</td></tr>
     <tr><td>Lint 操作</td><td>scripts/verify-qaqc.ps1（孤兒頁、斷鏈、計數漂移）</td><td>請 AI 健檢你的 wiki（過版、矛盾、可回饋上游的發現）</td></tr>
   </table>
-  <p style="color:var(--text-muted);font-size:13px">補充：21 個編排層 Skill 與 96 個 MCP tools 也都在 raw/ 裡，AI 會在 ingest 時一併理解「哪些 SOP 有對應的自動化能力」。</p>
+  <p style="color:var(--text-muted);font-size:13px">補充：21 個編排層 Skill 與 96 個 MCP tools 也都在 repo 裡，AI 會在 ingest 時一併理解「哪些 SOP 有對應的自動化能力」。</p>
 </section>
 
 <section class="bim-section bim-anchor" id="structure">
   <div class="bim-section-eyebrow">SECTION 03 / STRUCTURE</div>
   <h2 class="bim-section-title">Vault 結構與更新邏輯</h2>
-  <div class="vault-tree">MyBIMVault/                ← Obsidian 開這一層
-  raw/                     ← REVIT_MCP 的 git clone（唯讀，git pull 更新）
-    domain/*.md            ← 公共智慧：44 個 Domain SOP
-    .claude/skills/        ← 21 個 Skill
-    CLAUDE.md              ← 公共 schema
-    log/                   ← 公共時間軸
-    templates/personal-vault/VAULT-CLAUDE.md  ← 你的 schema 的上游範本
-  wiki/                    ← 你的個人 wiki（AI 寫、你讀、[[連結]] 活在這裡）
-  CLAUDE.md                ← 你的 schema（從上游範本逐字複製，只填 Personal 區）
-  index.md                 ← 你的 wiki 目錄
-  log.md                   ← 你的操作時間軸</div>
+  <div class="vault-tree">REVIT_MCP/                 ← 你既有的 clone = raw 層（Obsidian 開這一層）
+  domain/*.md              ← 公共智慧：44 個 Domain SOP（唯讀對待）
+  .claude/skills/          ← 21 個 Skill
+  CLAUDE.md                ← 公共 schema
+  log/                     ← 公共時間軸
+  templates/personal-vault/VAULT-CLAUDE.md  ← 你的 schema 的上游範本
+  .gitignore               ← 已含 /vault/ 與 /.obsidian/（個人區永不被 push）
+  vault/                   ← 你的個人區（建議自己 git init 備份）
+    wiki/                  ← 你的個人 wiki（AI 寫、你讀、[[連結]] 活在這裡）
+    CLAUDE.md              ← 你的 schema（從上游範本逐字複製，只填 Personal 區）
+    index.md               ← 你的 wiki 目錄
+    log.md                 ← 你的操作時間軸</div>
+  <p>三個角色分工：<strong>AI agent 是手</strong>（執行 pull、寫 wiki）、<strong>Obsidian 是眼睛</strong>（它從不 pull，只是即時顯示磁碟上的檔案，agent 一改完你馬上看到）、<strong>git 是血管</strong>（公共智慧流進來、個人筆記被 .gitignore 擋住不流出去）。一份 clone 同時是 MCP 運行環境和知識來源 —— pull 一次，兩者同步更新。</p>
   <p>日常只有三個動作，全部用一句話交給 AI：</p>
   <table class="map-table">
     <tr><th>操作</th><th>你說</th><th>AI 做</th></tr>
-    <tr><td>Ingest</td><td>「pull 一下，ingest 有變動的」</td><td>raw/ 內 git pull → 讀 diff → 只消化變動的 SOP → 更新 wiki 頁與 index → 記 log</td></tr>
+    <tr><td>Ingest</td><td>「pull 一下，ingest 有變動的」</td><td>repo 根目錄 git pull → 讀 diff → 只消化變動的 SOP → 更新 wiki 頁與 index → 記 log</td></tr>
     <tr><td>Query</td><td>問任何問題（也可以連著 Revit 問）</td><td>先讀 index 找頁、再深入；好答案 file 回 wiki 變新頁 —— 包含用 MCP 對活模型跑出的審查結果</td></tr>
     <tr><td>Lint</td><td>「健檢一下」</td><td>找出來源已過版的頁、頁面間矛盾、孤兒頁，並整理「值得回饋上游」的提案清單</td></tr>
   </table>
@@ -124,7 +126,7 @@
   <p>這個 vault 不只是讀書工具 —— 它是小聚往上進階的下一步。公共智慧進入個人、個人深化出獨立變體、變體產生新知識、新知識回饋到開源的共同智慧：</p>
   <div class="flywheel">
     <div><b>COLLECTIVE</b>老師們貢獻的 Domain SOP 在上游累積</div>
-    <div><b>PULL</b>git pull 把公共智慧帶進你的 raw/</div>
+    <div><b>PULL</b>git pull 把公共智慧帶進你的 clone</div>
     <div><b>PERSONAL</b>AI ingest 成你的 wiki，加上你的案例與變體</div>
     <div><b>NEW VALUE</b>用出新發現：該連的 SOP、缺的法源、新的應用法</div>
     <div><b>GIVE BACK</b>回到 Claude Code / Gemini CLI / Antigravity，整理成 Domain 或新 Skill，提 PR</div>
@@ -138,7 +140,7 @@
   <table class="map-table">
     <tr><th>需要</th><th>說明</th><th>已在用 Revit MCP 的你</th></tr>
     <tr><td>AI Agent CLI</td><td>Claude Code / Gemini CLI / Antigravity 任一</td><td>✓ 已裝</td></tr>
-    <tr><td>git + REVIT_MCP clone</td><td>raw/ 的來源</td><td>✓ 已有</td></tr>
+    <tr><td>git + REVIT_MCP clone</td><td>repo 即 raw 層，vault 就住在裡面</td><td>✓ 已有</td></tr>
     <tr><td>Obsidian</td><td>免費，當 wiki 的閱讀器與圖譜檢視器</td><td>新裝，約 5 分鐘</td></tr>
   </table>
   <p style="color:var(--text-muted);font-size:13px">還沒安裝 Revit MCP？先走 <a href="deployment-guide.html">部署指南</a>，這一頁是進階第二步。</p>
@@ -151,7 +153,7 @@
   <p><strong>不同 Agent、不同模型，建出來會不會不一樣？</strong>會 —— 而且我們把「該一樣的」和「該不一樣的」切開管理：</p>
   <table class="map-table">
     <tr><th>層</th><th>一致性策略</th><th>機制</th></tr>
-    <tr><td>Schema（vault CLAUDE.md）</td><td>必須完全一致</td><td>不讓模型生成 —— 從 raw/templates/personal-vault/VAULT-CLAUDE.md <strong>逐字複製</strong>，只填 Personal 區。複製沒有變異。</td></tr>
+    <tr><td>Schema（vault/CLAUDE.md）</td><td>必須完全一致</td><td>不讓模型生成 —— 從 templates/personal-vault/VAULT-CLAUDE.md <strong>逐字複製</strong>，只填 Personal 區。複製沒有變異。</td></tr>
     <tr><td>結構與格式（資料夾、log/index/溯源格式）</td><td>必須一致</td><td>建置完 AI 要跑<strong>驗收清單</strong>逐項回報；範本有 schema_version，之後每次 lint 比對上游版本，飄了會自我修復。</td></tr>
     <tr><td>概念理解</td><td>逼近一致</td><td>idea file 尾部附 <strong>Karpathy 原文全文</strong>當錨點，AI 不確定時回原文判斷，不憑記憶腦補。</td></tr>
     <tr><td>wiki/ 內容</td><td><strong>刻意不一致</strong></td><td>個人壓縮是這整件事的目的 —— 內容的差異是 feature，不是 bug。</td></tr>
@@ -177,59 +179,68 @@ wiki 由你寫和維護，我幾乎不動手。我負責：提供來源、引導
 
 ## 三層架構
 
-1. raw/ —— 不可變的來源層。內容是 REVIT_MCP 專案的 git clone
-   （https://github.com/shuotao/REVIT_MCP_study）。
-   我只透過 git pull 更新它；你只讀、永不修改。重點來源：
+vault 直接住在我的 REVIT_MCP clone 裡面（https://github.com/shuotao/REVIT_MCP_study）。
+repo 本身就是 raw 層；個人區是 repo 內的 vault/ 資料夾，上游 .gitignore
+已排除 /vault/ 與 /.obsidian/，所以個人筆記永遠不會被 push 上去。
+
+1. raw 層 = repo 根目錄的所有上游內容。我只透過 git pull 更新；
+   你只讀、永不修改。重點來源：
    - domain/*.md：44 個 Domain SOP（各領域老師貢獻的公共智慧，
      frontmatter 含 version、updated、related、referenced_by、references、tags）
    - domain/references/building-code-tw.md：建築技術規則彙整
    - .claude/skills/*/SKILL.md：21 個編排層 Skill
-   - CLAUDE.md：公共 wiki 的 schema（Domain 觸發關鍵字表在這裡）
+   - CLAUDE.md：公共 wiki 的 schema（Domain 觸發關鍵字表在這裡；
+     它的開發規則只適用於開發本專案，vault 操作以 vault/CLAUDE.md 為準）
    - log/YYYY-MM.md：公共 wiki 的時間軸
-2. wiki/ —— 我的個人知識層。完全由你建立與維護：概念頁、實體頁、
-   比較頁、綜述頁。允許 Obsidian 的 [[雙向連結]]。用我的語言、我的分類、
+2. vault/wiki/ —— 我的個人知識層。完全由你建立與維護：概念頁、實體頁、
+   比較頁、綜述頁。允許 Obsidian 的 [[雙向連結]]，連到 domain 檔
+   會在 graph view 形成公共＋個人合一的知識族譜。用我的語言、我的分類、
    我的重點 —— 這是「個人壓縮」，不必跟上游長一樣。
-3. vault 根目錄的 CLAUDE.md（schema）—— 你的紀律設定檔。
+3. vault/CLAUDE.md（schema）—— 你的紀律設定檔。
    ※ 重要：這個檔不由你生成，而是從
-   raw/templates/personal-vault/VAULT-CLAUDE.md 逐字複製過來
+   templates/personal-vault/VAULT-CLAUDE.md 逐字複製過來
    （Fixed Core 區塊一個字都不能改寫、濃縮或重新表述；
    只有最後的 Personal 區由我們一起填）。
    這是讓每位使用者、每種 AI Agent、每個模型等級建出來的 vault
    規則一致的機制：一致性靠複製，不靠模型自律。
 
-兩個特殊檔：
-- index.md：wiki 目錄。每頁一行連結＋一句摘要，每次 ingest 後更新。
-- log.md：append-only 時間軸，條目格式沿用上游慣例：
+兩個特殊檔（都在 vault/ 內）：
+- vault/index.md：wiki 目錄。每頁一行連結＋一句摘要，每次 ingest 後更新。
+- vault/log.md：append-only 時間軸，條目格式沿用上游慣例：
   ## [YYYY-MM-DD HH:MM] 事件類型 | 簡述
 
 ## 三個操作
 
-1. Ingest：我說「ingest」時 —— 先在 raw/ 執行 git pull，
+1. Ingest：我說「ingest」時 —— 先在 repo 根目錄執行 git pull，
    再用 git diff 找出上次 ingest 之後變動的檔案，只消化變動部分：
-   閱讀、跟我討論重點、寫入或更新 wiki 頁、更新 index.md、追加 log.md。
-2. Query：我問問題時 —— 先讀 index.md 找相關頁再深入。
+   閱讀、跟我討論重點、寫入或更新 vault/wiki/ 頁、更新 vault/index.md、
+   追加 vault/log.md。
+2. Query：我問問題時 —— 先讀 vault/index.md 找相關頁再深入。
    重要：好的答案要存回 wiki 成為新頁（分析、比較、發現的關聯
-   都不該消失在對話裡）。特別的是，我有 Revit MCP：你可以對
-   「活的 Revit 模型」提問（執行排煙檢討、查詢元素、跑法規檢核）。
-   把實際審查的結果也 file 回 wiki，讓案例經驗複利累積。
+   都不該消失在對話裡）。特別的是，repo 的 .mcp.json 已設定 Revit MCP：
+   你可以直接對「活的 Revit 模型」提問（執行排煙檢討、查詢元素、
+   跑法規檢核）。把實際審查的結果也 file 回 wiki，讓案例經驗複利累積。
 3. Lint：我說「lint」時 —— 檢查：
-   (a) 哪些 wiki 頁的來源已在上游更新（比對 source_version 與 raw/ 現況）
+   (a) 哪些 wiki 頁的來源已在上游更新（比對 source_version 與上游現況）
    (b) 頁面之間的矛盾
    (c) 沒有任何連入連結的孤兒頁
    (d) 值得回饋上游的發現，整理成「可提案清單」
-   (e) 我的 CLAUDE.md Fixed Core 的 schema_version 是否落後
-       raw/templates/personal-vault/VAULT-CLAUDE.md —— 落後就提示升級
+   (e) vault/CLAUDE.md Fixed Core 的 schema_version 是否落後
+       templates/personal-vault/VAULT-CLAUDE.md —— 落後就提示升級
        （新版 Fixed Core 整段覆蓋，Personal 區保留）
 
 ## 紀律（必須遵守）
 
-1. 永不修改 raw/ 內任何檔案；個人筆記永不 commit 到上游 repo。
-2. 溯源：每個源自上游的 wiki 頁，frontmatter 必須記 source
+1. 個人操作永不寫入 vault/ 以外的任何檔案；個人筆記永不 commit 到
+   上游 repo；個人 log 一律寫 vault/log.md（不是上游的 log/）。
+2. 永不在本 repo 執行 git clean -x 系列指令（會刪掉整個 vault/）、
+   永不 git add -f vault 內容。vault/ 要自己 git init 並建議推私人遠端備份。
+3. 溯源：每個源自上游的 wiki 頁，frontmatter 必須記 source
    （如 domain/smoke-exhaust-review.md）與 source_version
    （抄該檔 frontmatter 的 version 與 updated）。
-3. 答案中的具體數據（元素 ID、數量、面積）必須來自本回合的工具結果，
+4. 答案中的具體數據（元素 ID、數量、面積）必須來自本回合的工具結果，
    不可憑記憶 —— 與上游 CLAUDE.md 的「資料誠實」原則一致。
-4. 法規與計算方法以 raw/domain/*.md 為準；我的 wiki 是個人理解層，
+5. 法規與計算方法以 domain/*.md 為準；我的 wiki 是個人理解層，
    與 Domain 衝突時，在 lint 報告中標記，不要擅自改寫結論。
 
 ## 回饋上游（這個 vault 的終極目的之一）
@@ -241,22 +252,31 @@ wiki 由你寫和維護，我幾乎不動手。我負責：提供來源、引導
 
 ## 建置步驟（現在開始）
 
-1. 與我確認 vault 位置，以及 raw/ 要用新 clone 還是我既有的 REVIT_MCP clone。
-2. 建立資料夾結構與空的 index.md、log.md。
-3. 把 raw/templates/personal-vault/VAULT-CLAUDE.md 逐字複製為
-   vault 根目錄的 CLAUDE.md（Fixed Core 不得改寫），然後問我幾個
+0. 前提確認：我們現在應該位於 REVIT_MCP clone 的根目錄
+   （用 git remote -v 確認；若我還沒有 clone，先協助我 clone）。
+   再確認 .gitignore 含有 /vault/ 與 /.obsidian/（上游已內建；
+   若沒有代表我的 clone 太舊，先 git pull）。
+1. 建立 vault/ 與 vault/wiki/，以及空的 vault/index.md、vault/log.md。
+2. 在 vault/ 內執行 git init（獨立的個人 repo，與上游互不干擾），
+   並建議我之後推一個私人遠端做備份。
+3. 把 templates/personal-vault/VAULT-CLAUDE.md 逐字複製為
+   vault/CLAUDE.md（Fixed Core 不得改寫），然後問我幾個
    個人化問題填入 Personal 區：我的專業領域？我最常用哪些 Domain？
    我偏好的筆記語言與粒度？
 4. 執行驗收清單，逐項回報給我：
-   [ ] raw/、wiki/、CLAUDE.md、index.md、log.md 都存在
-   [ ] CLAUDE.md 的 Fixed Core 與 raw/templates/personal-vault/
+   [ ] vault/、vault/wiki/、vault/CLAUDE.md、vault/index.md、vault/log.md 都存在
+   [ ] .gitignore 含 /vault/ 與 /.obsidian/，且 git status 看不到 vault/
+   [ ] vault/CLAUDE.md 的 Fixed Core 與 templates/personal-vault/
        VAULT-CLAUDE.md 逐字一致（用 diff 確認），schema_version 相同
-   [ ] raw/ 是乾淨的 git repo（git status 無本地修改）
-   [ ] log.md 已寫入第一筆標準格式條目
+   [ ] vault/ 已 git init（有自己的 .git）
+   [ ] 上游工作區乾淨（git status 無本地修改）
+   [ ] vault/log.md 已寫入第一筆標準格式條目
    [ ] 之後每個源自上游的 wiki 頁都會帶 source 與 source_version
 5. 做第一次 ingest：從我的專業最相關的兩三個 Domain 檔開始，
    不要一次吞 44 個。
-6. 提醒我打開 Obsidian、把 vault 加進去、看 graph view。
+6. 提醒我用 Obsidian 打開 REVIT_MCP 資料夾（不是 vault/）、
+   在 Settings → Files and links → Excluded files 排除 MCP-Server/ 與 MCP/、
+   然後看 graph view —— wiki 頁連到 domain 檔的邊會出現在圖上。
 
 ## 附錄：Andrej Karpathy「LLM Wiki」原文全文
 
@@ -348,11 +368,11 @@ This document is intentionally abstract. It describes the idea, not a specific i
   <h2 class="bim-section-title">第一次操作（10 分鐘）</h2>
   <ol class="bim-steps">
     <li><strong>裝 Obsidian</strong><p>從 obsidian.md 下載安裝（免費）。先不用設定任何東西。</p></li>
-    <li><strong>開一個資料夾，啟動你的 AI Agent</strong><p>例如 <code>D:\MyBIMVault</code>。在這個資料夾開 Claude Code（或 Gemini CLI / Antigravity）。</p></li>
-    <li><strong>貼上面那段建置說明</strong><p>AI 會跟你確認 vault 位置、建好結構、從 raw/ 的範本逐字複製你的 schema CLAUDE.md、問你幾個個人化問題填 Personal 區，最後跑驗收清單逐項回報。</p></li>
+    <li><strong>在你的 REVIT_MCP 資料夾啟動 AI Agent</strong><p>就是你平常跑 MCP 的那個 clone —— 不用開新資料夾、不用第二份 clone。在那裡開 Claude Code（或 Gemini CLI / Antigravity）。還沒有 clone 的人先走<a href="deployment-guide.html">部署指南</a>。</p></li>
+    <li><strong>貼上面那段建置說明</strong><p>AI 會確認你在 repo 根目錄、建好 vault/、在 vault/ 裡 git init、從 templates/ 範本逐字複製你的 schema、問你幾個個人化問題填 Personal 區，最後跑驗收清單逐項回報。</p></li>
     <li><strong>第一次 ingest</strong><p>跟 AI 說你的專業（例如「我主要做消防審查」），它會從最相關的 Domain 開始消化 —— 例如 fire-rating-check、corridor-analysis-protocol、smoke-exhaust-review。</p></li>
-    <li><strong>用 Obsidian 打開 vault，看 graph view</strong><p>左邊 agent、右邊 Obsidian —— 這就是 Karpathy 說的工作畫面：Obsidian 是 IDE，AI 是工程師，wiki 是你的知識程式碼庫。</p></li>
-    <li><strong>之後每次：pull + ingest</strong><p>上游有新東西（月小聚後通常會有），跟 AI 說「pull 一下，ingest 有變動的」就完成更新。發現值得回饋的，請 AI 幫你整理提案。</p></li>
+    <li><strong>用 Obsidian 打開 REVIT_MCP 資料夾，看 graph view</strong><p>開整個 repo（不是只開 vault/），並在 Settings → Files and links → Excluded files 排除 <code>MCP-Server/</code> 與 <code>MCP/</code>。graph view 會同時顯示公共 domain 和你的 wiki —— 你的 [[連結]] 連到 domain 檔就是圖上的邊，公共＋個人合一的知識族譜。左邊 agent、右邊 Obsidian：Obsidian 是 IDE，AI 是工程師，wiki 是你的知識程式碼庫。</p></li>
+    <li><strong>之後每次：pull + ingest</strong><p>上游有新東西（月小聚後通常會有），跟 AI 說「pull 一下，ingest 有變動的」就完成更新 —— 同一個 pull 也同時更新了你的 MCP 工具和 schema 範本。發現值得回饋的，請 AI 幫你整理提案。</p></li>
   </ol>
 </section>
 

@@ -136,6 +136,15 @@ foreach ($redirect in @("GEMINI.md", "AGENTS.md")) {
     }
 }
 
+# 1-4: Personal vault protection — .gitignore must exclude /vault/ and /.obsidian/
+# so users' personal knowledge vaults (templates/personal-vault/) can never be pushed.
+Write-Host ""
+Write-Host "  1-4. Personal vault gitignore protection:" -ForegroundColor Cyan
+$gitignore = Read-FileText (Join-Path $projectRoot ".gitignore")
+Write-Check ".gitignore excludes /vault/" ($gitignore -match '(?m)^/vault/\s*$') "Add /vault/ to .gitignore"
+Write-Check ".gitignore excludes /.obsidian/" ($gitignore -match '(?m)^/\.obsidian/\s*$') "Add /.obsidian/ to .gitignore"
+Write-Check "Vault schema template exists" (Test-Path (Join-Path $projectRoot "templates\personal-vault\VAULT-CLAUDE.md")) "templates/personal-vault/VAULT-CLAUDE.md missing"
+
 # ─────────────────────────────────────────────
 # Phase 2: Cross-Reference Consistency
 # ─────────────────────────────────────────────

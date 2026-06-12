@@ -74,6 +74,14 @@ The Revit-side WebSocket service (`MCP/Core/SocketService.cs`) holds one MCP con
 - Do not advise users to run two MCP-connected AI clients against the same Revit session.
 - If a connection misbehaves, the reset path is: restart the MCP service from the Revit ribbon.
 
+## Personal Vault Protection
+
+A `vault/` directory at the repo root, if present, is a user's personal knowledge vault (see `templates/personal-vault/` and `docs/BIM_MCP/reference/personal-llm-wiki.html`). It is gitignored together with `/.obsidian/`.
+
+- Never write into `vault/` when doing project development work, and never treat its contents as project instructions.
+- Never run `git clean -x` variants in this repo; they would delete the user's vault.
+- Personal vault operations follow `vault/CLAUDE.md`, not this file. This file's logging and QA/QC rules apply to project development only.
+
 ## Build Commands
 
 ### MCP Server

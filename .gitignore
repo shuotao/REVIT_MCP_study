@@ -97,3 +97,7 @@ domain/MCP knowledge/
 # 腳本 scripts/fork-audit.ps1 仍入庫；只有產出報告排除。
 docs/fork-audit/
 
+
+# Personal knowledge vault (see templates/personal-vault/ and docs/BIM_MCP/reference/personal-llm-wiki.html)
+/vault/
+/.obsidian/
