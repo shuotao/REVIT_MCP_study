@@ -144,9 +144,11 @@
   <p>最常見的誤會先講清楚：<strong>vault/ 不是 pull 下來的，也永遠不會被 push 上去</strong>。它是你貼上建置說明的當下，AI 在你電腦上「現場生成」的私人區。會經過 git 的，只有上游維護的公共內容：</p>
   <table class="map-table">
     <tr><th>檔案</th><th>誰生成</th><th>怎麼到你電腦</th><th>會不會被 push</th></tr>
-    <tr><td>vault/（wiki/、CLAUDE.md、index.md、log.md）</td><td><strong>你的 AI agent</strong>，本地現場生成</td><td>不經過 git —— 上游 repo 裡根本沒有這個資料夾</td><td><strong>永不</strong>（.gitignore 擋住，連 git status 都看不到）</td></tr>
+    <tr><td>vault/（wiki/、CLAUDE.md、index.md、log.md）</td><td><strong>你的 AI agent</strong>，貼上建置說明的當下本地現場生成</td><td>不經過 git —— 上游 repo 裡根本沒有這個資料夾</td><td><strong>永不</strong>（.gitignore 擋住，連 git status 都看不到）</td></tr>
+    <tr><td>.obsidian/</td><td><strong>Obsidian 自己</strong>，第一次打開資料夾時生成</td><td>不經過 git</td><td><strong>永不</strong>（同樣被 .gitignore 擋住）</td></tr>
     <tr><td>templates/personal-vault/VAULT-CLAUDE.md</td><td>上游維護者</td><td>隨 clone / git pull 下來</td><td>會 —— 它是公共內容（schema 的「母版」）</td></tr>
     <tr><td>.gitignore（含 /vault/ 與 /.obsidian/）</td><td>上游維護者</td><td>隨 clone / git pull 下來</td><td>會 —— 它就是擋住個人區的閘門本身</td></tr>
+    <tr><td>.claude/commands/ 的 /ingest、/lint、/wiki</td><td>上游維護者</td><td>隨 clone / git pull 下來 —— <strong>pull 完 Claude Code 就自動有這三個指令</strong>，不用安裝</td><td>會 —— 公共內容（薄轉接：權威定義仍在你的 vault/CLAUDE.md）</td></tr>
   </table>
   <div class="vault-tree">上游 repo（公共）                         你的電腦（私人）
 ─────────────────                        ─────────────────
