@@ -1,5 +1,5 @@
 {
-    "servers": {
+    "mcpServers": {
         "revit-mcp": {
             "type": "stdio",
             "command": "node",

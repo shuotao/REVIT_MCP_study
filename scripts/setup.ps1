@@ -12,7 +12,7 @@
 # 使用方式：
 #   初學者：雙擊 setup.bat 即可
 #   進階者：powershell -ExecutionPolicy Bypass -File setup.ps1
-#   AI Agent：powershell -ExecutionPolicy Bypass -File setup.ps1 -NonInteractive -RevitVersions "2024,2025"
+#   AI Agent：powershell -ExecutionPolicy Bypass -File setup.ps1 -NonInteractive -RevitVersions "2020,2024"
 # ============================================================================
 
 param(
@@ -144,13 +144,13 @@ if ($Help) {
 
   Usage:
     .\setup.ps1                                          # Interactive mode
-    .\setup.ps1 -NonInteractive -RevitVersions "2024"    # AI agent mode
+    .\setup.ps1 -NonInteractive -RevitVersions "2020"    # AI agent mode
     .\setup.ps1 -SkipPrerequisites                       # Skip Node/dotnet install
     .\setup.ps1 -Help                                    # Show this help
 
   Parameters:
     -NonInteractive     Skip all prompts, use defaults
-    -RevitVersions      Comma-separated versions: "2024,2025,2026"
+    -RevitVersions      Comma-separated versions: "2020,2024,2026"
     -SkipPrerequisites  Skip Node.js and .NET SDK checks
     -SkipMCPServer      Skip npm install and build
     -SkipRevitBuild     Skip dotnet build
@@ -412,15 +412,24 @@ else {
 
 Write-StepHeader "選擇 Revit 版本"
 
-$supportedVersions = @("2022", "2023", "2024", "2025", "2026")
+$supportedVersions = @("2020", "2021", "2022", "2023", "2024", "2025", "2026")
 $detectedVersions = @()
+$unsupportedDetectedVersions = @()
 $selectedVersions = @()
 
 # 偵測已安裝的 Revit 版本
-foreach ($ver in $supportedVersions) {
-    $testPath = Join-Path $addinsBase $ver
-    if (Test-Path $testPath) {
-        $detectedVersions += $ver
+if (Test-Path $addinsBase) {
+    $allVersionFolders = Get-ChildItem $addinsBase -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -match '^20\d\d$' } |
+        Select-Object -ExpandProperty Name
+
+    foreach ($ver in $allVersionFolders) {
+        if ($ver -in $supportedVersions) {
+            $detectedVersions += $ver
+        }
+        else {
+            $unsupportedDetectedVersions += $ver
+        }
     }
 }
 
@@ -430,6 +439,11 @@ if ($detectedVersions.Count -gt 0) {
 else {
     Write-Info "未偵測到已安裝的 Revit（Addins 資料夾不存在）"
     Write-Info "您仍可手動選擇版本，安裝程式會自動建立資料夾"
+}
+
+if ($unsupportedDetectedVersions.Count -gt 0) {
+    Write-Info "偵測到不在部署矩陣的版本：$($unsupportedDetectedVersions -join ', ')"
+    Write-Info "目前 setup.ps1 僅支援部署 2020-2026，這些版本將被略過"
 }
 
 if ($NonInteractive) {
@@ -442,7 +456,7 @@ if ($NonInteractive) {
     }
     if ($selectedVersions.Count -eq 0) {
         Write-Fail "未指定有效的 Revit 版本，且未偵測到已安裝版本"
-        Write-Info "請使用 -RevitVersions 參數指定版本，例如：-RevitVersions `"2024,2025`""
+        Write-Info "請使用 -RevitVersions 參數指定版本，例如：-RevitVersions `"2020,2024`""
         exit 1
     }
     Write-OK "已選擇版本：$($selectedVersions -join ', ')"
@@ -545,7 +559,7 @@ else {
             Write-Host "    已偵測到：$($detectedVersions -join ', ')" -ForegroundColor Green
         }
         Write-Host ""
-        $inputVersions = Read-Host "    請輸入要安裝的版本（以逗號分隔，例如 2024,2025）"
+        $inputVersions = Read-Host "    請輸入要安裝的版本（以逗號分隔，例如 2020,2024）"
         if ([string]::IsNullOrWhiteSpace($inputVersions)) {
             $selectedVersions = $detectedVersions
         }
@@ -669,6 +683,8 @@ else {
     }
     else {
         $versionConfigMap = @{
+            "2020" = "Release.R20"
+            "2021" = "Release.R21"
             "2022" = "Release.R22"
             "2023" = "Release.R23"
             "2024" = "Release.R24"
@@ -757,6 +773,28 @@ else {
                     $closedXmlDll = Join-Path (Join-Path (Join-Path $mcpDir "bin") $config) "ClosedXML.dll"
                     if (Test-Path $closedXmlDll) {
                         Copy-Item -Path $closedXmlDll -Destination (Join-Path $targetDllDir "ClosedXML.dll") -Force -ErrorAction SilentlyContinue
+                    }
+
+                    # 複製 MCP.Contracts.dll（Loader 根目錄）
+                    $contractsDll = Join-Path (Join-Path (Join-Path $mcpDir "bin") $config) "MCP.Contracts.dll"
+                    if (Test-Path $contractsDll) {
+                        Copy-Item -Path $contractsDll -Destination (Join-Path $targetDllDir "MCP.Contracts.dll") -Force -ErrorAction SilentlyContinue
+                    }
+
+                    # 複製 runtime/*.dll（CoreRuntime）
+                    $sourceRuntimeDir = Join-Path (Join-Path (Join-Path $mcpDir "bin") $config) "runtime"
+                    $targetRuntimeDir = Join-Path $targetDllDir "runtime"
+                    if (Test-Path $sourceRuntimeDir) {
+                        if (-not (Test-Path $targetRuntimeDir)) {
+                            New-Item -ItemType Directory -Path $targetRuntimeDir -Force | Out-Null
+                        }
+
+                        Copy-Item -Path (Join-Path $sourceRuntimeDir "*.dll") -Destination $targetRuntimeDir -Force -ErrorAction SilentlyContinue
+
+                        $staleRuntimeContracts = Join-Path $targetRuntimeDir "MCP.Contracts.dll"
+                        if (Test-Path $staleRuntimeContracts) {
+                            Remove-Item -Path $staleRuntimeContracts -Force -ErrorAction SilentlyContinue
+                        }
                     }
 
                     Write-OK "Revit $ver 部署完成 -> $targetBase"
