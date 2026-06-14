@@ -7,7 +7,9 @@
 #   3. Build Configuration Validation
 #   4. Build Verification (skip with -SkipBuild)
 #   5. Deployment Verification (skip with -SkipDeploy)
+#   6. Domain Metadata and Shared SOP Quality
 #   7. Cross-Document Alignment (CLAUDE.md / BIM_MCP web / scripts must report same Skill/Domain/Tool counts)
+#   8. Document Audience and Encoding Hygiene
 
 param(
     [switch]$SkipBuild,
@@ -23,6 +25,7 @@ $projectRoot = Split-Path -Parent -Path $scriptDir
 $totalPass = 0
 $totalFail = 0
 $totalSkip = 0
+$totalWarn = 0
 $failures = @()
 
 function Write-Check {
@@ -43,6 +46,13 @@ function Write-Skip {
     param([string]$Name, [string]$Reason = "")
     Write-Host "  SKIP  $Name ($Reason)" -ForegroundColor DarkGray
     $script:totalSkip++
+}
+
+function Write-Warn {
+    param([string]$Name, [string]$Detail = "")
+    Write-Host "  WARN  $Name" -ForegroundColor Yellow
+    if ($Detail) { Write-Host "         $Detail" -ForegroundColor DarkYellow }
+    $script:totalWarn++
 }
 
 # Robust text reader — bypasses Get-Content parameter-binding quirks on some files
@@ -91,6 +101,7 @@ $requiredFiles = @(
     @("MCP\Core\ExternalEventManager.cs", "UI thread manager"),
     @("MCP\Core\RevitCompatibility.cs", "Cross-version compat layer"),
     @("MCP-Server\src\index.ts", "MCP Server entry"),
+    @("MCP-Server\src\tools\index.ts", "Runtime tool registry"),
     @("MCP-Server\src\tools\revit-tools.ts", "Tool definitions"),
     @("MCP-Server\package.json", "Node.js dependencies")
 )
@@ -125,6 +136,15 @@ foreach ($redirect in @("GEMINI.md", "AGENTS.md")) {
     }
 }
 
+# 1-4: Personal vault protection — .gitignore must exclude /vault/ and /.obsidian/
+# so users' personal knowledge vaults (templates/personal-vault/) can never be pushed.
+Write-Host ""
+Write-Host "  1-4. Personal vault gitignore protection:" -ForegroundColor Cyan
+$gitignore = Read-FileText (Join-Path $projectRoot ".gitignore")
+Write-Check ".gitignore excludes /vault/" ($gitignore -match '(?m)^/vault/\s*$') "Add /vault/ to .gitignore"
+Write-Check ".gitignore excludes /.obsidian/" ($gitignore -match '(?m)^/\.obsidian/\s*$') "Add /.obsidian/ to .gitignore"
+Write-Check "Vault schema template exists" (Test-Path (Join-Path $projectRoot "templates\personal-vault\VAULT-CLAUDE.md")) "templates/personal-vault/VAULT-CLAUDE.md missing"
+
 # ─────────────────────────────────────────────
 # Phase 2: Cross-Reference Consistency
 # ─────────────────────────────────────────────
@@ -140,6 +160,7 @@ $stalePatterns = @(
     @("RevitMCP\.2024\.csproj", "Deleted legacy build file"),
     @("RevitMCP\.2024\.addin", "Deleted legacy addin"),
     @("bin\\Release\.2024", "Old output path"),
+    @("bin\\Release\\RevitMCP\.dll", "Old unified output path; use bin\\Release.R{YY}\\RevitMCP.dll"),
     @("MCP\\MCP\\", "Old nested directory"),
     @("fix_addin_path", "Deleted script")
 )
@@ -150,6 +171,7 @@ $excludedFiles = @(
     "MIGRATION_GUIDE.md",
     "Recent_Update_Review.md",
     ".claude/commands/qaqc.md",        # /qaqc 命令定義本身列舉「禁止檔名」
+    "domain/qa-checklist.md",          # QA checklist intentionally lists forbidden legacy paths
     "domain/lessons.md",                # 開發經驗檔，保留 legacy 教訓作為前車之鑑
     "domain/path-maintenance-qa.md",    # 路徑維護 QA，引用舊 nested dir 作為歷史修正紀錄
     "docs/0328的課程討論.md"            # 歷史教材，保留當時上下文
@@ -263,6 +285,20 @@ if (Test-Path $pkg) {
     Write-Check "build script defined" ($content -match '"build"') "No build script in package.json"
     Write-Check "MCP SDK dependency" ($content -match "modelcontextprotocol") "Missing MCP SDK dependency"
 }
+
+# 3-4: Client config template portability — templates must use <YOUR_PROJECT_PATH>, never a hardcoded user path
+Write-Host ""
+Write-Host "  3-4. Client config template portability:" -ForegroundColor Cyan
+$templateFiles = Get-ChildItem -Path "$projectRoot\MCP-Server\*_config.json" -ErrorAction SilentlyContinue
+$nonPortable = @()
+foreach ($tf in $templateFiles) {
+    $content = Read-FileText $tf.FullName
+    if ($content -and ($content -match '[A-Za-z]:[\\/]+Users[\\/]')) {
+        $nonPortable += $tf.Name
+    }
+}
+Write-Check "Config templates contain no hardcoded user paths" ($nonPortable.Count -eq 0) `
+    $(if ($nonPortable.Count -gt 0) { "Hardcoded user path in: $($nonPortable -join ', '). Use <YOUR_PROJECT_PATH> placeholder." } else { "" })
 
 # ─────────────────────────────────────────────
 # Phase 4: Build Verification (Windows only)
@@ -404,6 +440,73 @@ else {
 }
 
 # ─────────────────────────────────────────────
+# Phase 6: Domain Metadata and Shared SOP Quality
+# ─────────────────────────────────────────────
+Write-Host ""
+Write-Host "[Phase 6] Domain Metadata and Shared SOP Quality" -ForegroundColor Yellow
+Write-Host "─────────────────────────────────────────────" -ForegroundColor DarkGray
+
+$domainFiles = Get-ChildItem -Path "$projectRoot\domain" -Filter "*.md" -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -ne "README.md" }
+
+Write-Host ""
+Write-Host "  6-1. Required frontmatter fields:" -ForegroundColor Cyan
+$frontmatterFailures = @()
+foreach ($df in $domainFiles) {
+    $text = Read-FileText $df.FullName
+    $rel = $df.FullName.Replace("$projectRoot\", "").Replace("\", "/")
+    if (-not $text -or -not ($text -match '(?s)^---\s*\r?\n(.*?)\r?\n---')) {
+        $frontmatterFailures += "$rel missing YAML frontmatter"
+        continue
+    }
+
+    $fm = $matches[1]
+    foreach ($required in @("name:", "description:", "metadata:", "version:", "updated:")) {
+        if ($fm -notmatch "(?m)^\s*$([regex]::Escape($required))") {
+            $frontmatterFailures += "$rel missing $required"
+        }
+    }
+}
+Write-Check "Domain frontmatter required fields present" ($frontmatterFailures.Count -eq 0) `
+    $(if ($frontmatterFailures.Count -gt 0) { ($frontmatterFailures | Select-Object -First 10) -join "`n" } else { "" })
+
+Write-Host ""
+Write-Host "  6-2. Domain files remain shared, not English-only:" -ForegroundColor Cyan
+$englishOnlyDomain = @()
+foreach ($df in $domainFiles) {
+    $text = Read-FileText $df.FullName
+    if (-not $text) { continue }
+    $rel = $df.FullName.Replace("$projectRoot\", "").Replace("\", "/")
+    $hasCjk = $text -match '[\u4e00-\u9fff]'
+    if (-not $hasCjk) { $englishOnlyDomain += $rel }
+}
+if ($englishOnlyDomain.Count -gt 0) {
+    Write-Warn "Some Domain files appear English-only" (($englishOnlyDomain | Select-Object -First 10) -join "`n")
+}
+else {
+    Write-Check "Domain files retain Chinese-readable content" $true
+}
+
+Write-Host ""
+Write-Host "  6-3. Domain related references resolve:" -ForegroundColor Cyan
+$brokenRelated = @()
+foreach ($df in $domainFiles) {
+    $text = Read-FileText $df.FullName
+    if (-not $text) { continue }
+    $rel = $df.FullName.Replace("$projectRoot\", "").Replace("\", "/")
+    foreach ($m in ([regex]'domain/[a-zA-Z0-9_\-\.\/]+\.md').Matches($text)) {
+        $target = $m.Value
+        if ($target -match '^domain/(xxx|example)[a-zA-Z0-9_\-]*\.md$') { continue }
+        $full = Join-Path $projectRoot $target.Replace('/', '\')
+        if (-not (Test-Path -LiteralPath $full)) {
+            $brokenRelated += "$rel -> $target"
+        }
+    }
+}
+Write-Check "Domain-local domain/*.md references resolve" ($brokenRelated.Count -eq 0) `
+    $(if ($brokenRelated.Count -gt 0) { ($brokenRelated | Select-Object -First 10) -join "`n" } else { "" })
+
+# ─────────────────────────────────────────────
 # Phase 7: Cross-Document Alignment
 # ─────────────────────────────────────────────
 Write-Host ""
@@ -412,6 +515,16 @@ Write-Host "──────────────────────�
 
 # Helpers — single source of truth for counts
 function Get-ToolCount {
+    $nodeScript = "import('./MCP-Server/build/tools/index.js').then(m=>{console.log(m.registerRevitTools().length)}).catch(()=>process.exit(2))"
+    Push-Location $projectRoot
+    $result = & node --input-type=module -e $nodeScript 2>$null
+    $exit = $LASTEXITCODE
+    Pop-Location
+    if ($exit -eq 0 -and $result -match '^\d+$') {
+        return [int]$result
+    }
+
+    Write-Warn "Runtime tool registry count unavailable" "Falling back to source regex count. Run npm run build if this is unexpected."
     $hits = Select-String -Path "$projectRoot\MCP-Server\src\tools\*.ts" `
         -Pattern '^\s+name:\s*[''"]' -ErrorAction SilentlyContinue
     return $hits.Count
@@ -419,8 +532,10 @@ function Get-ToolCount {
 
 function Get-DomainCount {
     # All domain/*.md including meta — single grand total
-    return (Get-ChildItem -Path "$projectRoot\domain" -Filter "*.md" -ErrorAction SilentlyContinue |
+    $rootCount = (Get-ChildItem -Path "$projectRoot\domain" -Filter "*.md" -ErrorAction SilentlyContinue |
         Where-Object { $_.Name -ne 'README.md' }).Count
+    $refCount = (Get-ChildItem -Path "$projectRoot\domain\references" -Filter "*.md" -ErrorAction SilentlyContinue).Count
+    return ($rootCount + $refCount)
 }
 
 function Get-SkillCount {
@@ -448,29 +563,33 @@ $skillCount = Get-SkillCount
 Write-Host ""
 Write-Host "  7-0. Source-of-truth counts:" -ForegroundColor Cyan
 Write-Host "    Skills  = $skillCount  (.claude/skills/*/SKILL.md)" -ForegroundColor Gray
-Write-Host "    Domain  = $domainCount  (domain/*.md, ex README)" -ForegroundColor Gray
-Write-Host "    Tools   = $toolCount  (MCP-Server/src/tools/*.ts)" -ForegroundColor Gray
+Write-Host "    Domain  = $domainCount  (domain/*.md ex README + domain/references/*.md)" -ForegroundColor Gray
+Write-Host "    Tools   = $toolCount  (runtime registerRevitTools())" -ForegroundColor Gray
 
-# Exclude: archived snapshots, log files, explicit-snapshot demo HTMLs, external bundled mirrors
-$skipPatterns = @('_archive', '\log\', '0425-presentation.html',
-                  'karpathy-wiki-reading.bundled.txt', 'reference\external')
+# Exclude: archived snapshots, log files, immutable date-prefixed snapshot HTMLs, external bundled mirrors
+# Snapshot policy: every docs/MMDD-*.html is an immutable event snapshot — its numbers reflect
+# the event date and are never re-synced. Living documents (BIM_MCP reference) stay in scope.
+$skipPatterns = @('_archive', '\log\', '\docs\0425-', '\docs\0523-', 'reference\external')
 
 # Scan target files for claim-site checks (7-1/7-2/7-3)
 $scanPaths = @(
     "$projectRoot\CLAUDE.md",
     "$projectRoot\README.md",
     "$projectRoot\README.en.md",
+    "$projectRoot\docs\DOCUMENT_AUDIENCE_INVENTORY.md",
     "$projectRoot\docs\BIM_MCP\*.html",
     "$projectRoot\docs\BIM_MCP\reference\*.html",
-    "$projectRoot\docs\BIM_MCP\_shared.js",
-    "$projectRoot\docs\0523-monthly.html",
-    "$projectRoot\docs\0523-handson.html"
+    "$projectRoot\docs\BIM_MCP\_shared.js"
 )
 
 # Known claim-site patterns — ONLY match GRAND-TOTAL claim phrases (not "5 個 ARCHI 工具" type batch counts).
 # Each: { Pattern (regex w/ 1 capture group) ; Truth ; Label }
 # Truth note: Domain Knowledge heading + N Domain refs use $domainCount+1 because 1 entry is from domain/references/
 $claimSites = @(
+    # Markdown count-table claims (CLAUDE.md / README.md / README.en.md / DOCUMENT_AUDIENCE_INVENTORY.md)
+    @{ Pattern = '\|\s*Runtime MCP tools\s*\|\s*(\d+)\s*\|';           Truth = $toolCount;          Label = '| Runtime MCP tools | N |' },
+    @{ Pattern = '\|\s*Domain SOP files\s*\|\s*(\d+)\s*\|';            Truth = $domainCount;        Label = '| Domain SOP files | N |' },
+    @{ Pattern = '\|\s*Claude skills\s*\|\s*(\d+)\s*\|';               Truth = $skillCount;         Label = '| Claude skills | N |' },
     # Tool count grand-total claims
     @{ Pattern = '共用\s*(\d+)\s*個工具';                              Truth = $toolCount;          Label = '共用 N 個工具' },
     @{ Pattern = '個\s*Domain[、，]\s*(\d+)\s*個工具';                  Truth = $toolCount;          Label = 'N 個工具 (hero 三層)' },
@@ -485,18 +604,19 @@ $claimSites = @(
     @{ Pattern = '警告：(\d+)\s*工具不該';                              Truth = $toolCount;          Label = '警告：N 工具不該' },
     @{ Pattern = '(\d+)\s*個工具可以組合';                              Truth = $toolCount;          Label = 'N 個工具可以組合' },
     # Domain count grand-total claims
-    @{ Pattern = 'Domain Knowledge.{0,40}（(\d+)\s*個';                Truth = ($domainCount + 1); Label = 'Domain Knowledge 標題' },
-    @{ Pattern = '(\d+)\+?\s*個?\s*Domain\b';                          Truth = ($domainCount + 1); Label = 'N Domain' },
-    @{ Pattern = '(\d+)\s*個\s*SOP';                                   Truth = ($domainCount + 1); Label = '個 SOP' },
-    @{ Pattern = '(\d+)\s*個\s*domain/\*\.md';                         Truth = ($domainCount + 1); Label = '個 domain/*.md' },
-    @{ Pattern = '(\d+)\s*個\s*<code>domain';                          Truth = ($domainCount + 1); Label = '個 <code>domain' },
+    @{ Pattern = 'Domain Knowledge.{0,40}（(\d+)\s*個';                Truth = $domainCount; Label = 'Domain Knowledge 標題' },
+    @{ Pattern = '(\d+)\+?\s*個?\s*Domain\b';                          Truth = $domainCount; Label = 'N Domain' },
+    @{ Pattern = '(\d+)\s*個\s*SOP';                                   Truth = $domainCount; Label = '個 SOP' },
+    @{ Pattern = '(\d+)\s*個\s*domain/\*\.md';                         Truth = $domainCount; Label = '個 domain/*.md' },
+    @{ Pattern = '(\d+)\s*個\s*<code>domain';                          Truth = $domainCount; Label = '個 <code>domain' },
     # Skill count grand-total claims (must require explicit grand-total context)
     @{ Pattern = '##\s*Skills（(\d+)\s*個）';                           Truth = $skillCount;         Label = '## Skills（N 個）' },
     @{ Pattern = 'Skills\s*索引（(\d+)\s*個）';                         Truth = $skillCount;         Label = 'Skills 索引（N 個）' },
     @{ Pattern = '(\d+)\s*個編排層\s*Skill';                            Truth = $skillCount;         Label = 'N 個編排層 Skill' },
     @{ Pattern = '(\d+)\s*Skill\s*vs\b';                               Truth = $skillCount;         Label = 'N Skill vs ...' },
     @{ Pattern = 'Skill\s*=\s*編排（(\d+)\s*個';                        Truth = $skillCount;         Label = 'Skill = 編排（N 個' },
-    @{ Pattern = 'SKILLS INDEX[^<]*<span[^>]*>(\d+)\s*個';              Truth = $skillCount;         Label = 'SKILLS INDEX eyebrow N 個' }
+    @{ Pattern = 'SKILLS INDEX[^<]*<span[^>]*>(\d+)\s*個';              Truth = $skillCount;         Label = 'SKILLS INDEX eyebrow N 個' },
+    @{ Pattern = '>(\d+)\s+Skills</h4>';                                Truth = $skillCount;         Label = 'hub card N Skills' }
 )
 
 # Resolve all paths (glob → file list)
@@ -551,13 +671,13 @@ if ($toolMismatches.Count -gt 0) { $toolMismatches | ForEach-Object { Write-Host
 
 # 7-2: Domain count exact-match
 Write-Host ""
-Write-Host "  7-2. Domain count exact-match (truth = $($domainCount + 1) incl 1 reference):" -ForegroundColor Cyan
-$domainSites = $claimSites | Where-Object { $_.Truth -eq ($domainCount + 1) }
+Write-Host "  7-2. Domain count exact-match (truth = $domainCount incl references):" -ForegroundColor Cyan
+$domainSites = $claimSites | Where-Object { $_.Truth -eq $domainCount }
 $domainMismatches = @()
 foreach ($site in $domainSites) {
     $domainMismatches += Find-ClaimMismatches -Files $scanFiles -Site $site
 }
-Write-Check "All domain-count claims == $($domainCount + 1)" ($domainMismatches.Count -eq 0) `
+Write-Check "All domain-count claims == $domainCount" ($domainMismatches.Count -eq 0) `
     $(if ($domainMismatches.Count -gt 0) { "$($domainMismatches.Count) mismatch(es)." } else { "" })
 if ($domainMismatches.Count -gt 0) { $domainMismatches | ForEach-Object { Write-Host $_ -ForegroundColor DarkYellow } }
 
@@ -677,6 +797,91 @@ Write-Check "All $totalChecked local markdown links resolve" ($rotted.Count -eq 
     $(if ($rotted.Count -gt 0) { "$($rotted.Count) broken link(s)" } else { "" })
 if ($rotted.Count -gt 0) { $rotted | Select-Object -First 20 | ForEach-Object { Write-Host $_ -ForegroundColor DarkYellow } }
 
+# 7-8: Snapshot banner — every date-prefixed docs/MMDD-*.html must declare itself an
+# immutable snapshot via a data-snapshot="YYYY-MM-DD" attribute, so readers know its
+# numbers are historical and QAQC count-sync intentionally skips it.
+Write-Host ""
+Write-Host "  7-8. Snapshot banner on date-prefixed HTML:" -ForegroundColor Cyan
+$snapshotHtml = Get-ChildItem -Path "$projectRoot\docs\*.html" -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -match '^\d{4}-' }
+$missingBanner = @()
+foreach ($sf in $snapshotHtml) {
+    $content = Read-FileText $sf.FullName
+    if (-not $content -or $content -notmatch 'data-snapshot="\d{4}-\d{2}-\d{2}"') {
+        $missingBanner += $sf.Name
+    }
+}
+Write-Check "All $($snapshotHtml.Count) date-prefixed HTMLs carry data-snapshot banner" ($missingBanner.Count -eq 0) `
+    $(if ($missingBanner.Count -gt 0) { "Missing banner: $($missingBanner -join ', ')" } else { "" })
+
+# ─────────────────────────────────────────────
+# Phase 8: Document Audience and Encoding Hygiene
+# ─────────────────────────────────────────────
+Write-Host ""
+Write-Host "[Phase 8] Document Audience and Encoding Hygiene" -ForegroundColor Yellow
+Write-Host "─────────────────────────────────────────────" -ForegroundColor DarkGray
+
+function Test-Mojibake {
+    param([string]$Text)
+    if (-not $Text) { return $false }
+    return ($Text -match '�|嚗|銝|蝣|摰|撠|閬|瘜|憭|蝺|頝|瑼|雿')
+}
+
+Write-Host ""
+Write-Host "  8-1. Audience inventory exists:" -ForegroundColor Cyan
+$inventory = Join-Path $projectRoot "docs\DOCUMENT_AUDIENCE_INVENTORY.md"
+Write-Check "docs/DOCUMENT_AUDIENCE_INVENTORY.md exists" (Test-Path -LiteralPath $inventory) "Document audience inventory missing"
+
+Write-Host ""
+Write-Host "  8-2. Canonical AI docs are English-oriented and mojibake-free:" -ForegroundColor Cyan
+$canonicalAiDocs = @(
+    "$projectRoot\CLAUDE.md",
+    "$projectRoot\.claude\commands\qaqc.md"
+)
+$aiDocFailures = @()
+foreach ($doc in $canonicalAiDocs) {
+    $text = Read-FileText $doc
+    $rel = $doc.Replace("$projectRoot\", "").Replace("\", "/")
+    if (-not $text) {
+        $aiDocFailures += "$rel missing or unreadable"
+        continue
+    }
+    if (Test-Mojibake $text) { $aiDocFailures += "$rel contains mojibake-risk tokens" }
+}
+Write-Check "Canonical AI docs pass encoding check" ($aiDocFailures.Count -eq 0) `
+    $(if ($aiDocFailures.Count -gt 0) { ($aiDocFailures | Select-Object -First 10) -join "`n" } else { "" })
+
+Write-Host ""
+Write-Host "  8-3. README docs are mojibake-free:" -ForegroundColor Cyan
+$readmeFailures = @()
+foreach ($doc in @("$projectRoot\README.md", "$projectRoot\README.en.md")) {
+    $text = Read-FileText $doc
+    $rel = $doc.Replace("$projectRoot\", "").Replace("\", "/")
+    if (-not $text) {
+        $readmeFailures += "$rel missing or unreadable"
+        continue
+    }
+    if (Test-Mojibake $text) { $readmeFailures += "$rel contains mojibake-risk tokens" }
+}
+Write-Check "README.md and README.en.md pass encoding check" ($readmeFailures.Count -eq 0) `
+    $(if ($readmeFailures.Count -gt 0) { ($readmeFailures | Select-Object -First 10) -join "`n" } else { "" })
+
+Write-Host ""
+Write-Host "  8-4. AI skill migration warning scan:" -ForegroundColor Cyan
+$skillMojibake = @()
+Get-ChildItem -Path "$projectRoot\.claude\skills\*\SKILL.md" -ErrorAction SilentlyContinue | ForEach-Object {
+    $text = Read-FileText $_.FullName
+    if ($text -and (Test-Mojibake $text)) {
+        $skillMojibake += $_.FullName.Replace("$projectRoot\", "").Replace("\", "/")
+    }
+}
+if ($skillMojibake.Count -gt 0) {
+    Write-Warn "Some skill docs still need English/UTF-8 migration" (($skillMojibake | Select-Object -First 10) -join "`n")
+}
+else {
+    Write-Check "Skill docs pass mojibake warning scan" $true
+}
+
 # ─────────────────────────────────────────────
 # Summary
 # ─────────────────────────────────────────────
@@ -687,6 +892,7 @@ Write-Host "================================================================" -F
 Write-Host ""
 Write-Host "  PASS : $totalPass" -ForegroundColor Green
 Write-Host "  FAIL : $totalFail" -ForegroundColor $(if ($totalFail -gt 0) { "Red" } else { "Green" })
+Write-Host "  WARN : $totalWarn" -ForegroundColor $(if ($totalWarn -gt 0) { "Yellow" } else { "Green" })
 Write-Host "  SKIP : $totalSkip" -ForegroundColor DarkGray
 Write-Host ""
 
