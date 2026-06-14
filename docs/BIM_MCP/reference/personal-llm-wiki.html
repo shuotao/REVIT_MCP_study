@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>個人 LLM Wiki · BIM_MCP</title>
+<meta property="og:title" content="BIM_MCP 個人 LLM Wiki · 把公共智慧 pull 回家，長成自己的知識庫">
+<meta property="og:description" content="用 Karpathy 的 LLM Wiki 模式 + Obsidian，把 REVIT_MCP 的 Domain/Skill 公共智慧 ingest 成個人 wiki，再把個人深化的成果回饋上游。含可直接複製給 AI Agent 的建置說明。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../nav.css">
+<style>
+  .map-table{width:100%;border-collapse:collapse;margin:var(--gap-lg) 0}
+  .map-table th,.map-table td{border:1px solid var(--border);padding:12px 14px;text-align:left;font-size:13px;vertical-align:top}
+  .map-table th{font-family:var(--font-tech);color:var(--accent);letter-spacing:1px;background:var(--bg-card)}
+  .map-table td:first-child{color:var(--text-primary);font-weight:600}
+  .vault-tree{font-family:var(--font-tech);font-size:13px;line-height:1.9;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:20px 24px;margin:var(--gap-lg) 0;white-space:pre;overflow-x:auto}
+  .flywheel{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:var(--gap-lg) 0}
+  .flywheel div{border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 12px;background:var(--bg-card);font-size:12px;text-align:center;position:relative}
+  .flywheel div b{display:block;font-family:var(--font-tech);color:var(--accent);font-size:11px;letter-spacing:1px;margin-bottom:8px}
+  .flywheel div:not(:last-child)::after{content:"→";position:absolute;right:-14px;top:50%;transform:translateY(-50%);color:var(--accent);font-size:16px;z-index:1}
+  .flywheel div:last-child{border-color:var(--accent-border)}
+  .idea-wrap{position:relative;margin:var(--gap-lg) 0}
+  .idea-wrap pre{max-height:520px;overflow:auto;font-size:12px;line-height:1.8}
+  .why-card{border-left:3px solid var(--accent);padding-left:18px;margin:18px 0}
+  .why-card h4{margin:0 0 6px}
+  .why-card p{margin:0;font-size:13px;color:var(--text-secondary)}
+  .bim-steps{counter-reset:step;list-style:none;padding:0}
+  .bim-steps li{counter-increment:step;margin:0 0 14px;padding:18px 22px 18px 64px;border:1px solid var(--border);border-radius:var(--radius-md);position:relative;background:var(--bg-card)}
+  .bim-steps li:before{content:counter(step);position:absolute;left:20px;top:18px;width:28px;height:28px;display:grid;place-items:center;background:var(--accent);color:#000;border-radius:50%;font-family:var(--font-tech);font-weight:700}
+  .bim-steps li > strong{display:block;margin-bottom:8px;color:var(--text-primary);font-size:15px}
+  .bim-steps li > p{font-size:13px;margin:4px 0 0 0;color:var(--text-secondary)}
+  .bim-steps li pre{margin:8px 0 0 0;font-size:11px}
+  @media(max-width:800px){.flywheel{grid-template-columns:1fr}.flywheel div:not(:last-child)::after{content:"↓";right:50%;top:auto;bottom:-18px;transform:translateX(50%)}}
+  /* ── 精靈式導覽（一步一頁） ── */
+  body.wizard section.bim-section{display:none}
+  body.wizard section.bim-section.wiz-active{display:block;animation:wizIn .25s ease}
+  body.wizard .bim-hero{display:none}
+  body.wizard.wiz-first .bim-hero{display:block}
+  body.wizard .bim-footer{display:none}
+  body.wizard.wiz-last .bim-footer{display:block}
+  @keyframes wizIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .wiz-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:14px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:40}
+  .wiz-pill{font-family:var(--font-tech);font-size:11px;letter-spacing:1px;padding:6px 12px;border:1px solid var(--border);border-radius:100px;color:var(--text-muted);cursor:pointer;background:var(--bg-card);user-select:none}
+  .wiz-pill.done{color:var(--ok);border-color:rgba(74,222,128,.45)}
+  .wiz-pill.active{color:#000;background:var(--accent);border-color:var(--accent);font-weight:700}
+  .wiz-ctrl{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:38px 0 6px;border-top:1px solid var(--border);padding-top:22px}
+  .wiz-btn{font-family:var(--font-tech);font-size:13px;letter-spacing:1px;padding:12px 26px;border-radius:100px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;transition:all .2s}
+  .wiz-btn:hover{border-color:var(--accent-border);color:var(--accent)}
+  .wiz-btn.primary{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
+  .wiz-btn[disabled]{opacity:.3;cursor:default}
+  .wiz-progress{font-family:var(--font-tech);font-size:11px;letter-spacing:2px;color:var(--text-faint)}
+</style>
+</head>
+<body data-prev="contributor-template.html" data-next="../index.html">
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">personal llm wiki</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener" class="bim-topnav-btn">GitHub</a>
+    <a href="domain-index.html" class="bim-topnav-btn">Domain</a>
+    <a href="contributor-template.html" class="bim-topnav-btn">Contribute</a>
+    <a href="#copy" class="bim-topnav-btn bim-topnav-btn-primary">📋 複製建置說明</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">PERSONAL LLM WIKI <span class="accent">raw / wiki / schema</span></div>
+  <h1 class="bim-hero-title">把公共智慧 pull 回家，<br>長成自己的知識庫</h1>
+  <p class="bim-hero-sub">REVIT_MCP 的 44 個 Domain 是老師們共同維護的公共智慧。這一頁教你用 Andrej Karpathy 的 LLM Wiki 模式 + Obsidian，在自己的電腦上把它 ingest 成「你的」wiki —— 用你的語言、你的分類、你的重點。最後再把個人深化的成果回饋上游，完成循環。</p>
+</header>
+
+<section class="bim-section bim-anchor" id="why">
+  <div class="bim-section-eyebrow">SECTION 01 / WHY LOCAL</div>
+  <h2 class="bim-section-title">為什麼要在自己的電腦上做自己的 Obsidian？</h2>
+  <p>網站上的 Domain 索引大家看到的都一樣。但結構技師和消防審查者讀同一份 <a href="domain-index.html">mep-csa-clash-detection SOP</a>，腦中的地圖本來就該長得不一樣 —— 這就是 Karpathy 說的：<strong>筆記是個人的壓縮（compression），讀別人的筆記必然有損。</strong></p>
+  <div class="why-card">
+    <h4>1. 個人化：你的 wiki 只為你服務</h4>
+    <p>AI 把公共 SOP 消化成「你的」頁面 —— 你的專業視角、你的常用場景、你的案例。中央網站做不到這件事，只有地端的個人 vault 做得到。</p>
+  </div>
+  <div class="why-card">
+    <h4>2. 累積：知識編譯一次，不再每次重查</h4>
+    <p>一般 RAG 每次提問都從頭檢索拼湊；LLM Wiki 是持久資產 —— 交叉引用已就位、矛盾已標記、你做過的每次審查都 file 回 wiki 變成案例庫。越用越厚。</p>
+  </div>
+  <div class="why-card">
+    <h4>3. 獨立又保鮮：pull + ingest 的更新邏輯</h4>
+    <p>你的 vault 完全在自己手上（離線可用、永不依賴別人的伺服器）。但它不會跟公共智慧脫節 —— 在 repo 裡 <code>git pull</code>，AI 讀 diff 只消化「變動的部分」，告訴你「上游這三個 SOP 更新了，你的相關筆記要不要跟上」。獨立，但不孤立。</p>
+  </div>
+  <div class="why-card">
+    <h4>4. 零稀釋：個人需求永遠污染不到公共層</h4>
+    <p>公共層唯讀對待、vault/ 隨你長，而且 vault/ 被上游 .gitignore 排除，個人筆記永遠不會被 push 上去。你想怎麼分類、怎麼加 [[雙向連結]]、怎麼寫個人心得都可以 —— 上游的 domain/*.md 一個字都不會被動到。</p>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="already">
+  <div class="bim-section-eyebrow">SECTION 02 / ALREADY A WIKI</div>
+  <h2 class="bim-section-title">其實，上游 repo 本來就是一個公共 LLM Wiki</h2>
+  <p>Karpathy 的架構是三層：Raw sources（不可變來源）/ The wiki（LLM 維護的知識頁）/ The schema（紀律設定檔），加上 index、log 兩個特殊檔與 Ingest / Query / Lint 三個操作。對照一下 REVIT_MCP —— 每一層都已經存在，你不是在學新東西，是把一個已經運轉的模式複製成個人版：</p>
+  <table class="map-table">
+    <tr><th>Karpathy LLM Wiki</th><th>REVIT_MCP 公共版（已在運轉）</th><th>你的個人版（這頁要建的）</th></tr>
+    <tr><td>Raw sources</td><td>建築法規、Revit 實機資料</td><td>你的 REVIT_MCP clone 本身（唯讀對待，git pull 更新）</td></tr>
+    <tr><td>The wiki</td><td>domain/*.md —— 44 個 Domain，各領域老師貢獻、有 frontmatter 互相引用</td><td>wiki/ = AI 為你維護的個人筆記</td></tr>
+    <tr><td>The schema</td><td>CLAUDE.md（連檔名都一樣）</td><td>vault 根目錄的 CLAUDE.md，從本頁範本起手</td></tr>
+    <tr><td>index.md</td><td>CLAUDE.md 觸發關鍵字表 + domain/README.md</td><td>你的 index.md</td></tr>
+    <tr><td>log.md（可 grep 的條目格式）</td><td>log/YYYY-MM.md —— 條目格式完全相同</td><td>你的 log.md（沿用同一格式）</td></tr>
+    <tr><td>Lint 操作</td><td>scripts/verify-qaqc.ps1（孤兒頁、斷鏈、計數漂移）</td><td>請 AI 健檢你的 wiki（過版、矛盾、可回饋上游的發現）</td></tr>
+  </table>
+  <p style="color:var(--text-muted);font-size:13px">補充：21 個編排層 Skill 與 96 個 MCP tools 也都在 repo 裡，AI 會在 ingest 時一併理解「哪些 SOP 有對應的自動化能力」。</p>
+</section>
+
+<section class="bim-section bim-anchor" id="structure">
+  <div class="bim-section-eyebrow">SECTION 03 / STRUCTURE</div>
+  <h2 class="bim-section-title">Vault 結構與更新邏輯</h2>
+  <div class="vault-tree">REVIT_MCP/                 ← 你既有的 clone = raw 層（Obsidian 開這一層）
+  domain/*.md              ← 公共智慧：44 個 Domain SOP（唯讀對待）
+  .claude/skills/          ← 21 個 Skill
+  CLAUDE.md                ← 公共 schema
+  log/                     ← 公共時間軸
+  templates/personal-vault/VAULT-CLAUDE.md  ← 你的 schema 的上游範本
+  .gitignore               ← 已含 /vault/ 與 /.obsidian/（個人區永不被 push）
+  vault/                   ← 你的個人區（建議自己 git init 備份）
+    wiki/                  ← 你的個人 wiki（AI 寫、你讀、[[連結]] 活在這裡）
+    CLAUDE.md              ← 你的 schema（從上游範本逐字複製，只填 Personal 區）
+    index.md               ← 你的 wiki 目錄
+    log.md                 ← 你的操作時間軸</div>
+  <p>三個角色分工：<strong>AI agent 是手</strong>（執行 pull、寫 wiki）、<strong>Obsidian 是眼睛</strong>（它從不 pull，只是即時顯示磁碟上的檔案，agent 一改完你馬上看到）、<strong>git 是血管</strong>（公共智慧流進來、個人筆記被 .gitignore 擋住不流出去）。一份 clone 同時是 MCP 運行環境和知識來源 —— pull 一次，兩者同步更新。</p>
+  <p>日常只有三個動作，全部用一句話交給 AI：</p>
+  <table class="map-table">
+    <tr><th>操作</th><th>你說</th><th>AI 做</th></tr>
+    <tr><td>Ingest</td><td>「pull 一下，ingest 有變動的」</td><td>repo 根目錄 git pull → 讀 diff → 只消化變動的 SOP → 更新 wiki 頁與 index → 記 log</td></tr>
+    <tr><td>Query</td><td>問任何問題（也可以連著 Revit 問）</td><td>先讀 index 找頁、再深入；好答案 file 回 wiki 變新頁 —— 包含用 MCP 對活模型跑出的審查結果</td></tr>
+    <tr><td>Lint</td><td>「健檢一下」</td><td>找出來源已過版的頁、頁面間矛盾、孤兒頁，並整理「值得回饋上游」的提案清單</td></tr>
+  </table>
+</section>
+
+<section class="bim-section bim-anchor" id="whomakes">
+  <div class="bim-section-eyebrow">SECTION 04 / WHO MAKES WHAT</div>
+  <h2 class="bim-section-title">哪些是 pull 下來的？哪些是你電腦上生出來的？</h2>
+  <p>最常見的誤會先講清楚：<strong>vault/ 不是 pull 下來的，也永遠不會被 push 上去</strong>。它是你貼上建置說明的當下，AI 在你電腦上「現場生成」的私人區。會經過 git 的，只有上游維護的公共內容：</p>
+  <table class="map-table">
+    <tr><th>檔案</th><th>誰生成</th><th>怎麼到你電腦</th><th>會不會被 push</th></tr>
+    <tr><td>vault/（wiki/、CLAUDE.md、index.md、log.md）</td><td><strong>你的 AI agent</strong>，貼上建置說明的當下本地現場生成</td><td>不經過 git —— 上游 repo 裡根本沒有這個資料夾</td><td><strong>永不</strong>（.gitignore 擋住，連 git status 都看不到）</td></tr>
+    <tr><td>.obsidian/</td><td><strong>Obsidian 自己</strong>，第一次打開資料夾時生成</td><td>不經過 git</td><td><strong>永不</strong>（同樣被 .gitignore 擋住）</td></tr>
+    <tr><td>templates/personal-vault/VAULT-CLAUDE.md</td><td>上游維護者</td><td>隨 clone / git pull 下來</td><td>會 —— 它是公共內容（schema 的「母版」）</td></tr>
+    <tr><td>.gitignore（含 /vault/ 與 /.obsidian/）</td><td>上游維護者</td><td>隨 clone / git pull 下來</td><td>會 —— 它就是擋住個人區的閘門本身</td></tr>
+    <tr><td>.claude/commands/ 的 /ingest、/lint、/wiki</td><td>上游維護者</td><td>隨 clone / git pull 下來 —— <strong>pull 完 Claude Code 就自動有這三個指令</strong>，不用安裝</td><td>會 —— 公共內容（薄轉接：權威定義仍在你的 vault/CLAUDE.md）</td></tr>
+  </table>
+  <div class="vault-tree">上游 repo（公共）                         你的電腦（私人）
+─────────────────                        ─────────────────
+templates/personal-vault/   ──pull──▶    templates/...（母版到位）
+VAULT-CLAUDE.md                               │
+                                              │ agent 逐字複製
+.gitignore (/vault/)        ──pull──▶         ▼
+                                         vault/CLAUDE.md（私人副本）
+                                         vault/wiki/  index.md  log.md
+                                         （agent 本地生成，git 看不見）
+                                              │
+                                              ✗ push 被 .gitignore 擋住
+                                              ✓ 唯一回上游的路 = PR 提案</div>
+  <p><strong>範本走公共血管、副本住私人區。</strong>templates/ 裡的是母版，隨 pull 保持最新；vault/CLAUDE.md 是你的私人副本。將來母版升版（schema_version 1.1 → 1.2），你下次 pull 拿到新母版，lint 比對版本號發現副本落後就提示升級 —— Fixed Core 整段換新、Personal 區保留。大家的規則就是這樣持續收斂的。</p>
+</section>
+
+<section class="bim-section bim-anchor" id="flywheel">
+  <div class="bim-section-eyebrow">SECTION 05 / FLYWHEEL</div>
+  <h2 class="bim-section-title">正向循環：集體 → 個人 → 變體 → 回到集體</h2>
+  <p>這個 vault 不只是讀書工具 —— 它是小聚往上進階的下一步。公共智慧進入個人、個人深化出獨立變體、變體產生新知識、新知識回饋到開源的共同智慧：</p>
+  <div class="flywheel">
+    <div><b>COLLECTIVE</b>老師們貢獻的 Domain SOP 在上游累積</div>
+    <div><b>PULL</b>git pull 把公共智慧帶進你的 clone</div>
+    <div><b>PERSONAL</b>AI ingest 成你的 wiki，加上你的案例與變體</div>
+    <div><b>NEW VALUE</b>用出新發現：該連的 SOP、缺的法源、新的應用法</div>
+    <div><b>GIVE BACK</b>回到 Claude Code / Gemini CLI / Antigravity，整理成 Domain 或新 Skill，提 PR</div>
+  </div>
+  <p>回饋的路是現成的：上游有 <code>/hj-pr-proposal</code> skill 專門協助把想法整理成 PR 提案，<a href="contributor-template.html">Contributor Template</a> 定義了 Domain first / Skill second / Tool last 的寫作順序，每月小聚則是當面討論的場合。你的個人 lint 報告裡那句「我覺得排煙檢討和外牆開口檢討應該互相關聯」—— 就是下一個 PR 的種子。</p>
+</section>
+
+<section class="bim-section bim-anchor" id="prereq">
+  <div class="bim-section-eyebrow">SECTION 06 / PREREQUISITES</div>
+  <h2 class="bim-section-title">前置條件</h2>
+  <table class="map-table">
+    <tr><th>需要</th><th>說明</th><th>已在用 Revit MCP 的你</th></tr>
+    <tr><td>AI Agent CLI</td><td>Claude Code / Gemini CLI / Antigravity 任一</td><td>✓ 已裝</td></tr>
+    <tr><td>git + REVIT_MCP clone</td><td>repo 即 raw 層，vault 就住在裡面</td><td>✓ 已有</td></tr>
+    <tr><td>Obsidian</td><td>免費，當 wiki 的閱讀器與圖譜檢視器</td><td>新裝，約 5 分鐘</td></tr>
+  </table>
+  <p style="color:var(--text-muted);font-size:13px">還沒安裝 Revit MCP？先走 <a href="deployment-guide.html">部署指南</a>，這一頁是進階第二步。</p>
+</section>
+
+<section class="bim-section bim-anchor" id="copy">
+  <div class="bim-section-eyebrow">SECTION 07 / COPY THIS</div>
+  <h2 class="bim-section-title">複製這段，貼給你的 AI Agent</h2>
+  <p>下面是完整的「想法檔」（idea file）。複製全文，貼到 Claude Code / Gemini CLI / Antigravity 的對話裡，AI 會跟你協作把 vault 建出來。</p>
+  <p><strong>不同 Agent、不同模型，建出來會不會不一樣？</strong>會 —— 而且我們把「該一樣的」和「該不一樣的」切開管理：</p>
+  <table class="map-table">
+    <tr><th>層</th><th>一致性策略</th><th>機制</th></tr>
+    <tr><td>Schema（vault/CLAUDE.md）</td><td>必須完全一致</td><td>不讓模型生成 —— 從 templates/personal-vault/VAULT-CLAUDE.md <strong>逐字複製</strong>，只填 Personal 區。複製沒有變異。</td></tr>
+    <tr><td>結構與格式（資料夾、log/index/溯源格式）</td><td>必須一致</td><td>建置完 AI 要跑<strong>驗收清單</strong>逐項回報；範本有 schema_version，之後每次 lint 比對上游版本，飄了會自我修復。</td></tr>
+    <tr><td>概念理解</td><td>逼近一致</td><td>idea file 尾部附 <strong>Karpathy 原文全文</strong>當錨點，AI 不確定時回原文判斷，不憑記憶腦補。</td></tr>
+    <tr><td>wiki/ 內容</td><td><strong>刻意不一致</strong></td><td>個人壓縮是這整件事的目的 —— 內容的差異是 feature，不是 bug。</td></tr>
+  </table>
+  <div class="idea-wrap">
+    <button class="copy-btn" id="copyIdea">📋 複製全文</button>
+    <pre id="ideaFile"># 個人 BIM 知識庫（LLM Wiki）— 給 AI Agent 的建置說明
+
+這是一份「想法檔」：請你（AI Agent）讀完後與我協作，在我的電腦上把這個
+個人知識庫實際建出來。細節由我們一起決定，這份文件只負責溝通模式。
+模式源自 Andrej Karpathy 的 LLM Wiki 概念，並針對 Revit MCP 專案特化。
+
+## 核心概念
+
+一般 RAG 每次提問都從原始文件重新檢索拼湊，知識不會累積。這裡不同：
+你要替我「增量維護一個持久的 wiki」—— 一組互相連結的 markdown 筆記。
+每次有新來源進來，你不是只索引它，而是閱讀、萃取、整合進既有 wiki：
+更新相關頁、標記矛盾、修正既有綜述。知識編譯一次、持續保鮮。
+
+wiki 由你寫和維護，我幾乎不動手。我負責：提供來源、引導方向、問好問題。
+你負責：摘要、交叉引用、歸檔、簿記。實際使用時我會一邊開著你（agent）、
+一邊開著 Obsidian 看圖譜和頁面。Obsidian 是 IDE，你是工程師，wiki 是程式碼庫。
+
+## 三層架構
+
+vault 直接住在我的 REVIT_MCP clone 裡面（https://github.com/shuotao/REVIT_MCP_study）。
+repo 本身就是 raw 層；個人區是 repo 內的 vault/ 資料夾，上游 .gitignore
+已排除 /vault/ 與 /.obsidian/，所以個人筆記永遠不會被 push 上去。
+
+1. raw 層 = repo 根目錄的所有上游內容。我只透過 git pull 更新；
+   你只讀、永不修改。重點來源：
+   - domain/*.md：44 個 Domain SOP（各領域老師貢獻的公共智慧，
+     frontmatter 含 version、updated、related、referenced_by、references、tags）
+   - domain/references/building-code-tw.md：建築技術規則彙整
+   - .claude/skills/*/SKILL.md：21 個編排層 Skill
+   - CLAUDE.md：公共 wiki 的 schema（Domain 觸發關鍵字表在這裡；
+     它的開發規則只適用於開發本專案，vault 操作以 vault/CLAUDE.md 為準）
+   - log/YYYY-MM.md：公共 wiki 的時間軸
+2. vault/wiki/ —— 我的個人知識層。完全由你建立與維護：概念頁、實體頁、
+   比較頁、綜述頁。允許 Obsidian 的 [[雙向連結]]，連到 domain 檔
+   會在 graph view 形成公共＋個人合一的知識族譜。用我的語言、我的分類、
+   我的重點 —— 這是「個人壓縮」，不必跟上游長一樣。
+3. vault/CLAUDE.md（schema）—— 你的紀律設定檔。
+   ※ 重要：這個檔不由你生成，而是從
+   templates/personal-vault/VAULT-CLAUDE.md 逐字複製過來
+   （Fixed Core 區塊一個字都不能改寫、濃縮或重新表述；
+   只有最後的 Personal 區由我們一起填）。
+   這是讓每位使用者、每種 AI Agent、每個模型等級建出來的 vault
+   規則一致的機制：一致性靠複製，不靠模型自律。
+
+兩個特殊檔（都在 vault/ 內）：
+- vault/index.md：wiki 目錄。每頁一行連結＋一句摘要，每次 ingest 後更新。
+- vault/log.md：append-only 時間軸，條目格式沿用上游慣例：
+  ## [YYYY-MM-DD HH:MM] 事件類型 | 簡述
+
+## 三個操作
+
+1. Ingest：我說「ingest」時 —— 先在 repo 根目錄執行 git pull，
+   再用 git diff 找出上次 ingest 之後變動的檔案，只消化變動部分：
+   閱讀、跟我討論重點、寫入或更新 vault/wiki/ 頁、更新 vault/index.md、
+   追加 vault/log.md。
+2. Query：我問問題時 —— 先讀 vault/index.md 找相關頁再深入。
+   重要：好的答案要存回 wiki 成為新頁（分析、比較、發現的關聯
+   都不該消失在對話裡）。特別的是，repo 的 .mcp.json 已設定 Revit MCP：
+   你可以直接對「活的 Revit 模型」提問（執行排煙檢討、查詢元素、
+   跑法規檢核）。把實際審查的結果也 file 回 wiki，讓案例經驗複利累積。
+3. Lint：我說「lint」時 —— 檢查：
+   (a) 哪些 wiki 頁的來源已在上游更新（比對 source_version 與上游現況）
+   (b) 頁面之間的矛盾
+   (c) 沒有任何連入連結的孤兒頁
+   (d) 值得回饋上游的發現，整理成「可提案清單」
+   (e) vault/CLAUDE.md Fixed Core 的 schema_version 是否落後
+       templates/personal-vault/VAULT-CLAUDE.md —— 落後就提示升級
+       （新版 Fixed Core 整段覆蓋，Personal 區保留）
+
+補充：若你是 Claude Code，本 repo 已內建 /ingest、/lint、/wiki 三個
+斜線指令，內容就是轉接到以上定義；其他 CLI（Codex / Gemini）以
+自然語言觸發，新 session 第一句建議先說「讀 vault/CLAUDE.md」。
+
+## 紀律（必須遵守）
+
+1. 個人操作永不寫入 vault/ 以外的任何檔案；個人筆記永不 commit 到
+   上游 repo；個人 log 一律寫 vault/log.md（不是上游的 log/）。
+2. 永不在本 repo 執行 git clean -x 系列指令（會刪掉整個 vault/）、
+   永不 git add -f vault 內容。vault/ 要自己 git init 並建議推私人遠端備份。
+3. 溯源：每個源自上游的 wiki 頁，frontmatter 必須記 source
+   （如 domain/smoke-exhaust-review.md）與 source_version
+   （抄該檔 frontmatter 的 version 與 updated）。
+4. 答案中的具體數據（元素 ID、數量、面積）必須來自本回合的工具結果，
+   不可憑記憶 —— 與上游 CLAUDE.md 的「資料誠實」原則一致。
+5. 法規與計算方法以 domain/*.md 為準；我的 wiki 是個人理解層，
+   與 Domain 衝突時，在 lint 報告中標記，不要擅自改寫結論。
+
+## 回饋上游（這個 vault 的終極目的之一）
+
+當 lint 或日常使用發現：兩個 SOP 應該相關但上游 related 欄是空的、
+某 SOP 缺法源依據、某流程有更好的做法、或我發展出值得共享的新應用 ——
+協助我整理成提案，透過上游的 /hj-pr-proposal skill 或每月小聚提出 PR。
+個人深化的成果回到公共智慧，循環才算完成。
+
+## 建置步驟（現在開始）
+
+0. 前提確認：我們現在應該位於 REVIT_MCP clone 的根目錄
+   （用 git remote -v 確認；若我還沒有 clone，先協助我 clone）。
+   再確認 .gitignore 含有 /vault/ 與 /.obsidian/（上游已內建；
+   若沒有代表我的 clone 太舊，先 git pull）。
+1. 建立 vault/ 與 vault/wiki/，以及空的 vault/index.md、vault/log.md。
+2. 在 vault/ 內執行 git init（獨立的個人 repo，與上游互不干擾），
+   並建議我之後推一個私人遠端做備份。
+3. 把 templates/personal-vault/VAULT-CLAUDE.md 逐字複製為
+   vault/CLAUDE.md（Fixed Core 不得改寫），然後問我幾個
+   個人化問題填入 Personal 區：我的專業領域？我最常用哪些 Domain？
+   我偏好的筆記語言與粒度？
+4. 執行驗收清單，逐項回報給我：
+   [ ] vault/、vault/wiki/、vault/CLAUDE.md、vault/index.md、vault/log.md 都存在
+   [ ] .gitignore 含 /vault/ 與 /.obsidian/，且 git status 看不到 vault/
+   [ ] vault/CLAUDE.md 的 Fixed Core 與 templates/personal-vault/
+       VAULT-CLAUDE.md 逐字一致（用 diff 確認），schema_version 相同
+   [ ] vault/ 已 git init（有自己的 .git）
+   [ ] 上游工作區乾淨（git status 無本地修改）
+   [ ] vault/log.md 已寫入第一筆標準格式條目
+   [ ] 之後每個源自上游的 wiki 頁都會帶 source 與 source_version
+5. 做第一次 ingest：從我的專業最相關的兩三個 Domain 檔開始，
+   不要一次吞 44 個。
+6. 提醒我用 Obsidian 打開 REVIT_MCP 資料夾（不是 vault/）、
+   在 Settings → Files and links → Excluded files 排除 MCP-Server/ 與 MCP/、
+   然後看 graph view —— wiki 頁連到 domain 檔的邊會出現在圖上。
+
+## 附錄：Andrej Karpathy「LLM Wiki」原文全文
+
+以下用三引號包住的是這個模式的原始出處全文（英文）。請完整讀過它
+作為概念錨點 —— 當你不確定某個設計該怎麼做時，回到原文的精神判斷，
+不要憑記憶腦補。原文與本說明衝突時，以本說明的 REVIT_MCP 特化規則為準。
+
+"""
+# LLM Wiki
+
+A pattern for building personal knowledge bases using LLMs.
+
+This is an idea file, it is designed to be copy pasted to your own LLM Agent (e.g. OpenAI Codex, Claude Code, OpenCode / Pi, or etc.). Its goal is to communicate the high level idea, but your agent will build out the specifics in collaboration with you.
+
+## The core idea
+
+Most people's experience with LLMs and documents looks like RAG: you upload a collection of files, the LLM retrieves relevant chunks at query time, and generates an answer. This works, but the LLM is rediscovering knowledge from scratch on every question. There's no accumulation. Ask a subtle question that requires synthesizing five documents, and the LLM has to find and piece together the relevant fragments every time. Nothing is built up. NotebookLM, ChatGPT file uploads, and most RAG systems work this way.
+
+The idea here is different. Instead of just retrieving from raw documents at query time, the LLM incrementally builds and maintains a persistent wiki — a structured, interlinked collection of markdown files that sits between you and the raw sources. When you add a new source, the LLM doesn't just index it for later retrieval. It reads it, extracts the key information, and integrates it into the existing wiki — updating entity pages, revising topic summaries, noting where new data contradicts old claims, strengthening or challenging the evolving synthesis. The knowledge is compiled once and then kept current, not re-derived on every query.
+
+This is the key difference: the wiki is a persistent, compounding artifact. The cross-references are already there. The contradictions have already been flagged. The synthesis already reflects everything you've read. The wiki keeps getting richer with every source you add and every question you ask.
+
+You never (or rarely) write the wiki yourself — the LLM writes and maintains all of it. You're in charge of sourcing, exploration, and asking the right questions. The LLM does all the grunt work — the summarizing, cross-referencing, filing, and bookkeeping that makes a knowledge base actually useful over time. In practice, I have the LLM agent open on one side and Obsidian open on the other. The LLM makes edits based on our conversation, and I browse the results in real time — following links, checking the graph view, reading the updated pages. Obsidian is the IDE; the LLM is the programmer; the wiki is the codebase.
+
+This can apply to a lot of different contexts. A few examples:
+
+- Personal: tracking your own goals, health, psychology, self-improvement — filing journal entries, articles, podcast notes, and building up a structured picture of yourself over time.
+- Research: going deep on a topic over weeks or months — reading papers, articles, reports, and incrementally building a comprehensive wiki with an evolving thesis.
+- Reading a book: filing each chapter as you go, building out pages for characters, themes, plot threads, and how they connect. By the end you have a rich companion wiki. Think of fan wikis like Tolkien Gateway — thousands of interlinked pages covering characters, places, events, languages, built by a community of volunteers over years. You could build something like that personally as you read, with the LLM doing all the cross-referencing and maintenance.
+- Business/team: an internal wiki maintained by LLMs, fed by Slack threads, meeting transcripts, project documents, customer calls. Possibly with humans in the loop reviewing updates. The wiki stays current because the LLM does the maintenance that no one on the team wants to do.
+- Competitive analysis, due diligence, trip planning, course notes, hobby deep-dives — anything where you're accumulating knowledge over time and want it organized rather than scattered.
+
+## Architecture
+
+There are three layers:
+
+Raw sources — your curated collection of source documents. Articles, papers, images, data files. These are immutable — the LLM reads from them but never modifies them. This is your source of truth.
+
+The wiki — a directory of LLM-generated markdown files. Summaries, entity pages, concept pages, comparisons, an overview, a synthesis. The LLM owns this layer entirely. It creates pages, updates them when new sources arrive, maintains cross-references, and keeps everything consistent. You read it; the LLM writes it.
+
+The schema — a document (e.g. CLAUDE.md for Claude Code or AGENTS.md for Codex) that tells the LLM how the wiki is structured, what the conventions are, and what workflows to follow when ingesting sources, answering questions, or maintaining the wiki. This is the key configuration file — it's what makes the LLM a disciplined wiki maintainer rather than a generic chatbot. You and the LLM co-evolve this over time as you figure out what works for your domain.
+
+## Operations
+
+Ingest. You drop a new source into the raw collection and tell the LLM to process it. An example flow: the LLM reads the source, discusses key takeaways with you, writes a summary page in the wiki, updates the index, updates relevant entity and concept pages across the wiki, and appends an entry to the log. A single source might touch 10-15 wiki pages. Personally I prefer to ingest sources one at a time and stay involved — I read the summaries, check the updates, and guide the LLM on what to emphasize. But you could also batch-ingest many sources at once with less supervision. It's up to you to develop the workflow that fits your style and document it in the schema for future sessions.
+
+Query. You ask questions against the wiki. The LLM searches for relevant pages, reads them, and synthesizes an answer with citations. Answers can take different forms depending on the question — a markdown page, a comparison table, a slide deck (Marp), a chart (matplotlib), a canvas. The important insight: good answers can be filed back into the wiki as new pages. A comparison you asked for, an analysis, a connection you discovered — these are valuable and shouldn't disappear into chat history. This way your explorations compound in the knowledge base just like ingested sources do.
+
+Lint. Periodically, ask the LLM to health-check the wiki. Look for: contradictions between pages, stale claims that newer sources have superseded, orphan pages with no inbound links, important concepts mentioned but lacking their own page, missing cross-references, data gaps that could be filled with a web search. The LLM is good at suggesting new questions to investigate and new sources to look for. This keeps the wiki healthy as it grows.
+
+## Indexing and logging
+
+Two special files help the LLM (and you) navigate the wiki as it grows. They serve different purposes:
+
+index.md is content-oriented. It's a catalog of everything in the wiki — each page listed with a link, a one-line summary, and optionally metadata like date or source count. Organized by category (entities, concepts, sources, etc.). The LLM updates it on every ingest. When answering a query, the LLM reads the index first to find relevant pages, then drills into them. This works surprisingly well at moderate scale (~100 sources, ~hundreds of pages) and avoids the need for embedding-based RAG infrastructure.
+
+log.md is chronological. It's an append-only record of what happened and when — ingests, queries, lint passes. A useful tip: if each entry starts with a consistent prefix (e.g. ## [2026-04-02] ingest | Article Title), the log becomes parseable with simple unix tools — grep "^## \[" log.md | tail -5 gives you the last 5 entries. The log gives you a timeline of the wiki's evolution and helps the LLM understand what's been done recently.
+
+## Optional: CLI tools
+
+At some point you may want to build small tools that help the LLM operate on the wiki more efficiently. A search engine over the wiki pages is the most obvious one — at small scale the index file is enough, but as the wiki grows you want proper search. qmd is a good option: it's a local search engine for markdown files with hybrid BM25/vector search and LLM re-ranking, all on-device. It has both a CLI (so the LLM can shell out to it) and an MCP server (so the LLM can use it as a native tool). You could also build something simpler yourself — the LLM can help you vibe-code a naive search script as the need arises.
+
+## Tips and tricks
+
+- Obsidian Web Clipper is a browser extension that converts web articles to markdown. Very useful for quickly getting sources into your raw collection.
+- Download images locally. In Obsidian Settings → Files and links, set "Attachment folder path" to a fixed directory (e.g. raw/assets/). Then in Settings → Hotkeys, search for "Download" to find "Download attachments for current file" and bind it to a hotkey (e.g. Ctrl+Shift+D). After clipping an article, hit the hotkey and all images get downloaded to local disk. This is optional but useful — it lets the LLM view and reference images directly instead of relying on URLs that may break. Note that LLMs can't natively read markdown with inline images in one pass — the workaround is to have the LLM read the text first, then view some or all of the referenced images separately to gain additional context. It's a bit clunky but works well enough.
+- Obsidian's graph view is the best way to see the shape of your wiki — what's connected to what, which pages are hubs, which are orphans.
+- Marp is a markdown-based slide deck format. Obsidian has a plugin for it. Useful for generating presentations directly from wiki content.
+- Dataview is an Obsidian plugin that runs queries over page frontmatter. If your LLM adds YAML frontmatter to wiki pages (tags, dates, source counts), Dataview can generate dynamic tables and lists.
+- The wiki is just a git repo of markdown files. You get version history, branching, and collaboration for free.
+
+## Why this works
+
+The tedious part of maintaining a knowledge base is not the reading or the thinking — it's the bookkeeping. Updating cross-references, keeping summaries current, noting when new data contradicts old claims, maintaining consistency across dozens of pages. Humans abandon wikis because the maintenance burden grows faster than the value. LLMs don't get bored, don't forget to update a cross-reference, and can touch 15 files in one pass. The wiki stays maintained because the cost of maintenance is near zero.
+
+The human's job is to curate sources, direct the analysis, ask good questions, and think about what it all means. The LLM's job is everything else.
+
+The idea is related in spirit to Vannevar Bush's Memex (1945) — a personal, curated knowledge store with associative trails between documents. Bush's vision was closer to this than to what the web became: private, actively curated, with the connections between documents as valuable as the documents themselves. The part he couldn't solve was who does the maintenance. The LLM handles that.
+
+## Note
+
+This document is intentionally abstract. It describes the idea, not a specific implementation. The exact directory structure, the schema conventions, the page formats, the tooling — all of that will depend on your domain, your preferences, and your LLM of choice. Everything mentioned above is optional and modular — pick what's useful, ignore what isn't. For example: your sources might be text-only, so you don't need image handling at all. Your wiki might be small enough that the index file is all you need, no search engine required. You might not care about slide decks and just want markdown pages. You might want a completely different set of output formats. The right way to use this is to share it with your LLM agent and work together to instantiate a version that fits your needs. The document's only job is to communicate the pattern. Your LLM can figure out the rest.
+"""</pre>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="firstrun">
+  <div class="bim-section-eyebrow">SECTION 08 / FIRST RUN</div>
+  <h2 class="bim-section-title">第一次操作（10 分鐘）</h2>
+  <ol class="bim-steps">
+    <li><strong>裝 Obsidian</strong><p>從 obsidian.md 下載安裝（免費）。先不用設定任何東西。</p></li>
+    <li><strong>在你的 REVIT_MCP 資料夾啟動 AI Agent</strong><p>就是你平常跑 MCP 的那個 clone —— 不用開新資料夾、不用第二份 clone。在那裡開 Claude Code（或 Gemini CLI / Antigravity）。還沒有 clone 的人先走<a href="deployment-guide.html">部署指南</a>。</p></li>
+    <li><strong>貼上面那段建置說明</strong><p>AI 會確認你在 repo 根目錄、建好 vault/、在 vault/ 裡 git init、從 templates/ 範本逐字複製你的 schema、問你幾個個人化問題填 Personal 區，最後跑驗收清單逐項回報。</p></li>
+    <li><strong>第一次 ingest</strong><p>跟 AI 說你的專業（例如「我主要做消防審查」），它會從最相關的 Domain 開始消化 —— 例如 fire-rating-check、corridor-analysis-protocol、smoke-exhaust-review。</p></li>
+    <li><strong>用 Obsidian 打開 REVIT_MCP 資料夾，看 graph view</strong><p>開整個 repo（不是只開 vault/），並在 Settings → Files and links → Excluded files 排除 <code>MCP-Server/</code> 與 <code>MCP/</code>。graph view 會同時顯示公共 domain 和你的 wiki —— 你的 [[連結]] 連到 domain 檔就是圖上的邊，公共＋個人合一的知識族譜。左邊 agent、右邊 Obsidian：Obsidian 是 IDE，AI 是工程師，wiki 是你的知識程式碼庫。</p></li>
+    <li><strong>之後每次：pull + ingest</strong><p>上游有新東西（月小聚後通常會有），跟 AI 說「pull 一下，ingest 有變動的」就完成更新 —— 同一個 pull 也同時更新了你的 MCP 工具和 schema 範本。發現值得回饋的，請 AI 幫你整理提案。</p></li>
+  </ol>
+  <h2 class="bim-section-title" style="margin-top:48px">最常見的兩個疑問</h2>
+  <div class="why-card">
+    <h4>Q1：Obsidian 的 vault 跟我們的 vault/ 是同一個東西嗎？</h4>
+    <p>不是，這是命名撞車。<strong>Obsidian 說的「vault」= 它打開的那整個資料夾，也就是 REVIT_MCP 根目錄</strong>；我們的 <code>vault/</code> 子資料夾只是個人區的名字，不是給 Obsidian 開的。如果只開 <code>vault/</code>，你的 [[連結]] 連不到 domain 檔（Obsidian 連結出不了它的 vault 範圍），graph view 就只剩自己的筆記、沒有知識族譜了。</p>
+  </div>
+  <div class="why-card">
+    <h4>Q2：開整個 repo，Obsidian 會不會讀錯 CLAUDE.md？</h4>
+    <p>不會，因為 <strong>Obsidian 根本不讀 CLAUDE.md</strong> —— 它是給 AI agent 的指令檔，對 Obsidian 來說只是一篇可以點開看的普通筆記，不會執行也不會遵守。真正讀它的是 AI agent，而兩份 CLAUDE.md 的分工已寫死在規則裡：根目錄那份管「開發本專案」（並明文永不寫入 vault/）；vault/CLAUDE.md 管你的個人知識庫（並明文個人操作永不寫 vault/ 以外）。各管各的，互相有護欄。</p>
+  </div>
+  <div class="why-card">
+    <h4>Q3：AI 怎麼知道我現在是要問 wiki、還是要操作 Revit？</h4>
+    <p>靠你那句話的語意，而且兩者可以疊加（「跑這棟的排煙檢討，結果存進我的筆記」就是 MCP 行動＋wiki 歸檔一次完成）。想要明確指定的話：<strong>Claude Code 老師有三個現成指令</strong> —— <code>/ingest</code>（pull＋增量消化）、<code>/lint</code>(健檢）、<code>/wiki 你的問題</code>（明確從你的 wiki 回答）。<strong>Codex / Gemini CLI 老師</strong>沒有斜線指令，養成一個習慣即可：新 session 的第一句話帶路標 ——「讀 vault/CLAUDE.md，然後 ingest」，之後同 session 直接說 ingest / lint 就通。另外：graph view 想只看自己的筆記，在 filter 欄輸入 <code>path:vault</code> 即可，不用換資料夾。</p>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a class="bim-footer-btn primary" href="#copy">複製建置說明</a>
+    <a class="bim-footer-btn" href="domain-index.html">Domain 索引</a>
+    <a class="bim-footer-btn" href="contributor-template.html">回饋上游</a>
+  </div>
+  <p>BIM_MCP / reference / personal-llm-wiki · 概念出處：Andrej Karpathy, LLM Wiki</p>
+</footer>
+<script src="../shared.js"></script>
+<script>
+initAll({home:"../index.html"});
+document.getElementById("copyIdea").addEventListener("click", function(){
+  var text = document.getElementById("ideaFile").textContent;
+  navigator.clipboard.writeText(text).then(function(){
+    var btn = document.getElementById("copyIdea");
+    btn.textContent = "✓ 已複製，貼給你的 AI Agent";
+    btn.classList.add("copied");
+    setTimeout(function(){ btn.textContent = "📋 複製全文"; btn.classList.remove("copied"); }, 2600);
+  });
+});
+
+/* ── 精靈式導覽：一步一頁，完成這頁再往下一頁 ── */
+(function(){
+  var steps = Array.prototype.slice.call(document.querySelectorAll("section.bim-section"));
+  if (!steps.length) return;
+  var labels = ["為什麼", "公共 Wiki", "結構", "誰生成什麼", "循環", "前置條件", "複製說明", "上手"];
+  var KEY = "pllmwiki-step";
+  document.body.classList.add("wizard");
+
+  var bar = document.createElement("div");
+  bar.className = "wiz-bar";
+  steps.forEach(function(s, i){
+    var pill = document.createElement("span");
+    pill.className = "wiz-pill";
+    pill.textContent = (i + 1) + " " + (labels[i] || s.id);
+    pill.addEventListener("click", function(){ go(i); });
+    bar.appendChild(pill);
+  });
+  var nav = document.querySelector(".bim-topnav");
+  nav.parentNode.insertBefore(bar, nav.nextSibling);
+  var pills = Array.prototype.slice.call(bar.children);
+
+  steps.forEach(function(s, i){
+    var ctrl = document.createElement("div");
+    ctrl.className = "wiz-ctrl";
+    var prev = document.createElement("button");
+    prev.className = "wiz-btn";
+    prev.textContent = "← 上一步";
+    if (i === 0) prev.disabled = true;
+    else prev.addEventListener("click", function(){ go(i - 1); });
+    var prog = document.createElement("span");
+    prog.className = "wiz-progress";
+    prog.textContent = "STEP " + (i + 1) + " / " + steps.length;
+    var next = document.createElement("button");
+    next.className = "wiz-btn primary";
+    if (i < steps.length - 1) {
+      next.textContent = "完成，下一步：" + (labels[i + 1] || "") + " →";
+      next.addEventListener("click", function(){ go(i + 1); });
+    } else {
+      next.textContent = "✓ 全部完成，回到第 1 步";
+      next.addEventListener("click", function(){ go(0); });
+    }
+    ctrl.appendChild(prev); ctrl.appendChild(prog); ctrl.appendChild(next);
+    s.appendChild(ctrl);
+  });
+
+  function go(i){
+    steps.forEach(function(s, j){
+      s.classList.toggle("wiz-active", j === i);
+      pills[j].classList.toggle("active", j === i);
+      pills[j].classList.toggle("done", j < i);
+    });
+    document.body.classList.toggle("wiz-first", i === 0);
+    document.body.classList.toggle("wiz-last", i === steps.length - 1);
+    try { localStorage.setItem(KEY, String(i)); } catch (e) {}
+    window.scrollTo(0, 0);
+  }
+
+  /* 站內 # 錨點改成跳到對應步驟（含 topnav 的「複製建置說明」） */
+  document.addEventListener("click", function(e){
+    var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
+    if (!a) return;
+    var id = a.getAttribute("href").slice(1);
+    if (!id) return;
+    for (var i = 0; i < steps.length; i++) {
+      if (steps[i].id === id || steps[i].querySelector("#" + id)) {
+        e.preventDefault();
+        go(i);
+        return;
+      }
+    }
+  });
+
+  var saved = 0;
+  try { saved = parseInt(localStorage.getItem(KEY) || "0", 10) || 0; } catch (e) {}
+  if (saved < 0 || saved >= steps.length) saved = 0;
+  go(saved);
+})();
+</script>
+</body>
+</html>

@@ -18,6 +18,7 @@ metadata:
     - "domain/tool-capability-boundary.md"
   referenced_by:
     - "qa-review"
+    - "hj-pr-proposal"
   tags: [QA, QC, documentation, deployment, bilingual]
 ---
 

@@ -13,7 +13,8 @@ metadata:
     - "https://github.com/anthropics/skills"
   related:
     - frontmatter-standard.md
-  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  referenced_by:
+    - hj-pr-proposal
   tags: [skill, 規範, 品質, description, 觸發]
 ---
 

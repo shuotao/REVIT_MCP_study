@@ -12,6 +12,7 @@ metadata:
   referenced_by:
     - element-coloring
     - element-query
+    - fire-safety-check
   tags: [上色, 顏色標示, colorize, 視覺化, 圖形覆寫, override]
 ---
 

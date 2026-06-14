@@ -57,10 +57,10 @@ namespace RevitMCP.Core
                         if (TryAutoKillPortOccupant(occupantPid, occupantName))
                         {
                             // 等待 Port 釋放
-                            Thread.Sleep(500);
+                            await Task.Delay(500);
                             Logger.Info($"已自動結束 {occupantName} (PID: {occupantPid})，Port {_settings.Port} 已釋放");
                         }
-                        else if (occupantPid == 4 && TryReleaseHttpSysPort(_settings.Port))
+                        else if (occupantPid == 4 && await TryReleaseHttpSysPortAsync(_settings.Port))
                         {
                             // PID 4 = HTTP.sys 孤兒 Request Queue（Revit 異常關閉殘留）
                             Logger.Info($"已透過 netsh 釋放 HTTP.sys 孤兒綁定，Port {_settings.Port} 已釋放");
@@ -370,7 +370,7 @@ namespace RevitMCP.Core
         /// 當 PID 4 (System) 佔住 port 時，代表 HttpListener 上次沒有正常關閉，
         /// HTTP.sys kernel driver 仍持有該 port 的綁定。
         /// </summary>
-        private static bool TryReleaseHttpSysPort(int port)
+        private static async Task<bool> TryReleaseHttpSysPortAsync(int port)
         {
             try
             {
@@ -397,7 +397,7 @@ namespace RevitMCP.Core
                     proc.WaitForExit(5000);
                 }
 
-                Thread.Sleep(500);
+                await Task.Delay(500);
 
                 // 檢查是否已釋放
                 bool stillInUse = IPGlobalProperties.GetIPGlobalProperties()
@@ -428,7 +428,7 @@ namespace RevitMCP.Core
                     proc.WaitForExit(10000);
                 }
 
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
 
                 psi.Arguments = "start http";
                 using (var proc = Process.Start(psi))
@@ -436,7 +436,7 @@ namespace RevitMCP.Core
                     proc.WaitForExit(10000);
                 }
 
-                Thread.Sleep(500);
+                await Task.Delay(500);
 
                 stillInUse = IPGlobalProperties.GetIPGlobalProperties()
                     .GetActiveTcpListeners()
@@ -453,7 +453,7 @@ namespace RevitMCP.Core
             }
             catch (Exception ex)
             {
-                Logger.Error($"TryReleaseHttpSysPort 失敗: {ex.Message}");
+                Logger.Error($"TryReleaseHttpSysPortAsync 失敗: {ex.Message}");
                 return false;
             }
         }
