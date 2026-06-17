@@ -6,7 +6,7 @@
   // MEETUP_SIGNUP_URL — 月小聚報名表單，每月更新一次
   // ⚠ MONTHLY: 換月時只改這一行，所有 [data-meetup-link] 元素自動套用
   // ============================================================
-  var MEETUP_SIGNUP_URL = "https://forms.gle/4Mn5kCaK1uFk2m9W6";
+  var MEETUP_SIGNUP_URL = "https://forms.gle/XamuxeHiPGQoaBNy8";
 
   window.initMeetupLinks = function initMeetupLinks() {
     qsa("[data-meetup-link]").forEach(function (el) {
