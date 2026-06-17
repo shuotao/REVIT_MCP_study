@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Skills 索引（22 個）· BIM_MCP</title>
-<meta property="og:title" content="RevitMCP Skills 索引：20 個編排層工作流">
-<meta property="og:description" content="20 個 Skill × 描述 × 觸發關鍵字 × 對應 Domain 表。Skill 是編排（何時/順序），Domain 是知識（法規/SOP）。從 CLAUDE.md 抽出。">
+<meta property="og:title" content="RevitMCP Skills 索引：22 個編排層工作流">
+<meta property="og:description" content="22 個 Skill × 描述 × 觸發關鍵字 × 對應 Domain 表。Skill 是編排（何時/順序），Domain 是知識（法規/SOP）。從 CLAUDE.md 抽出。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
@@ -120,7 +120,7 @@
 <header class="bim-hero">
   <div class="bim-hero-eyebrow">SKILLS INDEX <span class="accent">22 個</span></div>
   <h1 class="bim-hero-title">Skills · <span class="accent">編排層</span><br>何時觸發 / 什麼順序</h1>
-  <p class="bim-hero-sub">Skills 是<strong>編排</strong>（orchestration），不是知識本身。一個 Skill 規定「<em>什麼關鍵字觸發 / 呼叫哪些工具 / 套用哪個 Domain SOP</em>」。Skill metadata 永遠常駐於 AI Client context；body 與 Domain 被引用時才載入。本頁列 20 個 Skill 的描述、觸發關鍵字與對應 Domain。</p>
+  <p class="bim-hero-sub">Skills 是<strong>編排</strong>（orchestration），不是知識本身。一個 Skill 規定「<em>什麼關鍵字觸發 / 呼叫哪些工具 / 套用哪個 Domain SOP</em>」。Skill metadata 永遠常駐於 AI Client context；body 與 Domain 被引用時才載入。本頁列 22 個 Skill 的描述、觸發關鍵字與對應 Domain。</p>
 </header>
 
 <section data-collapse class="bim-section">
@@ -129,7 +129,7 @@
   <div class="bim-grid bim-grid-3">
     <div class="bim-card">
       <h4>Skill（編排）</h4>
-      <p style="font-size:13px;">何時觸發 + 呼叫哪些 tool + 什麼順序。20 個。</p>
+      <p style="font-size:13px;">何時觸發 + 呼叫哪些 tool + 什麼順序。22 個。</p>
     </div>
     <div class="bim-card">
       <h4><a href="domain-index.html" style="border-bottom:1px solid var(--accent-border);">Domain（知識）</a></h4>
@@ -144,11 +144,11 @@
 </section>
 
 <!-- ============================================ -->
-<!-- 20 個 Skill 列表 -->
+<!-- 22 個 Skill 列表 -->
 <!-- ============================================ -->
 <section data-collapse class="bim-section bim-anchor" id="skills">
-  <div class="bim-section-eyebrow">CATALOG · 20 個 Skill</div>
-  <h2 class="bim-section-title">20 個 Skill · 依用途分組</h2>
+  <div class="bim-section-eyebrow">CATALOG · 22 個 Skill</div>
+  <h2 class="bim-section-title">22 個 Skill · 依用途分組</h2>
 
   <div class="cat-header">A · 法規檢核（5 個）</div>
 
@@ -356,7 +356,7 @@
     </div>
   </div>
 
-  <div class="cat-header">D · 模型分析（2 個）</div>
+  <div class="cat-header">D · 模型分析（4 個）</div>
 
   <div class="skill-card">
     <div>
@@ -382,6 +382,34 @@
       <div class="skill-meta">
         <span class="trigger-tag">QA</span><span class="trigger-tag">品質檢查</span><span class="trigger-tag">驗證</span><span class="trigger-tag">一致性</span><span class="trigger-tag">系統健康</span>
         <a href="domain-index.html#qa-checklist" class="domain-link">→ qa-checklist</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="skill-card">
+    <div>
+      <div class="skill-name">/dwg-column-import</div>
+      <div class="skill-cat">D · 模型分析</div>
+    </div>
+    <div>
+      <div class="skill-desc">從 CAD/DWG 圖層批次建立結構柱／建築柱：掃描圖層 → 預覽確認 → 批次建模。</div>
+      <div class="skill-meta">
+        <span class="trigger-tag">dwg 建柱</span><span class="trigger-tag">cad 柱</span><span class="trigger-tag">圖層建柱</span><span class="trigger-tag">column from dwg</span>
+        <a href="domain-index.html#dwg-column-import" class="domain-link">→ dwg-column-import</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="skill-card">
+    <div>
+      <div class="skill-name">/family-inventory-cleanup</div>
+      <div class="skill-cat">D · 模型分析</div>
+    </div>
+    <div>
+      <div class="skill-desc">族群盤點與清整：雙軸盤點（載入 vs 放置）、參數簽章比對、purge 未使用／merge 重複／rename；破壞性動作前 12 項強制前置檢查。</div>
+      <div class="skill-meta">
+        <span class="trigger-tag">族群整理</span><span class="trigger-tag">類型盤點</span><span class="trigger-tag">未使用類型</span><span class="trigger-tag">重複類型</span><span class="trigger-tag">purge</span>
+        <a href="domain-index.html#family-inventory-cleanup" class="domain-link">→ family-inventory-cleanup</a>
       </div>
     </div>
   </div>
@@ -450,11 +478,11 @@
 <!-- ============================================ -->
 <section data-collapse class="bim-section bim-anchor" id="quick-table">
   <div class="bim-section-eyebrow">QUICK TABLE · 速查表</div>
-  <h2 class="bim-section-title">速查：19 Skill 一覽</h2>
+  <h2 class="bim-section-title">速查：22 Skill 一覽</h2>
   <p class="bim-section-desc">複製給合作對象 / 列印貼牆。</p>
 
   <figure class="bim-figure">
-    <img src="../images/skills__hero__19-grains.svg" alt="Nineteen skills arranged as category-coded squares" width="1200" height="900" loading="lazy">
+    <img src="../images/skills__hero__19-grains.svg" alt="Twenty-two skills arranged as category-coded squares" width="1200" height="900" loading="lazy">
   </figure>
 
   <table>
@@ -528,7 +556,7 @@
     <a href="../index.html" class="bim-footer-btn">回 BIM_MCP 首頁</a>
   </div>
   <p>BIM_MCP · reference / skills-index</p>
-  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-05-18 · 從 CLAUDE.md 抽取 20 個 Skill 與其觸發關鍵字、Domain 對應。</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-05-18 · 從 CLAUDE.md 抽取 22 個 Skill 與其觸發關鍵字、Domain 對應。</p>
 </footer>
 
 <script src="../shared.js"></script>
