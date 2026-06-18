@@ -135,6 +135,7 @@ Deploy with `scripts/install-addon.ps1` or the `/deploy-addon` skill. Do not rel
 | `MCP-Server/src/socket.ts` | WebSocket client to Revit |
 | `MCP-Server/src/tools/index.ts` | Tool module registry and `MCP_PROFILE` filtering |
 | `MCP-Server/src/tools/revit-tools.ts` | Execution bridge from tool name to Revit command |
+| `bridge/python/skills/ezdxf_worker.py` | Optional Python subprocess (spawned by `DwgColumnExecutor`) that reads DXF/DWG text for column-number mapping (`dwg-column-import` mode C). Needs system Python + `ezdxf`; DWG additionally needs ODA File Converter. Deployed to `%APPDATA%\RevitMCP` by `install-addon.ps1`. |
 | `scripts/verify-qaqc.ps1` | Repository QA/QC gate |
 | `docs/DOCUMENT_AUDIENCE_INVENTORY.md` | Canonical AI/human/shared document classification |
 
@@ -259,7 +260,7 @@ Read the matching file before applying a workflow or calculation.
 | curtain wall, panel pattern, curtain panel | `domain/curtain-wall-pattern.md` |
 | daylight, daylight area, natural lighting | `domain/daylight-area-check.md` |
 | dependent view, crop, grid crop, view split | `domain/dependent-view-crop-workflow.md` |
-| dwg, cad, 柱匯入, 圖層建柱, 批次建柱, column from dwg | `domain/dwg-column-import.md` |
+| dwg, cad, 柱匯入, 圖層建柱, 批次建柱, column from dwg, 柱號對應, 柱名稱對應, textLayerName | `domain/dwg-column-import.md` |
 | detail component, detail sync, annotation component | `domain/detail-component-sync.md` |
 | door legend, window legend, schedule legend | `domain/door-window-legend-workflow.md` |
 | element coloring, visualization, graphic override | `domain/element-coloring-workflow.md` |
