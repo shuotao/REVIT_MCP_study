@@ -45,7 +45,8 @@
 <header class="bim-hero">
   <div class="bim-hero-eyebrow">BIM_MCP <span class="accent">reference / archive / latest</span></div>
   <h1 class="bim-hero-title">把 Revit MCP 的知識、SOP、Demo 流程放在同一個入口</h1>
-  <p class="bim-hero-sub">Revit MCP 的文件總覽：reference 是長期基礎，月度封存保留每月簡報與閱讀材料（最新 2026-06 族群盤點與清整），hands-on 入口放實作流程與現場演示素材。</p>
+  <p class="bim-hero-sub">Revit MCP 的文件總覽：reference 是長期基礎，月度封存保留每月簡報與閱讀材料（最新 2026-06：Obsidian 個人 Wiki 主軸＋DWG／族群盤點 hands-on），hands-on 入口放實作流程與現場演示素材。</p>
+  <div style="margin-top:18px;"><a class="bim-topnav-btn bim-topnav-btn-primary" href="reference/deployment-guide.html#skill-install" title="把 hj-pr-proposal 一鍵裝進 Claude Code（跨平台、純文字、不會被防毒攔）">🧩 想一鍵裝 Skill？這裡有小白教學</a></div>
   <figure class="bim-hero-figure">
     <img src="images/index__hero__three-layer.svg" alt="BIM_MCP three layer navigation mark" width="1600" height="900">
   </figure>
@@ -97,24 +98,24 @@
 <section class="bim-section bim-anchor" id="archive">
   <div class="bim-section-eyebrow">SECTION 03 / ARCHIVE</div>
   <h2 class="bim-section-title">月度封存</h2>
-  <div class="archive-row"><div class="archive-date">2026-04</div><div><strong>Karpathy wiki reading</strong><br><span style="color:var(--text-muted)">AI agent 與工作流材料。</span></div><a class="bim-topnav-btn" href="2026-04/karpathy-wiki.html">Open</a></div>
+  <div class="archive-row"><div class="archive-date">2026-04</div><div><strong>Karpathy wiki reading</strong><br><span style="color:var(--text-muted)">AI agent 與工作流材料。</span></div><a class="bim-topnav-btn" href="2026-04/karpathy-gist-zh-tw.html">Open</a></div>
   <div class="archive-row"><div class="archive-date">2026-05</div><div><strong>五月小聚 — MCP × Revit：限制顯現器</strong><br><span style="color:var(--text-muted)">22 條命題、Live Demo、跟著做的 10 個 Prompt。</span></div><a class="bim-topnav-btn" href="../0523-monthly.html">Open</a></div>
-  <div class="archive-row"><div class="archive-date">2026-06</div><div><strong>族群盤點與清整 SOP — 閱讀簡報</strong><br><span style="color:var(--text-muted)">family-inventory-cleanup domain；柱「30×30 其實是 24×24」簽章實戰。</span></div><a class="bim-topnav-btn" href="../0621-monthly.html">Open</a></div>
+  <div class="archive-row"><div class="archive-date">2026-06</div><div><strong>六月小聚 — Obsidian 個人 LLM Wiki（主軸）</strong><br><span style="color:var(--text-muted)">把 45 個 Domain 變成你的個人 Wiki；DWG 自動建柱與族群盤點的實作見下方 hands-on。含抽籤與報名。</span></div><a class="bim-topnav-btn" href="../0621-presentation.html">Open</a></div>
 </section>
 
 <section class="bim-section bim-anchor" id="latest">
   <div class="bim-section-eyebrow">SECTION 04 / LATEST · 2026-06</div>
   <h2 class="bim-section-title">Hands-on 最新入口</h2>
   <div class="bim-grid bim-grid-3">
-    <div class="bim-card bim-card-accent">
-      <small style="font-family:var(--font-tech);color:var(--text-faint);letter-spacing:2px;text-transform:uppercase">本月主題</small>
-      <h4>族群盤點與清整 SOP</h4>
-      <p>用自然語言讓 AI 翻出你的元件庫；雙軸盤點 → 簽章比對 → 你來把關，每一步動手前先停下來確認。</p>
-    </div>
-    <a class="bim-card hub-card" href="reference/skills-index.html">
-      <small style="font-family:var(--font-tech);color:var(--text-faint);letter-spacing:2px;text-transform:uppercase">skill</small>
-      <h4>family-inventory-cleanup</h4>
-      <p>AI workflow 編排入口；Tools：<code>list_family_symbols</code> / <code>query_elements_with_filter</code> / <code>get_element_info</code></p>
+    <a class="bim-card bim-card-accent hub-card" href="2026-06/dwg-column.html">
+      <small style="font-family:var(--font-tech);color:var(--text-faint);letter-spacing:2px;text-transform:uppercase">本月出貨 · hands-on</small>
+      <h4>DWG 圖層自動建柱</h4>
+      <p>掃描圖層 → 預覽健檢 → 批次建模；Wave 1 批次建模 + Wave 2 柱號對應三模式、自動單位偵測、DXF/DWG 降級。</p>
+    </a>
+    <a class="bim-card hub-card" href="2026-06/family-inventory.html">
+      <small style="font-family:var(--font-tech);color:var(--text-faint);letter-spacing:2px;text-transform:uppercase">本月出貨 · hands-on</small>
+      <h4>族群盤點與清整</h4>
+      <p>雙軸盤點 → 簽章比對 → 你來把關；從一根「名字寫 30、其實是 24」的柱看簽章鐵則。</p>
     </a>
     <div class="bim-card hub-card" style="display:flex;flex-direction:column;justify-content:space-between">
       <small style="font-family:var(--font-tech);color:var(--text-faint);letter-spacing:2px;text-transform:uppercase">6/21 小聚</small>

@@ -109,11 +109,46 @@ namespace RevitMCP.Core
                 .Select(g => new { size = g.Key, count = g.Count() })
                 .ToList();
 
+            // ── 前端單位/放樣健檢（純回報、不改模型）─────────────────────────
+            // 定位放樣、尺寸、單位是「參考 DWG/DXF 建模」的第一要務：在建柱前的斷點
+            // 讓使用者先確認這些數字合理，避免單位連結錯誤導致整批 10x 偏差的錯誤建模。
+            object preflight = null;
+            if (cols.Count > 0)
+            {
+                var warnings = new List<string>();
+                int tooSmall = cols.Count(c => c.W < 100 || c.D < 100);
+                int tooLarge = cols.Count(c => c.W > 3000 || c.D > 3000);
+                if (tooSmall > 0)
+                    warnings.Add($"{tooSmall} 根斷面 < 100mm：連結單位可能偏小（DXF 實為 cm/m 卻以 mm 連結？）請於連結對話框改正單位後重做。");
+                if (tooLarge > 0)
+                    warnings.Add($"{tooLarge} 根斷面 > 3000mm：連結單位可能偏大（DXF 實為 mm 卻以 cm/m 連結？）請於連結對話框改正單位後重做。");
+                double xMin = cols.Min(c => c.X) * FtMm, xMax = cols.Max(c => c.X) * FtMm;
+                double yMin = cols.Min(c => c.Y) * FtMm, yMax = cols.Max(c => c.Y) * FtMm;
+                preflight = new
+                {
+                    unitSanity = warnings.Count == 0 ? "ok" : "check",
+                    sizeRangeMm = new
+                    {
+                        minSide = (int)Math.Round(cols.Min(c => Math.Min(c.W, c.D))),
+                        maxSide = (int)Math.Round(cols.Max(c => Math.Max(c.W, c.D)))
+                    },
+                    extentMm = new
+                    {
+                        width = (int)Math.Round(xMax - xMin),
+                        height = (int)Math.Round(yMax - yMin),
+                        xMin = (int)Math.Round(xMin),
+                        yMin = (int)Math.Round(yMin)
+                    },
+                    warnings = warnings
+                };
+            }
+
             return new
             {
                 layerName = layerName,
                 count = cols.Count,
                 sizeSummary = sizeGroups,
+                preflight = preflight,
                 columns = colList,
                 debug = diag,
                 message = cols.Count == 0 ? $"圖層「{layerName}」中沒有識別到封閉矩形（debug 欄位有收集到的型別與原始尺寸）" : null

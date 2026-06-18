@@ -1,0 +1,22 @@
+{
+  "name": "revit-mcp-skills",
+  "owner": {
+    "name": "shuotao",
+    "email": "shuotao.chiang.2017@globis.ac.jp"
+  },
+  "metadata": {
+    "description": "Revit MCP 可分享 skills — 台灣建築 BIM 的知識貢獻與工作流工具",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "hj-pr-proposal",
+      "description": "把你自己的 domain / skill / tool 內容，轉譯為 HJPLUS（或任何 fork-based 知識庫）可提交的 PR 草案：fork 檢查 → 內容對齊（domain/skill/tools 三分）→ 雙層結構重編 → 作者確認 → 草案輸出。自包含，所需參考文件已打包。",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./.claude/skills/hj-pr-proposal"
+      ]
+    }
+  ]
+}

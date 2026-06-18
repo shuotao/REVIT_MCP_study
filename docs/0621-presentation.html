@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-snapshot="2026-06-21">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>0621 六月小聚 — Obsidian 個人 LLM Wiki × DWG 自動建柱</title>
+<meta property="og:title" content="0621 六月小聚 — Domain 變個人 Wiki × DWG 自動建柱">
+<meta property="og:description" content="把上游 45 個 Domain 變成你的個人 LLM Wiki;以及 DWG 圖層自動建柱的兩波更新（批次建模 + 柱號對應）。2026-06-21 六月小聚。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://shuotao.github.io/REVIT_MCP_study/docs/0621-presentation.html">
+<meta name="twitter:card" content="summary">
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
+  @media (max-width: 900px) {
+    html { scroll-snap-type: none !important; }
+  }
+  body {
+    background: #000; color: #fff;
+    font-family: 'Helvetica Neue', 'Inter', 'Noto Sans TC', sans-serif;
+    line-height: 1.6; overflow-x: hidden;
+  }
+  ::selection { background: #fff; color: #000; }
+
+  /* ===== NAV DOTS (right side) ===== */
+  .nav-dots {
+    position: fixed; right: 24px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px; z-index: 100;
+  }
+  .nav-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.25); border: none; cursor: pointer;
+    transition: all 0.3s ease; padding: 0;
+  }
+  .nav-dot:hover { background: rgba(255,255,255,0.6); transform: scale(1.4); }
+  .nav-dot.active { background: #fff; transform: scale(1.3); }
+  .nav-dot.section-start {
+    width: 12px; height: 12px; background: rgba(255,255,255,0.5);
+    position: relative;
+  }
+  .nav-dot.section-start.active { background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.6); }
+  .nav-dot.section-start::before {
+    content: attr(data-label);
+    position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
+    background: rgba(0,0,0,0.9); color: #fff;
+    padding: 6px 14px; border-radius: 6px; font-size: 13px;
+    white-space: nowrap; opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+    border: 1px solid rgba(255,255,255,0.15);
+    letter-spacing: 0.5px;
+  }
+  .nav-dot.section-start:hover::before { opacity: 1; }
+
+  /* ===== SLIDE ===== */
+  .slide, .cover {
+    min-height: 100vh; display: flex; align-items: center;
+    padding: 60px 80px 60px 80px; position: relative;
+    border-bottom: 1px solid var(--surface-2);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  /* ===== COVER ===== */
+  .cover {
+    justify-content: center; text-align: center;
+    flex-direction: column; gap: 0;
+    padding: 0 80px;
+  }
+  .cover-eyebrow {
+    font-size: 13px; letter-spacing: 6px; text-transform: uppercase;
+    color: rgba(255,255,255,0.35); margin-bottom: 32px;
+  }
+  .cover-title {
+    font-size: 56px; font-weight: 800; line-height: 1.15;
+    letter-spacing: -1.5px; margin-bottom: 16px;
+  }
+  .cover-subtitle {
+    font-size: 20px; color: rgba(255,255,255,0.5);
+    font-weight: 300; margin-bottom: 48px; line-height: 1.6;
+  }
+  .cover-meta {
+    display: flex; gap: 40px; justify-content: center;
+    flex-wrap: wrap;
+  }
+  .cover-meta-item {
+    text-align: center;
+  }
+  .cover-meta-label {
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--text-4); margin-bottom: 6px;
+  }
+  .cover-meta-value {
+    font-size: 16px; color: rgba(255,255,255,0.8);
+  }
+  .cover-meta-value a {
+    color: var(--accent); text-decoration: none;
+    border-bottom: 1px solid rgba(96,165,250,0.3);
+    transition: border-color 0.3s;
+  }
+  .cover-meta-value a:hover { border-color: var(--accent); }
+  .cover-scroll-hint {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    font-size: 12px; color: var(--border-3);
+    letter-spacing: 2px; animation: pulse 2s ease-in-out infinite;
+  }
+  .cover-qr {
+    margin-top: 48px; display: flex; flex-direction: column;
+    align-items: center; gap: 10px;
+  }
+  .cover-qr img {
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;
+    transition: transform 0.3s;
+  }
+  .cover-qr img:hover { transform: scale(1.05); }
+  .cover-qr-label {
+    font-size: 28px; letter-spacing: 2px; font-weight: 700;
+    color: rgba(255,255,255,0.85);
+  }
+  @keyframes pulseGlow {
+    0%, 100% { color: rgba(255,255,255,0.85); text-shadow: none; }
+    50% { color: #fff; text-shadow: 0 0 12px rgba(255,255,255,0.5); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.2; transform: translateX(-50%) translateY(0); }
+    50% { opacity: 0.5; transform: translateX(-50%) translateY(6px); }
+  }
+  .slide-inner {
+    display: flex; align-items: center; gap: 60px;
+    max-width: 1400px; width: 100%; margin: 0 auto;
+  }
+
+  /* Left: Image */
+  .slide-image {
+    flex: 0 0 45%; max-width: 45%;
+  }
+  .slide-image img {
+    width: 100%; height: auto; display: block;
+    border: 1px solid var(--border-1); border-radius: 4px;
+  }
+
+  /* Right: Content */
+  .slide-content {
+    flex: 1; min-width: 0;
+  }
+  .slide-number {
+    font-size: 13px; color: var(--text-4);
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .slide-title {
+    font-size: 32px; font-weight: 700; line-height: 1.2; margin-bottom: 16px;
+    letter-spacing: -0.5px;
+  }
+  .slide-summary {
+    font-size: 18px; color: var(--text-2); line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  /* Drawer trigger */
+  .drawer-trigger {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: none; border: 1px solid var(--border-3);
+    color: rgba(255,255,255,0.6); padding: 8px 20px; border-radius: 100px;
+    cursor: pointer; font-size: 14px; transition: all 0.3s ease;
+    font-family: inherit;
+  }
+  .drawer-trigger:hover {
+    border-color: #fff; color: #fff;
+  }
+  .drawer-trigger::after { content: '→'; transition: transform 0.3s; }
+  .drawer-trigger:hover::after { transform: translateX(4px); }
+
+  /* ===== DRAWER ===== */
+  .drawer-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 200; opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: 66.666%; max-width: 900px;
+    background: #0a0a0a; border-left: 1px solid rgba(255,255,255,0.1);
+    z-index: 201; transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow-y: auto; padding: 48px 48px 48px 48px;
+  }
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-close {
+    position: sticky; top: 0; float: right;
+    background: none; border: 1px solid var(--border-3);
+    color: #fff; width: 36px; height: 36px; border-radius: 50%;
+    cursor: pointer; font-size: 18px; display: flex;
+    align-items: center; justify-content: center; z-index: 10;
+    transition: border-color 0.3s;
+  }
+  .drawer-close:hover { border-color: #fff; }
+
+  .drawer h2 {
+    font-size: 24px; font-weight: 700; margin: 0 0 8px 0;
+    padding-right: 50px;
+  }
+  .drawer h3 {
+    font-size: 18px; font-weight: 600; margin: 32px 0 12px 0;
+    color: #fff;
+  }
+  .drawer p, .drawer li {
+    font-size: 15px; color: rgba(255,255,255,0.75); line-height: 1.8;
+    margin-bottom: 12px;
+  }
+  .drawer ul, .drawer ol {
+    padding-left: 20px; margin-bottom: 16px;
+  }
+  .drawer li { margin-bottom: 6px; }
+  .drawer strong { color: #fff; }
+  .drawer table {
+    width: 100%; border-collapse: collapse; margin: 16px 0;
+    font-size: 14px;
+  }
+  .drawer th, .drawer td {
+    border: 1px solid var(--border-2);
+    padding: 10px 14px; text-align: left;
+  }
+  .drawer th { background: var(--surface-2); color: #fff; font-weight: 600; }
+  .drawer td { color: var(--text-2); }
+
+  /* Code blocks */
+  .drawer pre {
+    background: #111; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px; padding: 16px 20px; margin: 12px 0 20px;
+    overflow-x: auto; position: relative;
+  }
+  .drawer code {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px; color: #e0e0e0; line-height: 1.7;
+  }
+  .copy-btn {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.5);
+    padding: 4px 10px; border-radius: 4px; cursor: pointer;
+    font-size: 12px; font-family: inherit; transition: all 0.2s;
+  }
+  .copy-btn:hover { background: var(--border-3); color: #fff; }
+  .copy-btn.copied { color: var(--ok); }
+
+  /* Copyable links */
+  .copyable-path {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface-2); padding: 4px 12px;
+    border-radius: 4px; font-family: monospace; font-size: 13px;
+    color: rgba(255,255,255,0.6); cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: all 0.2s;
+  }
+  .copyable-path:hover { border-color: var(--text-4); color: #fff; }
+  .copyable-path::after { content: '⧉'; font-size: 11px; }
+
+  /* ===== COMMAND OVERVIEW (1-4) ===== */
+  .cmd-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin: 16px 0;
+  }
+  .cmd-card {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-1);
+    border-radius: 8px; padding: 14px 16px;
+    transition: all 0.2s;
+  }
+  .cmd-card:hover { border-color: var(--border-3); }
+  .cmd-card-top {
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; width: 100%;
+  }
+  .cmd-card code {
+    font-family: 'SF Mono','Fira Code','Consolas',monospace;
+    font-size: 14px; font-weight: 600; color: var(--accent);
+    white-space: nowrap;
+  }
+  .cmd-card-desc {
+    font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.5;
+  }
+  .cmd-card-detail {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.35s ease, padding 0.35s ease;
+    padding: 0 0 0 0;
+  }
+  .cmd-card.expanded .cmd-card-detail {
+    max-height: 200px; padding: 10px 0 0 0;
+  }
+  .cmd-card-detail p {
+    font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.7;
+    margin: 0;
+  }
+  .cmd-card-detail .cmd-who {
+    display: inline-block; font-size: 11px; letter-spacing: 1px;
+    color: rgba(96,165,250,0.7); background: rgba(96,165,250,0.1);
+    padding: 2px 8px; border-radius: 100px; margin-bottom: 6px;
+  }
+  .cmd-card-link {
+    margin-left: auto; flex-shrink: 0;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    cursor: pointer; transition: all 0.3s;
+    display: inline-block;
+  }
+  .cmd-card-link:hover {
+    background: #fff; transform: scale(1.5);
+    box-shadow: 0 0 6px rgba(255,255,255,0.4);
+  }
+
+  /* ===== COMMAND TIP ===== */
+  .cmd-tip {
+    margin: 20px 0; padding: 16px 20px;
+    background: rgba(96,165,250,0.06);
+    border-left: 3px solid var(--accent-line);
+    border-radius: 0 8px 8px 0;
+  }
+  .cmd-tip-title {
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(96,165,250,0.7); margin-bottom: 8px; font-weight: 600;
+  }
+  .cmd-tip code {
+    background: var(--accent-12); color: var(--accent);
+    padding: 2px 8px; border-radius: 4px; font-size: 14px;
+    font-weight: 600; font-family: 'SF Mono','Fira Code','Consolas',monospace;
+  }
+  .cmd-tip p {
+    font-size: 13px; color: rgba(255,255,255,0.55); margin: 6px 0 0 0;
+    line-height: 1.6;
+  }
+
+  /* ===== WHY PAGE ===== */
+  .why-page {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 80px; scroll-snap-align: start; scroll-snap-stop: always;
+    border-bottom: 1px solid var(--surface-2);
+  }
+  .why-title {
+    font-size: 36px; font-weight: 800; letter-spacing: -1px;
+    margin-bottom: 8px; text-align: center;
+  }
+  .why-subtitle {
+    font-size: 16px; color: rgba(255,255,255,0.4); text-align: center;
+    margin-bottom: 48px; max-width: 600px; line-height: 1.7;
+  }
+  .domain-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 20px; max-width: 960px; width: 100%;
+  }
+  .domain-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border-1);
+    border-radius: 12px; padding: 28px 20px; text-align: center;
+    cursor: pointer; transition: all 0.3s ease;
+  }
+  .domain-card:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.25);
+    transform: translateY(-4px);
+  }
+  .domain-card-icon {
+    font-size: 32px; margin-bottom: 14px; display: block;
+    filter: grayscale(0.3);
+  }
+  .domain-card-label {
+    font-size: 15px; font-weight: 600; margin-bottom: 6px;
+  }
+  .domain-card-sub {
+    font-size: 12px; color: rgba(255,255,255,0.35);
+    line-height: 1.5;
+  }
+  /* Issue badge on domain cards */
+  .domain-card { position: relative; }
+  .issue-badge {
+    position: absolute; top: -6px; right: -6px;
+    background: var(--err); color: #fff;
+    width: 22px; height: 22px; border-radius: 50%;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px rgba(239,68,68,0.5);
+    animation: badgePulse 2s ease-in-out infinite;
+  }
+  @keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  /* Issue section in drawers */
+  .drawer-issue-section {
+    margin-top: 32px; padding-top: 24px;
+    border-top: 1px solid rgba(239,68,68,0.2);
+  }
+  .drawer-issue-section h3 {
+    color: var(--err) !important; font-size: 16px !important;
+    margin-bottom: 12px !important;
+  }
+  .issue-item {
+    background: rgba(239,68,68,0.06);
+    border: 1px solid rgba(239,68,68,0.15);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;
+  }
+  .issue-item p { margin: 0 0 8px 0; font-size: 14px; }
+  .issue-link-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--err-12); color: var(--err);
+    border: 1px solid rgba(239,68,68,0.25); border-radius: 6px;
+    padding: 6px 14px; font-size: 13px; font-weight: 600;
+    text-decoration: none; transition: all 0.2s; font-family: inherit;
+  }
+  .issue-link-btn:hover {
+    background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.4);
+  }
+  .issue-assignee {
+    display: inline-block; font-size: 12px; font-weight: 600;
+    color: var(--accent); background: rgba(96,165,250,0.1);
+    padding: 2px 8px; border-radius: 100px; margin-left: 6px;
+  }
+  .fix-item {
+    background: rgba(74,222,128,0.06);
+    border: 1px solid rgba(74,222,128,0.15);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;
+  }
+  .fix-item p { margin: 0 0 8px 0; font-size: 14px; }
+  .fix-tag {
+    display: inline-block; font-size: 11px; letter-spacing: 1px;
+    color: rgba(74,222,128,0.8); background: rgba(74,222,128,0.1);
+    padding: 2px 8px; border-radius: 100px;
+  }
+
+  .why-footer {
+    margin-top: 48px; text-align: center;
+    font-size: 14px; color: rgba(255,255,255,0.25);
+    max-width: 500px; line-height: 1.7;
+  }
+  .why-footer strong { color: rgba(255,255,255,0.6); }
+  /* ===== SECTION DIVIDER ===== */
+  .section-divider {
+    padding: 40px 80px; text-align: center;
+    border-bottom: 1px solid var(--surface-2);
+    scroll-snap-align: none;
+  }
+  .section-divider h2 {
+    font-size: 14px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--text-4); font-weight: 400;
+  }
+
+  /* ===== SETUP PAGE ===== */
+  .setup-page {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 60px 80px; scroll-snap-align: start; scroll-snap-stop: always;
+    border-bottom: 1px solid var(--surface-2);
+  }
+  .setup-header {
+    text-align: center; margin-bottom: 40px;
+  }
+  .setup-header h2 {
+    font-size: 36px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px;
+  }
+  .setup-header p {
+    font-size: 16px; color: rgba(255,255,255,0.4); line-height: 1.7;
+    max-width: 640px; margin-inline: auto;
+  }
+  .setup-steps {
+    display: flex; flex-direction: column; gap: 0;
+    max-width: 800px; width: 100%; position: relative;
+  }
+  .setup-steps::before {
+    content: ''; position: absolute; left: 24px; top: 0; bottom: 0;
+    width: 2px; background: var(--border-1);
+  }
+  .setup-step {
+    display: flex; gap: 20px; align-items: flex-start;
+    padding: 16px 0; position: relative;
+  }
+  .step-number {
+    flex: 0 0 48px; height: 48px; border-radius: 50%;
+    background: var(--surface-2); border: 1px solid rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: var(--text-2);
+    z-index: 1;
+  }
+  .step-number.highlight {
+    background: rgba(96,165,250,0.15); border-color: var(--accent-line);
+    color: var(--accent);
+  }
+  .step-body { flex: 1; }
+  .step-body h3 {
+    font-size: 18px; font-weight: 700; margin-bottom: 6px; color: #fff;
+  }
+  .step-body p {
+    font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.7; margin: 0;
+  }
+  .step-body code {
+    font-family: 'SF Mono','Fira Code','Consolas',monospace;
+    font-size: 13px; background: var(--surface-2);
+    padding: 2px 8px; border-radius: 4px; color: #e0e0e0;
+  }
+  .step-body .step-cmd {
+    display: block; margin-top: 8px; padding: 10px 14px;
+    background: #111; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px; font-family: 'SF Mono','Fira Code','Consolas',monospace;
+    font-size: 13px; color: #e0e0e0; line-height: 1.6;
+  }
+  .step-emoji { font-size: 20px; margin-right: 4px; }
+  .step-tag {
+    display: inline-block; font-size: 11px; letter-spacing: 1px;
+    padding: 2px 8px; border-radius: 100px; margin-left: 8px;
+    vertical-align: middle;
+  }
+  .step-tag.once {
+    color: rgba(74,222,128,0.8); background: rgba(74,222,128,0.1);
+  }
+  .step-tag.every {
+    color: rgba(251,191,36,0.8); background: rgba(251,191,36,0.1);
+  }
+  /* ===== DEPLOY GUIDE PAGE (Full-screen overlay) ===== */
+  .deploy-guide {
+    position: fixed; inset: 0; z-index: 300;
+    background: #000; overflow-y: auto;
+    display: none; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 60px 80px;
+  }
+  .deploy-guide.open { display: flex; }
+  .deploy-guide-header {
+    text-align: center; margin-bottom: 36px;
+  }
+  .deploy-guide-header h2 {
+    font-size: 36px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px;
+  }
+  .deploy-guide-header p {
+    font-size: 16px; color: rgba(255,255,255,0.4); line-height: 1.7; max-width: 600px; margin: 0 auto;
+  }
+  .deploy-flow {
+    display: flex; flex-direction: column; gap: 0;
+    max-width: 860px; width: 100%; position: relative;
+  }
+  .deploy-flow::before {
+    content: ''; position: absolute; left: 28px; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(to bottom, var(--accent-line), rgba(74,222,128,0.4));
+  }
+  .deploy-card {
+    display: flex; gap: 24px; align-items: flex-start;
+    padding: 20px 0; position: relative;
+  }
+  .deploy-icon {
+    flex: 0 0 56px; height: 56px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; z-index: 1;
+    background: var(--surface-2); border: 2px solid rgba(255,255,255,0.15);
+    transition: all 0.3s;
+  }
+  .deploy-card:hover .deploy-icon {
+    border-color: rgba(96,165,250,0.6);
+    background: rgba(96,165,250,0.1);
+  }
+  .deploy-icon.done {
+    background: var(--ok-12); border-color: rgba(74,222,128,0.4);
+  }
+  .deploy-body { flex: 1; }
+  .deploy-body h3 {
+    font-size: 20px; font-weight: 700; margin-bottom: 8px; color: #fff;
+  }
+  .deploy-body .deploy-desc {
+    font-size: 15px; color: rgba(255,255,255,0.55); line-height: 1.7; margin: 0 0 10px 0;
+  }
+  .deploy-body .deploy-visual {
+    margin: 12px 0; padding: 16px 20px;
+    background: #111; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; font-size: 14px; color: #e0e0e0; line-height: 1.7;
+  }
+  .deploy-body .deploy-visual code {
+    font-family: 'SF Mono','Fira Code','Consolas',monospace;
+    background: var(--accent-12); color: var(--accent);
+    padding: 2px 8px; border-radius: 4px;
+  }
+  .deploy-body .deploy-note {
+    font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 8px; line-height: 1.6;
+  }
+  .deploy-or {
+    display: flex; align-items: center; gap: 16px;
+    margin: 8px 0; color: var(--text-4); font-size: 13px;
+  }
+  .deploy-or::before, .deploy-or::after {
+    content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1);
+  }
+  .deploy-oneliner {
+    display: block; margin: 12px 0; padding: 14px 20px;
+    background: rgba(96,165,250,0.08); border: 1px solid var(--accent-25);
+    border-radius: 8px; font-family: 'SF Mono','Fira Code','Consolas',monospace;
+    font-size: 15px; color: var(--accent); line-height: 1.6; text-align: center;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .deploy-oneliner:hover {
+    background: rgba(96,165,250,0.15); border-color: rgba(96,165,250,0.5);
+  }
+  .deploy-btn-cover {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4);
+    color: var(--err-text); padding: 10px 24px; border-radius: 100px;
+    cursor: pointer; font-size: 15px; font-weight: 600;
+    transition: all 0.3s ease; font-family: inherit;
+    text-decoration: none; margin-top: 8px;
+    animation: deployBtnPulse 2.5s ease-in-out infinite;
+  }
+  .deploy-btn-cover:hover {
+    background: rgba(239,68,68,0.25); border-color: rgba(239,68,68,0.7);
+    color: #fff; transform: scale(1.05);
+  }
+  @keyframes deployBtnPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+    50% { box-shadow: 0 0 16px 4px rgba(239,68,68,0.2); }
+  }
+  .skill-btn-cover {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 10px;
+    padding: 10px 24px; border-radius: 100px; text-decoration: none;
+    font-size: 14px; font-weight: 600; color: var(--accent);
+    background: var(--accent-12); border: 1px solid var(--accent-line);
+    transition: all var(--t-std); font-family: inherit;
+  }
+  .skill-btn-cover:hover { background: var(--accent-25); color: #fff; transform: scale(1.04); }
+  .deploy-back-btn {
+    position: fixed; top: 24px; left: 24px; z-index: 301;
+    display: none; align-items: center; gap: 8px;
+    background: var(--surface-2); border: 1px solid var(--border-3);
+    color: var(--text-2); padding: 10px 20px; border-radius: 100px;
+    cursor: pointer; font-size: 14px; font-family: inherit;
+    transition: all 0.3s; backdrop-filter: blur(8px);
+  }
+  .deploy-back-btn:hover {
+    background: var(--border-2); border-color: rgba(255,255,255,0.5); color: #fff;
+  }
+  .deploy-guide.open ~ .deploy-back-btn,
+  .deploy-back-btn.open { display: inline-flex; }
+  /* ===== ENDING PAGE ===== */
+  .ending-page {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 60px 80px; scroll-snap-align: start; scroll-snap-stop: always;
+    border-bottom: 1px solid var(--surface-2);
+  }
+  .ending-inner {
+    display: flex; gap: 80px; align-items: flex-start;
+    max-width: 1100px; width: 100%;
+  }
+  .ending-preview { flex: 1; }
+  .ending-eyebrow {
+    font-size: 12px; letter-spacing: 5px; text-transform: uppercase;
+    color: var(--text-4); margin-bottom: 16px;
+  }
+  .ending-title {
+    font-size: 42px; font-weight: 800; letter-spacing: -1px; margin-bottom: 12px;
+  }
+  .ending-date {
+    font-size: 22px; color: var(--text-2); margin-bottom: 8px; font-weight: 300;
+  }
+  .ending-desc {
+    font-size: 15px; color: rgba(255,255,255,0.35); line-height: 1.7; margin-top: 20px;
+  }
+  .ending-lottery {
+    flex: 0 0 360px; background: var(--surface-1);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+    padding: 32px;
+  }
+  .ending-lottery h3 {
+    font-size: 20px; font-weight: 700; margin-bottom: 4px;
+  }
+  .ending-lottery textarea {
+    width: 100%; height: 140px; background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border-2); border-radius: 8px;
+    color: #fff; padding: 12px 14px; font-size: 14px; font-family: inherit;
+    line-height: 1.6; resize: vertical; margin-bottom: 12px;
+    transition: border-color 0.3s;
+  }
+  .ending-lottery textarea:focus {
+    outline: none; border-color: rgba(255,255,255,0.4);
+  }
+  .ending-lottery textarea::placeholder { color: var(--border-3); }
+  .lottery-btn {
+    width: 100%; padding: 12px; background: #fff; color: #000;
+    border: none; border-radius: 8px; font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; font-family: inherit;
+    letter-spacing: 1px;
+  }
+  .lottery-btn:hover { background: #e0e0e0; transform: translateY(-1px); }
+  .lottery-btn:disabled { background: var(--border-3); color: rgba(255,255,255,0.5); cursor: default; transform: none; }
+  .lottery-result { margin-top: 16px; min-height: 20px; }
+  .lottery-winner {
+    padding: 10px 14px; margin-bottom: 8px; border-radius: 8px;
+    font-size: 18px; font-weight: 600; text-align: center;
+    transition: all 0.15s;
+  }
+  .lottery-winner.rolling {
+    background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.4);
+  }
+  .lottery-winner.final {
+    background: var(--border-1); color: #fff;
+    border: 1px solid rgba(255,255,255,0.15);
+    animation: winnerReveal 0.4s ease-out;
+  }
+  @keyframes winnerReveal {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    /* --- Global mobile --- */
+    .slide { padding: 40px 24px; min-height: auto; }
+    .slide, .cover, .why-page, .setup-page, .ending-page {
+      scroll-snap-stop: normal;  /* 不再強制每頁必停 */
+    }
+    .slide-inner { flex-direction: column; gap: 24px; }
+    .slide-image { flex: none; max-width: 100%; }
+    .drawer { width: 90%; padding: 32px 24px; }
+    .nav-dots { right: 8px; gap: 6px; }
+    .nav-dot { width: 6px; height: 6px; }
+    .nav-dot.section-start { width: 9px; height: 9px; }
+
+    /* --- Cover mobile --- */
+    .cover {
+      padding: 32px 20px;
+      min-height: auto;
+      gap: 0;
+    }
+    .cover-eyebrow { font-size: 11px; letter-spacing: 4px; margin-bottom: 16px; }
+    .cover-title { font-size: 28px !important; letter-spacing: -0.5px; }
+    .cover-subtitle { font-size: 14px; margin-bottom: 24px; }
+    .cover-meta { gap: 16px; }
+    .cover-meta-label { font-size: 10px; }
+    .cover-meta-value { font-size: 13px; }
+    /* 社群 icon：垂直→水平一排 */
+    .cover > div:first-of-type {
+      flex-direction: column !important;
+      gap: 16px !important;
+    }
+    .cover > div:first-of-type > div:last-child {
+      flex-direction: row !important;
+      flex-wrap: wrap !important;
+      justify-content: center !important;
+      gap: 8px !important;
+    }
+    .cover > div:first-of-type > div:last-child a {
+      padding: 6px 10px !important;
+      font-size: 11px !important;
+      border-radius: 6px !important;
+    }
+    .cover > div:first-of-type > div:last-child a svg {
+      width: 16px !important;
+      height: 16px !important;
+    }
+    /* QR Code 縮小 */
+    .cover-qr { margin-top: 20px; }
+    .cover-qr img { width: 80px !important; height: 80px !important; }
+    .cover-qr-label { font-size: 11px; }
+    .cover-scroll-hint { bottom: 16px; font-size: 10px; }
+    /* 部署按鈕 */
+    .deploy-btn-cover { font-size: 13px; padding: 10px 20px; }
+
+    /* --- Why page mobile --- */
+    .why-page {
+      min-height: auto;
+      padding: 40px 20px;
+    }
+    .why-title { font-size: 24px; }
+    .why-subtitle { font-size: 13px; margin-bottom: 24px; }
+    .domain-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .domain-card { padding: 16px 12px; border-radius: 8px; }
+    .domain-card-icon { font-size: 24px; margin-bottom: 8px; }
+    .domain-card-label { font-size: 13px; }
+    .domain-card-sub { font-size: 10px; }
+    .why-footer { font-size: 12px; margin-top: 24px; }
+
+    /* --- Setup page mobile --- */
+    .setup-page {
+      min-height: auto;
+      padding: 40px 20px;
+    }
+    .setup-steps::before { left: 20px; }
+    .step-number { flex: 0 0 40px; height: 40px; font-size: 16px; }
+
+    /* --- Section divider mobile --- */
+    .section-divider {
+      padding: 24px 20px;
+      min-height: auto !important;
+    }
+
+    /* --- Slide content mobile --- */
+    .slide-title { font-size: 22px; }
+    .slide-summary { font-size: 13px; }
+    .slide-number { font-size: 11px; }
+
+    /* --- Deploy guide mobile --- */
+    .deploy-guide { padding: 32px 20px; }
+    .deploy-flow::before { left: 20px; }
+
+    /* --- Ending page mobile --- */
+    .ending-page { min-height: auto; padding: 40px 20px; }
+    .ending-inner { flex-direction: column; gap: 32px; }
+    .ending-lottery { flex: none; width: 100%; }
+    #lotteryNames { height: 120px; font-size: 13px; }
+    #lotteryExclude { height: 60px !important; font-size: 11px !important; }
+  }
+
+  /* ===== P1 DESIGN TOKENS ===== */
+  :root{
+    --surface-1:rgba(255,255,255,0.03); --surface-2:rgba(255,255,255,0.06); --surface-3:rgba(255,255,255,0.10);
+    --border-1:rgba(255,255,255,0.08); --border-2:rgba(255,255,255,0.12); --border-3:rgba(255,255,255,0.20);
+    --text-1:#fff; --text-2:rgba(255,255,255,0.70); --text-3:rgba(255,255,255,0.45); --text-4:rgba(255,255,255,0.30);
+    --accent:#60a5fa; --accent-12:rgba(96,165,250,0.12); --accent-25:rgba(96,165,250,0.25); --accent-line:rgba(96,165,250,0.40);
+    --ok:#4ade80; --ok-12:rgba(74,222,128,0.12); --ok-25:rgba(74,222,128,0.25);
+    --warn:#fbbf24; --warn-14:rgba(251,191,36,0.14);
+    --err:#ef4444; --err-12:rgba(239,68,68,0.12); --err-25:rgba(239,68,68,0.25); --err-text:#fca5a5;
+    --r-sm:6px; --r-md:12px; --r-lg:16px; --r-pill:100px;
+    --sp-1:8px; --sp-2:16px; --sp-3:24px; --sp-4:32px; --sp-5:48px; --sp-6:60px; --sp-7:80px;
+    --t-fast:.2s ease; --t-std:.3s ease; --ease-drawer:cubic-bezier(.16,1,.3,1);
+  }
+  /* ===== P2 SHARED COMPONENTS ===== */
+  .content-card{ background:var(--surface-1); border:1px solid var(--border-1); border-radius:var(--r-md); padding:var(--sp-3); width:100%; transition:border-color var(--t-std); }
+  .slide:hover .content-card{ border-color:var(--border-2); }
+  .social-link{ display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text-2); font-size:13px; border:1px solid rgba(255,255,255,0.15); border-radius:var(--r-sm); padding:8px 14px; transition:border-color var(--t-std), color var(--t-std); }
+  .social-link:hover{ border-color:rgba(255,255,255,0.4); color:var(--text-1); }
+  /* ===== P3 ICON SYSTEM ===== */
+  .icon, .icon-sm, .icon-step{ fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; display:inline-block; }
+  .icon{ width:20px; height:20px; vertical-align:-4px; }
+  .icon-sm{ width:16px; height:16px; vertical-align:-3px; }
+  .icon-step{ width:22px; height:22px; vertical-align:-5px; margin-right:8px; }
+  .domain-card-icon{ width:32px; height:32px; margin:0 auto 14px; display:block; font-size:0; fill:none; stroke:var(--text-2); stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; filter:none; transition:stroke var(--t-std); }
+  .domain-card:hover .domain-card-icon{ stroke:var(--accent); }
+  /* ===== P5 MOTION / MICRO-INTERACTION ===== */
+  .nav-dot.section-start.active{ box-shadow:0 0 0 4px rgba(255,255,255,0.08), 0 0 8px rgba(255,255,255,0.4); }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== NAV DOTS ===== -->
+<nav class="nav-dots" id="navDots"></nav>
+
+<!-- ===== COVER ===== -->
+<section class="cover" id="slide-cover">
+  <div class="cover-eyebrow">Revit MCP Study Group</div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap;">
+    <h1 class="cover-title" style="margin:0;">MCP 功能開發<br>六月小聚</h1>
+    <div style="display:flex;flex-direction:column;gap:12px;padding-top:8px;">
+      <a href="https://luma.com/claudecommunity" target="_blank" title="Claude Community — Anthropic 官方社群" class="social-link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+        Claude Community
+      </a>
+      <a href="https://gdg.community.dev/gdg-taipei/" target="_blank" title="GDG Taipei — Google Developer Group" class="social-link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="22" x2="12" y2="15.5"/><polyline points="22 8.5 12 15.5 2 8.5"/></svg>
+        GDG Taipei
+      </a>
+      <a href="https://genaistars.org.tw/" target="_blank" title="GenAI Stars — 生成式 AI 年會" class="social-link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        GenAI Stars
+      </a>
+      <a href="https://blindegg.kktix.cc/events/2026gaiconf#tickets" target="_blank" title="2026 GAI Conference — 報名購票" class="social-link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        2026 GAI Conf
+      </a>
+    </div>
+  </div>
+  <p class="cover-subtitle">把 45 個 Domain 變成你的個人 LLM Wiki<br>＋ DWG 圖層自動建柱的兩波進化</p>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Date</div>
+      <div class="cover-meta-value">2026.06.21 (Sun)</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Format</div>
+      <div class="cover-meta-value">Hybrid — Zoom + 小樹屋</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Duration</div>
+      <div class="cover-meta-value">90 min</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Open Source</div>
+      <div class="cover-meta-value"><a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" class="github-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:-2px;margin-right:6px"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub Repo</a></div>
+    </div>
+  </div>
+  <a href="#" class="deploy-btn-cover" onclick="event.preventDefault();openDeployGuide()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    尚未部署?開啟部署指南
+  </a>
+  <a href="BIM_MCP/reference/deployment-guide.html#skill-install" target="_blank" class="skill-btn-cover">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg>
+    一鍵裝 Skill（小白教學）
+  </a>
+  <div class="cover-qr">
+    <a href="https://forms.gle/XamuxeHiPGQoaBNy8" target="_blank">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://forms.gle/XamuxeHiPGQoaBNy8&bgcolor=000000&color=ffffff&format=svg" alt="六月小聚報名 QR Code" width="120" height="120">
+    </a>
+    <div class="cover-qr-label">預約六月小聚席次</div>
+    <div style="margin-top:8px;font-size:11px;color:rgba(255,255,255,0.5);line-height:1.6;text-align:center;">
+      六月小聚 2026.06.21 (Sun)<br>
+      💰 線上 500 / 現場 200 / 首次 5,000（含歷次回放）<br>
+      📝 分享筆記到社群即免費　｜　⏰ 06/18 23:59 截止
+    </div>
+  </div>
+  <div class="cover-scroll-hint">↓ SCROLL</div>
+</section>
+
+
+<!-- ===== WHY / AGENDA ===== -->
+<section class="why-page" id="slide-why">
+  <div class="why-title">今天的 90 分鐘</div>
+  <p class="why-subtitle">本場主軸:把上游的 <strong style="color:#fff">45 個 Domain</strong> 變成「你的」個人 LLM Wiki。<br>本月也出貨了 DWG 圖層自動建柱與族群盤點——完整實作收錄在 BIM_MCP（點下方卡片開啟）。</p>
+  <div class="domain-grid" style="grid-template-columns:repeat(3,1fr);max-width:1100px;">
+    <div class="domain-card" onclick="document.getElementById('slide-a-1').scrollIntoView({behavior:'smooth'})">
+      <svg class="domain-card-icon" viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+      <div class="domain-card-label">Obsidian:Domain → 個人 LLM Wiki</div>
+      <div class="domain-card-sub">主軸開場 · 從資料庫建置到「知識的自愈系統」<br>三層架構 · Ingest / Query / Lint · 升級四層</div>
+    </div>
+    <div class="domain-card" onclick="window.open('BIM_MCP/2026-06/dwg-column.html','_blank')">
+      <svg class="domain-card-icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+      <div class="domain-card-label">DWG 圖層自動建柱</div>
+      <div class="domain-card-sub">兩波更新 · 三模式 · 單位偵測<br>本月出貨 → BIM_MCP 實作頁</div>
+    </div>
+    <div class="domain-card" onclick="window.open('BIM_MCP/2026-06/family-inventory.html','_blank')">
+      <svg class="domain-card-icon" viewBox="0 0 24 24"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+      <div class="domain-card-label">族群盤點與清整</div>
+      <div class="domain-card-sub">雙軸盤點 · 簽章鐵則 · 7 條前置檢查<br>本月出貨 → BIM_MCP 實作頁</div>
+    </div>
+  </div>
+  <div class="why-footer">快照 <strong style="color:#4ade80;">96 工具 · 45 Domain · 22 Skill</strong>（2026-06-21 當時狀態）。<br>結尾抽 3 位下次分享者,並預告 <strong>七月小聚 07/18(六) 上午</strong>。</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ===== PART A — Obsidian 個人 LLM Wiki ====================== -->
+<!-- ============================================================ -->
+<div class="section-divider"><h2>PART A — Obsidian:把 Domain 變成你的個人 LLM Wiki</h2></div>
+
+<section class="slide" id="slide-a-1" data-section="A">
+  <div class="slide-inner">
+    <div class="slide-image"><div class="content-card"><div style="font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.4);margin-bottom:14px;">KNOWLEDGE LOOP 知識迴圈</div><div style="display:flex;flex-direction:column;gap:6px;font-size:13px;"><div style="background:rgba(96,165,250,0.10);padding:8px 12px;border-radius:6px;">集體智慧（上游 45 Domain）</div><div style="text-align:center;color:rgba(255,255,255,0.3);">↓ ingest</div><div style="background:rgba(96,165,250,0.10);padding:8px 12px;border-radius:6px;">進入個人（你的 vault/wiki）</div><div style="text-align:center;color:rgba(255,255,255,0.3);">↓ 深化 / 變體</div><div style="background:rgba(74,222,128,0.12);padding:8px 12px;border-radius:6px;color:#4ade80;">產生新知識</div><div style="text-align:center;color:rgba(255,255,255,0.3);">↓ /hj-pr-proposal</div><div style="background:rgba(251,191,36,0.14);padding:8px 12px;border-radius:6px;color:#fbbf24;">回饋共同智慧（開源）</div></div></div></div>
+    <div class="slide-content">
+      <div class="slide-number">A-1</div>
+      <div class="slide-title">將 45 個 Domain 匯入個人 Obsidian</div>
+      <p class="slide-summary">不是發佈於網站供所有人讀到相同內容,而是各自 pull 後由 AI 個人化消化、跨頁連結、持續更新——形成一份「知識的自愈系統」。集體 → 個人 → 變體 → 新知識 → 回饋集體。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-a-1')">展開:為什麼是「升級」不是「加工具」</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-a-2" data-section="A">
+  <div class="slide-inner">
+    <div class="slide-image"><div class="content-card"><div style="font-size:11px;letter-spacing:2px;color:#60a5fa;margin-bottom:12px;">KARPATHY LLM WIKI · 三層架構</div><div style="display:flex;flex-direction:column;gap:8px;font-size:13px;"><div style="border:1px solid rgba(255,255,255,0.12);padding:10px 12px;border-radius:6px;"><strong style="color:#fff;">Raw</strong> 不可變來源 · repo + domain/*.md（唯讀）</div><div style="border:1px solid rgba(255,255,255,0.12);padding:10px 12px;border-radius:6px;"><strong style="color:#fff;">Wiki</strong> AI 維護的知識頁 · vault/wiki/</div><div style="border:1px solid rgba(255,255,255,0.12);padding:10px 12px;border-radius:6px;"><strong style="color:#fff;">Schema</strong> 紀律設定檔 · vault/CLAUDE.md</div></div><div style="margin-top:14px;display:flex;gap:8px;justify-content:center;font-size:12px;color:#4ade80;"><span>Ingest</span><span style="color:rgba(255,255,255,0.3);">·</span><span>Query</span><span style="color:rgba(255,255,255,0.3);">·</span><span>Lint</span></div></div></div>
+    <div class="slide-content">
+      <div class="slide-number">A-2</div>
+      <div class="slide-title">三層架構 + 三個操作</div>
+      <p class="slide-summary">Raw（唯讀來源）/ Wiki（AI 寫的個人筆記）/ Schema（規則檔）。三個操作:<strong>Ingest</strong> 消化新來源、<strong>Query</strong> 提問、<strong>Lint</strong> 健檢。「筆記是個人的壓縮,讀別人的筆記必然有損」——所以要建你自己的。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-a-2')">展開:三層各放什麼</button>
+    </div>
+  </div>
+</section>
+
+<!-- 建置步驟（setup-steps）-->
+<section class="setup-page" id="slide-a-steps">
+  <div class="setup-header">
+    <h2>建置步驟:複製「想法檔」貼給 AI Agent</h2>
+    <p>不需手動建立資料夾或執行 git——<strong style="color:#fff">這些均由 AI 完成</strong>。使用者僅需複製完整的「想法檔(idea file)」貼進 Claude Code / Gemini CLI / Antigravity,由 AI 協作建立 vault。一致性靠複製不靠模型自律:schema 從範本逐字複製、idea file 尾部附 Karpathy 原文作為錨點。</p>
+    <p style="margin-top:14px;"><a href="BIM_MCP/reference/personal-llm-wiki.html#copy" target="_blank" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:#60a5fa;border:1px solid rgba(96,165,250,0.4);border-radius:100px;padding:8px 20px;font-size:14px;transition:all 0.3s;" onmouseover="this.style.background='rgba(96,165,250,0.12)'" onmouseout="this.style.background='transparent'"><svg class="icon-sm" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg> 完整建置說明(想法檔全文)在 BIM_MCP 知識站</a></p>
+  </div>
+  <div class="setup-steps">
+    <div class="setup-step"><div class="step-number">1</div><div class="step-body">
+      <h3><svg class="icon-step" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>裝 Obsidian</h3>
+      <p>從 <code>obsidian.md</code> 下載安裝(免費)。先不用設定任何東西。</p>
+    </div></div>
+    <div class="setup-step"><div class="step-number">2</div><div class="step-body">
+      <h3><svg class="icon-step" viewBox="0 0 24 24"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>在 REVIT_MCP 資料夾啟動 AI Agent</h3>
+      <p>就是你平常跑 MCP 的那個 clone——<strong style="color:#fff">不用開新資料夾、不用第二份 clone</strong>。在那裡開 Claude Code(或 Gemini CLI / Antigravity)。還沒 clone 的人先走部署指南。</p>
+    </div></div>
+    <div class="setup-step"><div class="step-number highlight">3</div><div class="step-body">
+      <h3><svg class="icon-step" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>貼上「想法檔」建置說明<span class="step-tag once">核心:你唯一要做的</span></h3>
+      <p>把完整想法檔整段貼進對話。<strong>AI 會自動</strong>:確認你在 repo 根目錄 → 建 <code>vault/</code> → 在 vault/ 裡 <code>git init</code> → 從 <code>templates/personal-vault/VAULT-CLAUDE.md</code> <strong style="color:#fff">逐字複製</strong> schema(Fixed Core 一字不改)→ 問你幾個個人化問題填 Personal 區(你的專業領域?最常用哪些 Domain?筆記語言粒度?)→ 跑驗收清單逐項回報。</p>
+    </div></div>
+    <div class="setup-step"><div class="step-number">4</div><div class="step-body">
+      <h3><svg class="icon-step" viewBox="0 0 24 24"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>第一次 Ingest</h3>
+      <p>向 AI 說明你的專業(例如「我主要做消防審查」),由其從最相關的 Domain 開始消化——例如 <code>fire-rating-check</code>、<code>corridor-analysis-protocol</code>、<code>smoke-exhaust-review</code>。不一次處理全部 45 個。</p>
+    </div></div>
+  </div>
+</section>
+
+<!-- 建好之後:日常循環 -->
+<section class="setup-page" id="slide-a-steps-2">
+  <div class="setup-header">
+    <h2>建好之後:日常兩步</h2>
+    <p>vault 建好後,日常只剩兩個動作——打開 Obsidian 看知識族譜、之後每次 pull + ingest 保持同步。</p>
+  </div>
+  <div class="setup-steps">
+    <div class="setup-step"><div class="step-number">5</div><div class="step-body">
+      <h3><svg class="icon-step" viewBox="0 0 24 24"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9"/><path d="M12 12v3"/></svg>用 Obsidian 打開整個 REVIT_MCP 資料夾</h3>
+      <p>開整個 repo(<strong style="color:#f87171;">不是只開 vault/</strong>),Settings → Files and links → Excluded files 排除 <code>MCP-Server/</code> 與 <code>MCP/</code>。graph view 同時顯示公共 domain 與你的 wiki——你的 <code>[[連結]]</code> 連到 domain 檔就是圖上的邊,公共＋個人合一的知識族譜。</p>
+    </div></div>
+    <div class="setup-step"><div class="step-number" style="background:rgba(74,222,128,0.12);border-color:rgba(74,222,128,0.3);color:#4ade80;">↻</div><div class="step-body">
+      <h3><svg class="icon-step" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>之後每次:pull + ingest</h3>
+      <p>上游有更新(月小聚後通常會有)時,向 AI 輸入「<strong style="color:#fff">pull 一下,ingest 有變動的</strong>」即完成更新——同一次 pull 亦同步更新 MCP 工具與 schema 範本。發現值得回饋者,可請 AI 協助整理提案。</p>
+    </div></div>
+  </div>
+</section>
+
+<section class="slide" id="slide-a-4" data-section="A">
+  <div class="slide-inner">
+    <div class="slide-image"><div class="content-card"><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr><th style="text-align:left;padding:8px;color:#60a5fa;border-bottom:1px solid rgba(255,255,255,0.12);">操作</th><th style="text-align:left;padding:8px;color:#60a5fa;border-bottom:1px solid rgba(255,255,255,0.12);">你說</th><th style="text-align:left;padding:8px;color:#60a5fa;border-bottom:1px solid rgba(255,255,255,0.12);">AI 做</th></tr><tr><td style="padding:8px;color:#fff;">Ingest</td><td style="padding:8px;color:rgba(255,255,255,0.7);">pull 一下,ingest 有變動的</td><td style="padding:8px;color:rgba(255,255,255,0.7);">git pull → diff → wiki 更新 → 記 log</td></tr><tr><td style="padding:8px;color:#fff;">Query</td><td style="padding:8px;color:rgba(255,255,255,0.7);">[任何問題]（可連 Revit 一起問）</td><td style="padding:8px;color:rgba(255,255,255,0.7);">讀 index.md → 深入 → 存結果回 wiki</td></tr><tr><td style="padding:8px;color:#fff;">Lint</td><td style="padding:8px;color:rgba(255,255,255,0.7);">健檢一下</td><td style="padding:8px;color:rgba(255,255,255,0.7);">檢版本 / 矛盾 / 孤兒頁 / 可回饋項</td></tr></table></div></div>
+    <div class="slide-content">
+      <div class="slide-number">A-4</div>
+      <div class="slide-title">日常只有三個動作</div>
+      <p class="slide-summary">Ingest / Query / Lint。你做過的每次審查都 file 回 wiki 變案例——從「一次性查詢」變「知識累積」。Lint 發現「排煙檢討和外牆開口檢討應該互相關聯」,就變成下一個 PR。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-a-4')">展開:三個斜線指令</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-a-5" data-section="A">
+  <div class="slide-inner">
+    <div class="slide-image"><div class="content-card"><div style="font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.4);margin-bottom:12px;">UPGRADE · 升級四層</div><div style="display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:1.5;"><div><span style="color:rgba(255,255,255,0.4);">靜態網站</span> → <strong style="color:#fff;">動態筆記</strong></div><div><span style="color:rgba(255,255,255,0.4);">一次性查詢</span> → <strong style="color:#fff;">知識累積</strong></div><div><span style="color:rgba(255,255,255,0.4);">被動讀者</span> → <strong style="color:#fff;">主動貢獻者</strong></div><div><span style="color:rgba(255,255,255,0.4);">分散知識</span> → <strong style="color:#4ade80;">知識的自愈系統</strong></div><div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:12px;">實測:27 條 Domain↔Domain 血緣邊 · 42 條 Skill→Domain 引用邊</div></div></div></div>
+    <div class="slide-content">
+      <div class="slide-number">A-5</div>
+      <div class="slide-title">為什麼是「升級」</div>
+      <p class="slide-summary">數據底層已存在(frontmatter 的 related / referenced_by / tags)、一致性有機制(複製 + schema_version + lint 自我修復)、閉環有路徑(/hj-pr-proposal + 每月小聚)。回饋不是想像的可能性,是制度化的日常。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-a-5')">展開:升級四層完整敘事</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== THIS MONTH ALSO SHIPPED → BIM_MCP ===== -->
+<section class="slide" id="slide-shipped" style="justify-content:center;text-align:center;">
+  <div style="max-width:1000px;margin:0 auto;width:100%;">
+    <div style="font-size:13px;letter-spacing:3px;color:var(--text-4);margin-bottom:12px;">THIS MONTH ALSO SHIPPED</div>
+    <div style="font-size:32px;font-weight:700;margin-bottom:8px;">本月也出貨了</div>
+    <p style="font-size:16px;color:rgba(255,255,255,0.5);margin-bottom:32px;">DWG 自動建柱與族群盤點的完整實作，收錄在 BIM_MCP 知識站 hands-on。</p>
+    <div class="domain-grid" style="grid-template-columns:repeat(2,1fr);max-width:820px;margin:0 auto;">
+      <div class="domain-card" onclick="window.open('BIM_MCP/2026-06/dwg-column.html','_blank')">
+        <svg class="domain-card-icon" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+        <div class="domain-card-label">DWG 圖層自動建柱</div>
+        <div class="domain-card-sub">兩波更新 · 三模式 · 自動單位偵測<br>→ BIM_MCP 實作頁</div>
+      </div>
+      <div class="domain-card" onclick="window.open('BIM_MCP/2026-06/family-inventory.html','_blank')">
+        <svg class="domain-card-icon" viewBox="0 0 24 24"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+        <div class="domain-card-label">族群盤點與清整</div>
+        <div class="domain-card-sub">雙軸盤點 · 簽章鐵則 · 7 條前置檢查<br>→ BIM_MCP 實作頁</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DRAWER PANELS ===== -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- ===== PART A (Obsidian) DRAWERS ===== -->
+<div class="drawer" id="drawer-a-1">
+  <button class="drawer-close" onclick="closeDrawer()"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+  <h2>為什麼是「升級」不是「加工具」</h2>
+<p>昨天:domain/ 都在上游網站上,大家看一樣的內容。今天:每個人 pull 回來,AI 為你個人化消化、跨頁連結、自動更新。</p><p><strong>三點理由</strong>(出自 0612 vault 設計對話的 AI 評估):</p><ol><li><strong>數據底層已存在</strong>——45 個 domain 的 frontmatter 已有 related / referenced_by / tags,你要的是視覺化與個人化,不是從零建。</li><li><strong>一致性有機制</strong>——複製 + schema_version + lint 自我修復,解決「多模型、多 CLI 建出來不一樣」。</li><li><strong>閉環有路徑</strong>——/hj-pr-proposal 現成、每月小聚場地現成,回饋是制度化的日常。</li></ol><p>直引:「我們不再只是在用工具,我們是在建立<strong>知識的自愈系統</strong>。」</p>
+</div>
+<div class="drawer" id="drawer-a-2">
+  <button class="drawer-close" onclick="closeDrawer()"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+  <h2>三層架構各放什麼</h2>
+<table><tr><th>層</th><th>是什麼</th><th>位置</th></tr><tr><td><strong>Raw</strong></td><td>不可變來源</td><td>repo 本身 + domain/*.md(唯讀)</td></tr><tr><td><strong>Wiki</strong></td><td>AI 維護的知識頁</td><td>vault/wiki/(AI 寫)</td></tr><tr><td><strong>Schema</strong></td><td>紀律設定檔</td><td>vault/CLAUDE.md(從上游範本複製)</td></tr></table><h3>三個操作</h3><ul><li><strong>Ingest</strong> 消化新來源</li><li><strong>Query</strong> 提問</li><li><strong>Lint</strong> 健檢</li></ul><p>核心觀念:「筆記是個人的壓縮,讀別人的筆記必然有損」——所以要建你自己的;「wiki 內容刻意不一致是 feature,不是 bug」。</p>
+</div>
+<div class="drawer" id="drawer-a-4">
+  <button class="drawer-close" onclick="closeDrawer()"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+  <h2>三個斜線指令</h2>
+<table><tr><th>指令</th><th>做什麼</th></tr><tr><td><code>/ingest</code></td><td>pull 上游 → 讀 diff → 消化變動 → 更新 wiki/index → 記 log</td></tr><tr><td><code>/wiki</code></td><td>查詢個人 vault wiki,可連 Revit 一起問,結果存回 wiki</td></tr><tr><td><code>/lint</code></td><td>健檢:版本、矛盾、孤兒頁、可回饋項、schema 升級</td></tr></table><p>進階:lint 找到「該連而未連的 Domain / 缺的法源 / 新應用」→ 用 <code>/hj-pr-proposal</code> 整理成 PR 提案,回饋上游。</p><p>紀律:個人操作永不寫入 vault/ 以外的檔案、永不 <code>git clean -x</code>、個人筆記永不 push、溯源記 source + source_version。</p>
+</div>
+<div class="drawer" id="drawer-a-5">
+  <button class="drawer-close" onclick="closeDrawer()"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+  <h2>升級的四層敘事</h2>
+<ol><li><strong>從靜態網站到動態筆記</strong>——大家看一樣 → AI 為你個人化消化、跨頁連結、自動更新。</li><li><strong>從一次性查詢到知識累積</strong>——傳統 RAG 每次從頭拼湊 → wiki 是持久資產,交叉引用已就位,每次審查 file 回 wiki 變案例。</li><li><strong>從被動讀者到主動貢獻者</strong>——pull 完讀完就結束 → 「集體→個人→變體→新知識→回到集體」正向循環。</li><li><strong>從分散知識到知識的自愈系統</strong>——零散筆記 → 自我健檢、自我修復、自我回饋。</li></ol><p>實測密度(0612 報告):27 條 Domain↔Domain 血緣邊、42 條 Skill→Domain 引用邊。schema_version 1.1。</p>
+</div>
+<!-- ===== DEPLOY GUIDE (First-Timer) — Full-screen overlay, not in scroll flow ===== -->
+<div class="deploy-guide" id="slide-deploy-guide">
+  <div class="deploy-guide-header">
+    <h2>第一次部署？跟著做就好</h2>
+    <p>不需要懂程式、不需要懂 Git。<br>從零開始，把 Revit MCP 裝到你的電腦上。</p>
+  </div>
+
+  <div class="deploy-flow">
+
+    <!-- Step 1: Clone -->
+    <div class="deploy-card">
+      <div class="deploy-icon">1</div>
+      <div class="deploy-body">
+        <h3>用 Git Clone 把專案複製到你的電腦</h3>
+        <p class="deploy-desc">
+          Clone 是 Git 的「複製」功能。用 clone 而不是下載 ZIP，<br>
+          以後專案更新時才能用 <code>git pull</code> 一鍵同步最新版。
+        </p>
+        <div class="deploy-visual">
+          <strong>基本版（推薦新手）：</strong><br>
+          1. 點開 <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" style="color:#60a5fa">github.com/shuotao/REVIT_MCP_study</a><br>
+          2. 點綠色的 <span style="color:#4ade80;font-weight:700">&lt;&gt; Code</span> 按鈕<br>
+          3. 複製 HTTPS 網址<br>
+          4. 開啟終端機（按 <code>Win + X</code> → 選「終端」或「PowerShell」）<br>
+          5. 逐行貼上以下指令（每行貼完按 Enter）：
+        </div>
+        <div class="deploy-oneliner" onclick="navigator.clipboard.writeText('cd Desktop\ngit clone https://github.com/shuotao/REVIT_MCP_study.git');this.textContent='已複製！';setTimeout(()=>{this.textContent='cd Desktop\ngit clone https://github.com/shuotao/REVIT_MCP_study.git'},1500)" style="white-space:pre-line">cd Desktop
+git clone https://github.com/shuotao/REVIT_MCP_study.git</div>
+        <p class="deploy-note">
+          <strong style="color:rgba(255,255,255,0.5);">沒有 Git？</strong>
+          前往 <a href="https://git-scm.com/download/win" target="_blank" style="color:#60a5fa">git-scm.com</a> 下載安裝，一路按 Next 即可。<br><br>
+          <strong style="color:rgba(255,255,255,0.5);">進階版（想貢獻程式碼）：</strong>
+          先在 GitHub 頁面右上角按 <strong style="color:#fff">Fork</strong>，再 clone 你自己的 fork。<br>
+          這樣未來可以提交 Pull Request 回饋給專案。
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 2: One-click setup -->
+    <div class="deploy-card">
+      <div class="deploy-icon" style="border-color:rgba(96,165,250,0.5);background:rgba(96,165,250,0.1);font-size:20px;">2</div>
+      <div class="deploy-body">
+        <h3>雙擊 setup.bat 開始自動安裝</h3>
+        <p class="deploy-desc">
+          打開桌面上的 <code>REVIT_MCP_study</code> 資料夾，找到 <code>scripts</code> 資料夾，裡面有一個 <code style="color:#60a5fa;font-weight:700">setup.bat</code>。<br>
+          <strong style="color:#fff">雙擊它。</strong> 就這樣。不需要管理員權限。
+        </p>
+        <div class="deploy-visual">
+          <strong>它會自動幫你：</strong><br>
+          &bull; 檢查電腦有沒有 Node.js → 沒有就自動安裝<br>
+          &bull; 檢查電腦有沒有 .NET SDK → 沒有就自動安裝<br>
+          &bull; 編譯 MCP Server（AI 跟 Revit 之間的翻譯官）<br>
+          &bull; 讓你選 Revit 版本 → 自動編譯 + 部署<br>
+          &bull; 自動設定 AI 客戶端（Claude Desktop / Gemini CLI / VS Code）
+        </div>
+        <p class="deploy-note">
+          畫面會出現一個黑色視窗，跑完大約 3-5 分鐘。<br>
+          選 Revit 版本時：<strong style="color:#fff">上下方向鍵</strong> 移動、<strong style="color:#fff">空白鍵</strong> 勾選/取消、<strong style="color:#fff">Enter</strong> 確認。
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 2 alternative: AI agent -->
+    <div class="deploy-or">或者讓 AI 幫你跑</div>
+
+    <div class="deploy-card">
+      <div class="deploy-icon" style="font-size:16px;">AI</div>
+      <div class="deploy-body">
+        <h3>用任何 AI 工具執行一行指令</h3>
+        <p class="deploy-desc">
+          如果你已經有 VS Code / Gemini CLI / Claude Code 等 AI 工具，<br>
+          直接貼上這行指令，AI 會幫你完成所有步驟：
+        </p>
+        <div class="deploy-oneliner" onclick="navigator.clipboard.writeText('powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -NonInteractive -RevitVersions &quot;2024&quot;');this.textContent='已複製！';setTimeout(()=>{this.textContent='powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -NonInteractive -RevitVersions \"2024\"'},1500)">
+          powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -NonInteractive -RevitVersions "2024"
+        </div>
+        <p class="deploy-note">
+          點擊上方指令即可複製。把 <code>2024</code> 改成你的 Revit 版本（2022/2023/2024/2025/2026）。<br>
+          多版本用逗號：<code>"2024,2025"</code>
+        </p>
+      </div>
+    </div>
+
+    <!-- Step 3: Open Revit -->
+    <div class="deploy-card">
+      <div class="deploy-icon">3</div>
+      <div class="deploy-body">
+        <h3>打開 Revit，啟動 MCP 服務</h3>
+        <p class="deploy-desc">
+          安裝完成後，關閉 Revit（如果有開的話），重新打開。
+        </p>
+        <div class="deploy-visual">
+          1. 開啟 Revit → 載入任意專案<br>
+          2. 上方功能列找到 <strong style="color:#fff">MCP Tools</strong> 面板<br>
+          3. 點擊 <strong style="color:#4ade80">MCP 服務 (開/關)</strong> 按鈕<br>
+          4. 看到「WebSocket 伺服器已啟動」就成功了
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Talk to AI -->
+    <div class="deploy-card">
+      <div class="deploy-icon done" style="font-size:20px;">&#10003;</div>
+      <div class="deploy-body">
+        <h3>開始用自然語言控制 Revit</h3>
+        <p class="deploy-desc">
+          打開你的 AI 工具，直接用中文跟它說你要做什麼。
+        </p>
+        <div class="deploy-visual">
+          <span style="color:rgba(255,255,255,0.4)">你：</span><span style="color:#fff">幫我查 3 樓所有房間的面積</span><br>
+          <span style="color:rgba(255,255,255,0.4)">AI：</span><span style="color:#4ade80">已查詢完成，3F 共 12 間房間，總面積 486.3 m&sup2;...</span><br><br>
+          <span style="color:rgba(255,255,255,0.4)">你：</span><span style="color:#fff">把面積小於 20 平方的房間標紅色</span><br>
+          <span style="color:rgba(255,255,255,0.4)">AI：</span><span style="color:#4ade80">已將 3 間房間標記為紅色...</span>
+        </div>
+        <p class="deploy-note">
+          支援的 AI 工具：Claude Desktop / Gemini CLI / VS Code Copilot / Google Antigravity<br>
+          setup.bat 已經幫你設定好了，直接開啟就能用。
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="text-align:center;margin-top:32px;">
+    <p style="font-size:14px;color:rgba(255,255,255,0.3);margin-bottom:8px;">遇到問題？</p>
+    <p style="font-size:13px;color:rgba(255,255,255,0.25);line-height:1.8;">
+      重新跑一次 <code style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;color:#e0e0e0;">setup.bat</code> — 已完成的步驟會自動跳過<br>
+      或到 <a href="https://github.com/shuotao/REVIT_MCP_study/issues" target="_blank" style="color:#60a5fa">GitHub Issues</a> 回報
+    </p>
+  </div>
+</div>
+<button class="deploy-back-btn" id="deployBackBtn" onclick="closeDeployGuide()">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  回到簡報
+</button>
+
+<!-- ===== ENDING PAGE ===== -->
+<section class="ending-page" id="slide-ending" data-section="7">
+  <div class="ending-inner">
+    <div class="ending-preview">
+      <div class="ending-eyebrow">NEXT MEETUP</div>
+      <h2 class="ending-title">七月小聚</h2>
+      <div class="ending-date">2026.07.18 (Sat) 上午</div>
+      <div style="margin-top:24px;">
+        <a href="https://forms.gle/XamuxeHiPGQoaBNy8" target="_blank" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.4);padding:12px 24px;border-radius:100px;font-weight:700;transition:all 0.3s;" onmouseover="this.style.background='rgba(96,165,250,0.25)';this.style.borderColor='#60a5fa'" onmouseout="this.style.background='rgba(96,165,250,0.15)';this.style.borderColor='rgba(96,165,250,0.4)'">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="17" y1="11" x2="23" y2="11"/></svg>
+          立即報名七月小聚
+        </a>
+        <p style="margin-top:14px;font-size:13px;color:rgba(255,255,255,0.55);line-height:1.7;">
+          💰 線上 500 / 現場 200 / 首次 5,000（含歷次回放）<br>
+          📝 分享筆記到社群即免費　｜　⏰ 07/15 23:59 截止
+        </p>
+      </div>
+      <div style="margin-top:32px;display:flex;align-items:center;gap:16px;">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://forms.gle/XamuxeHiPGQoaBNy8&bgcolor=000000&color=ffffff&format=svg" alt="七月小聚報名 QR Code" width="100" height="100" style="border:1px solid rgba(255,255,255,0.1);border-radius:8px;">
+        <div style="font-size:13px;color:rgba(255,255,255,0.3);line-height:1.5;">掃描 QR Code<br>搶先預約七月席次</div>
+      </div>
+      <p class="ending-desc">
+        把 Domain 變成你的個人 Wiki,把 DWG 變成模型<br>
+        下個月繼續滾動式開源<br>
+        <strong style="color:rgba(255,255,255,0.6)">你的專業，就是下一個按鈕。</strong>
+      </p>
+    </div>
+    <div class="ending-lottery">
+      <h3>抽選下次分享者</h3>
+      <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:12px;">
+        貼上本次參加者名單（每行一位），抽出 3 位
+      </p>
+      <textarea id="lotteryNames" placeholder="王大明&#10;李小華&#10;張三&#10;陳四&#10;..."></textarea>
+      <div style="margin:12px 0;">
+        <label style="font-size:12px;color:rgba(255,255,255,0.4);display:block;margin-bottom:6px;">
+          排除名單（已報告過 / 已提 PR，每行一位）
+        </label>
+        <textarea id="lotteryExclude" style="height:80px;font-size:12px;" placeholder="已排除的人...">Alex（7alexhuang-ux）
+Jacky（Jacky820507）
+David（davidhsu68-dvstudio）
+Kevin（916kevin-gif）
+CyberPotato（CyberPotato0416）
+yihuiiiii
+taiwanbanana
+ChimingLu
+h30190
+lesleyliuke</textarea>
+      </div>
+      <button class="lottery-btn" id="lotteryBtn" onclick="drawLottery()">抽籤</button>
+      <div id="lotteryResult" class="lottery-result"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+// === Section dots (June deck) ===
+const sections = [
+  { id: 'slide-cover', label: '封面' },
+  { id: 'slide-why', label: '今天的 90 分鐘' },
+  { id: 'slide-a-1', label: 'Obsidian 個人 Wiki' },
+  { id: 'slide-shipped', label: '本月出貨' },
+  { id: 'slide-ending', label: 'Next Meetup · 抽籤' },
+];
+const sectionIds = sections.map(s => s.id);
+const slideToSection = {};
+const allSlides = document.querySelectorAll('.slide, .cover, .why-page, .setup-page, .ending-page');
+let curr = 0;
+allSlides.forEach(el => {
+  if (!el.id) return;
+  const idx = sectionIds.indexOf(el.id);
+  if (idx !== -1) curr = idx;
+  slideToSection[el.id] = curr;
+});
+const nav = document.getElementById('navDots');
+sections.forEach(s => {
+  const dot = document.createElement('button');
+  dot.className = 'nav-dot section-start';
+  dot.dataset.label = s.label;
+  dot.onclick = () => document.getElementById(s.id).scrollIntoView({behavior:'smooth'});
+  nav.appendChild(dot);
+});
+const sectionDots = nav.querySelectorAll('.nav-dot');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const secIdx = slideToSection[entry.target.id];
+      if (secIdx !== undefined && sectionDots[secIdx]) {
+        sectionDots.forEach(d => d.classList.remove('active'));
+        sectionDots[secIdx].classList.add('active');
+      }
+    }
+  });
+}, { threshold: 0.4 });
+allSlides.forEach(el => { if (el.id) observer.observe(el); });
+
+// === Drawer ===
+function openDrawer(id) {
+  document.getElementById(id).classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDrawer() {
+  document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open'));
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeDrawer();
+    closeDeployGuide();
+  }
+});
+
+// === Deploy Guide overlay ===
+function openDeployGuide() {
+  document.getElementById('slide-deploy-guide').classList.add('open');
+  document.getElementById('deployBackBtn').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDeployGuide() {
+  document.getElementById('slide-deploy-guide').classList.remove('open');
+  document.getElementById('deployBackBtn').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// === Accordion: expand one, collapse others ===
+function toggleCmd(card) {
+  const isOpen = card.classList.contains('expanded');
+  card.closest('.cmd-grid').querySelectorAll('.cmd-card').forEach(c => c.classList.remove('expanded'));
+  if (!isOpen) card.classList.add('expanded');
+}
+
+// === Hash navigation: jump to slide on load ===
+window.addEventListener('load', () => {
+  const hash = window.location.hash;
+  if (hash) {
+    const target = document.querySelector(hash);
+    if (target) {
+      setTimeout(() => target.scrollIntoView({ behavior: 'instant' }), 100);
+    }
+  }
+});
+
+// === Copy code ===
+function copyCode(btn) {
+  const code = btn.parentElement.querySelector('code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '已複製';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '複製'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => {});
+}
+
+// === Lottery ===
+function drawLottery() {
+  const textarea = document.getElementById('lotteryNames');
+  const excludeTextarea = document.getElementById('lotteryExclude');
+  const resultDiv = document.getElementById('lotteryResult');
+  const btn = document.getElementById('lotteryBtn');
+  const allNames = textarea.value.trim().split('\n').map(n => n.trim()).filter(n => n.length > 0);
+
+  // 建立排除清單（取括號前的名字 + 整行都算，不分大小寫）
+  const excludeRaw = excludeTextarea.value.trim().split('\n').map(n => n.trim()).filter(n => n.length > 0);
+  const excludeSet = new Set();
+  excludeRaw.forEach(line => {
+    excludeSet.add(line.toLowerCase());
+    // 如果有括號，取括號前的名字也加入
+    const match = line.match(/^([^（(]+)/);
+    if (match) excludeSet.add(match[1].trim().toLowerCase());
+  });
+
+  // 過濾排除名單
+  const names = allNames.filter(n => !excludeSet.has(n.toLowerCase()));
+
+  const excludedCount = allNames.length - names.length;
+  if (excludedCount > 0) {
+    console.log(`已排除 ${excludedCount} 位（已報告/已提 PR）`);
+  }
+
+  if (names.length < 3) {
+    resultDiv.innerHTML = '<p style="color:#f87171;text-align:center;font-size:14px;">過濾後參加者不足 3 位（共 ' + allNames.length + ' 人，排除 ' + excludedCount + ' 人，剩 ' + names.length + ' 人）</p>';
+    return;
+  }
+
+  // Shuffle and pick 3
+  const shuffled = [...names].sort(() => Math.random() - 0.5);
+  const winners = shuffled.slice(0, 3);
+
+  btn.disabled = true;
+  btn.textContent = '抽選中...';
+  resultDiv.innerHTML = '';
+
+  // Rolling animation
+  let rollCount = 0;
+  const rollInterval = setInterval(() => {
+    const randomNames = [];
+    for (let i = 0; i < 3; i++) {
+      randomNames.push(names[Math.floor(Math.random() * names.length)]);
+    }
+    resultDiv.innerHTML = randomNames.map((n, i) =>
+      '<div class="lottery-winner rolling">' + (i+1) + '. ' + n + '</div>'
+    ).join('');
+    rollCount++;
+    if (rollCount > 20) {
+      clearInterval(rollInterval);
+      const medals = ['\uD83E\uDD47', '\uD83E\uDD48', '\uD83E\uDD49'];
+      resultDiv.innerHTML = winners.map((n, i) =>
+        '<div class="lottery-winner final">' + medals[i] + ' ' + n + '</div>'
+      ).join('');
+      btn.disabled = false;
+      btn.textContent = '再抽一次';
+    }
+  }, 80);
+}
+</script>
+</body>
+</html>
