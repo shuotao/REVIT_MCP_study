@@ -3,7 +3,11 @@ using Autodesk.Revit.DB.Structure;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace RevitMCP.Core
 {
@@ -105,11 +109,46 @@ namespace RevitMCP.Core
                 .Select(g => new { size = g.Key, count = g.Count() })
                 .ToList();
 
+            // ── 前端單位/放樣健檢（純回報、不改模型）─────────────────────────
+            // 定位放樣、尺寸、單位是「參考 DWG/DXF 建模」的第一要務：在建柱前的斷點
+            // 讓使用者先確認這些數字合理，避免單位連結錯誤導致整批 10x 偏差的錯誤建模。
+            object preflight = null;
+            if (cols.Count > 0)
+            {
+                var warnings = new List<string>();
+                int tooSmall = cols.Count(c => c.W < 100 || c.D < 100);
+                int tooLarge = cols.Count(c => c.W > 3000 || c.D > 3000);
+                if (tooSmall > 0)
+                    warnings.Add($"{tooSmall} 根斷面 < 100mm：連結單位可能偏小（DXF 實為 cm/m 卻以 mm 連結？）請於連結對話框改正單位後重做。");
+                if (tooLarge > 0)
+                    warnings.Add($"{tooLarge} 根斷面 > 3000mm：連結單位可能偏大（DXF 實為 mm 卻以 cm/m 連結？）請於連結對話框改正單位後重做。");
+                double xMin = cols.Min(c => c.X) * FtMm, xMax = cols.Max(c => c.X) * FtMm;
+                double yMin = cols.Min(c => c.Y) * FtMm, yMax = cols.Max(c => c.Y) * FtMm;
+                preflight = new
+                {
+                    unitSanity = warnings.Count == 0 ? "ok" : "check",
+                    sizeRangeMm = new
+                    {
+                        minSide = (int)Math.Round(cols.Min(c => Math.Min(c.W, c.D))),
+                        maxSide = (int)Math.Round(cols.Max(c => Math.Max(c.W, c.D)))
+                    },
+                    extentMm = new
+                    {
+                        width = (int)Math.Round(xMax - xMin),
+                        height = (int)Math.Round(yMax - yMin),
+                        xMin = (int)Math.Round(xMin),
+                        yMin = (int)Math.Round(yMin)
+                    },
+                    warnings = warnings
+                };
+            }
+
             return new
             {
                 layerName = layerName,
                 count = cols.Count,
                 sizeSummary = sizeGroups,
+                preflight = preflight,
                 columns = colList,
                 debug = diag,
                 message = cols.Count == 0 ? $"圖層「{layerName}」中沒有識別到封閉矩形（debug 欄位有收集到的型別與原始尺寸）" : null
@@ -136,6 +175,9 @@ namespace RevitMCP.Core
                 : BuiltInCategory.OST_Columns;
             StructuralType stype = isStructural ? StructuralType.Column : StructuralType.NonStructural;
 
+            string requestedFamilyName = p["familyName"]?.Value<string>();
+            string textLayerName = p["textLayerName"]?.Value<string>();
+
             var bLv = vp.GenLevel;
             if (bLv == null) throw new Exception("無法取得基準樓層");
 
@@ -152,12 +194,53 @@ namespace RevitMCP.Core
             if (cols.Count == 0) throw new Exception($"圖層「{layerName}」中無封閉矩形");
 
             string wp = null, dp = null;
-            var baseSym = FindFamily(doc, bic, ref wp, ref dp);
-            if (baseSym == null)
-                throw new Exception($"找不到{columnTypeName}族群，請先在專案中載入矩形柱族群");
+            FamilySymbol baseSym;
+            if (!string.IsNullOrEmpty(requestedFamilyName))
+            {
+                baseSym = FindFamilyByName(doc, bic, requestedFamilyName, ref wp, ref dp);
+                if (baseSym == null)
+                    throw new Exception($"找不到名稱為「{requestedFamilyName}」的{columnTypeName}族群，請確認族群已載入且名稱正確");
+            }
+            else
+            {
+                baseSym = FindFamily(doc, bic, ref wp, ref dp);
+                if (baseSym == null)
+                    throw new Exception($"找不到{columnTypeName}族群，請先在專案中載入矩形柱族群");
+            }
+
+            // 讀取 CAD 文字標注（如 C1、C2）
+            List<LabelData> labels = null;
+            string labelStatus = "skipped"; // skipped | ok | no_oda | error | no_worker
+            string labelWarning = null;
+
+            if (!string.IsNullOrEmpty(textLayerName))
+            {
+                try
+                {
+                    labels = ReadLabelsFromCad(doc, vp, textLayerName, layerName);
+                    labelStatus = labels != null ? "ok" : "no_worker";
+                    if (labels == null)
+                        labelWarning = "找不到 ezdxf_worker.py 或無法取得 CAD 檔案路徑，柱已建立但未對應柱名稱";
+                }
+                catch (Exception ex) when (ex.Message.StartsWith("NO_ODA:"))
+                {
+                    labelStatus = "no_oda";
+                    labelWarning = "DWG 格式需要 ODA File Converter 才能讀取文字標注。"
+                        + "請安裝後重試，或將 CAD 連結改為 DXF 格式。"
+                        + "柱已建立但未對應柱名稱。";
+                }
+                catch (Exception ex)
+                {
+                    labelStatus = "error";
+                    labelWarning = "讀取 CAD 文字標注時發生錯誤：" + ex.Message + "。柱已建立但未對應柱名稱。";
+                }
+            }
 
             int ok = 0, fail = 0;
             var errors = new List<string>();
+            var typeMapping = new List<string>();
+            var unmatchedLabels = new List<string>();
+            var matchDebug = new List<string>(); // label→type→dist，最多10筆
 
             using (var tr = new Transaction(doc, $"從DWG建立{columnTypeName}"))
             {
@@ -168,7 +251,42 @@ namespace RevitMCP.Core
                 {
                     try
                     {
-                        var sym = GetOrCreate(doc, baseSym, c.W, c.D, wp, dp);
+                        FamilySymbol sym;
+                        string matchedLabel = null;
+                        if (labels != null && labels.Count > 0)
+                        {
+                            // 找距離最近的文字標注（容許範圍 2000mm）
+                            var nearest = labels
+                                .OrderBy(l => (c.X - l.X) * (c.X - l.X) + (c.Y - l.Y) * (c.Y - l.Y))
+                                .First();
+                            double distMm = Math.Sqrt(
+                                Math.Pow(c.X - nearest.X, 2) + Math.Pow(c.Y - nearest.Y, 2)) * FtMm;
+                            if (matchDebug.Count < 6)
+                                matchDebug.Add($"col=({c.X * FtMm:F0},{c.Y * FtMm:F0})mm lbl={nearest.Text} raw=({nearest.RawX:F1},{nearest.RawY:F1}) lblPos=({nearest.X * FtMm:F0},{nearest.Y * FtMm:F0})mm dist={distMm:F0}mm");
+                            if (distMm < 2000)
+                            {
+                                matchedLabel = nearest.Text;
+                                sym = MatchSymbolByLabel(doc, baseSym, nearest.Text, wp, dp, c.W, c.D);
+                                if (sym == null)
+                                {
+                                    // 找不到對應類型：記錄 unmatched，跳過此柱（不自動建立）
+                                    string unmatchedKey = nearest.Text;
+                                    if (!unmatchedLabels.Contains(unmatchedKey))
+                                        unmatchedLabels.Add(unmatchedKey);
+                                    fail++;
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                sym = GetOrCreate(doc, baseSym, c.W, c.D, wp, dp);
+                            }
+                        }
+                        else
+                        {
+                            sym = GetOrCreate(doc, baseSym, c.W, c.D, wp, dp);
+                        }
+
                         if (sym == null)
                         {
                             fail++;
@@ -191,6 +309,8 @@ namespace RevitMCP.Core
                                 ElementTransformUtils.RotateElement(doc, inst.Id, ax, c.A);
                             }
                             ok++;
+                            if (typeMapping.Count < 10 && !typeMapping.Contains(sym.Name))
+                                typeMapping.Add(sym.Name);
                         }
                     }
                     catch (Exception ex)
@@ -206,6 +326,11 @@ namespace RevitMCP.Core
             {
                 columnType = columnTypeName,
                 familyName = baseSym.Family.Name,
+                familyNameMatched = !string.IsNullOrEmpty(requestedFamilyName),
+                labelReadStatus = labelStatus,
+                labelCount = labels?.Count,
+                labelWarning = labelWarning,
+                labelsPreview = labels?.Take(6).Select(l => l.Text).ToList(),
                 widthParam = wp,
                 depthParam = dp,
                 baseLevel = bLv.Name,
@@ -213,6 +338,9 @@ namespace RevitMCP.Core
                 totalDetected = cols.Count,
                 created = ok,
                 failed = fail,
+                typesUsed = typeMapping,
+                unmatchedLabels = unmatchedLabels,
+                matchDebug = matchDebug,
                 errors = errors.Take(10).ToList()
             };
         }
@@ -488,6 +616,238 @@ namespace RevitMCP.Core
             var best = syms.OrderByDescending(s => FamilyScore(s)).First();
             DetectParams(best, ref wp, ref dp);
             return best;
+        }
+
+        // 依族群名稱精確找族群，取其第一個 Symbol 做參數偵測
+        static FamilySymbol FindFamilyByName(Document doc, BuiltInCategory bic, string familyName, ref string wp, ref string dp)
+        {
+            var sym = new FilteredElementCollector(doc)
+                .OfCategory(bic)
+                .OfClass(typeof(FamilySymbol))
+                .Cast<FamilySymbol>()
+                .FirstOrDefault(s => s.Family.Name.Equals(familyName, StringComparison.OrdinalIgnoreCase));
+            if (sym == null) return null;
+            DetectParams(sym, ref wp, ref dp);
+            return sym;
+        }
+
+        // ────────────────────────────────────────────────
+        // CAD 文字標注讀取
+        // ────────────────────────────────────────────────
+
+        class LabelData { public string Text; public double X; public double Y; public double RawX; public double RawY; }
+
+        // 從上到下依序找 ezdxf_worker.py：dll 同層 → 往上六層（開發環境）→ %APPDATA%\RevitMCP
+        static string FindWorkerScript()
+        {
+            string asmDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+            string candidate = Path.Combine(asmDir, "ezdxf_worker.py");
+            if (File.Exists(candidate)) return candidate;
+
+            DirectoryInfo dir = new DirectoryInfo(asmDir);
+            for (int i = 0; i < 6 && dir != null; i++, dir = dir.Parent)
+            {
+                candidate = Path.Combine(dir.FullName, "bridge", "python", "skills", "ezdxf_worker.py");
+                if (File.Exists(candidate)) return candidate;
+            }
+
+            string appData = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "RevitMCP", "ezdxf_worker.py");
+            return File.Exists(appData) ? appData : null;
+        }
+
+        // 從 ImportInstance 反查磁碟上的 CAD 真實路徑。
+        // 只有「連結(Link CAD)」才有外部檔案參考；「匯入(Import)」無法取得路徑，回傳 null。
+        static string GetCadFilePath(Document doc, ImportInstance cad)
+        {
+            if (!cad.IsLinked) return null;
+            try
+            {
+                var linkType = doc.GetElement(cad.GetTypeId()) as CADLinkType;
+                if (linkType == null) return null;
+                var extRef = linkType.GetExternalFileReference();
+                if (extRef == null) return null;
+                string pathStr = ModelPathUtils.ConvertModelPathToUserVisiblePath(extRef.GetPath());
+                if (string.IsNullOrEmpty(pathStr)) return null;
+                if (!Path.IsPathRooted(pathStr) && !string.IsNullOrEmpty(doc.PathName))
+                    pathStr = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(doc.PathName), pathStr));
+                return File.Exists(pathStr) ? pathStr : null;
+            }
+            catch { return null; }
+        }
+
+        // 呼叫 ezdxf_worker.py，讀取指定圖層的文字，座標已轉成 Revit 模型座標（feet）
+        // 若 ezdxf_worker 回傳 error_type=no_oda，拋出 "NO_ODA:" 前綴的 Exception
+        static List<LabelData> ReadLabelsFromCad(Document doc, ViewPlan vp, string textLayerName, string colLayerName = null)
+        {
+            string workerPath = FindWorkerScript();
+            if (workerPath == null) return null;
+
+            var cads = new FilteredElementCollector(doc, vp.Id)
+                .OfClass(typeof(ImportInstance)).Cast<ImportInstance>().ToList();
+
+            // 優先找連結(IsLinked)的 CAD，只有連結才能反查原始檔案路徑
+            string filePath = null;
+            ImportInstance targetCad = null;
+            foreach (var c in cads)
+            {
+                string p = GetCadFilePath(doc, c);
+                if (p != null) { filePath = p; targetCad = c; break; }
+            }
+
+            if (filePath == null)
+            {
+                bool hasImportOnly = cads.Any() && cads.All(c => !c.IsLinked);
+                if (hasImportOnly)
+                    throw new Exception(
+                        "視圖內的 CAD 均以「匯入(Import)」方式加入，無法讀取原始檔案路徑。" +
+                        "請刪除匯入的 CAD，改用「插入 → 連結 CAD (Link CAD)」，才能讀取柱號標注文字。");
+                return null;
+            }
+
+            var cad = targetCad;
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = "python",
+                Arguments = $"\"{workerPath}\" \"{filePath}\" \"{textLayerName}\"",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            string output;
+            using (var proc = Process.Start(psi))
+            {
+                output = proc.StandardOutput.ReadToEnd();
+                proc.WaitForExit(20000);
+            }
+
+            if (string.IsNullOrWhiteSpace(output))
+                throw new Exception("ezdxf_worker.py 無回應（python 未安裝或路徑不正確）");
+
+            var json = JObject.Parse(output);
+            string errorType = json["error_type"]?.Value<string>();
+            if (errorType == "no_oda")
+                throw new Exception("NO_ODA:" + json["error"]?.Value<string>());
+            if (json["error"] != null)
+                throw new Exception(json["error"].Value<string>());
+
+            var transform = cad.GetTotalTransform();
+
+            // 先收集所有原始 DXF 座標
+            var rawItems = new List<(string text, double rx, double ry, double rz)>();
+            foreach (JObject item in json["data"] as JArray ?? new JArray())
+            {
+                string text = (item["text"]?.Value<string>() ?? "").Trim();
+                if (string.IsNullOrEmpty(text)) continue;
+                rawItems.Add((text,
+                    item["x"]?.Value<double>() ?? 0,
+                    item["y"]?.Value<double>() ?? 0,
+                    item["z"]?.Value<double>() ?? 0));
+            }
+            if (rawItems.Count == 0) return new List<LabelData>();
+
+            // 自動試算最佳 DXF 單位（$INSUNITS=0 無法判斷時用此法）
+            // 嘗試 mm / cm / m / inch → feet 換算係數，選讓標注最靠近幾何柱的那個
+            double[] trialScales = { 1.0 / 304.8, 1.0 / 30.48, 1.0 / 0.3048, 1.0 / 25.4, 1.0 };
+            string[] scaleNames = { "mm", "cm", "m", "inch", "ft" };
+
+            // 取幾何柱的 Revit 座標（從目前視圖掃描，做為比對基準）
+            var geomCols = string.IsNullOrEmpty(colLayerName)
+                ? new List<GeometryObject>()
+                : CollectLayerGeometry(doc, vp, colLayerName);
+            var refCols = Extract(geomCols, null); // ColData list in feet
+
+            double bestScale = trialScales[0];
+            double bestErr = double.MaxValue;
+            foreach (var sc in trialScales)
+            {
+                double sumMinDist = 0;
+                foreach (var (_, rx, ry, _) in rawItems)
+                {
+                    var pt = transform.OfPoint(new XYZ(rx * sc, ry * sc, 0));
+                    double minD = refCols.Count > 0
+                        ? refCols.Min(c => (c.X - pt.X) * (c.X - pt.X) + (c.Y - pt.Y) * (c.Y - pt.Y))
+                        : 1e18;
+                    sumMinDist += minD;
+                }
+                if (sumMinDist < bestErr) { bestErr = sumMinDist; bestScale = sc; }
+            }
+
+            var labels = new List<LabelData>();
+            foreach (var (text, rx, ry, rz) in rawItems)
+            {
+                var revitPt = transform.OfPoint(new XYZ(rx * bestScale, ry * bestScale, rz * bestScale));
+                labels.Add(new LabelData { Text = text, X = revitPt.X, Y = revitPt.Y, RawX = rx, RawY = ry });
+            }
+            return labels;
+        }
+
+        // 依標注文字（如 "C1" 或 "C1(100×60)"）在指定族群中找最匹配的類型。
+        // 找不到時回傳 null（呼叫端負責記錄 unmatched，不自動建立新類型）。
+        // 比對優先順序同 BIMAssistant find_or_create_type：
+        //   1. 完整名稱完全符合
+        //   2. 代號前綴符合（"C3a_" 或 "C3a-"）
+        //   3. 代號前綴 + 尺寸數值雙重符合（防止代號重複時誤判）
+        static FamilySymbol MatchSymbolByLabel(
+            Document doc, FamilySymbol baseSym, string labelText, string wp, string dp, double wMm, double dMm)
+        {
+            var syms = baseSym.Family.GetFamilySymbolIds()
+                .Select(id => doc.GetElement(id) as FamilySymbol)
+                .Where(s => s != null).ToList();
+
+            // Step 1: 完整名稱完全符合
+            var match = syms.FirstOrDefault(s =>
+                s.Name.Equals(labelText, StringComparison.OrdinalIgnoreCase));
+            if (match != null) return match;
+
+            // 萃取代號：去掉括號與尺寸後綴，如 "C3a(100×60)" → "C3a"
+            // 同時解析 CAD 標注中的尺寸（若有），用於第三段驗證
+            string code = labelText;
+            int labelW = 0, labelD = 0;
+            var codeM = Regex.Match(labelText,
+                @"^([A-Za-z]+\d+[a-z]?)[\s\(_\-]?\s*(\d+(?:\.\d+)?)\s*[xX×\*]\s*(\d+(?:\.\d+)?)");
+            if (codeM.Success)
+            {
+                code = codeM.Groups[1].Value;
+                labelW = (int)Math.Round(double.Parse(codeM.Groups[2].Value));
+                labelD = (int)Math.Round(double.Parse(codeM.Groups[3].Value));
+            }
+            else
+            {
+                var codeOnly = Regex.Match(labelText, @"^[A-Za-z]+\d+[a-z]?");
+                if (codeOnly.Success) code = codeOnly.Value;
+            }
+
+            // Step 2: 代號前綴符合（"C3a_..." 或 "C3a-..." 或完全等於 "C3a"）
+            match = syms.FirstOrDefault(s =>
+                s.Name.StartsWith(code + "_", StringComparison.OrdinalIgnoreCase) ||
+                s.Name.StartsWith(code + "-", StringComparison.OrdinalIgnoreCase) ||
+                s.Name.Equals(code, StringComparison.OrdinalIgnoreCase));
+            if (match != null) return match;
+
+            // Step 3: 代號前綴 + 尺寸雙重符合（代號相同但尺寸不同時區分）
+            if (labelW > 0 && labelD > 0)
+            {
+                double wF = wMm * MmFt, dF = dMm * MmFt, t = Tol * MmFt;
+                match = syms.FirstOrDefault(s =>
+                {
+                    if (!s.Name.StartsWith(code, StringComparison.OrdinalIgnoreCase)) return false;
+                    var pw = s.LookupParameter(wp); var pd = s.LookupParameter(dp);
+                    if (pw == null || pd == null) return false;
+                    double sw = pw.AsDouble() * FtMm, sd = pd.AsDouble() * FtMm;
+                    return (Math.Abs(sw - wMm) < Tol * 2 && Math.Abs(sd - dMm) < Tol * 2) ||
+                           (Math.Abs(sw - dMm) < Tol * 2 && Math.Abs(sd - wMm) < Tol * 2);
+                });
+                if (match != null) return match;
+            }
+
+            // 找不到：回傳 null，由呼叫端記錄 unmatched
+            return null;
         }
 
         static int FamilyScore(FamilySymbol s)
