@@ -138,6 +138,7 @@ Deploy with `scripts/install-addon.ps1` or the `/deploy-addon` skill. Do not rel
 | `bridge/python/skills/ezdxf_worker.py` | Optional Python subprocess (spawned by `DwgColumnExecutor`) that reads DXF/DWG text for column-number mapping (`dwg-column-import` mode C). Needs system Python + `ezdxf`; DWG additionally needs ODA File Converter. Deployed to `%APPDATA%\RevitMCP` by `install-addon.ps1`. |
 | `scripts/verify-qaqc.ps1` | Repository QA/QC gate |
 | `docs/DOCUMENT_AUDIENCE_INVENTORY.md` | Canonical AI/human/shared document classification |
+| `.claude-plugin/marketplace.json` | Plugin marketplace manifest — packages shareable skills (currently `hj-pr-proposal`) as installable plugins for `/plugin marketplace add` → `/plugin install`. |
 
 ## Code Conventions
 
@@ -334,6 +335,23 @@ Available Claude skills:
 - `/wall-orientation-check`
 
 Use the smallest relevant skill set. If a skill and a domain file conflict on the method, the domain file wins.
+
+## Skill Packaging & Upstream Watch
+
+Shareable skills are packaged as installable plugins via `.claude-plugin/marketplace.json` (marketplace name: `revit-mcp-skills`). Consumer install path:
+
+```text
+/plugin marketplace add shuotao/REVIT_MCP_study
+/plugin install <plugin>@revit-mcp-skills
+```
+
+A packaged skill MUST be self-contained: bundle any referenced files inside the skill folder (e.g. `.claude/skills/<name>/references/`); never point at repo paths outside the skill directory, or the plugin breaks on install. Packaging a skill does NOT change the `Claude skills` source-of-truth count — that count is `.claude/skills/*/SKILL.md` only.
+
+### Upstream Watch (ongoing)
+
+Periodically check `github.com/anthropics/skills` for changes to the Agent Skills spec — specifically the `SKILL.md` frontmatter contract and the `.claude-plugin/marketplace.json` schema. If upstream changes the format, update our `SKILL.md` files and `marketplace.json` to match, then re-run QA/QC.
+
+Snapshot as of 2026-06: `SKILL.md` frontmatter is `name` + `description` (+ optional `license`); marketplace schema version is `1.0.0`. There is NO breaking "2.0" file-format change — the shift is packaging/distribution (open standard + plugin marketplace), not the skill file format.
 
 ## MCP Profiles
 
