@@ -45,7 +45,7 @@
 <header class="bim-hero">
   <div class="bim-hero-eyebrow">BIM_MCP <span class="accent">reference / archive / latest</span></div>
   <h1 class="bim-hero-title">把 Revit MCP 的知識、SOP、Demo 流程放在同一個入口</h1>
-  <p class="bim-hero-sub">這裡是 5/23 demo 前的文件總覽：reference 是長期基礎，月度封存保留簡報與閱讀材料，hands-on 入口放實作流程與現場演示素材。</p>
+  <p class="bim-hero-sub">Revit MCP 的文件總覽：reference 是長期基礎，月度封存保留每月簡報與閱讀材料（最新 2026-06 族群盤點與清整），hands-on 入口放實作流程與現場演示素材。</p>
   <figure class="bim-hero-figure">
     <img src="images/index__hero__three-layer.svg" alt="BIM_MCP three layer navigation mark" width="1600" height="900">
   </figure>
@@ -85,7 +85,7 @@
     <a class="bim-card hub-card" href="reference/three-constitutions.html"><small>guard rails</small><h4>四條憲法</h4><p>被動就緒 / 資料誠實 / Domain method / Active Re-Anchoring。2026-05-22 新增第四條。</p></a>
     <a class="bim-card hub-card" href="reference/industry-evidence.html"><small>evidence</small><h4>產業證據</h4><p>成本曲線、返工、early mover 論述。</p></a>
     <a class="bim-card hub-card" href="reference/spectrum-decision.html"><small>decision</small><h4>Spectrum Decision</h4><p>把 FAIL 從 0/1 改成可談判的 A/B/C/D。</p></a>
-    <a class="bim-card hub-card" href="reference/skills-index.html"><small>skills</small><h4>21 Skills</h4><p>AI workflow orchestration 索引。</p></a>
+    <a class="bim-card hub-card" href="reference/skills-index.html"><small>skills</small><h4>22 Skills</h4><p>AI workflow orchestration 索引。</p></a>
     <a class="bim-card hub-card" href="reference/domain-index.html"><small>domain</small><h4>Domain SOP</h4><p>由 repo 內 domain/*.md 建出的 SOP 索引。</p></a>
     <a class="bim-card hub-card" href="reference/deployment-guide.html"><small>deploy</small><h4>部署指南</h4><p>Nice3point、Release.R{YY}、setup.ps1。</p></a>
     <a class="bim-card hub-card" href="reference/troubleshooting.html"><small>debug</small><h4>Troubleshooting</h4><p>5 個經典問題與 5/18 demo 4 個修復。</p></a>
@@ -98,15 +98,30 @@
   <div class="bim-section-eyebrow">SECTION 03 / ARCHIVE</div>
   <h2 class="bim-section-title">月度封存</h2>
   <div class="archive-row"><div class="archive-date">2026-04</div><div><strong>Karpathy wiki reading</strong><br><span style="color:var(--text-muted)">AI agent 與工作流材料。</span></div><a class="bim-topnav-btn" href="2026-04/karpathy-wiki.html">Open</a></div>
-  <div class="archive-row"><div class="archive-date">2026-05</div><div><strong>Presentation / hands-on / live demo log</strong><br><span style="color:var(--text-muted)">交接文件標記為 pending，保留入口位置。</span></div><span class="fail-tag">pending</span></div>
+  <div class="archive-row"><div class="archive-date">2026-05</div><div><strong>五月小聚 — MCP × Revit：限制顯現器</strong><br><span style="color:var(--text-muted)">22 條命題、Live Demo、跟著做的 10 個 Prompt。</span></div><a class="bim-topnav-btn" href="../0523-monthly.html">Open</a></div>
+  <div class="archive-row"><div class="archive-date">2026-06</div><div><strong>族群盤點與清整 SOP — 閱讀簡報</strong><br><span style="color:var(--text-muted)">family-inventory-cleanup domain；柱「30×30 其實是 24×24」簽章實戰。</span></div><a class="bim-topnav-btn" href="../0621-monthly.html">Open</a></div>
 </section>
 
 <section class="bim-section bim-anchor" id="latest">
-  <div class="bim-section-eyebrow">SECTION 04 / LATEST</div>
+  <div class="bim-section-eyebrow">SECTION 04 / LATEST · 2026-06</div>
   <h2 class="bim-section-title">Hands-on 最新入口</h2>
-  <div class="bim-card bim-card-accent">
-    <h4>Demo flow</h4>
-    <p>建議順序：首頁 → 22 propositions → 三條憲法 → 產業證據 → Spectrum Decision → hands-on → skills/domain/deployment/troubleshooting。</p>
+  <div class="bim-grid bim-grid-3">
+    <div class="bim-card bim-card-accent">
+      <small style="font-family:var(--font-tech);color:var(--text-faint);letter-spacing:2px;text-transform:uppercase">本月主題</small>
+      <h4>族群盤點與清整 SOP</h4>
+      <p>用自然語言讓 AI 翻出你的元件庫；雙軸盤點 → 簽章比對 → 你來把關，每一步動手前先停下來確認。</p>
+    </div>
+    <a class="bim-card hub-card" href="reference/skills-index.html">
+      <small style="font-family:var(--font-tech);color:var(--text-faint);letter-spacing:2px;text-transform:uppercase">skill</small>
+      <h4>family-inventory-cleanup</h4>
+      <p>AI workflow 編排入口；Tools：<code>list_family_symbols</code> / <code>query_elements_with_filter</code> / <code>get_element_info</code></p>
+    </a>
+    <div class="bim-card hub-card" style="display:flex;flex-direction:column;justify-content:space-between">
+      <small style="font-family:var(--font-tech);color:var(--text-faint);letter-spacing:2px;text-transform:uppercase">6/21 小聚</small>
+      <h4>帶自己的模型來，現場跑一遍</h4>
+      <p>現場演練族群盤點；看著 AI 幫你整理，由你點頭才動手。</p>
+      <a data-meetup-link class="bim-topnav-btn bim-topnav-btn-primary" style="margin-top:12px;text-align:center" title="本月小聚報名表單">📝 立即報名</a>
+    </div>
   </div>
 </section>
 
@@ -115,8 +130,9 @@
     <a class="bim-footer-btn primary" href="reference/philosophy-22-propositions.html">Start reference</a>
     <a class="bim-footer-btn" href="reference/domain-index.html">Domain</a>
     <a class="bim-footer-btn" href="reference/contributor-template.html">Contribute</a>
+    <a data-meetup-link class="bim-footer-btn" title="六月小聚報名">📝 六月小聚報名</a>
   </div>
-  <p>BIM_MCP / hub / 2026-05-18</p>
+  <p>BIM_MCP / hub / 2026-06-17</p>
 </footer>
 <script src="shared.js"></script>
 <script>initAll({home:"index.html"});</script>

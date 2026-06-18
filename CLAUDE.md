@@ -34,8 +34,8 @@ These counts must be derived from source, not copied by memory.
 | Item | Current Count | Source of Truth |
 |---|---:|---|
 | Runtime MCP tools | 96 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 44 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
-| Claude skills | 21 | `.claude/skills/*/SKILL.md` |
+| Domain SOP files | 45 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
+| Claude skills | 22 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, `README.en.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
 
@@ -263,6 +263,7 @@ Read the matching file before applying a workflow or calculation.
 | detail component, detail sync, annotation component | `domain/detail-component-sync.md` |
 | door legend, window legend, schedule legend | `domain/door-window-legend-workflow.md` |
 | element coloring, visualization, graphic override | `domain/element-coloring-workflow.md` |
+| family inventory, type inventory, unused type, duplicate type, purge type, merge type, 族群整理, 類型盤點, 未使用類型, 重複類型 | `domain/family-inventory-cleanup.md` |
 | element query, filter, category fields | `domain/element-query-workflow.md` |
 | exterior wall opening, facade opening | `domain/exterior-wall-opening-check.md` |
 | facade generation, AI facade design | `domain/facade-generation.md` |
@@ -321,6 +322,7 @@ Available Claude skills:
 - `/element-coloring`
 - `/element-query`
 - `/facade-generation`
+- `/family-inventory-cleanup`
 - `/fire-safety-check`
 - `/hj-pr-proposal`
 - `/parking-check`

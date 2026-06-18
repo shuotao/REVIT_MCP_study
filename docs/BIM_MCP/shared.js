@@ -6,7 +6,7 @@
   // MEETUP_SIGNUP_URL — 月小聚報名表單，每月更新一次
   // ⚠ MONTHLY: 換月時只改這一行，所有 [data-meetup-link] 元素自動套用
   // ============================================================
-  var MEETUP_SIGNUP_URL = "https://forms.gle/4Mn5kCaK1uFk2m9W6";
+  var MEETUP_SIGNUP_URL = "https://forms.gle/XamuxeHiPGQoaBNy8";
 
   window.initMeetupLinks = function initMeetupLinks() {
     qsa("[data-meetup-link]").forEach(function (el) {
@@ -158,7 +158,7 @@
     "industry-evidence": { title: "業界證據", desc: "100× / 70% / $15-25K。" },
     "spectrum-decision": { title: "光譜決策", desc: "A/B/C/D 框架。" },
     "skills-index": { title: "Skills 索引", desc: "19 個編排層 Skill。" },
-    "domain-index": { title: "Domain 索引", desc: "40 個 SOP 知識。" },
+    "domain-index": { title: "Domain 索引", desc: "45 個 SOP 知識。" },
     "deployment-guide": { title: "部署指南", desc: "多版本 build / DLL 部署。" },
     "troubleshooting": { title: "Troubleshooting", desc: "經典問題 + live fixes。" },
     "contributor-template": { title: "Contributor Template", desc: "雙寫流程：知識先、編排後。" },

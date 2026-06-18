@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>0621 六月小聚 — 族群盤點與清整:從一根柱看「簽章鐵則」</title>
+<meta property="og:title" content="族群盤點與清整 SOP">
+<meta property="og:description" content="一條可重複、使用者把關的族群清整閉環;以及一根「名字寫 30、其實是 24」的柱,如何證明簽章比對非做不可。2026-06-21 六月小聚。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://shuotao.github.io/REVIT_MCP_study/docs/0621-monthly.html">
+<meta name="twitter:card" content="summary">
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
+  @media (max-width: 900px) { html { scroll-snap-type: none !important; } }
+  body {
+    background: #000; color: #fff;
+    font-family: 'Helvetica Neue', 'Inter', 'Noto Sans TC', sans-serif;
+    line-height: 1.6; overflow-x: hidden;
+  }
+  ::selection { background: #fff; color: #000; }
+
+  /* ===== NAV DOTS ===== */
+  .nav-dots {
+    position: fixed; right: 24px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px; z-index: 100;
+  }
+  .nav-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.25); border: none; cursor: pointer;
+    transition: all 0.3s ease; padding: 0;
+  }
+  .nav-dot:hover { background: rgba(255,255,255,0.6); transform: scale(1.4); }
+  .nav-dot.active { background: #fff; transform: scale(1.3); }
+  .nav-dot.section-start {
+    width: 12px; height: 12px; background: rgba(255,255,255,0.5);
+    position: relative;
+  }
+  .nav-dot.section-start.active { background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.6); }
+  .nav-dot.section-start::before {
+    content: attr(data-label);
+    position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
+    background: rgba(0,0,0,0.9); color: #fff;
+    padding: 6px 14px; border-radius: 6px; font-size: 13px;
+    white-space: nowrap; opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+    border: 1px solid rgba(255,255,255,0.15);
+    letter-spacing: 0.5px;
+  }
+  .nav-dot.section-start:hover::before { opacity: 1; }
+
+  /* ===== SLIDE ===== */
+  .slide, .cover {
+    min-height: 100vh; display: flex; align-items: center;
+    padding: 60px 80px 60px 80px; position: relative;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  /* ===== COVER ===== */
+  .cover {
+    justify-content: center; text-align: center;
+    flex-direction: column; gap: 0;
+    padding: 0 80px;
+  }
+  .cover-eyebrow {
+    font-size: 13px; letter-spacing: 6px; text-transform: uppercase;
+    color: rgba(255,255,255,0.35); margin-bottom: 32px;
+  }
+  .cover-title {
+    font-size: 56px; font-weight: 800; line-height: 1.15;
+    letter-spacing: -1.5px; margin-bottom: 16px;
+  }
+  .cover-subtitle {
+    font-size: 20px; color: rgba(255,255,255,0.5);
+    font-weight: 300; margin-bottom: 48px; line-height: 1.6;
+  }
+  .cover-meta {
+    display: flex; gap: 40px; justify-content: center; flex-wrap: wrap;
+  }
+  .cover-meta-item { text-align: center; }
+  .cover-meta-label {
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3); margin-bottom: 6px;
+  }
+  .cover-meta-value { font-size: 16px; color: rgba(255,255,255,0.8); }
+  .cover-meta-value a {
+    color: #60a5fa; text-decoration: none;
+    border-bottom: 1px solid rgba(96,165,250,0.3);
+    transition: border-color 0.3s;
+  }
+  .cover-meta-value a:hover { border-color: #60a5fa; }
+  .cover-scroll-hint {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    font-size: 12px; color: rgba(255,255,255,0.2);
+    letter-spacing: 2px; animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.2; transform: translateX(-50%) translateY(0); }
+    50% { opacity: 0.5; transform: translateX(-50%) translateY(6px); }
+  }
+  @keyframes pulseGlow {
+    0%, 100% { color: rgba(255,255,255,0.85); text-shadow: none; }
+    50% { color: #fff; text-shadow: 0 0 12px rgba(255,255,255,0.5); }
+  }
+
+  /* ===== SLIDE INNER ===== */
+  .slide-inner {
+    display: flex; align-items: center; gap: 60px;
+    max-width: 1400px; width: 100%; margin: 0 auto;
+  }
+  .slide-image {
+    flex: 0 0 45%; max-width: 45%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .slide-content { flex: 1; min-width: 0; }
+  .slide-number {
+    font-size: 13px; color: rgba(255,255,255,0.3);
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .slide-title {
+    font-size: 32px; font-weight: 700; line-height: 1.2; margin-bottom: 16px;
+    letter-spacing: -0.5px;
+  }
+  .slide-summary {
+    font-size: 18px; color: rgba(255,255,255,0.7); line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  /* ===== DRAWER TRIGGER ===== */
+  .drawer-trigger {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: none; border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6); padding: 8px 20px; border-radius: 100px;
+    cursor: pointer; font-size: 14px; transition: all 0.3s ease;
+    font-family: inherit;
+  }
+  .drawer-trigger:hover { border-color: #fff; color: #fff; }
+  .drawer-trigger::after { content: '→'; transition: transform 0.3s; }
+  .drawer-trigger:hover::after { transform: translateX(4px); }
+
+  /* ===== DRAWER ===== */
+  .drawer-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 200; opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: 66.666%; max-width: 900px;
+    background: #0a0a0a; border-left: 1px solid rgba(255,255,255,0.1);
+    z-index: 201; transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow-y: auto; padding: 48px;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-close {
+    position: sticky; top: 0; float: right;
+    background: none; border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; width: 36px; height: 36px; border-radius: 50%;
+    cursor: pointer; font-size: 18px; display: flex;
+    align-items: center; justify-content: center; z-index: 10;
+    transition: border-color 0.3s;
+  }
+  .drawer-close:hover { border-color: #fff; }
+  .drawer h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; padding-right: 50px; }
+  .drawer h3 { font-size: 18px; font-weight: 600; margin: 32px 0 12px 0; color: #fff; }
+  .drawer p, .drawer li { font-size: 15px; color: rgba(255,255,255,0.75); line-height: 1.8; margin-bottom: 12px; }
+  .drawer ul, .drawer ol { padding-left: 20px; margin-bottom: 16px; }
+  .drawer li { margin-bottom: 6px; }
+  .drawer strong { color: #fff; }
+  .drawer a { color: #60a5fa; text-decoration: none; border-bottom: 1px solid rgba(96,165,250,0.3); }
+  .drawer a:hover { border-color: #60a5fa; }
+  .drawer table {
+    width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;
+  }
+  .drawer th, .drawer td {
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 10px 14px; text-align: left;
+  }
+  .drawer th { background: rgba(255,255,255,0.06); color: #fff; font-weight: 600; }
+  .drawer td { color: rgba(255,255,255,0.7); }
+
+  /* ===== SECTION DIVIDER ===== */
+  .section-divider {
+    padding: 40px 80px; text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    scroll-snap-align: none;
+  }
+  .section-divider h2 {
+    font-size: 14px; letter-spacing: 4px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3); font-weight: 400;
+  }
+
+  /* ===== WHY PAGE ===== */
+  .why-page {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 80px; scroll-snap-align: start; scroll-snap-stop: always;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .why-title {
+    font-size: 36px; font-weight: 800; letter-spacing: -1px;
+    margin-bottom: 8px; text-align: center;
+  }
+  .why-subtitle {
+    font-size: 16px; color: rgba(255,255,255,0.4); text-align: center;
+    margin-bottom: 48px; max-width: 720px; line-height: 1.7;
+  }
+  .prop-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; max-width: 1100px; width: 100%;
+  }
+  .prop-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px; padding: 16px 14px; text-align: center;
+    cursor: pointer; transition: all 0.3s ease;
+    position: relative;
+  }
+  .prop-card:hover {
+    background: rgba(96,165,250,0.06);
+    border-color: rgba(96,165,250,0.35);
+    transform: translateY(-2px);
+  }
+  .prop-card-num {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    color: #60a5fa; margin-bottom: 6px;
+  }
+  .prop-card-label { font-size: 13px; line-height: 1.4; color: rgba(255,255,255,0.85); }
+  .why-footer {
+    margin-top: 36px; text-align: center;
+    font-size: 14px; color: rgba(255,255,255,0.4);
+    max-width: 720px; line-height: 1.7;
+  }
+  .why-footer strong { color: rgba(255,255,255,0.85); }
+
+  /* ===== SETUP PAGE ===== */
+  .setup-page {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 80px; scroll-snap-align: start; scroll-snap-stop: always;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .setup-header { text-align: center; margin-bottom: 40px; }
+  .setup-header h2 { font-size: 36px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+  .setup-header p { font-size: 16px; color: rgba(255,255,255,0.4); line-height: 1.7; max-width: 720px; }
+  .timeline-bar {
+    display: flex; max-width: 1000px; width: 100%;
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+    overflow: hidden; margin: 0 auto 24px;
+  }
+  .timeline-seg {
+    padding: 14px 12px; flex: 1; text-align: center;
+    font-size: 12px; line-height: 1.4;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+  }
+  .timeline-seg:last-child { border-right: none; }
+  .timeline-seg .min { display: block; font-size: 10px; color: rgba(255,255,255,0.35); margin-bottom: 4px; letter-spacing: 1px; }
+  .timeline-seg.hl { background: rgba(239,68,68,0.12); color: #fca5a5; font-weight: 600; }
+  .timeline-seg.hl .min { color: rgba(252,165,165,0.6); }
+
+  /* ===== 0523 PROPOSITION BADGE ===== */
+  .prop-badge {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    letter-spacing: 2px; padding: 4px 12px;
+    background: rgba(96,165,250,0.12); color: #60a5fa;
+    border: 1px solid rgba(96,165,250,0.3); border-radius: 100px;
+    margin-right: 6px; margin-bottom: 6px;
+  }
+  .prop-badge.large {
+    font-size: 13px; padding: 6px 16px; letter-spacing: 3px;
+  }
+
+  /* ===== 0523 USER QUOTE ===== */
+  .user-quote {
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.02);
+    padding: 24px 32px; margin: 24px 0;
+    font-style: italic; color: rgba(255,255,255,0.85);
+    line-height: 1.8; border-radius: 6px;
+    position: relative;
+  }
+  .user-quote::before {
+    content: '"'; position: absolute; top: -8px; left: 14px;
+    font-size: 48px; color: rgba(255,255,255,0.2); font-family: serif;
+  }
+  .user-quote-attr {
+    display: block; margin-top: 12px; font-size: 12px;
+    font-style: normal; color: rgba(255,255,255,0.4); letter-spacing: 1px;
+  }
+
+  /* ===== 0523 DATA EMPHASIS ===== */
+  .data-emph {
+    font-size: 56px; font-weight: 800; color: #60a5fa;
+    letter-spacing: -1px; line-height: 1;
+    display: inline-block;
+  }
+  .data-emph-label { font-size: 12px; color: rgba(255,255,255,0.4); letter-spacing: 2px; text-transform: uppercase; }
+
+  /* ===== 0523 PASS / FAIL TAG ===== */
+  .pass-tag {
+    display: inline-block; padding: 3px 10px; border-radius: 100px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    background: rgba(74,222,128,0.12); color: #4ade80;
+    border: 1px solid rgba(74,222,128,0.3);
+  }
+  .fail-tag {
+    display: inline-block; padding: 3px 10px; border-radius: 100px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    background: rgba(239,68,68,0.12); color: #ef4444;
+    border: 1px solid rgba(239,68,68,0.3);
+  }
+
+  /* ===== 0523 HANDS-ON BUTTON ===== */
+  .hands-on-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4);
+    color: #fca5a5; padding: 12px 24px; border-radius: 100px;
+    cursor: pointer; font-size: 15px; font-weight: 600;
+    transition: all 0.3s ease; font-family: inherit;
+    text-decoration: none; margin-top: 12px;
+    animation: handsBtnPulse 2.5s ease-in-out infinite;
+  }
+  .hands-on-btn:hover {
+    background: rgba(239,68,68,0.25); border-color: rgba(239,68,68,0.7);
+    color: #fff; transform: scale(1.04);
+  }
+  @keyframes handsBtnPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+    50% { box-shadow: 0 0 16px 4px rgba(239,68,68,0.2); }
+  }
+
+  /* ===== 0523 DEMO TOOL CARDS ===== */
+  .demo-tools-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    margin: 20px 0;
+  }
+  .demo-tool {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; padding: 14px 16px;
+    transition: all 0.3s;
+  }
+  .demo-tool-name {
+    font-family: 'SF Mono','Fira Code','Consolas',monospace;
+    font-size: 12px; color: #60a5fa; font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .demo-tool-desc { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+  /* ===== ENDING ===== */
+  .ending-page {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 60px 80px; scroll-snap-align: start; scroll-snap-stop: always;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    text-align: center;
+  }
+  .ending-inner { max-width: 900px; width: 100%; }
+  .ending-eyebrow {
+    font-size: 12px; letter-spacing: 5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3); margin-bottom: 16px;
+  }
+  .ending-quote {
+    font-size: 36px; font-weight: 700; line-height: 1.3; letter-spacing: -0.5px;
+    margin-bottom: 36px;
+  }
+  .ending-quote strong { color: #60a5fa; }
+  .ending-meta { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.8; margin-bottom: 24px; }
+  .ending-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+  .ending-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px; border-radius: 100px;
+    text-decoration: none; font-size: 14px; font-weight: 600;
+    transition: all 0.2s; cursor: pointer; font-family: inherit;
+    border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.85);
+    background: transparent;
+  }
+  .ending-btn:hover { border-color: #fff; color: #fff; transform: translateY(-2px); }
+  .ending-btn.primary {
+    background: #60a5fa; color: #000; border-color: #60a5fa;
+  }
+  .ending-btn.primary:hover { background: #fff; border-color: #fff; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .slide { padding: 40px 24px; min-height: auto; }
+    .slide, .cover, .why-page, .setup-page, .ending-page { scroll-snap-stop: normal; }
+    .slide-inner { flex-direction: column; gap: 24px; }
+    .slide-image { flex: none; max-width: 100%; }
+    .drawer { width: 92%; padding: 32px 24px; }
+    .nav-dots { right: 8px; gap: 6px; }
+    .nav-dot { width: 6px; height: 6px; }
+    .nav-dot.section-start { width: 9px; height: 9px; }
+    .cover { padding: 32px 20px; min-height: auto; }
+    .cover-title { font-size: 30px !important; letter-spacing: -0.5px; }
+    .cover-subtitle { font-size: 14px; margin-bottom: 24px; }
+    .cover-meta { gap: 16px; }
+    .why-page, .setup-page, .ending-page { padding: 40px 20px; min-height: auto; }
+    .why-title, .setup-header h2 { font-size: 24px; }
+    .why-subtitle, .setup-header p { font-size: 13px; }
+    .prop-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .prop-card { padding: 12px 8px; }
+    .prop-card-num { font-size: 10px; }
+    .prop-card-label { font-size: 11px; }
+    .timeline-bar { flex-direction: column; }
+    .timeline-seg { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .slide-title { font-size: 22px; }
+    .slide-summary { font-size: 13px; }
+    .demo-tools-grid { grid-template-columns: 1fr; }
+    .ending-quote { font-size: 22px; }
+    .data-emph { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+<div data-snapshot="2026-06-21" style="position:fixed;bottom:12px;right:12px;z-index:9999;background:rgba(15,23,42,.92);color:#fbbf24;padding:6px 14px;font-size:12px;border:1px solid #334155;border-radius:8px;pointer-events:none;">2026-06-21 活動快照 snapshot · 數字為當時狀態，最新統計見 BIM_MCP 知識站</div>
+
+<!-- ===== NAV DOTS ===== -->
+<nav class="nav-dots" id="navDots"></nav>
+
+<!-- ===== COVER ===== -->
+<section class="cover" id="slide-cover">
+  <div class="cover-eyebrow">2026-06-21 · 六月小聚 READING BRIEFING</div>
+  <h1 class="cover-title">族群盤點與清整 SOP</h1>
+  <p class="cover-subtitle">一條可重複、使用者把關的作業閉環;<br>以及一根「名字寫 30、其實是 24」的柱,<br>如何證明「簽章比對」非做不可。</p>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Domain</div>
+      <div class="cover-meta-value">family-inventory-cleanup</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">Skill</div>
+      <div class="cover-meta-value">/family-inventory-cleanup</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="cover-meta-label">快照</div>
+      <div class="cover-meta-value">96 tools · 45 domain · 22 skills</div>
+    </div>
+  </div>
+  <div class="cover-scroll-hint">SCROLL ↓</div>
+</section>
+
+<!-- ============================ -->
+<!-- ===== SECTION 1 ============ -->
+<!-- ============================ -->
+<div class="section-divider"><h2>Section 1 — 這個 Domain 在做什麼:作業閉環</h2></div>
+
+<section class="slide" id="slide-1-1" data-section="1">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px;width:100%;font-size:13px;line-height:1.7;">
+        <div style="color:rgba(255,255,255,0.4);letter-spacing:2px;font-size:11px;margin-bottom:14px;">CLOSED LOOP 閉環</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="background:rgba(96,165,250,0.08);padding:8px 12px;border-radius:6px;color:rgba(255,255,255,0.85);">① 查指定 category</div>
+          <div style="background:rgba(96,165,250,0.08);padding:8px 12px;border-radius:6px;color:rgba(255,255,255,0.85);">② 雙軸盤點（載入 vs 放置）</div>
+          <div style="background:rgba(96,165,250,0.08);padding:8px 12px;border-radius:6px;color:rgba(255,255,255,0.85);">③ 參數簽章比對</div>
+          <div style="background:rgba(251,191,36,0.14);padding:8px 12px;border-radius:6px;color:#fbbf24;font-weight:600;">④ 提案【停,等你裁決】</div>
+          <div style="background:rgba(74,222,128,0.1);padding:8px 12px;border-radius:6px;color:#4ade80;">⑤ 使用者裁決</div>
+          <div style="background:rgba(96,165,250,0.08);padding:8px 12px;border-radius:6px;color:rgba(255,255,255,0.85);">⑥ 執行 purge / merge / rename</div>
+          <div style="background:rgba(96,165,250,0.08);padding:8px 12px;border-radius:6px;color:rgba(255,255,255,0.85);">⑦ 驗證 + SELF-AUDIT</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">DOMAIN</span>
+      <div class="slide-number">1-1</div>
+      <div class="slide-title">一條使用者把關的清整閉環</div>
+      <p class="slide-summary">查指定 category → 雙軸盤點 → 簽章比對 → 提案後「停」→ 使用者裁決 → 執行（purge 未使用 / merge 重複型 / rename 改名）→ 驗證 + 自我稽核。每一步都可重複,破壞性動作前一律先停。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-1-1')">看「雙軸盤點」核心觀念</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-1-2" data-section="1">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:28px;width:100%;text-align:center;">
+        <div style="font-size:13px;color:rgba(255,255,255,0.4);letter-spacing:2px;margin-bottom:18px;">未使用類型 = purge 對象</div>
+        <div style="font-size:24px;color:#60a5fa;font-weight:700;line-height:1.5;">載入軸 − 放置軸</div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.5);margin:12px 0;">Project Browser 看得到 − 模型真用到</div>
+        <div style="font-size:20px;color:#fff;font-weight:700;">= 未使用類型</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">DOMAIN</span>
+      <div class="slide-number">1-2</div>
+      <div class="slide-title">核心觀念:雙軸盤點</div>
+      <p class="slide-summary">載入軸是 Project Browser 看得到的所有類型（逐族群用 list_family_symbols）;放置軸是模型真的用到的（query_elements）。只看放置會漏掉未使用;只看載入不知道誰在用。兩軸相減才看得到 purge 對象。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-1-2')">看各階段用哪些工具</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ -->
+<!-- ===== SECTION 2 ============ -->
+<!-- ============================ -->
+<div class="section-divider"><h2>Section 2 — 真實使用步驟:怎麼用它</h2></div>
+
+<section class="slide" id="slide-2-1" data-section="2">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:24px;width:100%;font-size:13px;line-height:1.7;">
+        <div style="font-size:11px;letter-spacing:3px;color:#ef4444;margin-bottom:12px;">最常見的卡關</div>
+        <div style="font-size:18px;color:#fff;margin-bottom:12px;">「Command timed out」</div>
+        <div style="color:rgba(255,255,255,0.6);">這不是斷線、也不是埠問題。<br>是 MCP 指令在排隊等 Revit 閒置,<br>30 秒沒輪到就回報逾時。</div>
+        <div style="margin-top:14px;color:#4ade80;font-weight:600;">解法:按 Esc、關對話框,把 Revit 放空再重試。</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">操作</span>
+      <div class="slide-number">2-1</div>
+      <div class="slide-title">先讓 Revit 畫面「閒置」再下指令</div>
+      <p class="slide-summary">命令經 ExternalEvent 在 UI 執行緒執行,Revit 非閒置時不處理。逾時別去重點 ribbon,清掉進行中的命令、關掉對話框,把 Revit 放空再重試即可。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-2-1')">看完整 5 步使用流程</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-2-2" data-section="2">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:22px;width:100%;font-size:12px;line-height:1.6;">
+        <div style="color:#fbbf24;letter-spacing:2px;font-size:11px;margin-bottom:12px;">強制前置檢查 7 條</div>
+        <div style="display:flex;flex-direction:column;gap:7px;color:rgba(255,255,255,0.75);">
+          <div>① 盤點逐族群過濾,避開 100 筆截斷</div>
+          <div>② 刪型前驗 0 實例</div>
+          <div>③ delete_element 連帶刪實例且不回報 → 動作前自己列影響</div>
+          <div>④ 判重複/名實一律讀簽章,禁名稱捷徑</div>
+          <div>⑤ 破壞性動作逐一執行,不並行</div>
+          <div>⑥ 告知 Ctrl+Z 可復原</div>
+          <div>⑦ 每批前重抓基準</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge large">7 RULES</span>
+      <div class="slide-number">2-2</div>
+      <div class="slide-title">每個破壞性動作前的「強制前置檢查」</div>
+      <p class="slide-summary">叫用 /family-inventory-cleanup、指定 category 後,它跑到提案就停在那等你勾。你選了才執行,而每個破壞性動作前都會過這 7 條硬規則;做錯可在 Revit 按 Ctrl+Z 復原。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-2-2')">看 7 條規則為什麼存在</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ -->
+<!-- ===== SECTION 3 ============ -->
+<!-- ============================ -->
+<div class="section-divider"><h2>Section 3 — 本月實戰:柱 — 簽章鐵則救回 93 根</h2></div>
+
+<section class="slide" id="slide-3-1" data-section="3">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:28px;width:100%;text-align:center;">
+        <div style="font-size:11px;letter-spacing:3px;color:#ef4444;margin-bottom:14px;">THE TRAP 陷阱</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:6px;">型名寫的是</div>
+        <div style="font-size:30px;color:#fff;font-weight:800;margin-bottom:12px;">30"D × 30"W</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:6px;">get_element_info 讀出實際</div>
+        <div style="font-size:30px;color:#ef4444;font-weight:800;">24" × 24"</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:14px;">93 根柱,名字完全反指</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">CASE</span>
+      <div class="slide-number">3-1</div>
+      <div class="slide-title">名字寫 30、其實是 24 的主力柱</div>
+      <p class="slide-summary">全專案 121 根柱、4 個族群。主力型名為 30"D x 30"W（93 根）,但讀簽章發現 Depth/Width 實際是 24" × 24"。純名稱比對會把這 93 根誤判成 30×30——這就是「名稱會騙人」的鐵證。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-3-1')">看 121 根柱的族群分佈</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-3-2" data-section="3">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px;width:100%;font-size:13px;line-height:1.7;">
+        <div style="color:#60a5fa;letter-spacing:2px;font-size:11px;margin-bottom:12px;">簽章揭穿真重複</div>
+        <div style="color:rgba(255,255,255,0.8);"><strong style="color:#fff;">30"D x 30"W</strong>（實 24×24）</div>
+        <div style="margin:8px 0;color:rgba(255,255,255,0.4);">幾何簽章完全相同 =</div>
+        <div style="color:rgba(255,255,255,0.8);"><strong style="color:#fff;">24"D x 24"W 2</strong>（實 24×24）</div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.1);color:#4ade80;font-weight:600;">→ 真重複,其中一個的名字是錯的</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">CASE</span>
+      <div class="slide-number">3-2</div>
+      <div class="slide-title">簽章揭穿真重複 → 修正 → purge</div>
+      <p class="slide-summary">把 24"D x 24"W 2 的 1 根用 change_element_type 併入 → 刪掉空出的重複型 → 用 modify_element_parameter（Name 特例）把主力型改名為正確的 24"D x 24"W。再 purge 5 個未使用型。Rectangular 13 → 8 型,全部名實相符;總柱數 121 → 121,零實例誤刪。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-3-2')">看完整修正步驟 + 先導試水</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-3-3" data-section="3">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.35);border-radius:12px;padding:28px;width:100%;">
+        <div style="font-size:32px;margin-bottom:10px;">⚠️</div>
+        <div style="font-size:11px;letter-spacing:3px;color:#ef4444;margin-bottom:12px;">殘留風險</div>
+        <div style="font-size:15px;color:rgba(255,255,255,0.85);line-height:1.7;">簽章只能揭露<strong style="color:#fff;">「名 ≠ 參數」</strong>,<br>不能決定<strong style="color:#fff;">設計本意</strong>。<br><br>若本意其實是 30×30,<br>那這 93 根是斷面不足的<br><strong style="color:#ef4444;">結構錯誤</strong>,改名只是把問題藏起來。</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">RISK</span>
+      <div class="slide-number">3-3</div>
+      <div class="slide-title">殘留風險:改名不等於修對</div>
+      <p class="slide-summary">這次依「24×24 為真、30×30 是名字打錯」執行。但這個前提需要結構技師確認——若設計本意是 30×30,改名等於把斷面不足的結構錯誤藏起來。這超出 MCP 能判的範圍。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-3-3')">看這次補進 domain 的 5 條硬規則</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ -->
+<!-- ===== SECTION 4 ============ -->
+<!-- ============================ -->
+<div class="section-divider"><h2>Section 4 — 能力邊界</h2></div>
+
+<section class="slide" id="slide-4-1" data-section="4">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px;width:100%;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <tr><th style="text-align:left;padding:8px;color:#4ade80;border-bottom:1px solid rgba(255,255,255,0.1);">MCP 做得到</th><th style="text-align:left;padding:8px;color:#ef4444;border-bottom:1px solid rgba(255,255,255,0.1);">MCP 做不到</th></tr>
+          <tr><td style="padding:8px;color:rgba(255,255,255,0.7);">盤點 · 簽章比對</td><td style="padding:8px;color:rgba(255,255,255,0.7);">改格式 Text↔Number</td></tr>
+          <tr><td style="padding:8px;color:rgba(255,255,255,0.7);">改參數值 · 換類型</td><td style="padding:8px;color:rgba(255,255,255,0.7);">改族群內部定義</td></tr>
+          <tr><td style="padding:8px;color:rgba(255,255,255,0.7);">單型改名 · 刪除類型</td><td style="padding:8px;color:rgba(255,255,255,0.7);">結構柱 OST_StructuralColumns</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge large">BOUNDARY</span>
+      <div class="slide-number">4-1</div>
+      <div class="slide-title">能力邊界:這個 domain 的界線</div>
+      <p class="slide-summary">MCP 可做盤點、簽章比對、改參數值、換類型、單型改名（modify_element_parameter 的 Name 特例,在 Transaction 內、可 Ctrl+Z）、刪除類型。改參數資料格式、改族群內部定義、處理結構柱則要回 Family Editor 或別解。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-4-1')">看為什麼結構柱不在範圍</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ENDING ===== -->
+<section class="ending-page" id="slide-ending">
+  <div class="ending-inner">
+    <div class="ending-eyebrow">THE TAKEAWAY</div>
+    <div class="ending-quote">
+      名稱會騙人,<strong>參數不會</strong>。<br>判重複,先讀簽章。
+    </div>
+    <div class="ending-meta">
+      Domain <strong style="color:rgba(255,255,255,0.85);">family-inventory-cleanup</strong> · 2026-06-21 六月小聚快照<br>
+      96 tools · 45 domain · 22 skills（當時狀態）
+    </div>
+    <div class="ending-actions">
+      <a href="0523-monthly.html" class="ending-btn">← 0523 五月小聚（上個月）</a>
+      <a href="https://github.com/shuotao/REVIT_MCP_study" class="ending-btn" target="_blank">GitHub Repo</a>
+    </div>
+    <div style="margin-top:48px;font-size:12px;color:rgba(255,255,255,0.25);letter-spacing:1px;">
+      Field Notes No. 04 · 2026-06-21 · Shuotao Chiang
+    </div>
+  </div>
+</section>
+
+<!-- ===== DRAWER OVERLAY ===== -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- ===== DRAWERS ===== -->
+
+<!-- Section 1 Drawers -->
+<div class="drawer" id="drawer-1-1">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>核心觀念:雙軸盤點</h2>
+  <p>族群清整最容易出錯的地方,是「只看到一半」。這個 domain 強制你同時看兩個軸:</p>
+  <table>
+    <tr><th>軸</th><th>看的是什麼</th><th>工具</th></tr>
+    <tr><td><strong>載入軸</strong></td><td>Project Browser 裡看得到的所有類型（不管有沒有被放進模型）</td><td>逐族群跑 <code>list_family_symbols</code></td></tr>
+    <tr><td><strong>放置軸</strong></td><td>模型裡真的有實例的類型</td><td><code>query_elements</code></td></tr>
+  </table>
+  <h3>關鍵等式</h3>
+  <p style="font-size:18px;color:#60a5fa;"><strong>載入 − 放置 = 未使用類型（purge 對象）</strong></p>
+  <ul>
+    <li>只看放置 → 會漏掉「載入了但沒人用」的未使用類型,永遠 purge 不掉。</li>
+    <li>只看載入 → 不知道哪些類型真的有人在用,不敢動。</li>
+    <li>兩軸相減 → 才能安全鎖定 purge 目標。</li>
+  </ul>
+</div>
+
+<div class="drawer" id="drawer-1-2">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>各階段用哪些工具</h2>
+  <table>
+    <tr><th>階段</th><th>工具</th><th>目的</th></tr>
+    <tr><td>Phase 0</td><td><code>get_active_view</code></td><td>re-anchor 當前視圖（活躍狀態重新錨定）</td></tr>
+    <tr><td>Phase 1</td><td><code>query_elements_with_filter</code> + <code>list_family_symbols</code></td><td>雙軸盤點:放置 vs 載入</td></tr>
+    <tr><td>Phase 2</td><td><code>get_element_info</code></td><td>讀「簽章」（實際參數值）</td></tr>
+    <tr><td>執行</td><td><code>change_element_type</code> / <code>delete_element</code> / <code>modify_element_parameter</code></td><td>merge / purge / rename</td></tr>
+  </table>
+  <h3>為什麼要逐族群</h3>
+  <p><code>list_family_symbols</code> 一次有 100 筆截斷上限。直接全抓會漏。盤點時用逐族群過濾,才不會被截斷吃掉尾巴。</p>
+</div>
+
+<!-- Section 2 Drawers -->
+<div class="drawer" id="drawer-2-1">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>真實使用流程(5 步)</h2>
+  <ol>
+    <li><strong>先讓 Revit 閒置</strong>:按 Esc 清掉進行中的命令、關掉對話框。否則 MCP 指令會排隊等 Revit 閒置,30 秒沒輪到就回報「Command timed out」——這不是斷線、也不是埠問題,別去重點 ribbon,把 Revit 放空再重試即可。（原因:命令經 ExternalEvent 在 UI 執行緒執行,Revit 非閒置時不處理。）</li>
+    <li><strong>叫用 /family-inventory-cleanup</strong>,指定要整理的 category（門 Doors / 窗 Windows / 柱 Columns…）。</li>
+    <li><strong>讓它跑 Phase 0 → 1 → 2 → 提案</strong>,然後停在提案等你選。</li>
+    <li><strong>你勾選要做的（purge / merge / rename）後才執行</strong>;每個破壞性動作前會過「強制前置檢查」;破壞性動作逐一執行、不並行;做錯可在 Revit 按 Ctrl+Z 復原。</li>
+    <li><strong>執行後重查驗證</strong>,輸出 SELF-AUDIT。</li>
+  </ol>
+  <h3>逾時不是斷線</h3>
+  <p>看到「Command timed out」是最常見的誤判點。它代表 Revit 當下不在閒置狀態（有對話框、有未結束的命令、滑鼠正在拖曳)。不要重啟服務、不要去戳 ribbon——按 Esc、關對話框,把畫面放空後再下一次指令就會通。</p>
+</div>
+
+<div class="drawer" id="drawer-2-2">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>強制前置檢查(7 條硬規則)</h2>
+  <p>每個破壞性動作前都要過這份清單。它們不是建議,是擋掉「靜默誤刪」的護欄。</p>
+  <ol>
+    <li><strong>盤點用逐族群過濾</strong>,避開 <code>list_family_symbols</code> 的 100 筆截斷。</li>
+    <li><strong>刪型前驗 0 實例</strong>——確認真的沒人在用才刪。</li>
+    <li><strong>delete_element 會連帶刪實例且不回報</strong>,動作前自己先列出影響範圍。</li>
+    <li><strong>判重複 / 名實一律用 <code>get_element_info</code> 讀簽章</strong>,禁用名稱捷徑。</li>
+    <li><strong>逐一執行,不並行</strong>——破壞性動作彼此可能互相影響基準。</li>
+    <li><strong>告知 Ctrl+Z 可復原</strong>——所有動作在 Transaction 內,使用者可在 Revit 撤銷。</li>
+    <li><strong>每批前重抓基準</strong>——前一批的執行會改變現況,下一批要重新盤點。</li>
+  </ol>
+</div>
+
+<!-- Section 3 Drawers -->
+<div class="drawer" id="drawer-3-1">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>121 根柱的族群分佈</h2>
+  <p>全專案共 <strong>121 根柱</strong>,分 <strong>4 個族群</strong>:</p>
+  <table>
+    <tr><th>族群</th><th>根數</th></tr>
+    <tr><td>Rectangular Column (Off Center)</td><td>111</td></tr>
+    <tr><td>Corinthian Column Schematic (with Pedestal)</td><td>4</td></tr>
+    <tr><td>Round Column</td><td>2</td></tr>
+    <tr><td>Pergola Post</td><td>4</td></tr>
+  </table>
+  <h3>陷阱在哪</h3>
+  <p>主力型名為 <strong>30"D x 30"W</strong>(93 根),但 <code>get_element_info</code> 讀出的實際 Depth/Width = <strong>24" × 24"</strong>——名字完全反指。純名稱比對會把這 93 根判成 30×30。</p>
+</div>
+
+<div class="drawer" id="drawer-3-2">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>完整修正步驟 + 先導試水</h2>
+  <h3>簽章揭穿真重複</h3>
+  <p><code>30"D x 30"W</code>(實 24×24)與另一個 <code>24"D x 24"W 2</code>(實 24×24)幾何簽章完全相同 = 真重複,其中一個(主力那個)名字是錯的。</p>
+  <h3>修正(柱 Columns)</h3>
+  <ol>
+    <li>把 <code>24"D x 24"W 2</code> 的 1 根用 <code>change_element_type</code> 併入。</li>
+    <li>刪掉空出的重複型。</li>
+    <li>用 <code>modify_element_parameter</code>(<code>Name</code> 特例)把主力型改名為正確的 <code>24"D x 24"W</code>。</li>
+    <li>再 purge 5 個未使用型:<code>10"D x 12"W</code>、<code>10"D x 16"W</code>、<code>15"D x 25"W</code>、<code>17.5"D x 25"W</code>、Round Column 的 <code>12" Diameter</code>。</li>
+  </ol>
+  <p><strong>結果</strong>:Rectangular <strong>13 → 8 型</strong>,全部名實相符;<strong>總柱數 121 → 121,零實例誤刪</strong>。</p>
+  <h3>先導試水(門 Door-Opening)</h3>
+  <p>在動柱之前先拿門練手:<strong>10 型 → 3 型</strong>——刪一個疑誤建的 <code>50" x 60"</code>(連帶 1 實例)、purge 5 個未使用、merge 一個 <code>36" x 84" 2</code> 重複。</p>
+</div>
+
+<div class="drawer" id="drawer-3-3">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>這次測試補進 domain 的 5 條硬規則</h2>
+  <ol>
+    <li><strong>未知 category 要先做「族群發現」再盤點</strong>。</li>
+    <li><strong>簽章強制,禁名稱 / <code>get_category_fields</code> 捷徑</strong>——後者在異質類別會抽錯樣本(柱實測抽到 Corinthian,根本沒回 Depth/Width)。</li>
+    <li><strong>結尾的「 N」尾碼只是線索</strong>,要分辨真重複 / 孤兒 / 名字錯三種情況。</li>
+    <li><strong>Mark 群聚法只在有 Mark 的類別有效</strong>(柱無 Mark)。</li>
+    <li><strong>filter 字串打錯會回「假 0」</strong>,0 實例驗證優先用完整列舉,別只信 filter 回傳的 0。</li>
+  </ol>
+  <h3>殘留風險(再次提醒)</h3>
+  <p>這次依「24×24 為真、30×30 是名字打錯」執行。但簽章只能揭露「名≠參數」,不能決定設計本意。<strong>若本意其實是 30×30,那這 93 根是斷面不足的結構錯誤,改名只是把問題藏起來</strong>——需結構技師確認,超出 MCP 能判範圍。</p>
+</div>
+
+<!-- Section 4 Drawers -->
+<div class="drawer" id="drawer-4-1">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>能力邊界</h2>
+  <h3>MCP 做得到</h3>
+  <ul>
+    <li>盤點(雙軸)</li>
+    <li>簽章比對</li>
+    <li>改參數值</li>
+    <li>換類型(<code>change_element_type</code>)</li>
+    <li>單型改名(<code>modify_element_parameter</code> 的 <code>Name</code> 特例,在 Transaction 內、可 Ctrl+Z)</li>
+    <li>刪除類型</li>
+  </ul>
+  <h3>MCP 做不到(需 Family Editor 或別解)</h3>
+  <ul>
+    <li>改參數資料格式(Text ↔ Number)</li>
+    <li>改族群內部定義</li>
+    <li>結構柱(<code>OST_StructuralColumns</code>)——<code>query_elements</code> 的 6 個硬編碼類別不含它</li>
+  </ul>
+</div>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+// nav sections
+const sections = [
+  { id: 'slide-cover', label: '封面' },
+  { id: 'slide-1-1', label: 'S1 作業閉環' },
+  { id: 'slide-2-1', label: 'S2 使用步驟' },
+  { id: 'slide-3-1', label: 'S3 柱實戰' },
+  { id: 'slide-4-1', label: 'S4 能力邊界' },
+  { id: 'slide-ending', label: 'Takeaway' },
+];
+
+// Map every slide id → section index
+const slideToSection = {};
+slideToSection['slide-cover'] = 0;
+slideToSection['slide-ending'] = 5;
+document.querySelectorAll('[data-section]').forEach(el => {
+  const sec = parseInt(el.dataset.section);
+  slideToSection[el.id] = sec; // section indices align with nav (cover=0, S1=1 ... S4=4)
+});
+
+// Build nav dots
+const nav = document.getElementById('navDots');
+sections.forEach((s, i) => {
+  const dot = document.createElement('button');
+  dot.className = 'nav-dot section-start';
+  dot.dataset.label = s.label;
+  dot.onclick = () => document.getElementById(s.id).scrollIntoView({behavior:'smooth'});
+  nav.appendChild(dot);
+});
+
+// Scroll spy
+const sectionDots = nav.querySelectorAll('.nav-dot');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const secIdx = slideToSection[entry.target.id];
+      if (secIdx !== undefined) {
+        sectionDots.forEach(d => d.classList.remove('active'));
+        if (sectionDots[secIdx]) sectionDots[secIdx].classList.add('active');
+      }
+    }
+  });
+}, { threshold: 0.4 });
+document.querySelectorAll('.slide, .cover, .why-page, .setup-page, .ending-page').forEach(el => {
+  if (el.id) observer.observe(el);
+});
+
+// Drawer
+function openDrawer(id) {
+  const d = document.getElementById(id);
+  if (!d) return;
+  d.classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDrawer() {
+  document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open'));
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDrawer();
+});
+
+// Hash navigation
+window.addEventListener('load', () => {
+  const hash = window.location.hash;
+  if (hash) {
+    const target = document.querySelector(hash);
+    if (target) setTimeout(() => target.scrollIntoView({ behavior: 'instant' }), 100);
+  }
+});
+</script>
+</body>
+</html>
