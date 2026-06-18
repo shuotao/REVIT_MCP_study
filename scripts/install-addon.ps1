@@ -379,6 +379,23 @@ if (Test-Path $sourceJson) {
     }
 }
 
+# 複製 Python worker（柱號對應功能 ezdxf_worker.py → %APPDATA%\RevitMCP）
+# DwgColumnExecutor.FindWorkerScript 會在 dll 同層 → 開發樹 → %APPDATA%\RevitMCP 依序尋找；
+# 部署版的 dll 在 Add-ins 目錄，故 worker 須落在 %APPDATA%\RevitMCP 才找得到。
+$sourceWorker = Join-Path $projectRoot "bridge\python\skills\ezdxf_worker.py"
+if (Test-Path $sourceWorker) {
+    $workerDir = Join-Path $appDataPath "RevitMCP"
+    try {
+        if (-not (Test-Path $workerDir)) { New-Item -ItemType Directory -Path $workerDir -Force | Out-Null }
+        Copy-Item -Path $sourceWorker -Destination (Join-Path $workerDir "ezdxf_worker.py") -Force -ErrorAction Stop
+        Write-Host "✓ 已部署 ezdxf_worker.py 到 $workerDir" -ForegroundColor Green
+        Write-Host "  （柱號對應 textLayerName 需系統 Python + 'pip install ezdxf'；DWG 另需 ODA File Converter）" -ForegroundColor Gray
+    }
+    catch {
+        Write-Host "⚠️  警告：無法部署 ezdxf_worker.py（柱號對應功能將無法使用，非關鍵）" -ForegroundColor Yellow
+    }
+}
+
 Write-Host ""
 
 # ============================================================================
