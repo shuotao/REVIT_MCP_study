@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026-06 Hands-on · 族群盤點與清整 · BIM_MCP</title>
+<meta property="og:title" content="族群盤點與清整 — 簽章鐵則 hands-on">
+<meta property="og:description" content="一條使用者把關的族群清整閉環：雙軸盤點 → 簽章比對 → 提案後停 → 裁決 → 執行 → 驗證。從一根「名字寫 30、其實是 24」的柱，看為什麼簽章比對非做不可。六月小聚實作頁。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../nav.css">
+</head>
+<body>
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">2026-06 · 族群盤點</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener" class="bim-topnav-btn bim-topnav-btn-github" title="View source on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+    <a href="../../0621-presentation.html" class="bim-topnav-btn">六月簡報</a>
+    <a href="../index.html" class="bim-topnav-btn">回首頁</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">2026-06 HANDS-ON · FAMILY INVENTORY</div>
+  <h1 class="bim-hero-title">族群盤點與清整<br><span class="accent">簽章鐵則</span></h1>
+  <p class="bim-hero-sub">一條可重複、使用者把關的族群清整閉環：查指定 category → 雙軸盤點 → 簽章比對 → 提案後「停」→ 使用者裁決 → 執行（purge／merge／rename）→ 驗證 + 自我稽核。每個破壞性動作前一律先停、過七條硬規則。本頁以一根「名字寫 30、其實是 24」的柱，證明「簽章比對」非做不可。</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">121</div>
+      <div class="data-emph-label">根柱 · 4 族群</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">主力 93 根</div>
+    </div>
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">13→8</div>
+      <div class="data-emph-label">Rectangular 型</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">全部名實相符</div>
+    </div>
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">0</div>
+      <div class="data-emph-label">實例誤刪</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">121 → 121</div>
+    </div>
+  </div>
+</header>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">CLOSED LOOP</div>
+  <h2 class="bim-section-title">一條使用者把關的清整閉環</h2>
+  <p class="bim-section-desc">叫用 <code>/family-inventory-cleanup</code> 指定 category 後，它跑到提案就停下等你勾；你選了才執行，破壞性動作逐一進行、做錯可在 Revit 按 Ctrl+Z 復原。</p>
+  <table>
+    <thead><tr><th>階段</th><th>工具</th><th>目的</th></tr></thead>
+    <tbody>
+      <tr><td>Phase 0</td><td><code>get_active_view</code></td><td>re-anchor 當前視圖</td></tr>
+      <tr><td>Phase 1 · 雙軸盤點</td><td><code>query_elements_with_filter</code> + <code>list_family_symbols</code></td><td>放置軸 vs 載入軸</td></tr>
+      <tr><td>Phase 2 · 簽章</td><td><code>get_element_info</code></td><td>讀實際參數值（不信名稱）</td></tr>
+      <tr><td>提案 →【停】</td><td>—</td><td>等使用者裁決</td></tr>
+      <tr><td>執行</td><td><code>change_element_type</code> / <code>delete_element</code> / <code>modify_element_parameter</code></td><td>merge / purge / rename</td></tr>
+      <tr><td>驗證</td><td>重查 + SELF-AUDIT</td><td>確認名實相符、零誤刪</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">DUAL-AXIS</div>
+  <h2 class="bim-section-title">核心觀念：雙軸盤點</h2>
+  <p class="bim-section-desc">族群清整最容易出錯的地方，是「只看到一半」。同時看兩個軸才看得到 purge 對象。</p>
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">載入軸</h4>
+      <p>Project Browser 看得到的所有類型（不管有沒有被放進模型）。逐族群跑 <code>list_family_symbols</code>（一次 100 筆截斷上限，要逐族群過濾才不漏）。</p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">放置軸</h4>
+      <p>模型裡真的有實例的類型。<code>query_elements</code>。只看放置會漏未使用；只看載入不知道誰在用。</p>
+    </div>
+  </div>
+  <p class="bim-section-desc" style="margin-top:14px;font-size:18px;color:var(--accent);"><strong>載入 − 放置 = 未使用類型（purge 對象）</strong></p>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">7 MANDATORY RULES</div>
+  <h2 class="bim-section-title">每個破壞性動作前的「強制前置檢查」</h2>
+  <p class="bim-section-desc">不是建議，是擋掉「靜默誤刪」的護欄。</p>
+  <table>
+    <tbody>
+      <tr><td><strong>1</strong></td><td>盤點用逐族群過濾，避開 <code>list_family_symbols</code> 的 100 筆截斷</td></tr>
+      <tr><td><strong>2</strong></td><td>刪型前驗 0 實例——確認真的沒人在用才刪</td></tr>
+      <tr><td><strong>3</strong></td><td><code>delete_element</code> 會連帶刪實例且不回報，動作前自己先列影響範圍</td></tr>
+      <tr><td><strong>4</strong></td><td>判重複／名實一律用 <code>get_element_info</code> 讀簽章，禁名稱捷徑</td></tr>
+      <tr><td><strong>5</strong></td><td>破壞性動作逐一執行、不並行（彼此會改變基準）</td></tr>
+      <tr><td><strong>6</strong></td><td>告知 Ctrl+Z 可復原（所有動作在 Transaction 內）</td></tr>
+      <tr><td><strong>7</strong></td><td>每批前重抓基準（前一批執行已改變現況）</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">REAL CASE · COLUMN</div>
+  <h2 class="bim-section-title">名字寫 30、其實是 24 的主力柱</h2>
+  <p class="bim-section-desc">全專案 121 根柱、4 族群。主力型名為 <code>30"D x 30"W</code>（93 根），但 <code>get_element_info</code> 讀出 Depth/Width 實際是 <strong style="color:#f87171;">24" × 24"</strong>——名字完全反指。純名稱比對會把這 93 根誤判成 30×30，這就是「名稱會騙人」的鐵證。</p>
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">簽章揭穿真重複 → 修正</h4>
+      <p><code>30"D x 30"W</code>（實 24×24）與 <code>24"D x 24"W 2</code>（實 24×24）幾何簽章相同 = 真重複。把後者 1 根用 <code>change_element_type</code> 併入 → 刪空出的重複型 → 用 <code>modify_element_parameter</code>（Name 特例）把主力型改名為正確的 <code>24"D x 24"W</code>。</p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">結果</h4>
+      <p>再 purge 5 個未使用型。Rectangular <strong>13 → 8 型</strong>，全部名實相符；<strong>總柱數 121 → 121，零實例誤刪</strong>。動柱前先拿門練手：Door-Opening 10 型 → 3 型。</p>
+    </div>
+  </div>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">RISK · BOUNDARY</div>
+  <h2 class="bim-section-title">殘留風險與能力邊界</h2>
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card">
+      <h4 style="color:#f87171;">改名不等於修對</h4>
+      <p>本次依「24×24 為真、30×30 是名字打錯」執行。但簽章只能揭露「名 ≠ 參數」，<strong>不能決定設計本意</strong>。若本意其實是 30×30，那這 93 根是斷面不足的結構錯誤，改名只是把問題藏起來——需結構技師確認，超出 MCP 能判範圍。</p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">能力邊界</h4>
+      <p><strong>做得到：</strong>盤點 · 簽章比對 · 改參數值 · 換類型 · 單型改名（Name 特例，可 Ctrl+Z）· 刪除類型。<br><strong>做不到（需 Family Editor 或別解）：</strong>改參數資料格式（Text↔Number）· 改族群內部定義 · 結構柱 <code>OST_StructuralColumns</code>。</p>
+    </div>
+  </div>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">RELATED REFERENCE</div>
+  <h2 class="bim-section-title">深度閱讀</h2>
+  <div class="bim-grid bim-grid-3">
+    <a class="bim-card" href="https://github.com/shuotao/REVIT_MCP_study/blob/main/domain/family-inventory-cleanup.md" target="_blank">
+      <h4>domain/family-inventory-cleanup.md</h4>
+      <p>雙軸盤點、7 條前置檢查、簽章強制、5 條硬規則全文</p>
+    </a>
+    <a class="bim-card" href="../../0621-monthly.html">
+      <h4>族群盤點 閱讀簡報</h4>
+      <p>0621-monthly：4 段投影片＋抽屜詳解（柱實戰完整版）</p>
+    </a>
+    <a class="bim-card" href="dwg-column.html">
+      <h4>DWG 自動建柱 hands-on</h4>
+      <p>本月另一個出貨：從圖層批次建柱</p>
+    </a>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="../index.html" class="bim-footer-btn primary">← 回 BIM_MCP 首頁</a>
+    <a href="dwg-column.html" class="bim-footer-btn">DWG 自動建柱 hands-on</a>
+    <a href="../../0621-presentation.html" class="bim-footer-btn">六月簡報</a>
+  </div>
+  <p>BIM_MCP · 2026-06 月小聚 hands-on · 族群盤點與清整（family-inventory-cleanup）</p>
+</footer>
+
+<script src="../shared.js"></script>
+<script>initAll();</script>
+</body>
+</html>
