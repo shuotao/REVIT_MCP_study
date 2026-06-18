@@ -160,6 +160,22 @@
 </section>
 
 <!-- ============================================ -->
+<!-- 一鍵裝 Skill (Plugin Marketplace) -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="skill-install">
+  <div class="bim-section-eyebrow">SECTION 02.5 · 一鍵裝 SKILL</div>
+  <h2 class="bim-section-title">一鍵安裝可分享 Skill（Plugin Marketplace）</h2>
+  <p class="bim-section-desc">這條跟上面的 add-in 部署<strong>不一樣</strong>：它把<strong>純文字的 Skill</strong> 裝進 Claude Code——<strong>跨平台（Mac / Windows / Linux 指令相同）、沒有可執行檔、不會被防毒或 SmartScreen 攔</strong>。目前提供 <code>hj-pr-proposal</code>（把你的 domain / skill / tool 內容轉成可提交的 PR 草案）。</p>
+  <ol class="bim-steps">
+    <li><strong>在 Claude Code 註冊本 repo 為 marketplace</strong><p><code>/plugin marketplace add shuotao/REVIT_MCP_study</code></p></li>
+    <li><strong>安裝 hj-pr-proposal</strong><p><code>/plugin install hj-pr-proposal@revit-mcp-skills</code></p></li>
+    <li><strong>開始用</strong><p>對話輸入「使用 <code>hj-pr-proposal</code>，幫我把這份內容轉成可提交的 PR 草案」即可。</p></li>
+  </ol>
+  <p class="bim-section-desc"><strong>為什麼不會被當病毒：</strong>封包內容是 <code>SKILL.md</code> + <code>references/*.md</code>（markdown）+ <code>marketplace.json</code>，<strong>沒有 .exe / .ps1 / .sh</strong>；安裝＝Claude Code 讀文字檔進 <code>~/.claude/</code>，不是跑安裝程式。Skill 的信任靠「看內容」（安裝前可讀 SKILL.md），且本 skill <strong>不自動發 PR、每步要你確認</strong>。</p>
+  <p class="bim-section-desc"><strong>跟上面 add-in 部署的差別：</strong><code>setup.bat</code> / <code>setup.ps1</code> 是 Windows、未簽章腳本，才會跳 SmartScreen / ExecutionPolicy 警告；裝 Skill 沒有這問題（純 markdown，無腳本）。</p>
+</section>
+
+<!-- ============================================ -->
 <!-- 手動 build / deploy -->
 <!-- ============================================ -->
 <section data-collapse class="bim-section bim-anchor" id="manual">

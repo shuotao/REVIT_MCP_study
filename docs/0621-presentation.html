@@ -615,6 +615,14 @@
     0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
     50% { box-shadow: 0 0 16px 4px rgba(239,68,68,0.2); }
   }
+  .skill-btn-cover {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 10px;
+    padding: 10px 24px; border-radius: 100px; text-decoration: none;
+    font-size: 14px; font-weight: 600; color: var(--accent);
+    background: var(--accent-12); border: 1px solid var(--accent-line);
+    transition: all var(--t-std); font-family: inherit;
+  }
+  .skill-btn-cover:hover { background: var(--accent-25); color: #fff; transform: scale(1.04); }
   .deploy-back-btn {
     position: fixed; top: 24px; left: 24px; z-index: 301;
     display: none; align-items: center; gap: 8px;
@@ -883,6 +891,10 @@
   <a href="#" class="deploy-btn-cover" onclick="event.preventDefault();openDeployGuide()">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
     尚未部署?開啟部署指南
+  </a>
+  <a href="BIM_MCP/reference/deployment-guide.html#skill-install" target="_blank" class="skill-btn-cover">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg>
+    一鍵安裝 hj-pr-proposal Skill
   </a>
   <div class="cover-qr">
     <a href="https://forms.gle/XamuxeHiPGQoaBNy8" target="_blank">
