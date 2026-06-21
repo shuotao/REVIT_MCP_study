@@ -1,15 +1,69 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Three constitutions pyramid">
-  <rect width="1600" height="900" fill="#000"/>
-  <g stroke="#fff" stroke-width="4" fill="none">
-    <path d="M800 155 L1230 745 H370 Z"/>
-    <line x1="515" y1="550" x2="1085" y2="550"/>
-    <line x1="635" y1="385" x2="965" y2="385"/>
+  <style>
+    .bg{fill:#0a0a0a}
+    text{font-family:'Noto Sans TC','Helvetica Neue',Inter,sans-serif}
+    .ttl{fill:#fff;font-weight:800}
+    .sub{fill:rgba(255,255,255,.5)}
+    .lbl{fill:rgba(255,255,255,.82)}
+    .muted{fill:rgba(255,255,255,.45)}
+    .up{opacity:0;animation:up .7s cubic-bezier(.16,1,.3,1) forwards}
+    .fade{opacity:0;animation:fade .8s ease forwards}
+    .pop{transform-box:fill-box;transform-origin:center;opacity:0;animation:pop .6s cubic-bezier(.16,1,.3,1) forwards}
+    .draw{stroke-dasharray:2400;stroke-dashoffset:2400;animation:draw 1.8s ease forwards}
+    .pulse{animation:pulse 3.6s ease-in-out infinite}
+    @keyframes fade{to{opacity:1}}
+    @keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pop{0%{opacity:0;transform:scale(.5)}60%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+    @keyframes draw{to{stroke-dashoffset:0}}
+    @keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+  </style>
+  <rect class="bg" width="1600" height="900"/>
+
+  <!-- pyramid tiers as stacked trapezoid bands -->
+  <defs>
+    <linearGradient id="gApex" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#60a5fa" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#60a5fa" stop-opacity=".55"/>
+    </linearGradient>
+    <linearGradient id="gMid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a78bfa" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#a78bfa" stop-opacity=".14"/>
+    </linearGradient>
+    <linearGradient id="gBase" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4ade80" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#4ade80" stop-opacity=".10"/>
+    </linearGradient>
+  </defs>
+
+  <!-- subtle outer guide -->
+  <path class="draw" d="M800 155 L1230 745 H370 Z" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2" style="animation-delay:.1s"/>
+
+  <!-- Apex tier: PASSIVE CAPABILITY -->
+  <g class="pop" style="animation-delay:.55s">
+    <path d="M800 155 L883 268 H717 Z" fill="url(#gApex)" stroke="#60a5fa" stroke-width="3"/>
   </g>
-  <rect x="700" y="315" width="200" height="140" fill="#60a5fa"/>
-  <g fill="#fff" font-family="JetBrains Mono,Consolas,monospace" text-anchor="middle">
-    <text x="800" y="260" font-size="28">PASSIVE CAPABILITY</text>
-    <text x="800" y="585" font-size="28">TOOL DATA HONESTY</text>
-    <text x="800" y="695" font-size="28">DOMAIN METHOD COMPLIANCE</text>
-    <text x="800" y="820" font-size="34" letter-spacing="3">THREE CONSTITUTIONS</text>
+  <!-- Middle tier: TOOL DATA HONESTY -->
+  <g class="pop" style="animation-delay:.4s">
+    <path d="M717 268 H883 L985 408 H615 Z" fill="url(#gMid)" stroke="#a78bfa" stroke-width="3"/>
   </g>
+  <!-- Base tier: DOMAIN METHOD COMPLIANCE -->
+  <g class="pop" style="animation-delay:.25s">
+    <path d="M615 408 H985 L1230 745 H370 Z" fill="url(#gBase)" stroke="#4ade80" stroke-width="3"/>
+  </g>
+
+  <!-- tier dividers (decorative) -->
+  <g stroke="rgba(255,255,255,.14)" stroke-width="2" fill="none">
+    <line class="fade" x1="615" y1="408" x2="985" y2="408" style="animation-delay:.9s"/>
+    <line class="fade" x1="717" y1="268" x2="883" y2="268" style="animation-delay:1s"/>
+  </g>
+
+  <!-- tier labels -->
+  <g text-anchor="middle">
+    <text class="up ttl" x="800" y="223" font-size="26" style="animation-delay:1.05s">PASSIVE CAPABILITY</text>
+    <text class="up ttl" x="800" y="348" font-size="28" style="animation-delay:.9s">TOOL DATA HONESTY</text>
+    <text class="up ttl" x="800" y="585" font-size="30" style="animation-delay:.75s">DOMAIN METHOD COMPLIANCE</text>
+  </g>
+
+  <!-- main title -->
+  <text class="up ttl pulse" x="800" y="828" font-size="40" letter-spacing="6" text-anchor="middle" style="animation-delay:1.25s">THREE CONSTITUTIONS</text>
 </svg>

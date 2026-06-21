@@ -1,26 +1,60 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" role="img" aria-labelledby="title desc">
   <title id="title">Passive versus active MCP rule</title>
   <desc id="desc">Active automation pierces the work loop, passive automation is invited by the user.</desc>
-  <rect width="800" height="400" fill="#000"/>
-  <path d="M400 40v320" stroke="#fff" stroke-width="1"/>
-  <g fill="none" stroke="#fff" stroke-width="2">
-    <circle cx="200" cy="170" r="68"/>
-    <circle cx="600" cy="170" r="68"/>
+  <style>
+    .bg{fill:#0a0a0a}
+    text{font-family:'Noto Sans TC','Helvetica Neue',Inter,sans-serif}
+    .ttl{fill:#fff;font-weight:800}
+    .sub{fill:rgba(255,255,255,.5)}
+    .lbl{fill:rgba(255,255,255,.82)}
+    .muted{fill:rgba(255,255,255,.45)}
+    .up{opacity:0;animation:up .7s cubic-bezier(.16,1,.3,1) forwards}
+    .fade{opacity:0;animation:fade .8s ease forwards}
+    .pop{transform-box:fill-box;transform-origin:center;opacity:0;animation:pop .6s cubic-bezier(.16,1,.3,1) forwards}
+    .draw{stroke-dasharray:2400;stroke-dashoffset:2400;animation:draw 1.8s ease forwards}
+    .pulse{animation:pulse 3.6s ease-in-out infinite}
+    @keyframes fade{to{opacity:1}}
+    @keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pop{0%{opacity:0;transform:scale(.5)}60%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+    @keyframes draw{to{stroke-dashoffset:0}}
+    @keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+  </style>
+  <rect class="bg" width="800" height="400"/>
+
+  <!-- side tint panels -->
+  <rect class="fade" x="40" y="48" width="320" height="248" rx="14" fill="rgba(239,68,68,.06)" stroke="rgba(239,68,68,.28)" style="animation-delay:.1s"/>
+  <rect class="fade" x="440" y="48" width="320" height="248" rx="14" fill="rgba(96,165,250,.06)" stroke="rgba(96,165,250,.28)" style="animation-delay:.2s"/>
+
+  <!-- centre divider -->
+  <path class="draw" d="M400 40v320" stroke="rgba(255,255,255,.14)" stroke-width="1.5" style="animation-delay:.3s"/>
+
+  <!-- LEFT: ACTIVE (BROKEN) — danger, pierced loop -->
+  <g class="pop" style="animation-delay:.55s">
+    <circle cx="200" cy="170" r="68" fill="none" stroke="#ef4444" stroke-width="2.5"/>
   </g>
-  <g fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round">
+  <!-- piercing arrow stabbing through the loop -->
+  <g class="draw" fill="none" stroke="#ef4444" stroke-width="6" stroke-linecap="round" style="animation-delay:.95s">
     <path d="M200 60v90"/>
     <path d="M178 128l22 28 22-28"/>
+  </g>
+  <!-- break marks on the loop -->
+  <g class="draw" fill="none" stroke="#ef4444" stroke-width="6" stroke-linecap="round" style="animation-delay:1.15s">
     <path d="M155 90l90 90"/>
     <path d="M245 90l-90 90"/>
   </g>
-  <circle cx="200" cy="60" r="8" fill="#60a5fa"/>
-  <g fill="none" stroke="#60a5fa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+  <circle class="pop pulse" cx="200" cy="60" r="8" fill="#ef4444" style="animation-delay:1.3s"/>
+
+  <!-- RIGHT: PASSIVE (INVITED) — blue check / invited curve -->
+  <g class="draw" fill="none" stroke="#60a5fa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" style="animation-delay:.95s">
     <path d="M560 210c36-4 64-26 82-64"/>
     <path d="M642 146l-2 34"/>
     <path d="M642 146l-28 18"/>
   </g>
-  <g fill="#fff" font-family="JetBrains Mono, Consolas, monospace" text-anchor="middle" font-size="16" letter-spacing="2">
-    <text x="200" y="315">ACTIVE (BROKEN)</text>
-    <text x="600" y="315">PASSIVE (INVITED)</text>
+  <circle class="pop" cx="600" cy="170" r="68" fill="none" stroke="rgba(96,165,250,.45)" stroke-width="2" style="animation-delay:.7s"/>
+
+  <!-- labels -->
+  <g text-anchor="middle" font-size="16" letter-spacing="2">
+    <text class="up" x="200" y="320" fill="#ef4444" font-weight="700" style="animation-delay:1.4s">ACTIVE (BROKEN)</text>
+    <text class="up" x="600" y="320" fill="#60a5fa" font-weight="700" style="animation-delay:1.5s">PASSIVE (INVITED)</text>
   </g>
 </svg>

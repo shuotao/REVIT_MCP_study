@@ -812,6 +812,43 @@ foreach ($sf in $snapshotHtml) {
 Write-Check "All $($snapshotHtml.Count) date-prefixed HTMLs carry data-snapshot banner" ($missingBanner.Count -eq 0) `
     $(if ($missingBanner.Count -gt 0) { "Missing banner: $($missingBanner -join ', ')" } else { "" })
 
+# 7-9: Real domain files → BIM_MCP domain-index.html (forward check)
+# Catches domains added to the repo but never carded in the teaching-site index
+# (the family-inventory-cleanup omission class — count claim said 45 while the index
+# only listed real cards for fewer). Forward-only: extra/illustrative sub-cards such as
+# the beam-penetration-* breakdown of mep-csa-clash-detection have no repo file and are
+# intentionally NOT counted, so this check ignores them.
+Write-Host ""
+Write-Host "  7-9. Real domain files -> BIM_MCP domain-index:" -ForegroundColor Cyan
+$domainIndexText = Read-FileText "$projectRoot\docs\BIM_MCP\reference\domain-index.html"
+$indexDomainNames = Get-ChildItem -Path "$projectRoot\domain" -Filter "*.md" |
+    Where-Object { $_.Name -ne "README.md" } | ForEach-Object { $_.Name }
+$indexDomainNames += Get-ChildItem -Path "$projectRoot\domain\references" -Filter "*.md" -ErrorAction SilentlyContinue |
+    ForEach-Object { "references/$($_.Name)" }
+$notInIndex = @()
+foreach ($n in $indexDomainNames) {
+    if (-not $domainIndexText -or $domainIndexText -notmatch [regex]::Escape($n)) { $notInIndex += $n }
+}
+Write-Check "All real domain files appear in BIM_MCP domain-index" ($notInIndex.Count -eq 0) `
+    $(if ($notInIndex.Count -gt 0) { "Missing card(s): $($notInIndex -join ', ')" } else { "" })
+if ($notInIndex.Count -gt 0) { $notInIndex | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkYellow } }
+
+# 7-10: Real skills → BIM_MCP skills-index.html (forward check)
+# Same omission class as 7-9 but for skills — skills-index count can be bumped without
+# the matching skill card actually being added. Every .claude/skills/*/SKILL.md must be carded.
+Write-Host ""
+Write-Host "  7-10. Real skills -> BIM_MCP skills-index:" -ForegroundColor Cyan
+$skillsIndexText = Read-FileText "$projectRoot\docs\BIM_MCP\reference\skills-index.html"
+$skillNames = Get-ChildItem -Path "$projectRoot\.claude\skills" -Directory -ErrorAction SilentlyContinue |
+    Where-Object { Test-Path (Join-Path $_.FullName 'SKILL.md') } | ForEach-Object { $_.Name }
+$skillNotInIndex = @()
+foreach ($s in $skillNames) {
+    if (-not $skillsIndexText -or $skillsIndexText -notmatch [regex]::Escape("/$s")) { $skillNotInIndex += $s }
+}
+Write-Check "All real skills appear in BIM_MCP skills-index" ($skillNotInIndex.Count -eq 0) `
+    $(if ($skillNotInIndex.Count -gt 0) { "Missing card(s): $($skillNotInIndex -join ', ')" } else { "" })
+if ($skillNotInIndex.Count -gt 0) { $skillNotInIndex | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkYellow } }
+
 # ─────────────────────────────────────────────
 # Phase 8: Document Audience and Encoding Hygiene
 # ─────────────────────────────────────────────

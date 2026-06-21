@@ -160,6 +160,28 @@
 </section>
 
 <!-- ============================================ -->
+<!-- 一鍵裝 Skill (Plugin Marketplace) -->
+<!-- ============================================ -->
+<section data-collapse class="bim-section bim-anchor" id="skill-install">
+  <div class="bim-section-eyebrow">SECTION 02.5 · 一鍵裝 SKILL（小白版）</div>
+  <h2 class="bim-section-title">把 Skill 一鍵裝進 Claude Code（不用終端機、不用 Git）</h2>
+  <p class="bim-section-desc"><strong>先懂一個比喻：</strong>Claude Code 就像你的手機；「marketplace（市集）」就像 App Store。第 1 步是「把這個 App Store 加進你的 Claude Code」，第 2 步是「從裡面下載那個 app（skill）」。目前提供 <code>hj-pr-proposal</code>——把你自己的知識整理成可提交的 PR 草案。</p>
+  <p class="bim-section-desc" style="border-left:3px solid var(--accent);padding-left:14px"><strong>⚠️ 最重要的一句：下面兩行是貼進「你跟 AI 聊天的那一格輸入框」、按 Enter 就會執行。不是另開終端機、不是打進命令列。</strong></p>
+  <ol class="bim-steps">
+    <li><strong>加入市集</strong> — 把這行貼進對話框、按 Enter：
+      <p><code>/plugin marketplace add shuotao/REVIT_MCP_study</code></p>
+      <p>因為開頭是 <code>/</code>，Claude Code 會自己當指令處理（這行不會送給 AI）。若跳出「要不要信任這個 marketplace？」確認框，選 <strong>Yes／同意</strong>。</p></li>
+    <li><strong>安裝 skill</strong> — 再貼這行、按 Enter：
+      <p><code>/plugin install hj-pr-proposal@revit-mcp-skills</code></p>
+      <p>（<code>hj-pr-proposal</code> 是 app 名、<code>revit-mcp-skills</code> 是市集名。）</p></li>
+    <li><strong>開始用</strong> — 之後任何對話打：「使用 <code>hj-pr-proposal</code>，幫我把這份內容轉成可提交的 PR 草案」就會啟動。</li>
+  </ol>
+  <p class="bim-section-desc"><strong>💡 更懶人：</strong>直接在對話框打一個 <code>/plugin</code> 按 Enter，會跳出互動選單，用上下鍵選「Add marketplace」「Install」跟著點就好，不用背指令。打 <code>/</code> 時若上方清單看得到 <code>plugin</code>，代表你的 Claude Code 支援；看不到就先更新 Claude Code。</p>
+  <p class="bim-section-desc"><strong>會不會中毒？不會。</strong>這個「封包」裡只有文字檔（<code>SKILL.md</code> 與 <code>marketplace.json</code>），<strong>沒有任何可執行程式（.exe／.ps1／.sh）</strong>。安裝只是把文字檔讀進你的 <code>~/.claude/</code> 資料夾，不是跑安裝程式，所以防毒、Windows SmartScreen、Mac Gatekeeper 都不會攔。而且這個 skill 不會自己亂發 PR，每一步都要你點頭。</p>
+  <p class="bim-section-desc"><strong>跟「裝 Revit 外掛」不一樣：</strong>上面那條 add-in 部署用的 <code>setup.ps1</code> 是 Windows 腳本，才可能跳安全警告；裝 skill 是純文字、跨平台（Mac／Windows／Linux 都一樣），沒有這問題。</p>
+</section>
+
+<!-- ============================================ -->
 <!-- 手動 build / deploy -->
 <!-- ============================================ -->
 <section data-collapse class="bim-section bim-anchor" id="manual">

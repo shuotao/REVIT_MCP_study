@@ -3,9 +3,9 @@ name: hj-pr-proposal
 description: "將使用者自己的 domain、skill 與 tool 內容轉譯為 HJPLUS 台灣建築師知識庫可提交的 PR 草案，涵蓋 fork 檢查、內容對齊、檔案重編、作者確認與提交流程。觸發條件：HJ PR、fork、提案草案、domain 轉 skill、轉譯、貢獻草案、PR draft。"
 metadata:
   references:
-    - domain/skill-authoring-standard.md
-    - domain/frontmatter-standard.md
-    - domain/qa-checklist.md
+    - references/skill-authoring-standard.md
+    - references/frontmatter-standard.md
+    - references/qa-checklist.md
   tags: [hjplus, pr, fork, proposal, skill, domain, translation]
 ---
 
@@ -14,6 +14,8 @@ metadata:
 這個 Skill 用來把使用者自己的知識內容整理成 HJPLUS 台灣建築師知識庫可提交的 PR 草案。
 
 它的目標不是直接替你發 PR，而是先把內容整理到「可審核、可 fork、可追蹤」的狀態，讓作者確認後再進入提交。
+
+> **目標 repo 可設定**：預設目標是 HJPLUS 台灣建築師知識庫，但也可在啟動時指定任何 fork-based 知識庫 repo 作為目標。本 skill 為自包含，所需參考文件已打包於 `references/`。
 
 ## 何時使用
 
@@ -137,4 +139,4 @@ metadata:
 
 ## Reference
 
-詳見 `domain/skill-authoring-standard.md`、`domain/frontmatter-standard.md`、`domain/qa-checklist.md`。
+詳見已打包的 `references/skill-authoring-standard.md`、`references/frontmatter-standard.md`、`references/qa-checklist.md`。

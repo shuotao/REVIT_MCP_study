@@ -1,16 +1,48 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-labelledby="title desc">
   <title id="title">By design not bug</title>
   <desc id="desc">Raw data flows into a Domain SOP box.</desc>
-  <rect width="400" height="400" fill="#000"/>
-  <rect x="38" y="135" width="130" height="82" fill="none" stroke="#fff" stroke-width="2"/>
-  <rect x="232" y="135" width="130" height="82" fill="#60a5fa" stroke="#60a5fa" stroke-width="2"/>
-  <path d="M168 176h56" stroke="#fff" stroke-width="3"/>
-  <path d="M212 162l18 14-18 14" fill="none" stroke="#fff" stroke-width="3"/>
-  <g font-family="JetBrains Mono, Consolas, monospace" text-anchor="middle" font-weight="700">
-    <text x="103" y="170" fill="#fff" font-size="17">RAW</text>
-    <text x="103" y="194" fill="#fff" font-size="17">DATA</text>
-    <text x="297" y="170" fill="#fff" font-size="17">DOMAIN</text>
-    <text x="297" y="194" fill="#fff" font-size="17">SOP</text>
+  <style>
+    .bg{fill:#0a0a0a}
+    text{font-family:'Noto Sans TC','Helvetica Neue',Inter,sans-serif}
+    .ttl{fill:#fff;font-weight:800}
+    .sub{fill:rgba(255,255,255,.5)}
+    .lbl{fill:rgba(255,255,255,.82)}
+    .muted{fill:rgba(255,255,255,.45)}
+    .up{opacity:0;animation:up .7s cubic-bezier(.16,1,.3,1) forwards}
+    .fade{opacity:0;animation:fade .8s ease forwards}
+    .pop{transform-box:fill-box;transform-origin:center;opacity:0;animation:pop .6s cubic-bezier(.16,1,.3,1) forwards}
+    .draw{stroke-dasharray:2400;stroke-dashoffset:2400;animation:draw 1.8s ease forwards}
+    .pulse{animation:pulse 3.6s ease-in-out infinite}
+    @keyframes fade{to{opacity:1}}
+    @keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pop{0%{opacity:0;transform:scale(.5)}60%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+    @keyframes draw{to{stroke-dashoffset:0}}
+    @keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+    @keyframes flow{to{stroke-dashoffset:-32}}
+    .flow{stroke-dasharray:8 8;animation:flow 1.2s linear infinite}
+  </style>
+  <rect class="bg" width="400" height="400"/>
+
+  <!-- RAW DATA box (muted / input) -->
+  <g class="up" style="animation-delay:.15s">
+    <rect x="38" y="135" width="130" height="82" rx="14" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.45)" stroke-width="2"/>
   </g>
-  <text x="200" y="318" fill="#fff" text-anchor="middle" font-family="JetBrains Mono, Consolas, monospace" font-size="17">BY DESIGN, NOT BUG</text>
+
+  <!-- DOMAIN SOP box (blue / by-design target) -->
+  <g class="pop" style="animation-delay:.9s">
+    <rect x="232" y="135" width="130" height="82" rx="14" fill="rgba(96,165,250,.14)" stroke="#60a5fa" stroke-width="2.5"/>
+  </g>
+
+  <!-- flowing connector arrow -->
+  <path class="flow" d="M168 176h52" fill="none" stroke="#60a5fa" stroke-width="3" stroke-linecap="round" style="animation-delay:.6s"/>
+  <path class="pop" style="animation-delay:.75s" d="M212 162l18 14-18 14" fill="none" stroke="#60a5fa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g text-anchor="middle" font-weight="800">
+    <text class="lbl up" style="animation-delay:.3s" x="103" y="170" fill="rgba(255,255,255,.82)" font-size="17" font-family="JetBrains Mono, Consolas, monospace">RAW</text>
+    <text class="up" style="animation-delay:.38s" x="103" y="194" fill="rgba(255,255,255,.82)" font-size="17" font-family="JetBrains Mono, Consolas, monospace">DATA</text>
+    <text class="pop" style="animation-delay:1.1s" x="297" y="170" fill="#fff" font-size="17" font-family="JetBrains Mono, Consolas, monospace">DOMAIN</text>
+    <text class="pop" style="animation-delay:1.18s" x="297" y="194" fill="#fff" font-size="17" font-family="JetBrains Mono, Consolas, monospace">SOP</text>
+  </g>
+
+  <text class="ttl up" style="animation-delay:1.4s" x="200" y="318" text-anchor="middle" font-family="JetBrains Mono, Consolas, monospace" font-size="17" letter-spacing="1">BY DESIGN, NOT BUG</text>
 </svg>
