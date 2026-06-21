@@ -34,8 +34,8 @@ These counts must be derived from source, not copied by memory.
 | Item | Current Count | Source of Truth |
 |---|---:|---|
 | Runtime MCP tools | 96 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 44 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
-| Claude skills | 21 | `.claude/skills/*/SKILL.md` |
+| Domain SOP files | 45 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
+| Claude skills | 22 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, `README.en.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
 
@@ -135,8 +135,10 @@ Deploy with `scripts/install-addon.ps1` or the `/deploy-addon` skill. Do not rel
 | `MCP-Server/src/socket.ts` | WebSocket client to Revit |
 | `MCP-Server/src/tools/index.ts` | Tool module registry and `MCP_PROFILE` filtering |
 | `MCP-Server/src/tools/revit-tools.ts` | Execution bridge from tool name to Revit command |
+| `bridge/python/skills/ezdxf_worker.py` | Optional Python subprocess (spawned by `DwgColumnExecutor`) that reads DXF/DWG text for column-number mapping (`dwg-column-import` mode C). Needs system Python + `ezdxf`; DWG additionally needs ODA File Converter. Deployed to `%APPDATA%\RevitMCP` by `install-addon.ps1`. |
 | `scripts/verify-qaqc.ps1` | Repository QA/QC gate |
 | `docs/DOCUMENT_AUDIENCE_INVENTORY.md` | Canonical AI/human/shared document classification |
+| `.claude-plugin/marketplace.json` | Plugin marketplace manifest — packages shareable skills (currently `hj-pr-proposal`) as installable plugins for `/plugin marketplace add` → `/plugin install`. |
 
 ## Code Conventions
 
@@ -259,10 +261,11 @@ Read the matching file before applying a workflow or calculation.
 | curtain wall, panel pattern, curtain panel | `domain/curtain-wall-pattern.md` |
 | daylight, daylight area, natural lighting | `domain/daylight-area-check.md` |
 | dependent view, crop, grid crop, view split | `domain/dependent-view-crop-workflow.md` |
-| dwg, cad, 柱匯入, 圖層建柱, 批次建柱, column from dwg | `domain/dwg-column-import.md` |
+| dwg, cad, 柱匯入, 圖層建柱, 批次建柱, column from dwg, 柱號對應, 柱名稱對應, textLayerName | `domain/dwg-column-import.md` |
 | detail component, detail sync, annotation component | `domain/detail-component-sync.md` |
 | door legend, window legend, schedule legend | `domain/door-window-legend-workflow.md` |
 | element coloring, visualization, graphic override | `domain/element-coloring-workflow.md` |
+| family inventory, type inventory, unused type, duplicate type, purge type, merge type, 族群整理, 類型盤點, 未使用類型, 重複類型 | `domain/family-inventory-cleanup.md` |
 | element query, filter, category fields | `domain/element-query-workflow.md` |
 | exterior wall opening, facade opening | `domain/exterior-wall-opening-check.md` |
 | facade generation, AI facade design | `domain/facade-generation.md` |
@@ -321,6 +324,7 @@ Available Claude skills:
 - `/element-coloring`
 - `/element-query`
 - `/facade-generation`
+- `/family-inventory-cleanup`
 - `/fire-safety-check`
 - `/hj-pr-proposal`
 - `/parking-check`
@@ -331,6 +335,23 @@ Available Claude skills:
 - `/wall-orientation-check`
 
 Use the smallest relevant skill set. If a skill and a domain file conflict on the method, the domain file wins.
+
+## Skill Packaging & Upstream Watch
+
+Shareable skills are packaged as installable plugins via `.claude-plugin/marketplace.json` (marketplace name: `revit-mcp-skills`). Consumer install path:
+
+```text
+/plugin marketplace add shuotao/REVIT_MCP_study
+/plugin install <plugin>@revit-mcp-skills
+```
+
+A packaged skill MUST be self-contained: bundle any referenced files inside the skill folder (e.g. `.claude/skills/<name>/references/`); never point at repo paths outside the skill directory, or the plugin breaks on install. Packaging a skill does NOT change the `Claude skills` source-of-truth count — that count is `.claude/skills/*/SKILL.md` only.
+
+### Upstream Watch (ongoing)
+
+Periodically check `github.com/anthropics/skills` for changes to the Agent Skills spec — specifically the `SKILL.md` frontmatter contract and the `.claude-plugin/marketplace.json` schema. If upstream changes the format, update our `SKILL.md` files and `marketplace.json` to match, then re-run QA/QC.
+
+Snapshot as of 2026-06: `SKILL.md` frontmatter is `name` + `description` (+ optional `license`); marketplace schema version is `1.0.0`. There is NO breaking "2.0" file-format change — the shift is packaging/distribution (open standard + plugin marketplace), not the skill file format.
 
 ## MCP Profiles
 

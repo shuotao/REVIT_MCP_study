@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" font-family="'Noto Sans TC','Helvetica Neue',Inter,sans-serif">
+<style>
+  .g{transform-box:fill-box;transform-origin:center;opacity:0;
+     animation:pop .6s cubic-bezier(.16,1,.3,1) forwards, glow 4.5s ease-in-out infinite;}
+  @keyframes pop{0%{opacity:0;transform:scale(.35) translateY(14px)}60%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+  @keyframes glow{0%,100%{filter:drop-shadow(0 0 0 rgba(0,0,0,0))}50%{filter:drop-shadow(0 0 7px rgba(255,255,255,.22))}}
+  .num{fill:#fff;font-size:128px;font-weight:800;letter-spacing:-3px}
+  .t{fill:rgba(255,255,255,.92);font-size:40px;font-weight:700}
+  .s{fill:rgba(255,255,255,.45);font-size:24px;letter-spacing:1px}
+  .lg{fill:rgba(255,255,255,.72);font-size:21px}
+</style>
+  <rect width="1200" height="900" rx="0" fill="#0a0a0a"/>
+  <text x="118" y="150" class="num">22</text>
+  <text x="120" y="205" class="t">Skills · 編排層</text>
+  <text x="120" y="240" class="s">AI WORKFLOW ORCHESTRATION · 5 CATEGORIES</text>
+  <rect class="g" x="120" y="250" width="70" height="70" rx="14" fill="#ef4444" style="animation-delay:0.150s"/>
+  <rect class="g" x="208" y="250" width="70" height="70" rx="14" fill="#ef4444" style="animation-delay:0.195s"/>
+  <rect class="g" x="296" y="250" width="70" height="70" rx="14" fill="#ef4444" style="animation-delay:0.240s"/>
+  <rect class="g" x="384" y="250" width="70" height="70" rx="14" fill="#ef4444" style="animation-delay:0.285s"/>
+  <rect class="g" x="472" y="250" width="70" height="70" rx="14" fill="#ef4444" style="animation-delay:0.330s"/>
+  <rect class="g" x="560" y="250" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.375s"/>
+  <rect class="g" x="648" y="250" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.420s"/>
+  <rect class="g" x="736" y="250" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.465s"/>
+  <rect class="g" x="120" y="338" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.510s"/>
+  <rect class="g" x="208" y="338" width="70" height="70" rx="14" fill="#fbbf24" style="animation-delay:0.555s"/>
+  <rect class="g" x="296" y="338" width="70" height="70" rx="14" fill="#fbbf24" style="animation-delay:0.600s"/>
+  <rect class="g" x="384" y="338" width="70" height="70" rx="14" fill="#fbbf24" style="animation-delay:0.645s"/>
+  <rect class="g" x="472" y="338" width="70" height="70" rx="14" fill="#fbbf24" style="animation-delay:0.690s"/>
+  <rect class="g" x="560" y="338" width="70" height="70" rx="14" fill="#fbbf24" style="animation-delay:0.735s"/>
+  <rect class="g" x="648" y="338" width="70" height="70" rx="14" fill="#4ade80" style="animation-delay:0.780s"/>
+  <rect class="g" x="736" y="338" width="70" height="70" rx="14" fill="#4ade80" style="animation-delay:0.825s"/>
+  <rect class="g" x="120" y="426" width="70" height="70" rx="14" fill="#4ade80" style="animation-delay:0.870s"/>
+  <rect class="g" x="208" y="426" width="70" height="70" rx="14" fill="#4ade80" style="animation-delay:0.915s"/>
+  <rect class="g" x="296" y="426" width="70" height="70" rx="14" fill="#a78bfa" style="animation-delay:0.960s"/>
+  <rect class="g" x="384" y="426" width="70" height="70" rx="14" fill="#a78bfa" style="animation-delay:1.005s"/>
+  <rect class="g" x="472" y="426" width="70" height="70" rx="14" fill="#a78bfa" style="animation-delay:1.050s"/>
+  <rect class="g" x="560" y="426" width="70" height="70" rx="14" fill="#a78bfa" style="animation-delay:1.095s"/>
+  <g transform="translate(120,554)"><rect width="22" height="22" rx="6" fill="#ef4444"/><text x="32" y="17" class="lg">A 法規 · 5</text></g>
+  <g transform="translate(320,554)"><rect width="22" height="22" rx="6" fill="#60a5fa"/><text x="32" y="17" class="lg">B 設計 · 4</text></g>
+  <g transform="translate(520,554)"><rect width="22" height="22" rx="6" fill="#fbbf24"/><text x="32" y="17" class="lg">C 文件 · 5</text></g>
+  <g transform="translate(720,554)"><rect width="22" height="22" rx="6" fill="#4ade80"/><text x="32" y="17" class="lg">D 模型 · 4</text></g>
+  <g transform="translate(920,554)"><rect width="22" height="22" rx="6" fill="#a78bfa"/><text x="32" y="17" class="lg">E 運維 · 4</text></g>
+</svg>

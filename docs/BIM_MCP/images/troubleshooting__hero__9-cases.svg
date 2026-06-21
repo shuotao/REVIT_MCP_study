@@ -1,13 +1,82 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Nine troubleshooting scenarios">
-  <rect width="1600" height="900" fill="#000"/>
-  <g transform="translate(535 170)" stroke="#fff" stroke-width="3" fill="none">
-    <rect x="0" y="0" width="150" height="150"/><rect x="190" y="0" width="150" height="150"/><rect x="380" y="0" width="150" height="150"/>
-    <rect x="0" y="190" width="150" height="150"/><rect x="190" y="190" width="150" height="150"/><rect x="380" y="190" width="150" height="150"/>
-    <rect x="0" y="380" width="150" height="150"/><rect x="190" y="380" width="150" height="150"/><rect x="380" y="380" width="150" height="150"/>
+  <style>
+    .bg{fill:#0a0a0a}
+    text{font-family:'Noto Sans TC','Helvetica Neue',Inter,sans-serif}
+    .ttl{fill:#fff;font-weight:800}
+    .sub{fill:rgba(255,255,255,.5)}
+    .lbl{fill:rgba(255,255,255,.82)}
+    .muted{fill:rgba(255,255,255,.45)}
+    .up{opacity:0;animation:up .7s cubic-bezier(.16,1,.3,1) forwards}
+    .fade{opacity:0;animation:fade .8s ease forwards}
+    .pop{transform-box:fill-box;transform-origin:center;opacity:0;animation:pop .6s cubic-bezier(.16,1,.3,1) forwards}
+    .draw{stroke-dasharray:2400;stroke-dashoffset:2400;animation:draw 1.8s ease forwards}
+    .pulse{animation:pulse 3.6s ease-in-out infinite}
+    @keyframes fade{to{opacity:1}}
+    @keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pop{0%{opacity:0;transform:scale(.5)}60%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+    @keyframes draw{to{stroke-dashoffset:0}}
+    @keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+  </style>
+  <rect class="bg" width="1600" height="900"/>
+
+  <!-- ambient glow -->
+  <defs>
+    <radialGradient id="glowR" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ef4444" stop-opacity=".10"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#60a5fa" stop-opacity=".12"/>
+      <stop offset="100%" stop-color="#60a5fa" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="700" cy="320" rx="420" ry="320" fill="url(#glowR)" class="pulse"/>
+  <ellipse cx="980" cy="560" rx="420" ry="320" fill="url(#glowB)" class="pulse" style="animation-delay:1.8s"/>
+
+  <!-- 3x3 grid of cards: 5 red (problem) + 4 blue (fixed) = 9 -->
+  <g transform="translate(535 170)">
+    <!-- row 1 : 3 red problems -->
+    <g class="pop" style="animation-delay:.05s">
+      <rect x="0" y="0" width="150" height="150" rx="18" fill="rgba(239,68,68,.06)" stroke="#ef4444" stroke-width="2.5"/>
+      <g stroke="#ef4444" stroke-width="10" stroke-linecap="round"><line x1="40" y1="40" x2="110" y2="110"/><line x1="110" y1="40" x2="40" y2="110"/></g>
+    </g>
+    <g class="pop" style="animation-delay:.15s">
+      <rect x="190" y="0" width="150" height="150" rx="18" fill="rgba(239,68,68,.06)" stroke="#ef4444" stroke-width="2.5"/>
+      <g stroke="#ef4444" stroke-width="10" stroke-linecap="round"><line x1="230" y1="40" x2="300" y2="110"/><line x1="300" y1="40" x2="230" y2="110"/></g>
+    </g>
+    <g class="pop" style="animation-delay:.25s">
+      <rect x="380" y="0" width="150" height="150" rx="18" fill="rgba(239,68,68,.06)" stroke="#ef4444" stroke-width="2.5"/>
+      <g stroke="#ef4444" stroke-width="10" stroke-linecap="round"><line x1="420" y1="40" x2="490" y2="110"/><line x1="490" y1="40" x2="420" y2="110"/></g>
+    </g>
+
+    <!-- row 2 : 2 red problems + 1 blue fix -->
+    <g class="pop" style="animation-delay:.35s">
+      <rect x="0" y="190" width="150" height="150" rx="18" fill="rgba(239,68,68,.06)" stroke="#ef4444" stroke-width="2.5"/>
+      <g stroke="#ef4444" stroke-width="10" stroke-linecap="round"><line x1="40" y1="230" x2="110" y2="300"/><line x1="110" y1="230" x2="40" y2="300"/></g>
+    </g>
+    <g class="pop" style="animation-delay:.45s">
+      <rect x="190" y="190" width="150" height="150" rx="18" fill="rgba(239,68,68,.06)" stroke="#ef4444" stroke-width="2.5"/>
+      <g stroke="#ef4444" stroke-width="10" stroke-linecap="round"><line x1="230" y1="230" x2="300" y2="300"/><line x1="300" y1="230" x2="230" y2="300"/></g>
+    </g>
+    <g class="pop" style="animation-delay:.55s">
+      <rect x="380" y="190" width="150" height="150" rx="18" fill="rgba(96,165,250,.08)" stroke="#60a5fa" stroke-width="2.5"/>
+      <path d="M420 265 l28 28 l52 -70" fill="none" stroke="#60a5fa" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- row 3 : 3 blue fixes -->
+    <g class="pop" style="animation-delay:.65s">
+      <rect x="0" y="380" width="150" height="150" rx="18" fill="rgba(96,165,250,.08)" stroke="#60a5fa" stroke-width="2.5"/>
+      <path d="M40 455 l28 28 l52 -70" fill="none" stroke="#60a5fa" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g class="pop" style="animation-delay:.75s">
+      <rect x="190" y="380" width="150" height="150" rx="18" fill="rgba(96,165,250,.08)" stroke="#60a5fa" stroke-width="2.5"/>
+      <path d="M230 455 l28 28 l52 -70" fill="none" stroke="#60a5fa" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g class="pop" style="animation-delay:.85s">
+      <rect x="380" y="380" width="150" height="150" rx="18" fill="rgba(96,165,250,.08)" stroke="#60a5fa" stroke-width="2.5"/>
+      <path d="M420 455 l28 28 l52 -70" fill="none" stroke="#60a5fa" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
   </g>
-  <g stroke-width="10" stroke-linecap="round">
-    <g stroke="#ef4444"><line x1="575" y1="210" x2="645" y2="280"/><line x1="645" y1="210" x2="575" y2="280"/><line x1="765" y1="210" x2="835" y2="280"/><line x1="835" y1="210" x2="765" y2="280"/><line x1="955" y1="210" x2="1025" y2="280"/><line x1="1025" y1="210" x2="955" y2="280"/><line x1="575" y1="400" x2="645" y2="470"/><line x1="645" y1="400" x2="575" y2="470"/><line x1="765" y1="400" x2="835" y2="470"/><line x1="835" y1="400" x2="765" y2="470"/></g>
-    <g stroke="#60a5fa"><path d="M960 440 l28 28 l52 -70"/><path d="M580 630 l28 28 l52 -70"/><path d="M770 630 l28 28 l52 -70"/><path d="M960 630 l28 28 l52 -70"/></g>
-  </g>
-  <text x="800" y="780" fill="#fff" font-family="JetBrains Mono,Consolas,monospace" font-size="32" text-anchor="middle" letter-spacing="3">5 CLASSIC + 4 LIVE FIXES = 9 SCENARIOS</text>
+
+  <text class="ttl up" x="800" y="780" font-size="32" text-anchor="middle" letter-spacing="3" style="animation-delay:1s">5 CLASSIC + 4 LIVE FIXES = 9 SCENARIOS</text>
 </svg>

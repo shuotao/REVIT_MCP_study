@@ -1,29 +1,58 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title desc">
   <title id="title">setup.ps1 build and deploy architecture</title>
   <desc id="desc">A vertical build flow from setup.ps1 to build and deploy to Revit addins with Node and .NET inputs.</desc>
-  <rect width="800" height="600" fill="#000"/>
-  <g fill="none" stroke="#fff" stroke-width="2">
-    <rect x="250" y="70" width="300" height="80" rx="6"/>
-    <rect x="250" y="260" width="300" height="80" rx="6"/>
-    <rect x="210" y="450" width="380" height="80" rx="6" fill="#60a5fa" stroke="#60a5fa"/>
-    <path d="M400 150v88"/>
-    <path d="M390 226l10 14 10-14"/>
-    <path d="M400 340v88"/>
-    <path d="M390 416l10 14 10-14"/>
-    <rect x="70" y="250" width="120" height="48" rx="4"/>
-    <rect x="610" y="250" width="120" height="48" rx="4"/>
-    <path d="M190 274h58"/>
-    <path d="M236 264l14 10-14 10"/>
-    <path d="M610 274h-58"/>
-    <path d="M564 264l-14 10 14 10"/>
+  <style>
+    .bg{fill:#0a0a0a}
+    text{font-family:'Noto Sans TC','Helvetica Neue',Inter,sans-serif}
+    .ttl{fill:#fff;font-weight:800}
+    .sub{fill:rgba(255,255,255,.5)}
+    .lbl{fill:rgba(255,255,255,.82)}
+    .muted{fill:rgba(255,255,255,.45)}
+    .up{opacity:0;animation:up .7s cubic-bezier(.16,1,.3,1) forwards}
+    .fade{opacity:0;animation:fade .8s ease forwards}
+    .pop{transform-box:fill-box;transform-origin:center;opacity:0;animation:pop .6s cubic-bezier(.16,1,.3,1) forwards}
+    .draw{stroke-dasharray:2400;stroke-dashoffset:2400;animation:draw 1.8s ease forwards}
+    .pulse{animation:pulse 3.6s ease-in-out infinite}
+    @keyframes fade{to{opacity:1}}
+    @keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pop{0%{opacity:0;transform:scale(.5)}60%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+    @keyframes draw{to{stroke-dashoffset:0}}
+    @keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+    .mono{font-family:'JetBrains Mono',Consolas,monospace}
+  </style>
+  <rect class="bg" width="800" height="600"/>
+
+  <!-- connectors -->
+  <g stroke="rgba(255,255,255,.3)" stroke-width="2" fill="none">
+    <path class="draw" d="M400 150v88" style="animation-delay:.6s"/>
+    <path class="fade" d="M390 226l10 14 10-14" style="animation-delay:1.0s"/>
+    <path class="draw" d="M400 340v88" style="animation-delay:.8s"/>
+    <path class="fade" d="M390 416l10 14 10-14" style="animation-delay:1.2s"/>
+    <path class="draw" d="M190 274h58" style="animation-delay:.9s"/>
+    <path class="fade" d="M236 264l14 10-14 10" style="animation-delay:1.1s"/>
+    <path class="draw" d="M610 274h-58" style="animation-delay:.9s"/>
+    <path class="fade" d="M564 264l-14 10 14 10" style="animation-delay:1.1s"/>
   </g>
-  <g font-family="JetBrains Mono, Consolas, monospace" text-anchor="middle" font-size="24" font-weight="700">
-    <text x="400" y="120" fill="#fff">setup.ps1</text>
-    <text x="400" y="310" fill="#fff">build + deploy</text>
-    <text x="400" y="500" fill="#fff">%AppData%\Revit\Addins\{ver}</text>
+
+  <!-- main flow boxes -->
+  <rect class="up" x="250" y="70" width="300" height="80" rx="14" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.14)" stroke-width="1.5" style="animation-delay:.1s"/>
+  <rect class="up" x="250" y="260" width="300" height="80" rx="14" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.14)" stroke-width="1.5" style="animation-delay:.3s"/>
+  <rect class="up" x="210" y="450" width="380" height="80" rx="14" fill="#60a5fa" stroke="#60a5fa" stroke-width="1.5" style="animation-delay:.5s"/>
+
+  <!-- side input boxes -->
+  <rect class="pop" x="70" y="250" width="120" height="48" rx="10" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.14)" stroke-width="1.5" style="animation-delay:.7s"/>
+  <rect class="pop" x="610" y="250" width="120" height="48" rx="10" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.14)" stroke-width="1.5" style="animation-delay:.8s"/>
+
+  <!-- main labels -->
+  <g class="mono" text-anchor="middle" font-size="24" font-weight="700">
+    <text class="ttl up" x="400" y="120" style="animation-delay:.15s">setup.ps1</text>
+    <text class="ttl up" x="400" y="310" style="animation-delay:.35s">build + deploy</text>
+    <text class="up" x="400" y="500" fill="#0a0a0a" font-weight="800" style="animation-delay:.55s">%AppData%\Revit\Addins\{ver}</text>
   </g>
-  <g font-family="JetBrains Mono, Consolas, monospace" text-anchor="middle" font-size="16" fill="#fff">
-    <text x="130" y="281">Node.js</text>
-    <text x="670" y="281">.NET 4.8 / 8</text>
+
+  <!-- side labels -->
+  <g class="mono" text-anchor="middle" font-size="16">
+    <text class="lbl up" x="130" y="281" style="animation-delay:.75s">Node.js</text>
+    <text class="lbl up" x="670" y="281" style="animation-delay:.85s">.NET 4.8 / 8</text>
   </g>
 </svg>

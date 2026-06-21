@@ -1,15 +1,42 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-labelledby="title desc">
   <title id="title">createAnnotatedViews false</title>
   <desc id="desc">Many tiny view squares are suppressed by a false setting.</desc>
-  <rect width="400" height="400" fill="#000"/>
-  <g fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="1">
-    <rect x="38" y="38" width="18" height="18"/><rect x="70" y="38" width="18" height="18"/><rect x="102" y="38" width="18" height="18"/><rect x="134" y="38" width="18" height="18"/><rect x="166" y="38" width="18" height="18"/><rect x="198" y="38" width="18" height="18"/><rect x="230" y="38" width="18" height="18"/><rect x="262" y="38" width="18" height="18"/><rect x="294" y="38" width="18" height="18"/><rect x="326" y="38" width="18" height="18"/>
-    <rect x="38" y="70" width="18" height="18"/><rect x="70" y="70" width="18" height="18"/><rect x="102" y="70" width="18" height="18"/><rect x="134" y="70" width="18" height="18"/><rect x="166" y="70" width="18" height="18"/><rect x="198" y="70" width="18" height="18"/><rect x="230" y="70" width="18" height="18"/><rect x="262" y="70" width="18" height="18"/><rect x="294" y="70" width="18" height="18"/><rect x="326" y="70" width="18" height="18"/>
-    <rect x="38" y="102" width="18" height="18"/><rect x="70" y="102" width="18" height="18"/><rect x="102" y="102" width="18" height="18"/><rect x="134" y="102" width="18" height="18"/><rect x="166" y="102" width="18" height="18"/><rect x="198" y="102" width="18" height="18"/><rect x="230" y="102" width="18" height="18"/><rect x="262" y="102" width="18" height="18"/><rect x="294" y="102" width="18" height="18"/><rect x="326" y="102" width="18" height="18"/>
-    <rect x="38" y="134" width="18" height="18"/><rect x="70" y="134" width="18" height="18"/><rect x="102" y="134" width="18" height="18"/><rect x="134" y="134" width="18" height="18"/><rect x="166" y="134" width="18" height="18"/><rect x="198" y="134" width="18" height="18"/><rect x="230" y="134" width="18" height="18"/><rect x="262" y="134" width="18" height="18"/><rect x="294" y="134" width="18" height="18"/><rect x="326" y="134" width="18" height="18"/>
-    <rect x="38" y="166" width="18" height="18"/><rect x="70" y="166" width="18" height="18"/><rect x="102" y="166" width="18" height="18"/><rect x="134" y="166" width="18" height="18"/><rect x="166" y="166" width="18" height="18"/><rect x="198" y="166" width="18" height="18"/><rect x="230" y="166" width="18" height="18"/><rect x="262" y="166" width="18" height="18"/><rect x="294" y="166" width="18" height="18"/><rect x="326" y="166" width="18" height="18"/>
+  <style>
+    .bg{fill:#0a0a0a}
+    text{font-family:'Noto Sans TC','Helvetica Neue',Inter,sans-serif}
+    .ttl{fill:#fff;font-weight:800}
+    .sub{fill:rgba(255,255,255,.5)}
+    .lbl{fill:rgba(255,255,255,.82)}
+    .muted{fill:rgba(255,255,255,.45)}
+    .up{opacity:0;animation:up .7s cubic-bezier(.16,1,.3,1) forwards}
+    .fade{opacity:0;animation:fade .8s ease forwards}
+    .pop{transform-box:fill-box;transform-origin:center;opacity:0;animation:pop .6s cubic-bezier(.16,1,.3,1) forwards}
+    .draw{stroke-dasharray:2400;stroke-dashoffset:2400;animation:draw 1.8s ease forwards}
+    .pulse{animation:pulse 3.6s ease-in-out infinite}
+    @keyframes fade{to{opacity:1}}
+    @keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pop{0%{opacity:0;transform:scale(.5)}60%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+    @keyframes draw{to{stroke-dashoffset:0}}
+    @keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+    /* squares get suppressed: fade out to dim after entering */
+    .sq{transform-box:fill-box;transform-origin:center;opacity:0;animation:sup 3.2s ease forwards}
+    @keyframes sup{0%{opacity:0;transform:scale(.6)}18%{opacity:.55;transform:scale(1)}55%{opacity:.55}100%{opacity:.08;transform:scale(.85)}}
+  </style>
+  <rect class="bg" width="400" height="400"/>
+
+  <!-- grid of polluting view squares (suppressed) -->
+  <g fill="rgba(255,255,255,.04)" stroke="#ef4444" stroke-opacity=".45" stroke-width="1.2">
+    <rect class="sq" style="animation-delay:.02s" x="38" y="38" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.05s" x="70" y="38" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.08s" x="102" y="38" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.11s" x="134" y="38" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.14s" x="166" y="38" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.17s" x="198" y="38" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.2s" x="230" y="38" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.23s" x="262" y="38" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.26s" x="294" y="38" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.29s" x="326" y="38" width="18" height="18" rx="3"/>
+    <rect class="sq" style="animation-delay:.06s" x="38" y="70" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.09s" x="70" y="70" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.12s" x="102" y="70" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.15s" x="134" y="70" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.18s" x="166" y="70" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.21s" x="198" y="70" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.24s" x="230" y="70" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.27s" x="262" y="70" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.3s" x="294" y="70" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.33s" x="326" y="70" width="18" height="18" rx="3"/>
+    <rect class="sq" style="animation-delay:.1s" x="38" y="102" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.13s" x="70" y="102" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.16s" x="102" y="102" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.19s" x="134" y="102" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.22s" x="166" y="102" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.25s" x="198" y="102" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.28s" x="230" y="102" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.31s" x="262" y="102" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.34s" x="294" y="102" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.37s" x="326" y="102" width="18" height="18" rx="3"/>
+    <rect class="sq" style="animation-delay:.14s" x="38" y="134" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.17s" x="70" y="134" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.2s" x="102" y="134" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.23s" x="134" y="134" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.26s" x="166" y="134" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.29s" x="198" y="134" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.32s" x="230" y="134" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.35s" x="262" y="134" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.38s" x="294" y="134" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.41s" x="326" y="134" width="18" height="18" rx="3"/>
+    <rect class="sq" style="animation-delay:.18s" x="38" y="166" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.21s" x="70" y="166" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.24s" x="102" y="166" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.27s" x="134" y="166" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.3s" x="166" y="166" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.33s" x="198" y="166" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.36s" x="230" y="166" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.39s" x="262" y="166" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.42s" x="294" y="166" width="18" height="18" rx="3"/><rect class="sq" style="animation-delay:.45s" x="326" y="166" width="18" height="18" rx="3"/>
   </g>
-  <circle cx="200" cy="205" r="82" fill="#000" stroke="#fff" stroke-width="3"/>
-  <text x="200" y="214" fill="#60a5fa" text-anchor="middle" font-family="JetBrains Mono, Consolas, monospace" font-size="28" font-weight="700">false</text>
-  <text x="200" y="342" fill="#fff" text-anchor="middle" font-family="JetBrains Mono, Consolas, monospace" font-size="15">createAnnotatedViews=false</text>
+
+  <!-- central toggle badge: false -->
+  <circle cx="200" cy="205" r="82" fill="#0a0a0a" class="pulse"/>
+  <circle class="pop" style="animation-delay:1s" cx="200" cy="205" r="82" fill="rgba(96,165,250,.06)" stroke="#60a5fa" stroke-width="3"/>
+  <text class="pop" style="animation-delay:1.25s" x="200" y="216" fill="#60a5fa" text-anchor="middle" font-size="30" font-weight="800" font-family="JetBrains Mono, Consolas, monospace">false</text>
+
+  <text class="lbl up" style="animation-delay:1.4s" x="200" y="342" text-anchor="middle" font-family="JetBrains Mono, Consolas, monospace" font-size="15">createAnnotatedViews=false</text>
 </svg>

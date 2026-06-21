@@ -130,8 +130,8 @@ DONE (25):
   #12 spectrum__s02__decision-tree.svg
   #13 spectrum__quote__resign-king.svg
   #14 skills-domain__frame__concentric.svg
-  #15 skills__hero__19-grains.svg
-  #16 domain__hero__35-grains.svg
+  #15 skills__hero__22-grains.svg
+  #16 domain__hero__45-grains.svg
   #17 deployment__hero__one-cmd.svg
   #18 deployment__s02__arch.svg
   #19 troubleshooting__hero__9-cases.svg
