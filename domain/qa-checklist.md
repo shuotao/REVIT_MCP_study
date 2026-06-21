@@ -1,147 +1,196 @@
 ---
 name: qa-checklist
-description: 專案品質檢查流程。當用戶提到「QA」「檢查」「驗證」「確認一致性」時啟用。
+description: "Revit MCP QA/QC checklist for repository structure, documentation alignment, Domain frontmatter, and deployment safety. This Domain file is shared by humans and AI, so it intentionally keeps bilingual terminology."
 metadata:
-  version: "1.0"
-  updated: "2026-03-10"
+  version: "2.0"
+  updated: "2026-06-01"
   created: "2026-01-04"
   contributors:
     - "Admin"
     - "shuotao"
-  references: []  # TODO: 月小聚補法規條號或外部依據
-  related: []  # TODO: 月小聚補相關 domain（檔名）
+  references:
+    - "domain/frontmatter-standard.md"
+    - "domain/path-maintenance-qa.md"
+  related:
+    - "domain/frontmatter-standard.md"
+    - "domain/path-maintenance-qa.md"
+    - "domain/session-context-guard.md"
+    - "domain/tool-capability-boundary.md"
   referenced_by:
-    - qa-review
-  tags: [QA, 品質, 檢查, 驗證]
+    - "qa-review"
+    - "hj-pr-proposal"
+  tags: [QA, QC, documentation, deployment, bilingual]
 ---
 
-# 專案品質檢查清單 (QA Checklist)
+# QA/QC Checklist / 品質檢查清單
 
-本文件定義專案的品質檢查標準和執行步驟。
+This Domain file defines the shared QA/QC method for Revit MCP. It is intentionally bilingual because Domain files are read by both humans and AI agents.
 
----
+本檔是 Revit MCP 的共同品質檢查 SOP。Domain 不可改成全英文；必要時以英文關鍵詞搭配中文說明，避免 AI 與人類任一方失去語意。
 
-## 何時執行 QA
+## Canonical Script / 主要腳本
 
-- 提交 Pull Request 前
-- 用戶要求「檢查」「驗證」「確認」時
-- 新增或刪除檔案後
-- 重構目錄結構後
-
----
-
-##  檢查項目
-
-### 1. Markdown 連結檢查
-
-**目的**：確保所有 `[text](./file.md)` 連結的檔案都存在
-
-**執行命令**：
-```bash
-grep -r "\.md)" *.md --include="*.md" | grep -o '\./[^)]*\.md' | sort -u
+```powershell
+.\scripts\verify-qaqc.ps1 -SkipBuild -SkipDeploy
 ```
 
-**驗證**：用 `ls` 確認每個檔案都存在
+Full validation on Windows:
 
----
-
-### 2. 路徑引用檢查
-
-**目的**：確保所有 `domain/`、`docs/`、`scripts/`、`MCP-Server/` 引用的檔案都存在
-
-**執行命令**：
-```bash
-# 搜尋 domain/ 引用
-grep -r "domain/" --include="*.md" | grep -oE 'domain/[a-zA-Z0-9_/-]+\.md'
-
-# 搜尋 scripts/ 引用
-grep -r "scripts/" --include="*.md" | grep -oE 'scripts/[a-zA-Z0-9_/-]+\.(js|ps1)'
-
-# 搜尋 docs/ 引用
-grep -r "docs/" --include="*.md" | grep -oE 'docs/[a-zA-Z0-9_/-]+\.md'
+```powershell
+.\scripts\verify-qaqc.ps1 -Version 2024
 ```
 
-**驗證**：用 `ls` 確認每個檔案都存在
+## Phase 1 - File Structure Integrity / 檔案結構
 
----
+Must pass:
 
-### 3. 工具一致性檢查
+- No version-specific `RevitMCP.2024.csproj` or `RevitMCP.2024.addin`.
+- No nested `MCP/MCP/`.
+- No deleted path-fix scripts such as `fix_addin_path.ps1`.
+- Required source files exist:
+  - `MCP/RevitMCP.csproj`
+  - `MCP/RevitMCP.addin`
+  - `MCP/Application.cs`
+  - `MCP/Core/SocketService.cs`
+  - `MCP/Core/ExternalEventManager.cs`
+  - `MCP-Server/src/index.ts`
+  - `MCP-Server/src/tools/index.ts`
+  - `MCP-Server/package.json`
 
-**目的**：確保 README 工具清單 = TypeScript 定義 = C# 實作
+## Phase 2 - Cross-Reference Consistency / 路徑與文件引用
 
-**執行步驟**：
+Scan active docs for stale references:
 
-| 來源 | 檢查方法 |
-|-----|---------|
-| TypeScript | `grep "name:" MCP-Server/src/tools/revit-tools.ts` |
-| C# | `grep 'case "' MCP/Core/CommandExecutor.cs` |
-| README | 手動比對工具清單 |
+- `RevitMCP.2024.csproj`
+- `RevitMCP.2024.addin`
+- `bin\Release.2024`
+- `bin\Release\RevitMCP.dll`
+- `MCP\MCP\`
+- `fix_addin_path`
 
-**需一致的項目**：
-- 工具名稱
-- 工具數量
+Allowed exceptions:
 
----
+- Historical archive docs.
+- Changelog entries.
+- Domain lessons that intentionally preserve historical mistakes.
+- Explicit "do not create this file" rules.
 
-### 4. 已刪除檔案檢查
+## Phase 3 - Build Configuration / 建置設定
 
-**目的**：確保沒有引用已刪除的檔案
+`MCP/RevitMCP.csproj` must:
 
-**執行命令**：
-```bash
-# 列出最近刪除的檔案
-git log --diff-filter=D --summary | grep "delete mode" | head -20
+- Use Nice3point Revit SDK.
+- Keep `<DeployAddin>false</DeployAddin>`.
+- Define `Release.R22`, `Release.R23`, `Release.R24`, `Release.R25`, `Release.R26`.
 
-# 搜尋是否還有引用這些檔案
-grep -r "已刪除的檔案名" --include="*.md"
+`MCP/RevitMCP.addin` must:
+
+- Use a relative `<Assembly>` path.
+- Avoid absolute drive paths.
+- Use `RevitMCP.Application` as `FullClassName`.
+- Avoid duplicate add-in entries.
+
+## Phase 4 - Build Verification / 建置驗證
+
+When build checks are enabled:
+
+- Build selected Revit versions with `dotnet build -c Release.R{YY}`.
+- Verify output under `MCP/bin/Release.R{YY}/RevitMCP.dll`.
+- Run `npm run build` in `MCP-Server`.
+- Verify `MCP-Server/build/index.js`.
+
+## Phase 5 - Deployment Verification / 部署驗證
+
+When deployment checks are enabled:
+
+- Inspect `%APPDATA%\Autodesk\Revit\Addins\{version}`.
+- Each Revit version should have at most one RevitMCP `.addin`.
+- The `.addin` assembly path must resolve to an existing DLL.
+- Duplicated manifests are a failure because Revit may load the add-in twice.
+
+## Phase 6 - Domain Metadata / Domain frontmatter
+
+Every active `domain/*.md` file except `domain/README.md` must have YAML frontmatter:
+
+- `name`
+- `description`
+- `metadata.version`
+- `metadata.updated`
+
+Recommended:
+
+- `metadata.related`
+- `metadata.referenced_by`
+- `metadata.tags`
+
+Validation rule:
+
+- Missing required frontmatter is `FAIL`.
+- Broken `metadata.related` references are `FAIL`.
+- Old `metadata.updated` values may be `WARN`, not automatic `FAIL`.
+
+## Phase 7 - Cross-Document Alignment / 跨文件統計同步
+
+Grand-total claims must match source of truth:
+
+- Runtime MCP tools: count from `registerRevitTools()`.
+- Domain SOP files: `domain/*.md` except `domain/README.md`, plus `domain/references/*.md`.
+- Skills: `.claude/skills/*/SKILL.md`.
+
+The check must compare:
+
+- `CLAUDE.md`
+- `README.md`
+- `README.en.md`
+- `docs/BIM_MCP/**`
+- active demo docs that make grand-total claims
+
+If a count changes, update all claim sites in the same change.
+
+## Phase 8 - Document Audience and Encoding / 文件受眾與編碼
+
+Documents must declare or fit one of these audiences:
+
+| Audience | Examples | Language Policy |
+|---|---|---|
+| AI-only | `CLAUDE.md`, `.claude/commands/*.md`, `.claude/skills/*/SKILL.md` | Prefer English |
+| Human-facing | `README.md`, `README.en.md`, `scripts/README.md`, teaching docs | Match target audience |
+| Shared | `domain/*.md`, `log/README.md` | Bilingual or Chinese-friendly; never English-only for Domain |
+| Historical | `docs/_archive/**`, old logs | Preserve unless explicitly migrated |
+
+Mojibake risk patterns such as `嚗`, `銝`, `蝣`, `摰`, `撠`, `閬`, `�` should be treated as content-quality warnings or failures depending on file class:
+
+- Canonical AI docs: `FAIL`.
+- README docs: `FAIL`.
+- Domain docs: `WARN` unless the edited file is in scope, because Domain migration must preserve Chinese meaning carefully.
+- Historical archive and logs: ignore by default.
+
+## Phase 9 - Live Revit Preconditions / Revit 即時狀態前置檢查
+
+Before any live model operation:
+
+1. Revit must be open.
+2. MCP service must be enabled from the Revit ribbon.
+3. Port `8964` or `REVIT_MCP_PORT` must match both sides.
+4. The AI client must expose the Revit MCP tools.
+5. Active view or selection dependent actions must re-anchor with `get_active_view` or equivalent.
+
+## Failure Report Template
+
+```text
+QA/QC failed.
+- Phase:
+- File:
+- Problem:
+- Expected:
+- Fix:
 ```
 
----
+## Maintenance Rule / 維護規則
 
-### 5. 圖片/資源檢查
+When this checklist changes, update:
 
-**目的**：確保所有引用的圖片、腳本都存在
-
-**執行命令**：
-```bash
-grep -r "\.(png|jpg|gif|svg)" --include="*.md"
-```
-
----
-
-##  快速檢查命令
-
-一行執行所有基本檢查：
-
-```bash
-echo "=== Markdown 連結 ===" && \
-grep -roh '\./[^)]*\.md' *.md 2>/dev/null | sort -u | while read f; do [ ! -f "$f" ] && echo " 缺少: $f"; done && \
-echo "=== domain/ 引用 ===" && \
-grep -roh 'domain/[a-zA-Z0-9_/-]*\.md' . --include="*.md" 2>/dev/null | sort -u | while read f; do [ ! -f "$f" ] && echo " 缺少: $f"; done && \
-echo "=== 檢查完成 ==="
-```
-
----
-
-##  常見問題
-
-| 問題 | 原因 | 解決方案 |
-|-----|------|---------|
-| 連結到不存在的 .md 檔案 | 檔案被刪除但引用未更新 | 更新引用或恢復檔案 |
-| 工具數量不一致 | 新增工具後未更新 README | 同步更新 README |
-| 路徑錯誤 | 目錄重構後未更新 | 全域搜尋替換 |
-
----
-
-##  執行頻率
-
-| 情境 | 頻率 |
-|-----|------|
-| 新增/刪除檔案 | 每次 |
-| 目錄重構 | 每次 |
-| 發布版本前 | 每次 |
-| 日常開發 | 每週一次 |
-
----
-
-**最後更新**：2026-01-04
+- `.claude/commands/qaqc.md`
+- `scripts/verify-qaqc.ps1`
+- `CLAUDE.md` QA/QC section
+- `docs/DOCUMENT_AUDIENCE_INVENTORY.md` if document classes changed

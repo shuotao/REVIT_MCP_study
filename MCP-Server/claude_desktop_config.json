@@ -1,14 +1,12 @@
 {
-  "_comment": "Project path configured for current environment",
+  "_comment": "Replace <YOUR_PROJECT_PATH> with the actual path of this project on your machine. 請將 <YOUR_PROJECT_PATH> 替換為本專案在您電腦上的實際路徑。Optional: set REVIT_MCP_PORT in env if the Revit add-in uses a non-default port (default 8964).",
   "mcpServers": {
     "revit-mcp": {
       "command": "node",
       "args": [
-        "C:/Users/Admin/Desktop/REVIT_MCP/MCP-Server/build/index.js"
+        "<YOUR_PROJECT_PATH>/MCP-Server/build/index.js"
       ],
-      "env": {
-        "REVIT_VERSION": "2024"
-      }
+      "env": {}
     }
   }
 }

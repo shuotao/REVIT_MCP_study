@@ -34,6 +34,12 @@ export const visualizationTools: Tool[] = [
                     },
                 },
                 transparency: { type: "number", description: "透明度 (0-100)", minimum: 0, maximum: 100, default: 0 },
+                patternMode: {
+                    type: "string",
+                    enum: ["auto", "surface", "cut"],
+                    description: "填滿層：auto（依視圖類型自動，樓板/屋頂於平面圖自動用表面）、surface（強制表面樣式，立面/剖面/3D 或平面圖樓板）、cut（強制切割樣式，平面圖被剖切的牆/柱/門窗）",
+                    default: "auto",
+                },
             },
             required: ["elementId"],
         },

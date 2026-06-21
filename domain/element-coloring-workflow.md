@@ -12,6 +12,7 @@ metadata:
   referenced_by:
     - element-coloring
     - element-query
+    - fire-safety-check
   tags: [上色, 顏色標示, colorize, 視覺化, 圖形覆寫, override]
 ---
 
@@ -90,3 +91,33 @@ node step_rejoin.js
 | `unjoin_wall_joins` | 取消牆柱接合 |
 | `rejoin_wall_joins` | 恢復牆柱接合 |
 | `query_elements` | 查詢元素 |
+
+## 規範類型對應染色策略（2026-05-22 補）
+
+當染色目的是「視覺化合規 FAIL」時，**規範類型決定染色策略**——同一套 prompt 不能跨類型通用：
+
+### Wall-anchored 規範（限制施加在牆上的開口/段落）
+
+範例：§45/§110 外牆開口距地界線、防火等級分區
+
+**SOP**：
+1. 從 `check_exterior_wall_openings` 等 wall-anchored 工具回的 violation list 拆出唯一 wallId（同一面牆多個違規開口算同一道牆）
+2. 依 status 染色：Fail 紅 / Warning 黃 / PASS 不染（避免擴大宣稱）
+3. 顯式帶 viewId（per 第四憲法 Active Re-Anchoring）
+
+### Room-anchored 規範（限制施加在房間整體屬性）
+
+範例：§41 採光比、§101/§188 排煙、停車淨高、燃料貯存量
+
+**SOP**：
+1. **不能直接染 Room** —— `override_element_graphics` 對 Room 在 FloorPlan 是 silent no-op（API Success 但視覺無變化，見 `tool-capability-boundary.md` L6）
+2. 改用 **hosting walls proxy**：從 `get_room_daylight_info`（或對應的房間 raw data 工具）拿 FAIL 房 Openings 的 HostWallId 集合，去重後染色
+3. 或更上游：在 Revit 設 Color Scheme（脫離 MCP 範圍，但 Revit 給設計師的標準作法）
+
+**Anti-pattern**：直接 `override_element_graphics(roomId, ...)` —— 5/22 dry-run 實證 silent no-op。
+
+### 判斷流程
+
+染色前**先讀對應 domain 檔**（fire-rating-check.md / daylight-area-check.md / smoke-exhaust-review.md 等）→ 看規範是「對牆下限制」還是「對房間下限制」→ 走對應策略。
+
+詳細的兩條 SOP + 失敗模式見 `domain/tool-capability-boundary.md` L8、`domain/lessons.md` L-027。
