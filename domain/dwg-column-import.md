@@ -64,6 +64,70 @@ metadata:
 
 **鐵則**：執行步驟 4 前一定先過斷點 1 的數量與尺寸是否合理，避免在錯圖層或錯比例下建出大量錯柱。
 
+### 2.1 流程圖（`/domain-diagram` 腳本產出）
+
+下圖由 `.claude/skills/domain-diagram/scripts/mermaid_from_spec.py` 從結構化 spec 確定性產出（非手繪）：
+
+```mermaid
+flowchart TD
+  start(["拿到 CAD 圖面<br/>要批次建柱"])
+  pre{"平面視圖 +<br/>CAD 已載入?"}
+  abpre(["補開平面視圖<br/>或載入/連結 CAD"])
+  scan["get_dwg_column_layers<br/>掃描圖層"]
+  preview["preview_dwg_columns<br/>放樣/單位健檢 preflight"]
+  d1{"斷點1<br/>unitSanity = ok?"}
+  fixunit["回連結對話框<br/>改正單位重連"]
+  listfam["get_column_types<br/>列出可用族群"]
+  d2{"斷點2<br/>選哪個模式?"}
+  modeA["模式A<br/>自動建型別 (寬x深)"]
+  modeB["模式B<br/>既有族群·尺寸對應"]
+  dC{"CAD 為 Link 且<br/>ezdxf 就位? (DWG 需 ODA)"}
+  abC(["改用 Link CAD<br/>裝 ODA 或退回 A/B"])
+  modeC["模式C<br/>柱號對應 textLayerName"]
+  create["create_columns_from_dwg<br/>批次建柱 (不可復原)"]
+  d3{"unmatchedLabels<br/>為空?"}
+  rename["改名到位<br/>modify_element_parameter<br/>(長度用 feet)"]
+  verify["抽查柱中心對位<br/>import/link 各驗"]
+  done(["完成"])
+
+  start --> pre
+  pre -- 否 --> abpre
+  pre -- 是 --> scan
+  scan --> preview
+  preview --> d1
+  d1 -- 否 / check --> fixunit
+  d1 -- 是 --> listfam
+  fixunit --> preview
+  listfam --> d2
+  d2 -- A 快速建柱 --> modeA
+  d2 -- B 尺寸對應 --> modeB
+  d2 -- C 柱號對應 --> dC
+  dC -- 否 --> abC
+  dC -- 是 --> modeC
+  modeA --> create
+  modeB --> create
+  modeC --> create
+  create --> d3
+  d3 -- 否 有 unmatched --> rename
+  d3 -- 是 --> verify
+  rename --> modeC
+  verify --> done
+
+  classDef dec fill:#e8f0fe,stroke:#1565c0,stroke-width:1px;
+  class pre,d1,d2,dC,d3 dec
+  classDef done fill:#e7f4ea,stroke:#2e7d32,stroke-width:1px;
+  class done done
+  classDef abort fill:#fdecea,stroke:#c62828,stroke-width:1px;
+  class abpre,abC abort
+```
+
+**流程健檢結論**（腳本自動 + 人工）：
+
+- [項1] **人工確認** — 兩個迴圈皆為有界退出：`preview → d1 → fixunit → preview`（使用者改正連結單位後收斂）、`create → d3 → rename → modeC → create`（unmatchedLabels 全數對應後收斂）。
+- [項2/3/4] **OK** — 無死路／不可達節點；兩個 abort 出口（`abpre`、`abC`）皆可達；五個決策（`pre`/`d1`/`d2`/`dC`/`d3`）分支皆完備且具標示。
+- [項5] **人工** — 前置缺口：§1 前置條件（平面視圖、CAD 已載入、模式 B/C 族群已載入）即此流程的 baseline，已於 `pre` 與斷點顯式把關。
+- [項6] **人工** — 原子性：`create_columns_from_dwg` 不可復原（§6），故以斷點 1／2 在「寫入前」攔截，而非寫入後回滾。
+
 ---
 
 ## 3. DXF / DWG 通用（不鎖死 DXF）
