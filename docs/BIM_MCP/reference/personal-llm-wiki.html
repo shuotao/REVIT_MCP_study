@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -44,7 +44,7 @@
   @keyframes wizIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   .wiz-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:14px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:40}
   .wiz-pill{font-family:var(--font-tech);font-size:11px;letter-spacing:1px;padding:6px 12px;border:1px solid var(--border);border-radius:100px;color:var(--text-muted);cursor:pointer;background:var(--bg-card);user-select:none}
-  .wiz-pill.done{color:var(--ok);border-color:rgba(74,222,128,.45)}
+  .wiz-pill.done{color:var(--ok);border-color:rgba(74,222,128,.49)}
   .wiz-pill.active{color:#000;background:var(--accent);border-color:var(--accent);font-weight:700}
   .wiz-ctrl{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:38px 0 6px;border-top:1px solid var(--border);padding-top:22px}
   .wiz-btn{font-family:var(--font-tech);font-size:13px;letter-spacing:1px;padding:12px 26px;border-radius:100px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;transition:all .2s}
@@ -72,7 +72,7 @@
 <header class="bim-hero">
   <div class="bim-hero-eyebrow">PERSONAL LLM WIKI <span class="accent">raw / wiki / schema</span></div>
   <h1 class="bim-hero-title">把公共智慧 pull 回家，<br>長成自己的知識庫</h1>
-  <p class="bim-hero-sub">REVIT_MCP 的 45 個 Domain 是老師們共同維護的公共智慧。這一頁教你用 Andrej Karpathy 的 LLM Wiki 模式 + Obsidian，在自己的電腦上把它 ingest 成「你的」wiki —— 用你的語言、你的分類、你的重點。最後再把個人深化的成果回饋上游，完成循環。</p>
+  <p class="bim-hero-sub">REVIT_MCP 的 49 個 Domain 是老師們共同維護的公共智慧。這一頁教你用 Andrej Karpathy 的 LLM Wiki 模式 + Obsidian，在自己的電腦上把它 ingest 成「你的」wiki —— 用你的語言、你的分類、你的重點。最後再把個人深化的成果回饋上游，完成循環。</p>
 </header>
 
 <section class="bim-section bim-anchor" id="why">
@@ -104,21 +104,21 @@
   <table class="map-table">
     <tr><th>Karpathy LLM Wiki</th><th>REVIT_MCP 公共版（已在運轉）</th><th>你的個人版（這頁要建的）</th></tr>
     <tr><td>Raw sources</td><td>建築法規、Revit 實機資料</td><td>你的 REVIT_MCP clone 本身（唯讀對待，git pull 更新）</td></tr>
-    <tr><td>The wiki</td><td>domain/*.md —— 45 個 Domain，各領域老師貢獻、有 frontmatter 互相引用</td><td>wiki/ = AI 為你維護的個人筆記</td></tr>
+    <tr><td>The wiki</td><td>domain/*.md —— 49 個 Domain，各領域老師貢獻、有 frontmatter 互相引用</td><td>wiki/ = AI 為你維護的個人筆記</td></tr>
     <tr><td>The schema</td><td>CLAUDE.md（連檔名都一樣）</td><td>vault 根目錄的 CLAUDE.md，從本頁範本起手</td></tr>
     <tr><td>index.md</td><td>CLAUDE.md 觸發關鍵字表 + domain/README.md</td><td>你的 index.md</td></tr>
     <tr><td>log.md（可 grep 的條目格式）</td><td>log/YYYY-MM.md —— 條目格式完全相同</td><td>你的 log.md（沿用同一格式）</td></tr>
     <tr><td>Lint 操作</td><td>scripts/verify-qaqc.ps1（孤兒頁、斷鏈、計數漂移）</td><td>請 AI 健檢你的 wiki（過版、矛盾、可回饋上游的發現）</td></tr>
   </table>
-  <p style="color:var(--text-muted);font-size:13px">補充：22 個編排層 Skill 與 96 個 MCP tools 也都在 repo 裡，AI 會在 ingest 時一併理解「哪些 SOP 有對應的自動化能力」。</p>
+  <p style="color:var(--text-muted);font-size:13px">補充：24 個編排層 Skill 與 99 個 MCP tools 也都在 repo 裡，AI 會在 ingest 時一併理解「哪些 SOP 有對應的自動化能力」。</p>
 </section>
 
 <section class="bim-section bim-anchor" id="structure">
   <div class="bim-section-eyebrow">SECTION 03 / STRUCTURE</div>
   <h2 class="bim-section-title">Vault 結構與更新邏輯</h2>
   <div class="vault-tree">REVIT_MCP/                 ← 你既有的 clone = raw 層（Obsidian 開這一層）
-  domain/*.md              ← 公共智慧：45 個 Domain SOP（唯讀對待）
-  .claude/skills/          ← 22 個 Skill
+  domain/*.md              ← 公共智慧：49 個 Domain SOP（唯讀對待）
+  .claude/skills/          ← 24 個 Skill
   CLAUDE.md                ← 公共 schema
   log/                     ← 公共時間軸
   templates/personal-vault/VAULT-CLAUDE.md  ← 你的 schema 的上游範本
@@ -230,10 +230,10 @@ repo 本身就是 raw 層；個人區是 repo 內的 vault/ 資料夾，上游 .
 
 1. raw 層 = repo 根目錄的所有上游內容。我只透過 git pull 更新；
    你只讀、永不修改。重點來源：
-   - domain/*.md：45 個 Domain SOP（各領域老師貢獻的公共智慧，
+   - domain/*.md：49 個 Domain SOP（各領域老師貢獻的公共智慧，
      frontmatter 含 version、updated、related、referenced_by、references、tags）
    - domain/references/building-code-tw.md：建築技術規則彙整
-   - .claude/skills/*/SKILL.md：22 個編排層 Skill
+   - .claude/skills/*/SKILL.md：24 個編排層 Skill
    - CLAUDE.md：公共 wiki 的 schema（Domain 觸發關鍵字表在這裡；
      它的開發規則只適用於開發本專案，vault 操作以 vault/CLAUDE.md 為準）
    - log/YYYY-MM.md：公共 wiki 的時間軸
