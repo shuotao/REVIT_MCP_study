@@ -28,4 +28,22 @@ export const mepTools: Tool[] = [
             required: ["pipeId", "familyName"],
         },
     },
+    {
+        name: "export_families",
+        description: "把專案中已載入的可編輯族群另存為 .rfa 檔到指定資料夾,建立可重用元件庫。預設匯出管配件(OST_PipeFitting)與管附件(OST_PipeAccessory)。自動依類別建立子資料夾;subFolderBySeries=true 時再依族群名稱系列(CIP/DWV/碳鋼.../)細分。略過系統族群、現地(in-place)與不可編輯族群。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                outputFolder: { type: "string", description: "輸出根資料夾絕對路徑,例如 C:\\Users\\xxx\\Desktop\\MEP管元件庫。不存在會自動建立。" },
+                categories: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "要匯出的 BuiltInCategory 名稱清單(如 OST_PipeFitting、OST_PipeAccessory)。省略則預設這兩類。",
+                },
+                subFolderBySeries: { type: "boolean", description: "是否在類別資料夾下再依族群名稱系列建立子資料夾(預設 false,只依類別分層)。" },
+                overwrite: { type: "boolean", description: "目標 .rfa 已存在時是否覆寫(預設 true)。" },
+            },
+            required: ["outputFolder"],
+        },
+    },
 ];

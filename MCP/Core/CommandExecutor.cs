@@ -285,6 +285,10 @@ namespace RevitMCP.Core
                         result = AddPipeCap(parameters);
                         break;
 
+                    case "export_families":
+                        result = ExportFamilies(parameters);
+                        break;
+
                     // === 帷幕牆模組 (PR#11) ===
                     case "get_curtain_wall_info":
                         result = GetCurtainWallInfo(parameters);
