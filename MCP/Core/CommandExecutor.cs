@@ -113,6 +113,14 @@ namespace RevitMCP.Core
                     case "list_seeds":
                         result = ListSeeds(parameters);
                         break;
+
+                    case "list_dimension_types":
+                        result = ListDimensionTypes(parameters);
+                        break;
+
+                    case "list_legend_views":
+                        result = ListLegendViews(parameters);
+                        break;
                     
                     case "get_all_grids":
                         result = GetAllGrids();
