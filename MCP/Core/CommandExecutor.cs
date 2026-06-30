@@ -64,6 +64,10 @@ namespace RevitMCP.Core
         {
             try
             {
+                // [診斷訊息] 協助確認版本
+                if (request.CommandName == "scan_penetrated_beams_in_view") {
+                    // TaskDialog.Show("MCP Debug", "正在執行 scan_penetrated_beams_in_view (V2.2)");
+                }
                 var parameters = request.Parameters as JObject ?? new JObject();
                 object result = null;
 
@@ -105,22 +109,6 @@ namespace RevitMCP.Core
                     case "create_window":
                         result = CreateWindow(parameters);
                         break;
-
-                    case "door-window-legend-tools":
-                        result = DoorWindowLegendTools(parameters);
-                        break;
-
-                    case "list_seeds":
-                        result = ListSeeds(parameters);
-                        break;
-
-                    case "list_dimension_types":
-                        result = ListDimensionTypes(parameters);
-                        break;
-
-                    case "list_legend_views":
-                        result = ListLegendViews(parameters);
-                        break;
                     
                     case "get_all_grids":
                         result = GetAllGrids();
@@ -148,14 +136,6 @@ namespace RevitMCP.Core
                     
                     case "get_rooms_by_level":
                         result = GetRoomsByLevel(parameters);
-                        break;
-
-                    case "get_room_surface_areas":
-                        result = GetRoomSurfaceAreas(parameters);
-                        break;
-
-                    case "create_finish_legend":
-                        result = CreateFinishLegend(parameters);
                         break;
                     
                     case "get_all_views":
@@ -194,11 +174,12 @@ namespace RevitMCP.Core
                         result = CreateDimension(parameters);
                         break;
 
+                    case "clear_previous_annotations":
+                        result = ClearPreviousAnnotations(parameters);
+                        break;
+
                     case "create_corridor_dimension":
                         result = CreateCorridorDimension(parameters);
-                        break;
-                    case "analyze_corridor_width":
-                        result = AnalyzeCorridorWidth(parameters);
                         break;
 
                     case "query_walls_by_location":
@@ -407,17 +388,6 @@ namespace RevitMCP.Core
                         result = DwgColumnExecutor.CreateColumnsFromDwg(_uiApp.ActiveUIDocument.Document, parameters);
                         break;
 
-                    // === DWG 圖層批次建樑模組 ===
-                    case "get_dwg_beam_layers":
-                        result = DwgBeamExecutor.GetDwgBeamLayers(_uiApp.ActiveUIDocument.Document);
-                        break;
-                    case "preview_dwg_beams":
-                        result = DwgBeamExecutor.PreviewDwgBeams(_uiApp.ActiveUIDocument.Document, parameters);
-                        break;
-                    case "create_beams_from_dwg":
-                        result = DwgBeamExecutor.CreateBeamsFromDwg(_uiApp.ActiveUIDocument.Document, parameters);
-                        break;
-
                     case "get_linked_models":
                         result = GetLinkedModels();
                         break;
@@ -436,11 +406,13 @@ namespace RevitMCP.Core
                     case "export_clash_report":
                         result = ExportClashReport(parameters);
                         break;
-                    case "move_element":
-                        result = MoveElement(parameters);
+
+                    // === 穿梁檢核模組 (PR#20) ===
+                    case "analyze_beam_penetration":
+                        result = AnalyzeBeamPenetration(parameters);
                         break;
-                    case "flip_element":
-                        result = FlipElement(parameters);
+                    case "scan_penetrated_beams_in_view":
+                        result = ScanPenetratedBeamsInView(parameters);
                         break;
 
                     // === 視圖與基準線調整模組 ===
@@ -586,6 +558,18 @@ namespace RevitMCP.Core
         {
             Document doc = _uiApp.ActiveUIDocument.Document;
             IdType elementId = parameters["elementId"]?.Value<IdType>() ?? 0;
+            IdType linkInstanceId = parameters["linkInstanceId"]?.Value<IdType>() ?? 0;
+
+            if (linkInstanceId != 0)
+            {
+                var linkInstance = doc.GetElement(new ElementId(linkInstanceId)) as RevitLinkInstance;
+                if (linkInstance != null)
+                {
+                    doc = linkInstance.GetLinkDocument();
+                }
+            }
+
+            if (doc == null) throw new Exception("目標文件為空 (null)");
 
             Element element = doc.GetElement(new ElementId(elementId));
             if (element == null)
@@ -735,45 +719,33 @@ namespace RevitMCP.Core
             {
                 trans.Start();
 
-                bool success = false;
-
-                // Element.Name 是 Revit API 的特殊 property，LookupParameter("Name") 會回 null。
-                // 攔截四種重命名意圖（含中英與 BuiltInParameter ALL_MODEL_TYPE_NAME=-1002001），直接寫 element.Name。
-                if (parameterName == "Name" || parameterName == "名稱"
-                    || parameterName == "類型名稱" || parameterName == "-1002001")
+                Parameter param = element.LookupParameter(parameterName);
+                if (param == null)
                 {
-                    element.Name = value;
-                    success = true;
+                    throw new Exception($"找不到參數: {parameterName}");
                 }
-                else
+
+                if (param.IsReadOnly)
                 {
-                    Parameter param = element.LookupParameter(parameterName);
-                    if (param == null)
-                    {
-                        throw new Exception($"找不到參數: {parameterName}");
-                    }
+                    throw new Exception($"參數 {parameterName} 是唯讀的");
+                }
 
-                    if (param.IsReadOnly)
-                    {
-                        throw new Exception($"參數 {parameterName} 是唯讀的");
-                    }
-
-                    switch (param.StorageType)
-                    {
-                        case StorageType.String:
-                            success = param.Set(value);
-                            break;
-                        case StorageType.Double:
-                            if (double.TryParse(value, out double dVal))
-                                success = param.Set(dVal);
-                            break;
-                        case StorageType.Integer:
-                            if (int.TryParse(value, out int iVal))
-                                success = param.Set(iVal);
-                            break;
-                        default:
-                            throw new Exception($"不支援的參數類型: {param.StorageType}");
-                    }
+                bool success = false;
+                switch (param.StorageType)
+                {
+                    case StorageType.String:
+                        success = param.Set(value);
+                        break;
+                    case StorageType.Double:
+                        if (double.TryParse(value, out double dVal))
+                            success = param.Set(dVal);
+                        break;
+                    case StorageType.Integer:
+                        if (int.TryParse(value, out int iVal))
+                            success = param.Set(iVal);
+                        break;
+                    default:
+                        throw new Exception($"不支援的參數類型: {param.StorageType}");
                 }
 
                 if (!success)
@@ -794,9 +766,7 @@ namespace RevitMCP.Core
         }
 
         /// <summary>
-        /// 建立門。支援 doorType 篩選與 sourceElementId 來源複製（poisonsam fork 擴寫）
-        /// 4 級類型 fallback：doorType → sourceElement type → 任意第一個
-        /// 來源 fork: poisonsam/main:MCP/Core/Commands/CommandExecutor.Architecture.cs:217-318
+        /// 建立門
         /// </summary>
         private object CreateDoor(JObject parameters)
         {
@@ -804,8 +774,6 @@ namespace RevitMCP.Core
             IdType wallId = parameters["wallId"]?.Value<IdType>() ?? 0;
             double locationX = parameters["locationX"]?.Value<double>() ?? 0;
             double locationY = parameters["locationY"]?.Value<double>() ?? 0;
-            string doorType = parameters["doorType"]?.Value<string>();
-            IdType? sourceElementId = parameters["sourceElementId"]?.Value<IdType>();
 
             Wall wall = doc.GetElement(new ElementId(wallId)) as Wall;
             if (wall == null)
@@ -817,40 +785,12 @@ namespace RevitMCP.Core
             {
                 trans.Start();
 
-                FamilySymbol doorSymbol = null;
-                Element sourceElement = null;
-
-                // 1. 若有來源 ID，先取得來源元素以供後續複製
-                if (sourceElementId.HasValue && sourceElementId.Value > 0)
-                {
-                    sourceElement = doc.GetElement(new ElementId(sourceElementId.Value));
-                }
-
-                // 2. 優先使用指定類型名稱
-                if (!string.IsNullOrEmpty(doorType))
-                {
-                    doorSymbol = new FilteredElementCollector(doc)
-                        .OfClass(typeof(FamilySymbol))
-                        .OfCategory(BuiltInCategory.OST_Doors)
-                        .Cast<FamilySymbol>()
-                        .FirstOrDefault(fs => fs.Name == doorType || (fs.FamilyName + ": " + fs.Name) == doorType);
-                }
-
-                // 3. 如果沒指定名稱或找不到，則使用來源元素的類型
-                if (doorSymbol == null && sourceElement != null)
-                {
-                    doorSymbol = doc.GetElement(sourceElement.GetTypeId()) as FamilySymbol;
-                }
-
-                // 4. 最後回退到預設（第一個）
-                if (doorSymbol == null)
-                {
-                    doorSymbol = new FilteredElementCollector(doc)
-                        .OfClass(typeof(FamilySymbol))
-                        .OfCategory(BuiltInCategory.OST_Doors)
-                        .Cast<FamilySymbol>()
-                        .FirstOrDefault();
-                }
+                // 取得門類型
+                FamilySymbol doorSymbol = new FilteredElementCollector(doc)
+                    .OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_Doors)
+                    .Cast<FamilySymbol>()
+                    .FirstOrDefault();
 
                 if (doorSymbol == null)
                 {
@@ -868,20 +808,8 @@ namespace RevitMCP.Core
                 XYZ location = new XYZ(locationX / 304.8, locationY / 304.8, level?.Elevation ?? 0);
 
                 FamilyInstance door = doc.Create.NewFamilyInstance(
-                    location, doorSymbol, wall, level,
+                    location, doorSymbol, wall, level, 
                     Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
-
-                // 若有來源，複製 instance parameters 與 Facing/Hand 朝向
-                if (sourceElement != null)
-                {
-                    CopyInstanceParameters(sourceElement, door);
-
-                    if (sourceElement is FamilyInstance sourceFI)
-                    {
-                        if (sourceFI.FacingFlipped != door.FacingFlipped) door.flipFacing();
-                        if (sourceFI.HandFlipped != door.HandFlipped) door.flipHand();
-                    }
-                }
 
                 trans.Commit();
 
@@ -890,16 +818,13 @@ namespace RevitMCP.Core
                     ElementId = door.Id.GetIdValue(),
                     DoorType = doorSymbol.Name,
                     WallId = wallId,
-                    SourceElementId = sourceElement?.Id.GetIdValue(),
                     Message = $"成功建立門，ID: {door.Id.GetIdValue()}"
                 };
             }
         }
 
         /// <summary>
-        /// 建立窗。支援 windowType 篩選與 sourceElementId 來源複製（poisonsam fork 擴寫）
-        /// 4 級類型 fallback：windowType → sourceElement type → 任意第一個
-        /// 來源 fork: poisonsam/main:MCP/Core/Commands/CommandExecutor.Architecture.cs:320-420
+        /// 建立窗
         /// </summary>
         private object CreateWindow(JObject parameters)
         {
@@ -907,8 +832,6 @@ namespace RevitMCP.Core
             IdType wallId = parameters["wallId"]?.Value<IdType>() ?? 0;
             double locationX = parameters["locationX"]?.Value<double>() ?? 0;
             double locationY = parameters["locationY"]?.Value<double>() ?? 0;
-            string windowType = parameters["windowType"]?.Value<string>();
-            IdType? sourceElementId = parameters["sourceElementId"]?.Value<IdType>();
 
             Wall wall = doc.GetElement(new ElementId(wallId)) as Wall;
             if (wall == null)
@@ -920,40 +843,12 @@ namespace RevitMCP.Core
             {
                 trans.Start();
 
-                FamilySymbol windowSymbol = null;
-                Element sourceElement = null;
-
-                // 1. 若有來源 ID，先取得來源元素
-                if (sourceElementId.HasValue && sourceElementId.Value > 0)
-                {
-                    sourceElement = doc.GetElement(new ElementId(sourceElementId.Value));
-                }
-
-                // 2. 優先使用指定類型名稱
-                if (!string.IsNullOrEmpty(windowType))
-                {
-                    windowSymbol = new FilteredElementCollector(doc)
-                        .OfClass(typeof(FamilySymbol))
-                        .OfCategory(BuiltInCategory.OST_Windows)
-                        .Cast<FamilySymbol>()
-                        .FirstOrDefault(fs => fs.Name == windowType || (fs.FamilyName + ": " + fs.Name) == windowType);
-                }
-
-                // 3. 如果沒指定名稱或找不到，則使用來源元素的類型
-                if (windowSymbol == null && sourceElement != null)
-                {
-                    windowSymbol = doc.GetElement(sourceElement.GetTypeId()) as FamilySymbol;
-                }
-
-                // 4. 最後回退到預設（第一個）
-                if (windowSymbol == null)
-                {
-                    windowSymbol = new FilteredElementCollector(doc)
-                        .OfClass(typeof(FamilySymbol))
-                        .OfCategory(BuiltInCategory.OST_Windows)
-                        .Cast<FamilySymbol>()
-                        .FirstOrDefault();
-                }
+                // 取得窗類型
+                FamilySymbol windowSymbol = new FilteredElementCollector(doc)
+                    .OfClass(typeof(FamilySymbol))
+                    .OfCategory(BuiltInCategory.OST_Windows)
+                    .Cast<FamilySymbol>()
+                    .FirstOrDefault();
 
                 if (windowSymbol == null)
                 {
@@ -974,18 +869,6 @@ namespace RevitMCP.Core
                     location, windowSymbol, wall, level,
                     Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
 
-                // 若有來源，複製 instance parameters 與 Facing/Hand 朝向
-                if (sourceElement != null)
-                {
-                    CopyInstanceParameters(sourceElement, window);
-
-                    if (sourceElement is FamilyInstance sourceFI)
-                    {
-                        if (sourceFI.FacingFlipped != window.FacingFlipped) window.flipFacing();
-                        if (sourceFI.HandFlipped != window.HandFlipped) window.flipHand();
-                    }
-                }
-
                 trans.Commit();
 
                 return new
@@ -993,7 +876,6 @@ namespace RevitMCP.Core
                     ElementId = window.Id.GetIdValue(),
                     WindowType = windowSymbol.Name,
                     WallId = wallId,
-                    SourceElementId = sourceElement?.Id.GetIdValue(),
                     Message = $"成功建立窗，ID: {window.Id.GetIdValue()}"
                 };
             }
@@ -1354,8 +1236,7 @@ namespace RevitMCP.Core
                     MinY = Math.Round(bbox.Min.Y * 304.8, 2),
                     MaxX = Math.Round(bbox.Max.X * 304.8, 2),
                     MaxY = Math.Round(bbox.Max.Y * 304.8, 2)
-                } : null,
-                BoundarySegments = GetRoomBoundarySegments(room)
+                } : null
             };
         }
 
@@ -1915,9 +1796,6 @@ namespace RevitMCP.Core
             Parameter heightParam = wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
             double height = heightParam != null ? heightParam.AsDouble() * 304.8 : 0;
 
-            // Stage 3.5：補 Wall.Flipped + Wall.Orientation 兩個 native property
-            // Wall.Flipped = bool（是否被 flip 過）
-            // Wall.Orientation = XYZ 單位向量，指向 exterior side
             return new
             {
                 ElementId = wallId,
@@ -1930,10 +1808,7 @@ namespace RevitMCP.Core
                 StartY = Math.Round(startPoint.Y * 304.8, 2),
                 EndX = Math.Round(endPoint.X * 304.8, 2),
                 EndY = Math.Round(endPoint.Y * 304.8, 2),
-                Level = doc.GetElement(wall.LevelId)?.Name,
-                Flipped = wall.Flipped,
-                OrientationX = Math.Round(wall.Orientation.X, 4),
-                OrientationY = Math.Round(wall.Orientation.Y, 4)
+                Level = doc.GetElement(wall.LevelId)?.Name
             };
         }
 
@@ -1961,47 +1836,7 @@ namespace RevitMCP.Core
             {
                 trans.Start();
 
-                // 轉換座標
-                XYZ start = new XYZ(startX / 304.8, startY / 304.8, 0);
-                XYZ end = new XYZ(endX / 304.8, endY / 304.8, 0);
-
-                // 建立參考線
-                Line line = Line.CreateBound(start, end);
-
-                // 建立尺寸標註用的參考陣列
-                ReferenceArray refArray = new ReferenceArray();
-
-                // 使用 DetailCurve 作為參考
-                // 先建立兩個詳圖線作為參考點
-                XYZ perpDir = new XYZ(-(end.Y - start.Y), end.X - start.X, 0).Normalize();
-                double offsetFeet = offset / 304.8;
-
-                // 偏移後的標註線位置
-                XYZ dimLinePoint = start.Add(perpDir.Multiply(offsetFeet));
-                Line dimLine = Line.CreateBound(
-                    start.Add(perpDir.Multiply(offsetFeet)),
-                    end.Add(perpDir.Multiply(offsetFeet))
-                );
-
-                // 使用 NewDetailCurve 建立參考（建立足夠長的線段）
-                // 詳圖線應垂直於標註方向，作為標註的參考點
-                double lineLength = 1.0; // 1 英尺 = 約 305mm
-
-                // 使用 perpDir（垂直方向）來建立詳圖線
-                DetailCurve dc1 = doc.Create.NewDetailCurve(view, Line.CreateBound(
-                    start.Subtract(perpDir.Multiply(lineLength / 2)), 
-                    start.Add(perpDir.Multiply(lineLength / 2))));
-                DetailCurve dc2 = doc.Create.NewDetailCurve(view, Line.CreateBound(
-                    end.Subtract(perpDir.Multiply(lineLength / 2)), 
-                    end.Add(perpDir.Multiply(lineLength / 2))));
-
-                refArray.Append(dc1.GeometryCurve.Reference);
-                refArray.Append(dc2.GeometryCurve.Reference);
-
-                // 建立尺寸標註
-                Dimension dim = doc.Create.NewDimension(view, dimLine, refArray);
-
-                // 注意：保留詳圖線作為標註參考點（如需刪除請手動處理）
+                Dimension dim = CreateDimensionInternal(doc, view, startX, startY, endX, endY, offset);
 
                 trans.Commit();
 
@@ -2016,6 +1851,139 @@ namespace RevitMCP.Core
                     ViewName = view.Name,
                     Message = $"成功建立尺寸標註: {Math.Round(dimValue, 0)} mm"
                 };
+            }
+        }
+
+        private Dimension CreateDimensionInternal(Document doc, View view, double startX, double startY, double endX, double endY, double offset)
+        {
+            // 轉換座標
+            XYZ start = new XYZ(startX / 304.8, startY / 304.8, 0);
+            XYZ end = new XYZ(endX / 304.8, endY / 304.8, 0);
+
+            // 建立參考線
+            Line line = Line.CreateBound(start, end);
+
+            // 建立尺寸標註用的參考陣列
+            ReferenceArray refArray = new ReferenceArray();
+
+            // 使用 DetailCurve 作為參考
+            // 先建立兩個詳圖線作為參考點
+            XYZ perpDir = new XYZ(-(end.Y - start.Y), end.X - start.X, 0).Normalize();
+            double offsetFeet = offset / 304.8;
+
+            // 偏移後的標註線位置
+            Line dimLine = Line.CreateBound(
+                start.Add(perpDir.Multiply(offsetFeet)),
+                end.Add(perpDir.Multiply(offsetFeet))
+            );
+
+            // 使用 NewDetailCurve 建立參考（建立足夠長的線段）
+            // 詳圖線應垂直於標註方向，作為標註的參考點
+            double lineLength = 1.0; // 1 英尺 = 約 305mm
+
+            // 使用 perpDir（垂直方向）來建立詳圖線
+            DetailCurve dc1 = doc.Create.NewDetailCurve(view, Line.CreateBound(
+                start.Subtract(perpDir.Multiply(lineLength / 2)), 
+                start.Add(perpDir.Multiply(lineLength / 2))));
+            DetailCurve dc2 = doc.Create.NewDetailCurve(view, Line.CreateBound(
+                end.Subtract(perpDir.Multiply(lineLength / 2)), 
+                end.Add(perpDir.Multiply(lineLength / 2))));
+
+            // 標記為穿梁輔助線段
+            dc1.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("BeamPenetration_Helper");
+            dc2.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("BeamPenetration_Helper");
+
+            // 設為不可見線型以隱藏輔助線段
+            try
+            {
+                Category invisibleCat = doc.Settings.Categories.get_Item(BuiltInCategory.OST_InvisibleLines);
+                if (invisibleCat != null)
+                {
+                    GraphicsStyle gs = invisibleCat.GetGraphicsStyle(GraphicsStyleType.Projection);
+                    if (gs != null)
+                    {
+                        dc1.LineStyle = gs;
+                        dc2.LineStyle = gs;
+                    }
+                }
+            }
+            catch { /* 靜默失敗以防止有些專案無此線型 */ }
+
+            refArray.Append(dc1.GeometryCurve.Reference);
+            refArray.Append(dc2.GeometryCurve.Reference);
+
+            // 建立尺寸標註
+            Dimension dim = doc.Create.NewDimension(view, dimLine, refArray);
+            
+            // 標記為穿梁輔助尺寸標註
+            dim.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("BeamPenetration_Helper");
+
+            return dim;
+        }
+
+        private object ClearPreviousAnnotations(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            View activeView = doc.ActiveView;
+
+            using (Transaction trans = new Transaction(doc, "清除舊有穿梁標註"))
+            {
+                trans.Start();
+
+                // 1. 蒐集當前視圖中的所有 Dimension
+                var dimensions = new FilteredElementCollector(doc, activeView.Id)
+                    .OfClass(typeof(Dimension))
+                    .Cast<Dimension>()
+                    .ToList();
+
+                // 2. 蒐集當前視圖中的所有 DetailCurve
+                var detailCurves = new FilteredElementCollector(doc, activeView.Id)
+                    .OfClass(typeof(CurveElement))
+                    .Cast<CurveElement>()
+                    .Where(c => c is DetailArc || c is DetailLine || c.GetType().Name.Contains("Detail"))
+                    .ToList();
+
+                // 3. 蒐集當前視圖中的所有 TextNote
+                var textNotes = new FilteredElementCollector(doc, activeView.Id)
+                    .OfClass(typeof(TextNote))
+                    .Cast<TextNote>()
+                    .ToList();
+
+                List<ElementId> toDelete = new List<ElementId>();
+
+                // 檢查 Dimension
+                foreach (var d in dimensions) {
+                    Parameter p = d.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
+                    if (p != null && p.HasValue && p.AsString() == "BeamPenetration_Helper") {
+                        toDelete.Add(d.Id);
+                    }
+                }
+
+                // 檢查 DetailCurve
+                foreach (var dc in detailCurves) {
+                    Parameter p = dc.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
+                    if (p != null && p.HasValue && p.AsString() == "BeamPenetration_Helper") {
+                        toDelete.Add(dc.Id);
+                    }
+                }
+
+                // 檢查 TextNote
+                foreach (var tn in textNotes) {
+                    Parameter p = tn.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
+                    if (p != null && p.HasValue && p.AsString() == "BeamPenetration_Helper") {
+                        toDelete.Add(tn.Id);
+                    } else if (tn.Text.StartsWith("● PASS") || tn.Text.StartsWith("● FAIL:")) {
+                        toDelete.Add(tn.Id);
+                    }
+                }
+
+                int deletedCount = toDelete.Count;
+                if (deletedCount > 0) {
+                    doc.Delete(toDelete);
+                }
+
+                trans.Commit();
+                return new { Success = true, DeletedCount = deletedCount };
             }
         }
 
@@ -2200,189 +2168,6 @@ namespace RevitMCP.Core
                 AllPass_1600 = widthValues.All(w => w >= 1600),
                 AllPass_1200 = widthValues.All(w => w >= 1200),
                 Segments = measurements
-            };
-        }
-
-        /// <summary>
-        /// 走廊寬度分析 — 使用房間邊界線段找平行牆對，回傳寬度與各區段檢討結果
-        /// </summary>
-        private object AnalyzeCorridorWidth(JObject parameters)
-        {
-            Document doc = _uiApp.ActiveUIDocument.Document;
-            IdType? roomId = parameters["roomId"]?.Value<IdType>();
-            string roomName = parameters["roomName"]?.Value<string>();
-            double minWidth = parameters["minWidth"]?.Value<double>() ?? 1200;
-
-            Room room = null;
-
-            if (roomId.HasValue && roomId.Value > 0)
-            {
-                room = doc.GetElement(new ElementId(roomId.Value)) as Room;
-            }
-            else if (!string.IsNullOrEmpty(roomName))
-            {
-                room = new FilteredElementCollector(doc)
-                    .OfCategory(BuiltInCategory.OST_Rooms)
-                    .WhereElementIsNotElementType()
-                    .Cast<Room>()
-                    .FirstOrDefault(r => r.Name.Contains(roomName) ||
-                                         r.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString()?.Contains(roomName) == true);
-            }
-
-            if (room == null)
-            {
-                throw new Exception(roomId.HasValue
-                    ? $"找不到房間 ID: {roomId}"
-                    : $"找不到房間名稱包含: {roomName}");
-            }
-
-            var bOptions = new SpatialElementBoundaryOptions();
-            bOptions.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Finish;
-            var segmentLoops = room.GetBoundarySegments(bOptions);
-
-            if (segmentLoops == null || segmentLoops.Count == 0)
-                throw new Exception("房間無邊界線段");
-
-            var lines = new List<Line>();
-            foreach (var seg in segmentLoops[0])
-            {
-                var curve = seg.GetCurve();
-                if (curve is Line line && line.Length > 0.3)
-                    lines.Add(line);
-            }
-
-            if (lines.Count < 2)
-                throw new Exception($"邊界線段不足（僅 {lines.Count} 條直線）");
-
-            var pairs = new List<int[]>();
-            var pairWidths = new List<double>();
-            var pairAvgLens = new List<double>();
-
-            for (int i = 0; i < lines.Count; i++)
-            {
-                XYZ dir1 = lines[i].Direction.Normalize();
-                double len1 = lines[i].Length;
-
-                for (int j = i + 1; j < lines.Count; j++)
-                {
-                    XYZ dir2 = lines[j].Direction.Normalize();
-                    double len2 = lines[j].Length;
-
-                    double dot = Math.Abs(dir1.DotProduct(dir2));
-                    if (dot < 0.996) continue;
-
-                    XYZ perp = new XYZ(-dir1.Y, dir1.X, 0).Normalize();
-                    XYZ diff = lines[j].GetEndPoint(0).Subtract(lines[i].GetEndPoint(0));
-                    double dist = Math.Abs(diff.DotProduct(perp));
-
-                    if (dist < 100.0 / 304.8) continue;
-
-                    double avgLen = (len1 + len2) / 2;
-                    if (avgLen < dist) continue;
-
-                    double s1a = lines[i].GetEndPoint(0).DotProduct(dir1);
-                    double s1b = lines[i].GetEndPoint(1).DotProduct(dir1);
-                    double s2a = lines[j].GetEndPoint(0).DotProduct(dir1);
-                    double s2b = lines[j].GetEndPoint(1).DotProduct(dir1);
-
-                    double min1 = Math.Min(s1a, s1b), max1 = Math.Max(s1a, s1b);
-                    double min2 = Math.Min(s2a, s2b), max2 = Math.Max(s2a, s2b);
-                    double oStart = Math.Max(min1, min2);
-                    double oEnd = Math.Min(max1, max2);
-                    if (oEnd <= oStart + 0.01) continue;
-
-                    pairs.Add(new[] { i, j });
-                    pairWidths.Add(dist);
-                    pairAvgLens.Add(avgLen);
-                }
-            }
-
-            if (pairs.Count == 0)
-                throw new Exception("找不到平行牆面對（可能不是走廊形狀）");
-
-            var sorted = Enumerable.Range(0, pairs.Count)
-                .OrderByDescending(k => pairAvgLens[k])
-                .ToList();
-
-            var segments = new List<object>();
-            var widthValues = new List<double>();
-
-            foreach (int k in sorted)
-            {
-                var line1 = lines[pairs[k][0]];
-                var line2 = lines[pairs[k][1]];
-                XYZ dir = line1.Direction.Normalize();
-
-                double s1a = line1.GetEndPoint(0).DotProduct(dir);
-                double s1b = line1.GetEndPoint(1).DotProduct(dir);
-                double s2a = line2.GetEndPoint(0).DotProduct(dir);
-                double s2b = line2.GetEndPoint(1).DotProduct(dir);
-
-                double min1 = Math.Min(s1a, s1b), max1 = Math.Max(s1a, s1b);
-                double min2 = Math.Min(s2a, s2b), max2 = Math.Max(s2a, s2b);
-                double oMid = (Math.Max(min1, min2) + Math.Min(max1, max2)) / 2;
-
-                double t1 = (s1b != s1a) ? (oMid - s1a) / (s1b - s1a) : 0.5;
-                double t2 = (s2b != s2a) ? (oMid - s2a) / (s2b - s2a) : 0.5;
-                t1 = Math.Max(0.01, Math.Min(0.99, t1));
-                t2 = Math.Max(0.01, Math.Min(0.99, t2));
-
-                XYZ p1 = line1.Evaluate(t1, true);
-                XYZ p2 = line2.Evaluate(t2, true);
-
-                double widthMm = Math.Round(pairWidths[k] * 304.8, 1);
-                double lengthMm = Math.Round(pairAvgLens[k] * 304.8, 1);
-                widthValues.Add(widthMm);
-
-                segments.Add(new
-                {
-                    SegmentIndex = segments.Count + 1,
-                    Width = widthMm,
-                    Length = lengthMm,
-                    Method = "boundary_accurate",
-                    Status = widthMm >= minWidth ? "PASS" : "FAIL",
-                    CenterPoint = new
-                    {
-                        X = Math.Round((p1.X + p2.X) * 304.8 / 2, 1),
-                        Y = Math.Round((p1.Y + p2.Y) * 304.8 / 2, 1)
-                    },
-                    Point1 = new
-                    {
-                        X = Math.Round(p1.X * 304.8, 1),
-                        Y = Math.Round(p1.Y * 304.8, 1)
-                    },
-                    Point2 = new
-                    {
-                        X = Math.Round(p2.X * 304.8, 1),
-                        Y = Math.Round(p2.Y * 304.8, 1)
-                    }
-                });
-            }
-
-            string resolvedRoomName = room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString() ?? room.Name;
-            string roomNumber = room.Number ?? "";
-
-            return new
-            {
-                Room = new
-                {
-                    ElementId = room.Id.GetIdValue(),
-                    Name = resolvedRoomName,
-                    Number = roomNumber,
-                    Level = doc.GetElement(room.LevelId)?.Name
-                },
-                Input = new
-                {
-                    MinWidth = minWidth,
-                    BoundarySegmentCount = lines.Count
-                },
-                Summary = new
-                {
-                    TotalSegments = segments.Count,
-                    MinWidth = widthValues.Count > 0 ? widthValues.Min() : 0,
-                    AllPass = widthValues.All(w => w >= minWidth)
-                },
-                Segments = segments
             };
         }
 
@@ -3276,48 +3061,6 @@ namespace RevitMCP.Core
                 TotalPairs = storedCount,
                 Message = $"已恢復 {rejoinedCount} 個接合關係"
             };
-        }
-
-        /// <summary>
-        /// 取得房間邊界線段 (用於精確計算走廊寬度)
-        /// </summary>
-        private List<object> GetRoomBoundarySegments(Room room)
-        {
-            var segments = new List<object>();
-            var options = new SpatialElementBoundaryOptions();
-
-            try
-            {
-                var boundarySegments = room.GetBoundarySegments(options);
-                if (boundarySegments == null || boundarySegments.Count == 0)
-                    return segments;
-
-                foreach (var loop in boundarySegments)
-                {
-                    foreach (BoundarySegment seg in loop)
-                    {
-                        var curve = seg.GetCurve();
-                        var start = curve.GetEndPoint(0);
-                        var end = curve.GetEndPoint(1);
-
-                        segments.Add(new
-                        {
-                            StartX = Math.Round(start.X * 304.8, 2),
-                            StartY = Math.Round(start.Y * 304.8, 2),
-                            EndX = Math.Round(end.X * 304.8, 2),
-                            EndY = Math.Round(end.Y * 304.8, 2),
-                            Length = Math.Round(curve.Length * 304.8, 2)
-                        });
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // 某些房間可能無法取得邊界 (未封閉、未放置等)
-                // 回傳空陣列,讓 JS 端使用 BoundingBox fallback
-            }
-
-            return segments;
         }
 
         #endregion
