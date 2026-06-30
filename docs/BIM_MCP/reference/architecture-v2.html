@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -31,7 +31,7 @@
 <header class="bim-hero">
   <div class="bim-hero-eyebrow">ARCHITECTURE V2 <span class="accent">3 層</span></div>
   <h1 class="bim-hero-title"><span class="accent">Skill / CLAUDE.md / Domain</span><br>三層模組架構</h1>
-  <p class="bim-hero-sub">REVIT_MCP 的核心架構：把 9 個系統、45 個 Domain、96 個工具按職責分到三層。Skill 管「何時觸發」、CLAUDE.md 管「跨 AI Client 橋接」、Domain 管「不可協商的知識」。本頁同時澄清「MCP ≠ Skill」的常見誤解。</p>
+  <p class="bim-hero-sub">REVIT_MCP 的核心架構：把 9 個系統、49 個 Domain、99 個工具按職責分到三層。Skill 管「何時觸發」、CLAUDE.md 管「跨 AI Client 橋接」、Domain 管「不可協商的知識」。本頁同時澄清「MCP ≠ Skill」的常見誤解。</p>
 </header>
 
 <!-- ============================================ -->
@@ -76,7 +76,7 @@
   <blockquote>
     <p>"Skills describe the workflow. MCP provides the runner... Saying Skills killed MCP is like saying GitHub Actions killed Bash."</p>
     <p style="color:var(--text-muted);">（Skill 描述工作流程。MCP 提供執行器……說 Skill 殺死了 MCP，就像說 GitHub Actions 殺死了 Bash。）</p>
-    <cite>— <a href="https://block.github.io/goose/blog/2025/12/22/agent-skills-vs-mcp/" target="_blank">Block/Goose Team</a></cite>
+    <cite>— <a href="https://block.github.io/goose/blog/2025/12/24/agent-skills-vs-mcp/" target="_blank">Block/Goose Team</a></cite>
   </blockquote>
 
   <h3>以本專案為例</h3>
@@ -97,7 +97,7 @@
     <div class="how-tech-label">WHY</div>
     <div class="how-tech-content">社群常爭論「Skill 殺死 MCP」——這是把<strong>抽象層級</strong>搞混的結果。MCP 解決「<strong>AI 怎麼動 Revit</strong>」（基礎能力），Skill 解決「<strong>AI 該照什麼順序動 Revit</strong>」（編排知識）。兩件根本不同層級的事，沒有取代關係。</div>
     <div class="how-tech-label">HOW</div>
-    <div class="how-tech-content">本專案明確分層——MCP server 提供 96 個原子工具（純能力），Skill 編排工具呼叫順序（純知識）。一個 MCP 工具被多個 Skill 引用，一個 Skill 引用多個 MCP 工具——<strong>多對多關係</strong>，互不替代。</div>
+    <div class="how-tech-content">本專案明確分層——MCP server 提供 99 個原子工具（純能力），Skill 編排工具呼叫順序（純知識）。一個 MCP 工具被多個 Skill 引用，一個 Skill 引用多個 MCP 工具——<strong>多對多關係</strong>，互不替代。</div>
     <div class="how-tech-label">TECHNIQUE</div>
     <div class="how-tech-content technique">Layered Capability Architecture · MCP as Runtime Bridge · Skill as Workflow Choreographer · M:N Tool-Skill Composition</div>
   </div>
@@ -113,7 +113,7 @@
     <ul class="further-reading-list">
       <li>
         <div>
-          <span class="fr-type">Blog</span><a href="https://block.github.io/goose/blog/2025/12/22/agent-skills-vs-mcp/" target="_blank">Skills vs MCP — Block/Goose</a>
+          <span class="fr-type">Blog</span><a href="https://block.github.io/goose/blog/2025/12/24/agent-skills-vs-mcp/" target="_blank">Skills vs MCP — Block/Goose</a>
           <span class="fr-desc">業界對「Skill 不取代 MCP」最清晰的論證——GitHub Actions 對 Bash 的類比</span>
         </div>
       </li>
@@ -152,7 +152,7 @@
       <div class="prop-badge">層 1</div>
       <h3 style="margin-top:8px;">Skill（觸發層）</h3>
       <p>放在 <code>.claude/skills/{name}/SKILL.md</code>。<strong>關鍵字觸發</strong>後按需載入，告訴 AI「該做什麼步驟、引用哪個 Domain、呼叫哪些 MCP Tool」。</p>
-      <p style="font-size:13px;color:var(--text-muted);">本專案目前 <strong>22 個 Skill</strong>。</p>
+      <p style="font-size:13px;color:var(--text-muted);">本專案目前 <strong>24 個 Skill</strong>。</p>
     </div>
     <div class="bim-card bim-card-warn">
       <div class="prop-badge" style="background:rgba(251,191,36,0.15);color:var(--warn);border-color:rgba(251,191,36,0.35);">層 2</div>
@@ -164,7 +164,7 @@
       <div class="prop-badge" style="background:rgba(74,222,128,0.15);color:var(--ok);border-color:rgba(74,222,128,0.35);">層 3</div>
       <h3 style="margin-top:8px;">Domain（知識層）</h3>
       <p>放在 <code>domain/*.md</code>。<strong>不可協商的限制</strong>——法規、SOP、計算公式、邊界案例。被多個 Skill 引用（複用），是專案的「資產投資」。</p>
-      <p style="font-size:13px;color:var(--text-muted);">本專案目前 <strong>45 個 Domain</strong>。</p>
+      <p style="font-size:13px;color:var(--text-muted);">本專案目前 <strong>49 個 Domain</strong>。</p>
     </div>
   </div>
 
@@ -248,7 +248,7 @@ CommandExecutor → Revit API</code></pre>
 
   <div class="how-tech">
     <div class="how-tech-label">WHY</div>
-    <div class="how-tech-content">為什麼不直接 AI Client ↔ Revit API？因為<strong>Revit API 太底層</strong>——LLM 要傳 ElementId、Transaction、ViewSet 這些原生型別，每次都得編 boilerplate。MCP Server 中間層把這些封裝成 96 個語意化工具（<code>check_smoke_exhaust_windows</code> 比 <code>FilteredElementCollector.OfCategory(...)</code> 友善 100 倍）。</div>
+    <div class="how-tech-content">為什麼不直接 AI Client ↔ Revit API？因為<strong>Revit API 太底層</strong>——LLM 要傳 ElementId、Transaction、ViewSet 這些原生型別，每次都得編 boilerplate。MCP Server 中間層把這些封裝成 99 個語意化工具（<code>check_smoke_exhaust_windows</code> 比 <code>FilteredElementCollector.OfCategory(...)</code> 友善 100 倍）。</div>
     <div class="how-tech-label">HOW</div>
     <div class="how-tech-content">AI Client（stdio）→ MCP Server（Node.js TypeScript）→ WebSocket（port 8964）→ Revit Add-in（C# .NET）→ Revit API。每層做<strong>協議翻譯 + UI 執行緒守門</strong>。port 8964 由 Add-in 啟動（HttpListener），MCP Server 連入。</div>
     <div class="how-tech-label">TECHNIQUE</div>
@@ -300,9 +300,9 @@ CommandExecutor → Revit API</code></pre>
       </tr>
       <tr>
         <td>MCP Tools</td>
-        <td>共用 96 個工具</td>
-        <td>共用 96 個工具</td>
-        <td>共用 96 個工具</td>
+        <td>共用 99 個工具</td>
+        <td>共用 99 個工具</td>
+        <td>共用 99 個工具</td>
       </tr>
       <tr>
         <td>Event Log</td>
@@ -364,11 +364,11 @@ CommandExecutor → Revit API</code></pre>
 
   <div class="bim-grid bim-grid-2">
     <a href="skills-index.html" class="bim-card" style="border-bottom:none;">
-      <h4>📖 22 個 Skill 完整索引</h4>
+      <h4>📖 24 個 Skill 完整索引</h4>
       <p>每個 Skill 的觸發關鍵字、引用 Domain、呼叫工具一覽。</p>
     </a>
     <a href="domain-index.html" class="bim-card" style="border-bottom:none;">
-      <h4>📚 45 Domain 完整索引</h4>
+      <h4>📚 49 Domain 完整索引</h4>
       <p>每個 Domain 的觸發詞、被引用 Skill、檔案位置。</p>
     </a>
     <a href="contributor-template.html" class="bim-card" style="border-bottom:none;">
