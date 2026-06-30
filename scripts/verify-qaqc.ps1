@@ -174,6 +174,7 @@ $excludedFiles = @(
     "domain/qa-checklist.md",          # QA checklist intentionally lists forbidden legacy paths
     "domain/lessons.md",                # 開發經驗檔，保留 legacy 教訓作為前車之鑑
     "domain/path-maintenance-qa.md",    # 路徑維護 QA，引用舊 nested dir 作為歷史修正紀錄
+    ".claude/skills/hj-pr-proposal/references/qa-checklist.md",  # QA checklist intentionally lists forbidden legacy paths (mirror of domain/qa-checklist.md)
     "docs/0328的課程討論.md"            # 歷史教材，保留當時上下文
 )
 

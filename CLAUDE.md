@@ -33,9 +33,9 @@ These counts must be derived from source, not copied by memory.
 
 | Item | Current Count | Source of Truth |
 |---|---:|---|
-| Runtime MCP tools | 99 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 49 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
-| Claude skills | 24 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 101 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 55 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
+| Claude skills | 25 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, `README.en.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
 
@@ -263,6 +263,13 @@ Read the matching file before applying a workflow or calculation.
 | dependent view, crop, grid crop, view split | `domain/dependent-view-crop-workflow.md` |
 | dwg, cad, 柱匯入, 圖層建柱, 批次建柱, column from dwg, 柱號對應, 柱名稱對應, textLayerName | `domain/dwg-column-import.md` |
 | dwg, cad, 樑翻模, 圖層建樑, 批次建樑, beam from dwg, 大樑, 次樑, 地樑, create_beams_from_dwg | `domain/dwg-beam-import.md` |
+| beam penetration, sleeve, 穿梁套管, 套管檢核, RC 梁開孔, 開孔, 穿梁 | `domain/beam-penetration-base.md` |
+| RC beam penetration, RC 梁穿孔, 圓孔, 禁開區, H/3, 相鄰套管淨距 | `domain/beam-penetration-rc.md` |
+| SC beam penetration, 鋼梁穿孔, 腹板開孔, web opening | `domain/beam-penetration-sc.md` |
+| SRC beam penetration, 鋼骨混凝土梁穿孔, 鋼骨避讓 | `domain/beam-penetration-src.md` |
+| beam penetration algorithm, 實體投影降維, JoinGeometry, 端面消失, 法向量過濾 | `domain/beam-penetration-algorithm.md` |
+| sleeve classification, 套管分類, 穿梁穿牆穿板判定, 套管身分 | `domain/sleeve-classification-protocol.md` |
+| scope box, range box, crop box, 範圍框, 裁剪框, ExpandCropBox | `domain/detect-range-box.md` |
 | detail component, detail sync, annotation component | `domain/detail-component-sync.md` |
 | door legend, window legend, schedule legend | `domain/door-window-legend-workflow.md` |
 | element coloring, visualization, graphic override | `domain/element-coloring-workflow.md` |
@@ -307,6 +314,8 @@ Meta and governance domain files:
 | Session context guard | `domain/session-context-guard.md` |
 | Skill authoring standard | `domain/skill-authoring-standard.md` |
 | Tool capability boundary | `domain/tool-capability-boundary.md` |
+| Core reload boundary (opt-in) | `domain/core-reload-boundary.md` |
+| Domain flow visualization | `domain/domain-flow-visualization.md` |
 
 ## Skills
 
@@ -316,11 +325,13 @@ Available Claude skills:
 - `/building-compliance`
 - `/build-revit`
 - `/claude-md-sync`
+- `/core-reload-dev`
 - `/curtain-wall`
 - `/dependent-view-crop`
 - `/deploy-addon`
 - `/detail-component-sync`
 - `/detect-clashes`
+- `/domain-diagram`
 - `/dwg-beam-import`
 - `/dwg-column-import`
 - `/element-coloring`

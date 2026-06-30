@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Domain 索引（49 個 SOP）· BIM_MCP</title>
+<title>Domain 索引（55 個 SOP）· BIM_MCP</title>
 <meta property="og:title" content="BIM_MCP Domain SOP Index — 43 個知識層檔案">
 <meta property="og:description" content="依 domain/*.md 整理的 BIM compliance 與 workflow SOP 索引。五分類各自彩色，含觸發關鍵字、反查 Skill、5 個重點 domain 抽屜摘要。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -72,9 +72,9 @@
 </nav>
 
 <header class="bim-hero">
-  <div class="bim-hero-eyebrow">DOMAIN INDEX <span class="accent">49 個 SOP / 5 分類</span></div>
+  <div class="bim-hero-eyebrow">DOMAIN INDEX <span class="accent">55 個 SOP / 5 分類</span></div>
   <h1 class="bim-hero-title">Domain · <span class="accent">知識層</span><br>方法寫一次，多個 Skill 共用</h1>
-  <p class="bim-hero-sub">Domain 是<strong>知識本身</strong>——法規條文、SOP、公式、例外。Skill 是<strong>編排</strong>（22 個）。Tool 是<strong>原子執行</strong>（99 個）。<strong>知識不應該重複在每個 Skill 裡</strong>——這是本專案核心架構原則。本頁列 49 個 <code>domain/*.md</code>，依五大類彩色標示，每張 card 含觸發關鍵字與反查 Skill。</p>
+  <p class="bim-hero-sub">Domain 是<strong>知識本身</strong>——法規條文、SOP、公式、例外。Skill 是<strong>編排</strong>（22 個）。Tool 是<strong>原子執行</strong>（99 個）。<strong>知識不應該重複在每個 Skill 裡</strong>——這是本專案核心架構原則。本頁列 55 個 <code>domain/*.md</code>，依五大類彩色標示，每張 card 含觸發關鍵字與反查 Skill。</p>
   <figure class="bim-hero-figure"><img src="../images/domain__hero__45-grains.svg" alt="49 個 domain SOP，依五大類彩色方塊排列" width="1200" height="900"></figure>
 </header>
 
@@ -102,7 +102,7 @@
   </div>
 
   <div class="bim-grid bim-grid-3">
-    <div class="bim-card"><h4>Tool（99）</h4><p style="font-size:13px;">執行 Revit 查詢、建立、修改。<strong>所有具體資料</strong>必須來自工具回傳。</p></div>
+    <div class="bim-card"><h4>Tool（101）</h4><p style="font-size:13px;">執行 Revit 查詢、建立、修改。<strong>所有具體資料</strong>必須來自工具回傳。</p></div>
     <div class="bim-card bim-card-accent"><h4>Domain（49）</h4><p style="font-size:13px;">保存 SOP、公式、例外與判斷流程。<strong>方法的單一來源</strong>。</p></div>
     <div class="bim-card"><h4><a href="skills-index.html" style="border-bottom:1px solid var(--accent-border);">Skill（22）</a></h4><p style="font-size:13px;">把 Domain 與工具串成工作流。<strong>不藏方法在 Skill body</strong>。</p></div>
   </div>
@@ -486,6 +486,17 @@
       </div>
     </div>
 
+    <div id="detect-range-box" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">detect-range-box.md</div>
+        <div class="domain-desc">大專案範圍框／裁剪框無痛調整 SOP（pyRevit ExpandCropBox）。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">範圍框</span><span class="domain-trigger">裁剪框</span><span class="domain-trigger">ExpandCropBox</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /dependent-view-crop</a>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -573,6 +584,28 @@
       <div class="domain-meta">
         <span class="domain-trigger">lessons learned</span><span class="domain-trigger">避坑</span>
         <a href="skills-index.html#skills" class="domain-skill">↔ 全 Skill 都看</a>
+      </div>
+    </div>
+
+    <div id="core-reload-boundary" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">core-reload-boundary.md</div>
+        <div class="domain-desc">Loader/Core 熱重載邊界與效益（opt-in 進階開發者知識）。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">熱重載</span><span class="domain-trigger">core reload</span><span class="domain-trigger">CoreRuntime</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /core-reload-dev</a>
+      </div>
+    </div>
+
+    <div id="domain-flow-visualization" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">domain-flow-visualization.md</div>
+        <div class="domain-desc">domain 流程圖像化——mermaid 流程健檢（迴圈／死路／缺口）。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">流程圖像化</span><span class="domain-trigger">mermaid</span><span class="domain-trigger">流程健檢</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /domain-diagram</a>
       </div>
     </div>
 
@@ -697,6 +730,28 @@
       </div>
       <div class="domain-meta">
         <span class="domain-trigger">IFC</span><span class="domain-trigger">structural sync</span><span class="domain-trigger">結構框架</span>
+      </div>
+    </div>
+
+    <div id="beam-penetration-algorithm" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">beam-penetration-algorithm.md</div>
+        <div class="domain-desc">穿梁套管幾何演算法——實體投影降維、幾何接合與實體邊緣判定。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">穿梁演算法</span><span class="domain-trigger">實體投影</span><span class="domain-trigger">邊緣判定</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /detect-clashes</a>
+      </div>
+    </div>
+
+    <div id="sleeve-classification-protocol" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">sleeve-classification-protocol.md</div>
+        <div class="domain-desc">MEP 套管身分識別協議——穿梁／穿牆／穿板判定。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">套管分類</span><span class="domain-trigger">穿梁穿牆穿板</span><span class="domain-trigger">sleeve</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /detect-clashes</a>
       </div>
     </div>
 

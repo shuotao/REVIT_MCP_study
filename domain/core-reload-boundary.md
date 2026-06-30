@@ -1,3 +1,14 @@
+---
+name: core-reload-boundary
+description: "Loader/Core 熱重載邊界與效益評估（opt-in 進階開發者知識）：定義可熱重載範圍、仍需重啟條件與效率估算。對應 opt-in 開發分支，非 main 單一 csproj 架構。"
+metadata:
+  version: "1.0"
+  updated: "2026-06-21"
+  created: "2026-04-24"
+  contributors: ["ChimingLu"]
+  related: ["core-reload-dev"]
+---
+
 # Core Reload 邊界與效益評估
 
 ## 目的
