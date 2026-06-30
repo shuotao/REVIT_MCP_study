@@ -100,7 +100,9 @@ namespace RevitMCP.Core
                 // 在背景執行緒中等待連線
                 _ = Task.Run(async () => await AcceptConnectionsAsync(_cancellationTokenSource.Token));
 
-                TaskDialog.Show("MCP 服務", $"WebSocket 伺服器已啟動\n監聽: {_settings.Host}:{_settings.Port}");
+                // 成功啟動只記 log，不彈 modal TaskDialog：modal 對話框會阻塞 Revit UI 執行緒，
+                // 在 Core 熱重載情境下會卡住 ExternalEvent 造成命令 8s timeout（見 docs/core-reload-architecture.md §11）。
+                // 啟動結果已於上方 Logger.Info 記錄。收編自 ChimingLu（啟銘）熱重載分支的 UI-thread 安全修正。
             }
             catch (Exception ex)
             {
