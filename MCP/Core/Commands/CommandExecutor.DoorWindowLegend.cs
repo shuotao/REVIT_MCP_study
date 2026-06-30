@@ -9,6 +9,12 @@ using Autodesk.Revit.DB.ExtensibleStorage;
 using Autodesk.Revit.UI;
 using Newtonsoft.Json.Linq;
 using ItemFactoryBase = Autodesk.Revit.Creation.ItemFactoryBase;
+// Revit 2025+ 將 ElementId 數值改為 long；用 IdType alias 讓本檔的 ElementId 值集合跨 R22-R26 通用
+#if REVIT2025_OR_GREATER
+using IdType = System.Int64;
+#else
+using IdType = System.Int32;
+#endif
 
 namespace RevitMCP.Core
 {
@@ -84,9 +90,9 @@ namespace RevitMCP.Core
 
         	public string FailureReason { get; set; }
 
-        	public List<int> DeleteElementIds { get; set; } = new List<int>();
+        	public List<IdType> DeleteElementIds { get; set; } = new List<IdType>();
 
-        	public List<int> DeletedElementIds { get; set; } = new List<int>();
+        	public List<IdType> DeletedElementIds { get; set; } = new List<IdType>();
         }
 
         private class DoorWindowLegendTypeMarkSyncResult
@@ -127,7 +133,7 @@ namespace RevitMCP.Core
 
         	public List<ElementId> KeepElementIds { get; } = new List<ElementId>();
 
-        	public List<int> ReferenceCurveIds { get; } = new List<int>();
+        	public List<IdType> ReferenceCurveIds { get; } = new List<IdType>();
 
         	public int CreatedCount { get; private set; }
 
@@ -227,7 +233,7 @@ namespace RevitMCP.Core
 
         	public List<ElementId> KeepElementIds { get; } = new List<ElementId>();
 
-        	public List<int> ReferenceCurveIds { get; } = new List<int>();
+        	public List<IdType> ReferenceCurveIds { get; } = new List<IdType>();
         }
 
         private class DoorWindowLegendDimensionAxisResult
@@ -307,7 +313,7 @@ namespace RevitMCP.Core
 
         	public List<object> SkippedOriginalIds { get; set; } = new List<object>();
 
-        	public List<int> DeletedElementIds { get; set; } = new List<int>();
+        	public List<IdType> DeletedElementIds { get; set; } = new List<IdType>();
 
         	public static DoorWindowLegendCleanupResult Skipped()
         	{
@@ -321,7 +327,7 @@ namespace RevitMCP.Core
         			FinalViewElementCountBeforeCleanup = 0,
         			FinalViewElementCountAfterCleanup = 0,
         			SkippedOriginalIds = new List<object>(),
-        			DeletedElementIds = new List<int>()
+        			DeletedElementIds = new List<IdType>()
         		};
         	}
         }
@@ -770,7 +776,7 @@ namespace RevitMCP.Core
         	}
         	Dictionary<string, DoorWindowLegendTypeInfo> dictionary = (from t in desiredTypes
         		group t by BuildDoorWindowLegendItemKey(targetType, t.TypeId, t.SillHeightCm)).ToDictionary((IGrouping<string, DoorWindowLegendTypeInfo> g) => g.Key, (IGrouping<string, DoorWindowLegendTypeInfo> g) => g.First());
-        	HashSet<int> hashSet = new HashSet<int>(desiredTypes.Select((DoorWindowLegendTypeInfo t) => t.TypeId.GetIdValue()));
+        	HashSet<IdType> hashSet = new HashSet<IdType>(desiredTypes.Select((DoorWindowLegendTypeInfo t) => t.TypeId.GetIdValue()));
         	HashSet<string> existingKeys = (from i in list3
         		where !string.IsNullOrWhiteSpace(i.Key)
         		select i.Key).ToHashSet();
@@ -1067,7 +1073,7 @@ namespace RevitMCP.Core
         			}
         			else
         			{
-        				HashSet<int> seedOriginalIdValues = (from id in list2.Where(IsValidElementId)
+        				HashSet<IdType> seedOriginalIdValues = (from id in list2.Where(IsValidElementId)
         					select id.GetIdValue()).ToHashSet();
         				ElementId val5 = (from id in CollectLegendComponentIds(doc, val4)
         					where seedOriginalIdValues.Contains(id.GetIdValue())
@@ -1412,7 +1418,7 @@ namespace RevitMCP.Core
         private void ClearLegendViewContentsExcept(Document doc, View legendView, IEnumerable<ElementId> keepElementIds)
         {
         	//IL_0057: Unknown result type (might be due to invalid IL or missing references)
-        	HashSet<int> keepIds = new HashSet<int>(from id in (keepElementIds ?? Enumerable.Empty<ElementId>()).Where(IsValidElementId)
+        	HashSet<IdType> keepIds = new HashSet<IdType>(from id in (keepElementIds ?? Enumerable.Empty<ElementId>()).Where(IsValidElementId)
         		select id.GetIdValue());
         	ICollection<ElementId> collection = (from id in new FilteredElementCollector(doc, ((Element)legendView).Id).WhereElementIsNotElementType().ToElementIds().Where(IsValidElementId)
         		where !keepIds.Contains(id.GetIdValue())
@@ -1465,9 +1471,9 @@ namespace RevitMCP.Core
         	}
         	List<ElementId> list = CollectViewElementIds(doc, legendView);
         	doorWindowLegendCleanupResult.FinalViewElementCountBeforeCleanup = list.Count;
-        	HashSet<int> seedOriginalIdValues = new HashSet<int>(from id in (seedOriginalElementIds ?? new List<ElementId>()).Where(IsValidElementId)
+        	HashSet<IdType> seedOriginalIdValues = new HashSet<IdType>(from id in (seedOriginalElementIds ?? new List<ElementId>()).Where(IsValidElementId)
         		select id.GetIdValue());
-        	HashSet<int> protectedIdValues = new HashSet<int>(from id in list.Where(IsValidElementId)
+        	HashSet<IdType> protectedIdValues = new HashSet<IdType>(from id in list.Where(IsValidElementId)
         		select id.GetIdValue() into id
         		where !seedOriginalIdValues.Contains(id)
         		select id);
@@ -1487,9 +1493,9 @@ namespace RevitMCP.Core
         		try
         		{
         			val.Start();
-        			List<int> list3 = (from id in doc.Delete(item).Where(IsValidElementId)
+        			List<IdType> list3 = (from id in doc.Delete(item).Where(IsValidElementId)
         				select id.GetIdValue()).ToList();
-        			List<int> list4 = list3.Where((int id) => protectedIdValues.Contains(id)).ToList();
+        			List<IdType> list4 = list3.Where((IdType id) => protectedIdValues.Contains(id)).ToList();
         			if (list4.Count > 0)
         			{
         				val.RollBack();
@@ -1525,7 +1531,7 @@ namespace RevitMCP.Core
         			doorWindowLegendCleanupResult.SkippedOriginalIds.Add(new
         			{
         				OriginalElementId = item.GetIdValue(),
-        				WouldDeleteProtectedIds = new List<int>(),
+        				WouldDeleteProtectedIds = new List<IdType>(),
         				Reason = ex.Message
         			});
         			Logger.Error($"door-window-legend-tools cleanup skipped original element due to exception. originalElementId={item.GetIdValue()}", ex);
@@ -1949,7 +1955,7 @@ namespace RevitMCP.Core
         	{
         		return ElementId.InvalidElementId;
         	}
-        	HashSet<int> existingLegendComponentIds = (from id in CollectLegendComponentIds(doc, legendView)
+        	HashSet<IdType> existingLegendComponentIds = (from id in CollectLegendComponentIds(doc, legendView)
         		select id.GetIdValue()).ToHashSet();
         	ICollection<ElementId> collection = ElementTransformUtils.CopyElement(doc, sourceComponentId, translation);
         	doc.Regenerate();
@@ -2038,7 +2044,7 @@ namespace RevitMCP.Core
         	{
         		return ElementId.InvalidElementId;
         	}
-        	HashSet<int> excludedIds = new HashSet<int>(from id in (excludedElementIds ?? Enumerable.Empty<ElementId>()).Where(IsValidElementId)
+        	HashSet<IdType> excludedIds = new HashSet<IdType>(from id in (excludedElementIds ?? Enumerable.Empty<ElementId>()).Where(IsValidElementId)
         		select id.GetIdValue());
         	try
         	{
@@ -3029,7 +3035,7 @@ namespace RevitMCP.Core
         	//IL_0168: Unknown result type (might be due to invalid IL or missing references)
         	DoorWindowLegendDeleteResult doorWindowLegendDeleteResult = new DoorWindowLegendDeleteResult();
         	List<ElementId> list = CollectDoorWindowLegendItemRelatedElementIds(doc, legendView, item, targetType);
-        	HashSet<int> legendComponentIdValues = (from id in CollectLegendComponentIds(doc, legendView).Where(IsValidElementId)
+        	HashSet<IdType> legendComponentIdValues = (from id in CollectLegendComponentIds(doc, legendView).Where(IsValidElementId)
         		select id.GetIdValue()).ToHashSet();
         	doorWindowLegendDeleteResult.DeleteElementIds = (from id in list.Where(IsValidElementId)
         		select id.GetIdValue()).ToList();
@@ -3038,9 +3044,9 @@ namespace RevitMCP.Core
         	{
         		val.Start();
         		ICollection<ElementId> source = doc.Delete((ICollection<ElementId>)list);
-        		List<int> deletedElementIds = (from id in source.Where(IsValidElementId)
+        		List<IdType> deletedElementIds = (from id in source.Where(IsValidElementId)
         			select id.GetIdValue()).ToList();
-        		List<int> list2 = (from id in source.Where(IsValidElementId)
+        		List<IdType> list2 = (from id in source.Where(IsValidElementId)
         			where id.GetIdValue() != item.ComponentId.GetIdValue()
         			where legendComponentIdValues.Contains(id.GetIdValue())
         			select id.GetIdValue()).ToList();
