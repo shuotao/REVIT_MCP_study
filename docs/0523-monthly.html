@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>0523 五月小聚 — MCP × Revit：限制顯現器</title>
+<meta property="og:title" content="MCP × Revit：限制顯現器">
+<meta property="og:description" content="站在 0425 的肩膀上看人機協作未來。22 條命題、Live Demo、跟著做的 10 個 Prompt。2026-05-23 五月小聚。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://shuotao.github.io/REVIT_MCP_study/docs/0523-monthly.html">
+<meta name="twitter:card" content="summary">
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
+  @media (max-width: 900px) { html { scroll-snap-type: none !important; } }
+  body {
+    background: #000; color: #fff;
+    font-family: 'Helvetica Neue', 'Inter', 'Noto Sans TC', sans-serif;
+    line-height: 1.6; overflow-x: hidden;
+  }
+  ::selection { background: #fff; color: #000; }
+
+  /* ===== NAV DOTS ===== */
+  .nav-dots {
+    position: fixed; right: 24px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px; z-index: 100;
+  }
+  .nav-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.25); border: none; cursor: pointer;
+    transition: all 0.3s ease; padding: 0;
+  }
+  .nav-dot:hover { background: rgba(255,255,255,0.6); transform: scale(1.4); }
+  .nav-dot.active { background: #fff; transform: scale(1.3); }
+  .nav-dot.section-start {
+    width: 12px; height: 12px; background: rgba(255,255,255,0.5);
+    position: relative;
+  }
+  .nav-dot.section-start.active { background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.6); }
+  .nav-dot.section-start::before {
+    content: attr(data-label);
+    position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
+    background: rgba(0,0,0,0.9); color: #fff;
+    padding: 6px 14px; border-radius: 6px; font-size: 13px;
+    white-space: nowrap; opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+    border: 1px solid rgba(255,255,255,0.15);
+    letter-spacing: 0.5px;
+  }
+  .nav-dot.section-start:hover::before { opacity: 1; }
+
+  /* ===== SLIDE ===== */
+  .slide, .cover {
+    min-height: 100vh; display: flex; align-items: center;
+    padding: 60px 80px 60px 80px; position: relative;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  /* ===== COVER ===== */
+  .cover {
+    justify-content: center; text-align: center;
+    flex-direction: column; gap: 0;
+    padding: 0 80px;
+  }
+  .cover-eyebrow {
+    font-size: 13px; letter-spacing: 6px; text-transform: uppercase;
+    color: rgba(255,255,255,0.35); margin-bottom: 32px;
+  }
+  .cover-title {
+    font-size: 56px; font-weight: 800; line-height: 1.15;
+    letter-spacing: -1.5px; margin-bottom: 16px;
+  }
+  .cover-subtitle {
+    font-size: 20px; color: rgba(255,255,255,0.5);
+    font-weight: 300; margin-bottom: 48px; line-height: 1.6;
+  }
+  .cover-meta {
+    display: flex; gap: 40px; justify-content: center; flex-wrap: wrap;
+  }
+  .cover-meta-item { text-align: center; }
+  .cover-meta-label {
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3); margin-bottom: 6px;
+  }
+  .cover-meta-value { font-size: 16px; color: rgba(255,255,255,0.8); }
+  .cover-meta-value a {
+    color: #60a5fa; text-decoration: none;
+    border-bottom: 1px solid rgba(96,165,250,0.3);
+    transition: border-color 0.3s;
+  }
+  .cover-meta-value a:hover { border-color: #60a5fa; }
+  .cover-scroll-hint {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    font-size: 12px; color: rgba(255,255,255,0.2);
+    letter-spacing: 2px; animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.2; transform: translateX(-50%) translateY(0); }
+    50% { opacity: 0.5; transform: translateX(-50%) translateY(6px); }
+  }
+  @keyframes pulseGlow {
+    0%, 100% { color: rgba(255,255,255,0.85); text-shadow: none; }
+    50% { color: #fff; text-shadow: 0 0 12px rgba(255,255,255,0.5); }
+  }
+
+  /* ===== SLIDE INNER ===== */
+  .slide-inner {
+    display: flex; align-items: center; gap: 60px;
+    max-width: 1400px; width: 100%; margin: 0 auto;
+  }
+  .slide-image {
+    flex: 0 0 45%; max-width: 45%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .slide-content { flex: 1; min-width: 0; }
+  .slide-number {
+    font-size: 13px; color: rgba(255,255,255,0.3);
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .slide-title {
+    font-size: 32px; font-weight: 700; line-height: 1.2; margin-bottom: 16px;
+    letter-spacing: -0.5px;
+  }
+  .slide-summary {
+    font-size: 18px; color: rgba(255,255,255,0.7); line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  /* ===== DRAWER TRIGGER ===== */
+  .drawer-trigger {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: none; border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6); padding: 8px 20px; border-radius: 100px;
+    cursor: pointer; font-size: 14px; transition: all 0.3s ease;
+    font-family: inherit;
+  }
+  .drawer-trigger:hover { border-color: #fff; color: #fff; }
+  .drawer-trigger::after { content: '→'; transition: transform 0.3s; }
+  .drawer-trigger:hover::after { transform: translateX(4px); }
+
+  /* ===== DRAWER ===== */
+  .drawer-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 200; opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: 66.666%; max-width: 900px;
+    background: #0a0a0a; border-left: 1px solid rgba(255,255,255,0.1);
+    z-index: 201; transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow-y: auto; padding: 48px;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-close {
+    position: sticky; top: 0; float: right;
+    background: none; border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; width: 36px; height: 36px; border-radius: 50%;
+    cursor: pointer; font-size: 18px; display: flex;
+    align-items: center; justify-content: center; z-index: 10;
+    transition: border-color 0.3s;
+  }
+  .drawer-close:hover { border-color: #fff; }
+  .drawer h2 { font-size: 24px; font-weight: 700; margin: 0 0 8px 0; padding-right: 50px; }
+  .drawer h3 { font-size: 18px; font-weight: 600; margin: 32px 0 12px 0; color: #fff; }
+  .drawer p, .drawer li { font-size: 15px; color: rgba(255,255,255,0.75); line-height: 1.8; margin-bottom: 12px; }
+  .drawer ul, .drawer ol { padding-left: 20px; margin-bottom: 16px; }
+  .drawer li { margin-bottom: 6px; }
+  .drawer strong { color: #fff; }
+  .drawer a { color: #60a5fa; text-decoration: none; border-bottom: 1px solid rgba(96,165,250,0.3); }
+  .drawer a:hover { border-color: #60a5fa; }
+  .drawer table {
+    width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;
+  }
+  .drawer th, .drawer td {
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 10px 14px; text-align: left;
+  }
+  .drawer th { background: rgba(255,255,255,0.06); color: #fff; font-weight: 600; }
+  .drawer td { color: rgba(255,255,255,0.7); }
+
+  /* ===== SECTION DIVIDER ===== */
+  .section-divider {
+    padding: 40px 80px; text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    scroll-snap-align: none;
+  }
+  .section-divider h2 {
+    font-size: 14px; letter-spacing: 4px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3); font-weight: 400;
+  }
+
+  /* ===== WHY PAGE ===== */
+  .why-page {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 80px; scroll-snap-align: start; scroll-snap-stop: always;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .why-title {
+    font-size: 36px; font-weight: 800; letter-spacing: -1px;
+    margin-bottom: 8px; text-align: center;
+  }
+  .why-subtitle {
+    font-size: 16px; color: rgba(255,255,255,0.4); text-align: center;
+    margin-bottom: 48px; max-width: 720px; line-height: 1.7;
+  }
+  .prop-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; max-width: 1100px; width: 100%;
+  }
+  .prop-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px; padding: 16px 14px; text-align: center;
+    cursor: pointer; transition: all 0.3s ease;
+    position: relative;
+  }
+  .prop-card:hover {
+    background: rgba(96,165,250,0.06);
+    border-color: rgba(96,165,250,0.35);
+    transform: translateY(-2px);
+  }
+  .prop-card-num {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    color: #60a5fa; margin-bottom: 6px;
+  }
+  .prop-card-label { font-size: 13px; line-height: 1.4; color: rgba(255,255,255,0.85); }
+  .why-footer {
+    margin-top: 36px; text-align: center;
+    font-size: 14px; color: rgba(255,255,255,0.4);
+    max-width: 720px; line-height: 1.7;
+  }
+  .why-footer strong { color: rgba(255,255,255,0.85); }
+
+  /* ===== SETUP PAGE ===== */
+  .setup-page {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 80px; scroll-snap-align: start; scroll-snap-stop: always;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .setup-header { text-align: center; margin-bottom: 40px; }
+  .setup-header h2 { font-size: 36px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+  .setup-header p { font-size: 16px; color: rgba(255,255,255,0.4); line-height: 1.7; max-width: 720px; }
+  .timeline-bar {
+    display: flex; max-width: 1000px; width: 100%;
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+    overflow: hidden; margin: 0 auto 24px;
+  }
+  .timeline-seg {
+    padding: 14px 12px; flex: 1; text-align: center;
+    font-size: 12px; line-height: 1.4;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+  }
+  .timeline-seg:last-child { border-right: none; }
+  .timeline-seg .min { display: block; font-size: 10px; color: rgba(255,255,255,0.35); margin-bottom: 4px; letter-spacing: 1px; }
+  .timeline-seg.hl { background: rgba(239,68,68,0.12); color: #fca5a5; font-weight: 600; }
+  .timeline-seg.hl .min { color: rgba(252,165,165,0.6); }
+
+  /* ===== 0523 PROPOSITION BADGE ===== */
+  .prop-badge {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    letter-spacing: 2px; padding: 4px 12px;
+    background: rgba(96,165,250,0.12); color: #60a5fa;
+    border: 1px solid rgba(96,165,250,0.3); border-radius: 100px;
+    margin-right: 6px; margin-bottom: 6px;
+  }
+  .prop-badge.large {
+    font-size: 13px; padding: 6px 16px; letter-spacing: 3px;
+  }
+
+  /* ===== 0523 USER QUOTE ===== */
+  .user-quote {
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.02);
+    padding: 24px 32px; margin: 24px 0;
+    font-style: italic; color: rgba(255,255,255,0.85);
+    line-height: 1.8; border-radius: 6px;
+    position: relative;
+  }
+  .user-quote::before {
+    content: '"'; position: absolute; top: -8px; left: 14px;
+    font-size: 48px; color: rgba(255,255,255,0.2); font-family: serif;
+  }
+  .user-quote-attr {
+    display: block; margin-top: 12px; font-size: 12px;
+    font-style: normal; color: rgba(255,255,255,0.4); letter-spacing: 1px;
+  }
+
+  /* ===== 0523 DATA EMPHASIS ===== */
+  .data-emph {
+    font-size: 56px; font-weight: 800; color: #60a5fa;
+    letter-spacing: -1px; line-height: 1;
+    display: inline-block;
+  }
+  .data-emph-label { font-size: 12px; color: rgba(255,255,255,0.4); letter-spacing: 2px; text-transform: uppercase; }
+
+  /* ===== 0523 PASS / FAIL TAG ===== */
+  .pass-tag {
+    display: inline-block; padding: 3px 10px; border-radius: 100px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    background: rgba(74,222,128,0.12); color: #4ade80;
+    border: 1px solid rgba(74,222,128,0.3);
+  }
+  .fail-tag {
+    display: inline-block; padding: 3px 10px; border-radius: 100px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    background: rgba(239,68,68,0.12); color: #ef4444;
+    border: 1px solid rgba(239,68,68,0.3);
+  }
+
+  /* ===== 0523 HANDS-ON BUTTON ===== */
+  .hands-on-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4);
+    color: #fca5a5; padding: 12px 24px; border-radius: 100px;
+    cursor: pointer; font-size: 15px; font-weight: 600;
+    transition: all 0.3s ease; font-family: inherit;
+    text-decoration: none; margin-top: 12px;
+    animation: handsBtnPulse 2.5s ease-in-out infinite;
+  }
+  .hands-on-btn:hover {
+    background: rgba(239,68,68,0.25); border-color: rgba(239,68,68,0.7);
+    color: #fff; transform: scale(1.04);
+  }
+  @keyframes handsBtnPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+    50% { box-shadow: 0 0 16px 4px rgba(239,68,68,0.2); }
+  }
+
+  /* ===== 0523 DEMO TOOL CARDS ===== */
+  .demo-tools-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    margin: 20px 0;
+  }
+  .demo-tool {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; padding: 14px 16px;
+    transition: all 0.3s;
+  }
+  .demo-tool-name {
+    font-family: 'SF Mono','Fira Code','Consolas',monospace;
+    font-size: 12px; color: #60a5fa; font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .demo-tool-desc { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+
+  /* ===== ENDING ===== */
+  .ending-page {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 60px 80px; scroll-snap-align: start; scroll-snap-stop: always;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    text-align: center;
+  }
+  .ending-inner { max-width: 900px; width: 100%; }
+  .ending-eyebrow {
+    font-size: 12px; letter-spacing: 5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.3); margin-bottom: 16px;
+  }
+  .ending-quote {
+    font-size: 36px; font-weight: 700; line-height: 1.3; letter-spacing: -0.5px;
+    margin-bottom: 36px;
+  }
+  .ending-quote strong { color: #60a5fa; }
+  .ending-meta { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.8; margin-bottom: 24px; }
+  .ending-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+  .ending-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px; border-radius: 100px;
+    text-decoration: none; font-size: 14px; font-weight: 600;
+    transition: all 0.2s; cursor: pointer; font-family: inherit;
+    border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.85);
+    background: transparent;
+  }
+  .ending-btn:hover { border-color: #fff; color: #fff; transform: translateY(-2px); }
+  .ending-btn.primary {
+    background: #60a5fa; color: #000; border-color: #60a5fa;
+  }
+  .ending-btn.primary:hover { background: #fff; border-color: #fff; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .slide { padding: 40px 24px; min-height: auto; }
+    .slide, .cover, .why-page, .setup-page, .ending-page { scroll-snap-stop: normal; }
+    .slide-inner { flex-direction: column; gap: 24px; }
+    .slide-image { flex: none; max-width: 100%; }
+    .drawer { width: 92%; padding: 32px 24px; }
+    .nav-dots { right: 8px; gap: 6px; }
+    .nav-dot { width: 6px; height: 6px; }
+    .nav-dot.section-start { width: 9px; height: 9px; }
+    .cover { padding: 32px 20px; min-height: auto; }
+    .cover-title { font-size: 30px !important; letter-spacing: -0.5px; }
+    .cover-subtitle { font-size: 14px; margin-bottom: 24px; }
+    .cover-meta { gap: 16px; }
+    .why-page, .setup-page, .ending-page { padding: 40px 20px; min-height: auto; }
+    .why-title, .setup-header h2 { font-size: 24px; }
+    .why-subtitle, .setup-header p { font-size: 13px; }
+    .prop-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .prop-card { padding: 12px 8px; }
+    .prop-card-num { font-size: 10px; }
+    .prop-card-label { font-size: 11px; }
+    .timeline-bar { flex-direction: column; }
+    .timeline-seg { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .slide-title { font-size: 22px; }
+    .slide-summary { font-size: 13px; }
+    .demo-tools-grid { grid-template-columns: 1fr; }
+    .ending-quote { font-size: 22px; }
+    .data-emph { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+<div data-snapshot="2026-05-23" style="position:fixed;bottom:12px;right:12px;z-index:9999;background:rgba(15,23,42,.92);color:#fbbf24;padding:6px 14px;font-size:12px;border:1px solid #334155;border-radius:8px;pointer-events:none;">2026-05-23 活動快照 snapshot · 數字為當時狀態，最新統計見 BIM_MCP 知識站</div>
+
+<!-- ===== NAV DOTS ===== -->
+<nav class="nav-dots" id="navDots"></nav>
+
+
+<!-- ===== WHY PAGE: 22 命題網格 ===== -->
+<section class="why-page" id="slide-why">
+  <div class="why-title">22 條命題的體系</div>
+  <p class="why-subtitle">本場 60 分鐘的核心。<br>每一條都來自實際開發的反思——不是空談理論。點擊任一格看完整論述。</p>
+
+  <div class="prop-grid">
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P1</div><div class="prop-card-label">突破執行工具</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P2</div><div class="prop-card-label">空間+限制兩半身</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P3</div><div class="prop-card-label">越做越醜的時序錯誤</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P4</div><div class="prop-card-label">限制顯現器</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P5</div><div class="prop-card-label">Domain 是本體</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P6</div><div class="prop-card-label">人類放大膽追美學</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P7</div><div class="prop-card-label">階段完成點</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P8</div><div class="prop-card-label">被動就緒</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P9</div><div class="prop-card-label">滾動式開源 Domain</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P10</div><div class="prop-card-label">設計=解決問題</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P11</div><div class="prop-card-label">光譜在設計師端</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P12</div><div class="prop-card-label">死局求助更多人</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P13</div><div class="prop-card-label">MCP 是 0/1 執行器</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P14</div><div class="prop-card-label">會議是終極目標</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P15</div><div class="prop-card-label">排程死線第一限制</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P16</div><div class="prop-card-label">Work Breakdown</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P17</div><div class="prop-card-label">自舉式 AI 審查</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P18</div><div class="prop-card-label">場域決定角色</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P19</div><div class="prop-card-label">會議模式響應</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P21</div><div class="prop-card-label">會議記錄者</div></div>
+    <div class="prop-card" onclick="openDrawer('drawer-prop-overview')"><div class="prop-card-num">P22</div><div class="prop-card-label">ARCHI 優先</div></div>
+    <div class="prop-card" style="opacity:0.4;cursor:default;"><div class="prop-card-num">P20</div><div class="prop-card-label">（淘汰留紀錄）</div></div>
+  </div>
+
+  <div class="why-footer">
+    這 22 條命題在 8 個 Section 裡逐步揭露。<strong>P20</strong> 是我們曾考慮但拒收的候選——保留為「曾考慮但不入選」的紀錄。<br>
+    來自：使用者 6 輪論述 + 業界研究（AU 2023-2024 / BEP / LOD / IDS / Stage-Gate）。
+  </div>
+</section>
+
+<!-- ===== GATEWAY ===== -->
+<section class="slide" id="slide-gateway" style="justify-content:center;text-align:center;padding:80px 40px;">
+  <div style="max-width:900px;margin:0 auto;">
+    <div style="display:inline-block;margin-bottom:24px;padding:6px 18px;background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.35);border-radius:100px;font-size:11px;letter-spacing:3px;color:#60a5fa;font-weight:600;">
+      OPENING QUESTION
+    </div>
+    <h1 style="font-size:56px;font-weight:800;line-height:1.25;letter-spacing:-1.5px;margin-bottom:32px;">
+      為什麼有人說<br><span style="color:#60a5fa;">設計做越久，東西越醜？</span>
+    </h1>
+    <p style="font-size:18px;color:rgba(255,255,255,0.55);font-weight:300;line-height:1.7;margin-bottom:36px;">
+      這頁先靜 5 秒。<br>
+      別急著想答案——這個問題的根因，會貫穿整場 60 分鐘。
+    </p>
+    <button class="drawer-trigger" onclick="openDrawer('drawer-gateway')">看講者的初步觀察</button>
+  </div>
+</section>
+
+<!-- ===== SETUP / TIMELINE ===== -->
+<section class="setup-page" id="slide-setup">
+  <div class="setup-header">
+    <h2>今天的 60 分鐘</h2>
+    <p>前 38 分鐘建立概念框架，中間 12 分鐘 Live Demo，最後 10 分鐘未來方向 + 結語。<br>環境部署假設已在 0425 完成（沒做的，下課可以找我）。</p>
+  </div>
+
+  <div class="timeline-bar">
+    <div class="timeline-seg"><span class="min">4 MIN</span>開場</div>
+    <div class="timeline-seg"><span class="min">8 MIN</span>S1 痛點</div>
+    <div class="timeline-seg"><span class="min">8 MIN</span>S2 限制顯現器</div>
+    <div class="timeline-seg"><span class="min">8 MIN</span>S3 階段完成點</div>
+    <div class="timeline-seg"><span class="min">5 MIN</span>S4 美學假命題</div>
+    <div class="timeline-seg"><span class="min">5 MIN</span>S5 業界證據</div>
+    <div class="timeline-seg hl"><span class="min">🔴 12 MIN</span>S6 Live Demo</div>
+    <div class="timeline-seg"><span class="min">6 MIN</span>S7 未來</div>
+    <div class="timeline-seg"><span class="min">4 MIN</span>S8 結語</div>
+  </div>
+
+  <p style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:24px;max-width:700px;text-align:center;">
+    Live Demo 不需現場跟著做，會錄影。想自己手動跟著做 → 用練習頁（封面下方按鈕）。<br>
+    時間不夠時 Demo 跳過、用練習頁回家補——對應 P15「80/60/100 無差異，0 才是 no-go」。
+  </p>
+</section>
+
+<!-- ============================ -->
+<!-- ===== SECTION 1 ============ -->
+<!-- ============================ -->
+<div class="section-divider"><h2>Section 1 — 你的痛點：越做越醜</h2></div>
+
+<section class="slide" id="slide-1-1" data-section="1">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:32px;width:100%;text-align:center;">
+        <div style="font-size:13px;color:rgba(255,255,255,0.4);letter-spacing:2px;margin-bottom:16px;">時間軸</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="background:rgba(74,222,128,0.1);padding:10px;border-radius:6px;color:#4ade80;font-size:13px;">美學願景 100% → 畫圖</div>
+          <div style="background:rgba(251,191,36,0.1);padding:10px;border-radius:6px;color:#fbbf24;font-size:13px;">限制檢核 → 修改 → 美學 80%</div>
+          <div style="background:rgba(251,191,36,0.15);padding:10px;border-radius:6px;color:#fbbf24;font-size:13px;">又一輪檢核 → 修改 → 美學 60%</div>
+          <div style="background:rgba(239,68,68,0.15);padding:10px;border-radius:6px;color:#ef4444;font-size:13px;">死線 → 醜</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">P3</span>
+      <div class="slide-number">1-1</div>
+      <div class="slide-title">我們都被設計流程的「時序錯誤」害過</div>
+      <p class="slide-summary">畫圖時美學 100%，每輪檢核扣 10-20%，死線到時剩下的就是「醜」。這不是失去美感，是流程把美感磨掉了。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-1-1')">看故事 + 為什麼這是流程問題</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-1-2" data-section="1">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:32px;width:100%;text-align:center;">
+        <div style="font-size:14px;color:rgba(255,255,255,0.5);line-height:1.8;">
+          <strong style="color:#ef4444;font-size:18px;">不是</strong>失去美感<br>
+          <strong style="color:#60a5fa;font-size:24px;">是限制太晚被看到</strong>
+        </div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">P3</span>
+      <div class="slide-number">1-2</div>
+      <div class="slide-title">「越做越醜」的根因 = 限制太晚被看到</div>
+      <p class="slide-summary">學生「感覺新鮮」是因為還沒被限制壓過。資深設計師的保守，是被一次次「限制反噬」訓練出來的條件反射。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-1-2')">看完整論證</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-1-3" data-section="1">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px;width:100%;font-size:13px;line-height:1.8;">
+        <div style="color:rgba(255,255,255,0.5);letter-spacing:1px;font-size:11px;margin-bottom:8px;">執行作業工具</div>
+        <div style="color:#fff;">Revit · ArchiCAD · 2D CAD · Rhino</div>
+        <div style="margin:14px 0;color:rgba(255,255,255,0.3);">↓ 它們做什麼</div>
+        <div style="color:rgba(255,255,255,0.7);">把腦中的方案「畫出來」</div>
+        <div style="margin:14px 0;color:rgba(255,255,255,0.3);">↓ 它們不做什麼</div>
+        <div style="color:#ef4444;">不告訴你方案撞了哪些限制</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">P1</span><span class="prop-badge">P2</span>
+      <div class="slide-number">1-3</div>
+      <div class="slide-title">傳統 BIM 工具的角色定位</div>
+      <p class="slide-summary">Revit / ArchiCAD / Rhino 都是「執行作業」工具——它們幫你把腦中方案畫出來，但不告訴你方案撞了哪些限制。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-1-3')">看為什麼這個分類重要</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-1-4" data-section="1">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:linear-gradient(135deg,rgba(96,165,250,0.1),rgba(96,165,250,0.02));border:1px solid rgba(96,165,250,0.25);border-radius:12px;padding:32px;width:100%;text-align:center;">
+        <div style="font-size:48px;font-weight:800;color:#60a5fa;line-height:1;margin-bottom:12px;">MCP</div>
+        <div style="font-size:15px;color:rgba(255,255,255,0.7);">不是另一個畫圖工具<br>是讓「限制」變得可見</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">P1</span><span class="prop-badge">P4</span>
+      <div class="slide-number">1-4</div>
+      <div class="slide-title">MCP 突破「執行作業」的可能</div>
+      <p class="slide-summary">過渡 slide：傳統工具沒解決的問題，MCP 有機會。但「有機會」不等於「會做對」——下一節就是要把「該怎麼做」講清楚。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-1-4')">看 MCP 的差異 + 為什麼不只是另一個外掛</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ -->
+<!-- ===== SECTION 2 ============ -->
+<!-- ============================ -->
+<div class="section-divider"><h2>Section 2 — 重新定位 MCP：限制顯現器</h2></div>
+
+<section class="slide" id="slide-2-1" data-section="2">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(96,165,250,0.06);border-left:3px solid rgba(96,165,250,0.5);padding:24px;border-radius:0 8px 8px 0;width:100%;font-size:14px;color:rgba(255,255,255,0.85);line-height:1.8;">
+        <strong style="color:#60a5fa;letter-spacing:2px;font-size:11px;">DEFINITION</strong><br><br>
+        <strong>限制顯現器</strong>：在設計師<br>願景階段把硬性限制即時呈現，<br>讓設計師在拉扯中**最小化退讓**<br>來獲得最美的成果。
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge large">P4</span>
+      <div class="slide-number">2-1</div>
+      <div class="slide-title">什麼是「限制顯現器」</div>
+      <p class="slide-summary">MCP 真正的角色不是自動化、不是設計助手，是讓「不可協商的限制」在設計初期就被看見。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-2-1')">看使用者原文定義</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-2-2" data-section="2">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px;width:100%;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <tr><th style="text-align:left;padding:8px;color:rgba(255,255,255,0.4);border-bottom:1px solid rgba(255,255,255,0.1);">舊模型</th><th style="text-align:left;padding:8px;color:#60a5fa;border-bottom:1px solid rgba(255,255,255,0.1);">新模型</th></tr>
+          <tr><td style="padding:8px;color:rgba(255,255,255,0.6);">AI 設計，人類審核</td><td style="padding:8px;color:#fff;">AI 揭露限制邊界</td></tr>
+          <tr><td style="padding:8px;color:rgba(255,255,255,0.6);">人類追美學，AI 找錯</td><td style="padding:8px;color:#fff;">人類在限制可視前提下放大膽追美學</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">P5</span><span class="prop-badge">P6</span>
+      <div class="slide-number">2-2</div>
+      <div class="slide-title">人機分工新模型</div>
+      <p class="slide-summary">不是「AI 設計、人類審核」，是「AI 揭露限制、人類放大膽追美學」。這個翻轉是這場演講的中軸。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-2-2')">看為什麼翻轉</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-2-3" data-section="2">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:24px;width:100%;text-align:center;">
+        <div style="font-size:11px;letter-spacing:3px;color:#ef4444;margin-bottom:12px;">MISCONCEPTION #1</div>
+        <div style="font-size:20px;color:#fff;text-decoration:line-through;text-decoration-color:#ef4444;margin-bottom:16px;">MCP 應該主動跳出限制</div>
+        <div style="font-size:24px;color:#4ade80;font-weight:700;">✓ 被動就緒：等你問才答</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge large">P8</span>
+      <div class="slide-number">2-3</div>
+      <div class="slide-title">誤解 #1：MCP 不該主動</div>
+      <p class="slide-summary">主動跳出限制會打斷設計師思緒。MCP 該「被動就緒」——你問才答。這是技術上可以做到「主動」但設計上選擇「不做」。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-2-3')">看技術 vs 設計的選擇</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-2-4" data-section="2">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:24px;width:100%;text-align:center;">
+        <div style="font-size:11px;letter-spacing:3px;color:#ef4444;margin-bottom:12px;">MISCONCEPTION #2</div>
+        <div style="font-size:18px;color:#fff;text-decoration:line-through;text-decoration-color:#ef4444;margin-bottom:16px;">MCP 該給「光譜建議」</div>
+        <div style="font-size:22px;color:#4ade80;font-weight:700;">✓ MCP 只回 0/1</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:12px;">光譜是設計師的工作</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge large">P13</span>
+      <div class="slide-number">2-4</div>
+      <div class="slide-title">誤解 #2：MCP 是 0/1 執行器</div>
+      <p class="slide-summary">PASS 或 FAIL。不要光譜建議、不要「你可以改成 X」。光譜決策是設計師的職責，AI 把它接走 = 設計師被削弱。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-2-4')">看使用者糾正我的原文</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ -->
+<!-- ===== SECTION 3 ============ -->
+<!-- ============================ -->
+<div class="section-divider"><h2>Section 3 — 階段完成點：MCP 的時機</h2></div>
+
+<section class="slide" id="slide-3-1" data-section="3">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px;width:100%;">
+        <div style="color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:2px;margin-bottom:8px;">不是這個</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:14px;margin-bottom:18px;text-decoration:line-through;">主計畫里程碑（甘特圖上的點）</div>
+        <div style="color:#60a5fa;font-size:11px;letter-spacing:2px;margin-bottom:8px;">是這個</div>
+        <div style="color:#fff;font-size:16px;line-height:1.6;">設計師思維／想法<br><strong>首次落地的那個剎那</strong></div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge large">P7</span>
+      <div class="slide-number">3-1</div>
+      <div class="slide-title">階段完成點：MCP 的時機</div>
+      <p class="slide-summary">不是甘特圖上的里程碑，是「想法首次落地的剎那」——具象成果出現了、可以被思考可行性的瞬間。MCP 只能在這個時候被叫出。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-3-1')">看使用者原文 + 為什麼不能更早</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-3-2" data-section="3">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:linear-gradient(90deg,rgba(74,222,128,0.1),rgba(74,222,128,0.04));border:1px solid rgba(74,222,128,0.25);border-radius:12px;padding:24px;width:100%;text-align:center;">
+        <div style="font-size:14px;color:rgba(255,255,255,0.5);letter-spacing:1px;margin-bottom:16px;">死線下交付完成度</div>
+        <div style="display:flex;justify-content:space-around;align-items:end;gap:8px;">
+          <div><div style="font-size:32px;font-weight:800;color:#4ade80;">100%</div><div style="font-size:11px;color:rgba(255,255,255,0.4);">↕ 無差異</div></div>
+          <div><div style="font-size:32px;font-weight:800;color:#4ade80;">80%</div></div>
+          <div><div style="font-size:32px;font-weight:800;color:#4ade80;">60%</div></div>
+          <div><div style="font-size:32px;font-weight:800;color:#ef4444;">0%</div><div style="font-size:11px;color:#ef4444;">⛔ NO-GO</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge large">P15</span>
+      <div class="slide-number">3-2</div>
+      <div class="slide-title">排程死線是設計流程的第一限制</div>
+      <p class="slide-summary">死線下，80 / 60 / 100 完成度無差異——只要有交付物，下個動作就能啟動。0 才會卡死整條工作流。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-3-2')">看 Stage-Gate / Agile 業界對標</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-3-3" data-section="3">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;width:100%;font-size:13px;">
+        <div style="color:#ef4444;font-weight:600;margin-bottom:12px;">❌ 沒拆分：</div>
+        <div style="background:rgba(239,68,68,0.08);padding:12px;border-radius:6px;margin-bottom:16px;color:rgba(255,255,255,0.7);">整個案子卡在「還沒做完」</div>
+        <div style="color:#4ade80;font-weight:600;margin-bottom:12px;">✓ 拆分後：</div>
+        <div style="background:rgba(74,222,128,0.08);padding:8px;border-radius:6px;margin-bottom:6px;color:rgba(255,255,255,0.8);">1F 平面完成 ← MCP 可介入</div>
+        <div style="background:rgba(74,222,128,0.08);padding:8px;border-radius:6px;margin-bottom:6px;color:rgba(255,255,255,0.8);">2F 平面完成 ← MCP 可介入</div>
+        <div style="background:rgba(74,222,128,0.08);padding:8px;border-radius:6px;color:rgba(255,255,255,0.8);">外牆完成 ← MCP 可介入</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge large">P16</span>
+      <div class="slide-number">3-3</div>
+      <div class="slide-title">Work Breakdown 讓階段點可識別</div>
+      <p class="slide-summary">沒拆分 = 沒節點 = MCP 只能等「整塊完成」。拆分後每個節點都有交付物，MCP 才能介入。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-3-3')">看 WBS 業界標準 + 8/80 規則</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-3-4" data-section="3">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;width:100%;font-size:13px;">
+        <div style="margin-bottom:14px;"><strong style="color:#60a5fa;">BEP</strong> <span style="color:rgba(255,255,255,0.5);">BIM Execution Plan</span><br><span style="color:rgba(255,255,255,0.4);font-size:11px;">ISO 19650 — Work Breakdown</span></div>
+        <div style="margin-bottom:14px;"><strong style="color:#60a5fa;">LOD 100-500</strong> <span style="color:rgba(255,255,255,0.5);">Level of Development</span><br><span style="color:rgba(255,255,255,0.4);font-size:11px;">AIA / BIM Forum — 完成度數值化</span></div>
+        <div><strong style="color:#60a5fa;">IDS</strong> <span style="color:rgba(255,255,255,0.5);">Information Delivery Spec</span><br><span style="color:rgba(255,255,255,0.4);font-size:11px;">buildingSMART <strong style="color:#fbbf24">2024-06 才官方</strong></span></div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">業界對標</span>
+      <div class="slide-number">3-4</div>
+      <div class="slide-title">業界對標物：BEP / LOD / IDS</div>
+      <p class="slide-summary">我們講的「階段完成點 + 工具批次檢查」在業界都有名字——只是這三件事還沒被串成一個工具鏈。我們做的是 orchestration。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-3-4')">看三個標準 + 外部連結</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ -->
+<!-- ===== SECTION 4 ============ -->
+<!-- ============================ -->
+<div class="section-divider"><h2>Section 4 — 美學被限制反噬？假命題！</h2></div>
+
+<section class="slide" id="slide-4-1" data-section="4">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:32px;width:100%;text-align:center;">
+        <div style="font-size:13px;color:rgba(255,255,255,0.4);letter-spacing:2px;margin-bottom:12px;">SETTING THE RECORD STRAIGHT</div>
+        <div style="font-size:20px;color:rgba(255,255,255,0.6);margin-bottom:8px;">設計 = </div>
+        <div style="font-size:36px;color:#60a5fa;font-weight:800;margin-bottom:16px;">解決問題</div>
+        <div style="font-size:18px;color:rgba(255,255,255,0.5);">美學 = 重要的<strong style="color:#fff;">手段</strong>，不是目的</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge large">P10</span>
+      <div class="slide-number">4-1</div>
+      <div class="slide-title">設計 = 解決問題，美學 = 手段</div>
+      <p class="slide-summary">設計師不是「美學主義者」，是「解決問題者」。能在解決各方問題時保持美感 = 設計師的功力考驗。「悖逆項限制」是假命題。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-4-1')">看使用者糾正原文</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-4-2" data-section="4">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px;width:100%;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <tr><th style="text-align:left;padding:8px;color:#60a5fa;border-bottom:1px solid rgba(255,255,255,0.1);">MCP（執行）</th><th style="text-align:left;padding:8px;color:#fff;border-bottom:1px solid rgba(255,255,255,0.1);">設計師（決策）</th></tr>
+          <tr><td style="padding:8px;"><span class="pass-tag">PASS</span> / <span class="fail-tag">FAIL</span></td><td style="padding:8px;color:rgba(255,255,255,0.7);">「能接受嗎？怎麼修？」</td></tr>
+          <tr><td style="padding:8px;color:rgba(255,255,255,0.5);">0/1 二元</td><td style="padding:8px;color:rgba(255,255,255,0.7);">維度與光譜的漸層</td></tr>
+          <tr><td style="padding:8px;color:rgba(255,255,255,0.5);">硬如鋼</td><td style="padding:8px;color:rgba(255,255,255,0.7);">win-win strategy</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">P11</span><span class="prop-badge">P13</span>
+      <div class="slide-number">4-2</div>
+      <div class="slide-title">光譜決策 vs 0/1 執行</div>
+      <p class="slide-summary">兩個職責徹底分開。MCP 越硬越好，設計師越柔越好。把光譜建議交給 AI 等於把「設計師之所以為設計師」交出去。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-4-2')">看光譜決策實例</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-4-3" data-section="4">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.25);border-radius:12px;padding:24px;width:100%;text-align:center;">
+        <div style="font-size:14px;color:#fbbf24;letter-spacing:1px;margin-bottom:14px;">⚠ AI 能力邊界</div>
+        <div style="font-size:18px;color:#fff;line-height:1.6;">死局時<br><strong style="color:#60a5fa;">跳出人機互動</strong><br>求助更多人</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:14px;">不是繼續跟 AI 纏鬥</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge large">P12</span>
+      <div class="slide-number">4-3</div>
+      <div class="slide-title">死局時跳出找人</div>
+      <p class="slide-summary">當設計遇到「限制 vs 美學」死局，繼續跟 AI 纏鬥沒用——這是 MCP 的能力邊界。誠實標出「超出我能解決」，回到人類腦力激盪。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-4-3')">看死局判定 + 為什麼 AI 認輸是好事</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ -->
+<!-- ===== SECTION 5 ============ -->
+<!-- ============================ -->
+<div class="section-divider"><h2>Section 5 — 業界證據與時機</h2></div>
+
+<section class="slide" id="slide-5-1" data-section="5">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.2);border-radius:12px;padding:24px;width:100%;text-align:center;">
+        <div class="data-emph">100x</div>
+        <div class="data-emph-label">後期修正成本</div>
+        <div style="margin:20px 0;height:1px;background:rgba(255,255,255,0.1);"></div>
+        <div class="data-emph">70%</div>
+        <div class="data-emph-label">營建返工本可避免</div>
+        <div style="margin:20px 0;height:1px;background:rgba(255,255,255,0.1);"></div>
+        <div class="data-emph">$15-25K</div>
+        <div class="data-emph-label">2 吋誤差的直接損失</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">經濟學證據</span>
+      <div class="slide-number">5-1</div>
+      <div class="slide-title">100x 成本規則 + 70% 返工本可避免</div>
+      <p class="slide-summary">為什麼要早讓限制顯現？業界 40 年的數據告訴你：晚修一輪成本暴增 100 倍，70% 營建返工都是設計階段就該抓到的錯。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-5-1')">看 Boehm/Basili 出處 + united-bim 報告</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-5-2" data-section="5">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;width:100%;font-size:13px;line-height:1.7;">
+        <div style="margin-bottom:14px;"><strong style="color:#60a5fa;">Stage-Gate 模型</strong> <span style="color:rgba(255,255,255,0.4);">(1986)</span><br><span style="color:rgba(255,255,255,0.6);">Go / Recycle / Kill 三元決策 — 對應 P15</span></div>
+        <div style="margin-bottom:14px;"><strong style="color:#60a5fa;">Definition of Done</strong> <span style="color:rgba(255,255,255,0.4);">(Agile)</span><br><span style="color:rgba(255,255,255,0.6);">「完成 = DoD checklist 全打勾」</span></div>
+        <div><strong style="color:#60a5fa;">CI/CD Quality Gates</strong><br><span style="color:rgba(255,255,255,0.6);">branch protection + automated checks</span></div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">方法論</span>
+      <div class="slide-number">5-2</div>
+      <div class="slide-title">成熟方法論借鏡</div>
+      <p class="slide-summary">汽車業 40 年、軟體業 20 年的方法論早就在做「階段完成 → 自動檢查 → 決策」。我們做的是 BIM 領域的 orchestration。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-5-2')">看三套方法論細節</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-5-3" data-section="5">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.25);border-radius:12px;padding:24px;width:100%;font-size:13px;line-height:1.8;">
+        <div style="color:#4ade80;font-weight:700;font-size:14px;letter-spacing:2px;margin-bottom:12px;">EARLY MOVER WINDOW</div>
+        <div style="color:rgba(255,255,255,0.85);">
+          <strong>IDS</strong> <span style="color:#4ade80;">2024-06</span> 才官方標準化<br>
+          <strong>Procore AI Agents</strong> <span style="color:#4ade80;">2024-11</span> 才發布<br>
+          <strong>Dassault Virtual Companions</strong> <span style="color:#4ade80;">2025-2026</span> 才出<br>
+          <strong>Revit 內建 MCP</strong> <span style="color:#4ade80;">Revit 2027</span> 才會有
+        </div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">時機</span>
+      <div class="slide-number">5-3</div>
+      <div class="slide-title">Early Mover 時機</div>
+      <p class="slide-summary">業界對「AI + BIM + Workflow Orchestration」的官方支援都在 2024-2026 才到位。我們現在介入是 early mover——再晚 2 年就只是跟風。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-5-3')">看 5 個時機證據</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ -->
+<!-- ===== SECTION 6 — LIVE DEMO -->
+<!-- ============================ -->
+<div class="section-divider" style="background:rgba(239,68,68,0.04);border-bottom:1px solid rgba(239,68,68,0.15);">
+  <h2 style="color:#ef4444;">🔴 Section 6 — Live Demo（12 min）</h2>
+</div>
+
+<section class="slide" id="slide-6-1" data-section="6">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px;width:100%;font-size:13px;">
+        <div style="color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:2px;margin-bottom:8px;">SCENARIO</div>
+        <div style="color:#fff;font-size:15px;margin-bottom:14px;font-weight:600;">「住宅 1F 平面達 LOD 300 自動檢核」</div>
+        <div style="color:rgba(255,255,255,0.6);line-height:1.7;">
+          模型：日本 Revit Sample（純 ARCHI）<br>
+          觸發：設計師明示「現在檢查」<br>
+          並行：5 個 ARCHI 類檢查工具<br>
+          回報：PASS / FAIL（無建議）<br>
+          決策：設計師接走光譜
+        </div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">P22</span><span class="prop-badge">P8</span><span class="prop-badge">P16</span>
+      <div class="slide-number">6-1</div>
+      <div class="slide-title">情境劇本介紹</div>
+      <p class="slide-summary">這 12 分鐘要演示的劇本——對應命題 P22（ARCHI 優先）、P8（被動就緒）、P16（Work Breakdown）。</p>
+      <a href="0523-handson.html" class="hands-on-btn" target="_blank">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        → 跟著做（10 分鐘練習頁）
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-6-2" data-section="6">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;width:100%;font-size:12px;line-height:1.7;">
+        <div style="color:#60a5fa;letter-spacing:2px;font-size:11px;margin-bottom:10px;">日本 SAMPLE 模型</div>
+        <div style="color:rgba(255,255,255,0.85);margin-bottom:12px;">純 ARCHI 1F 平面<br>含房間 / 牆 / 窗 / 門 / 樓梯</div>
+        <div style="color:#60a5fa;letter-spacing:2px;font-size:11px;margin:14px 0 10px;">預期會觸發</div>
+        <div style="color:rgba(255,255,255,0.7);">部分 PASS 部分 FAIL<br>（不是依台灣法規設計→正常）</div>
+        <div style="color:#60a5fa;letter-spacing:2px;font-size:11px;margin:14px 0 10px;">為什麼用日本 sample</div>
+        <div style="color:rgba(255,255,255,0.7);">所有人都可下載 / 不涉及 IP</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">Demo Setup</span>
+      <div class="slide-number">6-2</div>
+      <div class="slide-title">用日本 Sample 模型示範</div>
+      <p class="slide-summary">用 Revit 內建日本版 sample 跑 Live Demo——零準備、可重現、所有觀眾都能在家複製。對應命題 P9「滾動式集眾人開源」。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-6-2')">看模型細節 + fallback</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-6-3" data-section="6">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;width:100%;">
+        <div class="demo-tools-grid" style="grid-template-columns:1fr 1fr;">
+          <div class="demo-tool"><div class="demo-tool-name">check_exterior_wall_openings</div><div class="demo-tool-desc">§45 / §110</div></div>
+          <div class="demo-tool"><div class="demo-tool-name">check_smoke_exhaust_windows</div><div class="demo-tool-desc">§188</div></div>
+          <div class="demo-tool"><div class="demo-tool-name">check_stair_headroom</div><div class="demo-tool-desc">樓梯淨高</div></div>
+          <div class="demo-tool"><div class="demo-tool-name">get_room_daylight_info</div><div class="demo-tool-desc">§41 採光</div></div>
+          <div class="demo-tool" style="grid-column:span 2;"><div class="demo-tool-name">check_floor_effective_openings</div><div class="demo-tool-desc">樓板有效開口</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">5 工具並行</span>
+      <div class="slide-number">6-3</div>
+      <div class="slide-title">5 個 ARCHI 工具並行</div>
+      <p class="slide-summary">一個 prompt 編排 5 個工具同時跑——這就是「96 工具編排平台」的具體呈現，業界目前還沒做到。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-6-3')">看 prompt + 預期 PASS/FAIL</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-6-4" data-section="6">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;width:100%;">
+        <div style="margin-bottom:14px;"><span class="pass-tag">PASS 3</span> <span class="fail-tag">FAIL 2</span></div>
+        <div style="color:rgba(255,255,255,0.7);font-size:13px;line-height:1.7;">
+          <strong style="color:#fff;">三條決策路徑：</strong><br>
+          1. 全 PASS → 進下階段 <span class="pass-tag">GO</span><br>
+          2. 部分 FAIL，可接受 → <span style="color:#fbbf24;">RECYCLE</span><br>
+          3. 部分 FAIL，死局 → <span style="color:#ef4444;">跳出找人 (P12)</span>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(96,165,250,0.25);color:#60a5fa;font-size:11px;letter-spacing:1px;">⚡ 5/22 lesson</div>
+        <div style="color:rgba(255,255,255,0.75);font-size:12px;line-height:1.6;margin-top:4px;">0/1 必須建立在<strong>「現在這刻」的 anchor</strong> 上——若 anchor 過期（使用者切了視圖、樓層、檔案），0/1 也失效，光譜決策失去基準。</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">P13</span><span class="prop-badge">P11</span><span class="prop-badge">P12</span><span class="prop-badge" style="background:rgba(96,165,250,0.15);color:#60a5fa;">L-025</span>
+      <div class="slide-number">6-4</div>
+      <div class="slide-title">報告解讀 + 決策路徑（anchored to NOW）</div>
+      <p class="slide-summary">看報告後設計師有三條路：GO / RECYCLE / 跳出求助。對應 Stage-Gate 三元決策。<strong>但 0/1 必須建立在「現在這刻」的 anchor 上</strong>——這是 5/22 dry-run 揭露的 Active State Re-Anchoring 規則（L-025）。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-6-4')">看 fallback 設計 + 失敗處理 + 5/22 lessons</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ -->
+<!-- ===== SECTION 7 ============ -->
+<!-- ============================ -->
+<div class="section-divider"><h2>Section 7 — 未來方向</h2></div>
+
+<section class="slide" id="slide-7-1" data-section="7">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;width:100%;font-size:13px;line-height:1.8;">
+        <div style="color:#60a5fa;font-weight:600;margin-bottom:8px;">(c) 沉默模式 <span style="color:#4ade80;font-size:11px;">推薦預設</span></div>
+        <div style="color:rgba(255,255,255,0.7);margin-bottom:14px;">全程旁聽，會議結束產報告</div>
+        <div style="color:#60a5fa;font-weight:600;margin-bottom:8px;">(a) 主持人模式</div>
+        <div style="color:rgba(255,255,255,0.7);margin-bottom:14px;">指定一人有 invoke 權，需切換時</div>
+        <div style="color:rgba(239,68,68,0.7);font-weight:600;margin-bottom:8px;text-decoration:line-through;">(b) 自主拋限制模式</div>
+        <div style="color:rgba(255,255,255,0.5);">違反 P8 被動就緒 — 不建議</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge large">P14</span><span class="prop-badge">P18</span>
+      <div class="slide-number">7-1</div>
+      <div class="slide-title">同步協作會議是終極目標</div>
+      <p class="slide-summary">3 個設計師 + MCP 一起開會——這是 MCP 專案的終極場景。3 種模式中推薦「沉默 + 主持人切換」，禁用主動拋限制。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-7-1')">看三模式 UX 對比表</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-7-2" data-section="7">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;width:100%;font-size:13px;">
+        <div style="color:#60a5fa;letter-spacing:2px;font-size:11px;margin-bottom:10px;">會議結束自動產出</div>
+        <div style="color:rgba(255,255,255,0.85);line-height:1.9;">
+          1. 觸及的限制清單<br><span style="color:rgba(255,255,255,0.5);font-size:12px;">　即時對應到 domain/*.md 規範</span><br>
+          2. 未解決衝突<br><span style="color:rgba(255,255,255,0.5);font-size:12px;">　哪些方案沒決定、為何卡住</span><br>
+          3. Action items + Due date
+        </div>
+        <div style="margin-top:14px;color:#fbbf24;font-size:12px;">⚠ 26% 返工來自 miscommunication</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge large">P21</span>
+      <div class="slide-number">7-2</div>
+      <div class="slide-title">MCP 會議記錄者（業界沒做過的角色）</div>
+      <p class="slide-summary">AI 即時做「對話 ↔ 規範」對應是業界沒有的能力——人類記錄者會後查規範，AI 即時做。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-7-2')">看 BIM Coordination Meeting 業界對標</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-7-3" data-section="7">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;width:100%;font-size:13px;line-height:1.8;">
+        <div style="color:#60a5fa;font-weight:600;margin-bottom:6px;">短期 (P9)</div>
+        <div style="color:rgba(255,255,255,0.7);margin-bottom:14px;">使用者親自審查 Domain 貢獻</div>
+        <div style="color:#60a5fa;font-weight:600;margin-bottom:6px;">中期 (P17)</div>
+        <div style="color:rgba(255,255,255,0.7);margin-bottom:14px;">對話互動把審查邏輯外化</div>
+        <div style="color:#60a5fa;font-weight:600;margin-bottom:6px;">長期</div>
+        <div style="color:rgba(255,255,255,0.7);">訓練出有審查能力的 AI 分身</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">P9</span><span class="prop-badge">P17</span>
+      <div class="slide-number">7-3</div>
+      <div class="slide-title">Domain 集眾人開源 + 自舉式 AI 審查</div>
+      <p class="slide-summary">Domain 不必一次補齊，集眾人開源是最有效路徑；長期則訓練「AI 審查分身」自動把關品質——這是未來 /handoff 獨立工程。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-7-3')">看自舉式 AI 審查的精神</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ -->
+<!-- ===== SECTION 8 ============ -->
+<!-- ============================ -->
+<div class="section-divider"><h2>Section 8 — 結語</h2></div>
+
+<section class="slide" id="slide-8-1" data-section="8">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;width:100%;font-size:13px;line-height:1.8;">
+        <div style="color:#60a5fa;font-weight:600;margin-bottom:6px;">敘事 1</div>
+        <div style="color:rgba(255,255,255,0.7);margin-bottom:14px;">把成熟業界實踐用 AI + MCP<br>重新實現在 BIM 域</div>
+        <div style="color:#60a5fa;font-weight:600;margin-bottom:6px;">敘事 2</div>
+        <div style="color:rgba(255,255,255,0.7);margin-bottom:14px;">Early Mover 時機（2024-2026）</div>
+        <div style="color:#60a5fa;font-weight:600;margin-bottom:6px;">敘事 3</div>
+        <div style="color:rgba(255,255,255,0.7);">用業界數據說服客戶 ROI<br>（100x / 70% / $15-25K）</div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">三條敘事</span>
+      <div class="slide-number">8-1</div>
+      <div class="slide-title">三條對外敘事</div>
+      <p class="slide-summary">如果你要把今天的內容講給沒來的人聽，記住這三條：不是發明新東西、時機正好、用數據說話。</p>
+      <button class="drawer-trigger" onclick="openDrawer('drawer-8-1')">看每條敘事完整版本</button>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="slide-8-2" data-section="8">
+  <div class="slide-inner">
+    <div class="slide-image">
+      <div style="background:linear-gradient(135deg,rgba(96,165,250,0.1),rgba(96,165,250,0.02));border:1px solid rgba(96,165,250,0.3);border-radius:12px;padding:24px;width:100%;text-align:center;">
+        <div style="color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:3px;margin-bottom:12px;">PROJECT TIMELINE</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:2;">
+          <span style="color:rgba(255,255,255,0.4);">0425 →</span> 工具<br>
+          <span style="color:#60a5fa;font-weight:600;">0523 →</span> 哲學<br>
+          <span style="color:rgba(255,255,255,0.4);">下次 →</span> 治理
+        </div>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="prop-badge">下次預告</span>
+      <div class="slide-number">8-2</div>
+      <div class="slide-title">邀請參與 + 下次主題預告</div>
+      <p class="slide-summary">這是「工具 → 哲學 → 治理」三部曲的中段。下次我們講治理（P9 集眾人開源 + P17 AI 審查分身）。歡迎用練習頁回家試。</p>
+      <a href="0523-handson.html" class="hands-on-btn" target="_blank">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        → 回家練習頁
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ENDING ===== -->
+<section class="ending-page" id="slide-ending">
+  <div class="ending-inner">
+    <div class="ending-eyebrow">THE TAKEAWAY</div>
+    <div class="ending-quote">
+      MCP 是讓<strong>限制顯現</strong>的工具，<br>不是讓設計變得正確的工具。
+    </div>
+    <div class="ending-meta">
+      設計變得正確是設計師的工作。<br>
+      MCP 把那一塊還給你。
+    </div>
+    <div class="ending-actions">
+      <a href="0523-handson.html" class="ending-btn primary" target="_blank">→ 跟著做（10 分鐘 Hands-on）</a>
+      <a href="0425-presentation.html" class="ending-btn">← 0425 五月小聚（複習）</a>
+      <a href="https://github.com/shuotao/REVIT_MCP_study" class="ending-btn" target="_blank">GitHub Repo</a>
+    </div>
+    <div style="margin-top:48px;font-size:12px;color:rgba(255,255,255,0.25);letter-spacing:1px;">
+      Field Notes No. 03 · 2026-05-23 · Shuotao Chiang
+    </div>
+  </div>
+</section>
+
+<!-- ===== DRAWER OVERLAY ===== -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- ===== DRAWERS ===== -->
+
+<div class="drawer" id="drawer-prop-overview">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>22 條命題總表</h2>
+  <p>本場 60 分鐘的核心論述。每條命題都來自實際開發的反思——使用者 6 輪論述 + 業界研究的交叉驗證。</p>
+  <h3>為什麼 MCP 重要（P1-P3）</h3>
+  <ul>
+    <li><strong>P1</strong> 突破執行工具：MCP 不是另一個畫圖工具</li>
+    <li><strong>P2</strong> 空間+限制兩半身：設計工作有美學願景 + 生硬規範兩個半身</li>
+    <li><strong>P3</strong> 越做越醜的時序錯誤：限制太晚被看到，磨掉了美學</li>
+  </ul>
+  <h3>MCP 的角色（P4-P6）</h3>
+  <ul>
+    <li><strong>P4</strong> 限制顯現器：在前期顯現硬性限制，最小化退讓</li>
+    <li><strong>P5</strong> Domain 是本體：MCP 的核心資產是 Domain Knowledge</li>
+    <li><strong>P6</strong> 人類放大膽追美學：AI 揭露限制，人類追美學</li>
+  </ul>
+  <h3>何時 / 怎麼顯現（P7-P9）</h3>
+  <ul>
+    <li><strong>P7</strong> 階段完成點：思想首次落地的剎那</li>
+    <li><strong>P8</strong> 被動就緒：等問才答</li>
+    <li><strong>P9</strong> 滾動式開源 Domain：集眾人之力</li>
+  </ul>
+  <h3>糾正美學迷思（P10-P13）</h3>
+  <ul>
+    <li><strong>P10</strong> 設計 = 解決問題，美學 = 手段</li>
+    <li><strong>P11</strong> 光譜在設計師端</li>
+    <li><strong>P13</strong> MCP 是 0/1 執行器</li>
+    <li><strong>P12</strong> 死局求助更多人</li>
+  </ul>
+  <h3>實作層（P14-P17）</h3>
+  <ul>
+    <li><strong>P14</strong> 同步協作會議是終極目標</li>
+    <li><strong>P15</strong> 排程死線是第一限制</li>
+    <li><strong>P16</strong> Work Breakdown 讓階段點可識別</li>
+    <li><strong>P17</strong> 自舉式 AI 審查分身</li>
+  </ul>
+  <h3>會議場景延伸（P18-P22）</h3>
+  <ul>
+    <li><strong>P18</strong> 場域決定角色（3 模式）</li>
+    <li><strong>P19</strong> 會議模式響應風格</li>
+    <li><strong>P20</strong> <em>（淘汰）</em> 多人決策報告格式</li>
+    <li><strong>P21</strong> MCP 會議記錄者</li>
+    <li><strong>P22</strong> ARCHI 優先：大多設計師卡在建築模型</li>
+  </ul>
+</div>
+
+<div class="drawer" id="drawer-gateway">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>「越做越醜」初步觀察</h2>
+  <p>這個說法在業界很常聽到。學生作品給人「感覺新鮮」、自己 10 年前的方案「很大膽」、但現在做的設計越來越保守、功能主義、不像當初想做的。</p>
+  <p>我不認為這是「失去美感」。我認為這是<strong>流程的時序錯誤</strong>——一個我們沒看清楚的問題。</p>
+  <p>MCP 剛好可以幫我們看清楚這個問題。接下來 60 分鐘，我會帶大家拆解它。</p>
+</div>
+
+<!-- Section 1 Drawers -->
+<div class="drawer" id="drawer-1-1">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>設計流程的時序錯誤</h2>
+  <span class="prop-badge">P3</span>
+  <h3>典型場景</h3>
+  <p>你畫了一個漂亮的 1F 平面——大窗、寬走廊、雅致樓梯，自己很滿意。然後拿給結構技師：「這道剪力牆不能拆。」拿給機電：「這個走廊塞不下消防管。」拿給法規：「樓梯淨高違反 §65。」</p>
+  <p>你修改。但每次修改都讓原本的美學退一步。等到能交圖了，剩下的就是「醜」。</p>
+  <h3>這不是失去美感，是流程</h3>
+  <p>美學沒消失。是<strong>流程把它磨掉了</strong>——因為限制是後期才出現，每次出現都迫使你退讓。</p>
+  <p>如果限制在前期就能看到呢？你可以在第一筆下去之前就避開、調整、找替代方案——美學被保住的可能性大很多。</p>
+</div>
+
+<div class="drawer" id="drawer-1-2">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>「越做越醜」的根因</h2>
+  <span class="prop-badge">P3</span>
+  <h3>學生為什麼「感覺新鮮」</h3>
+  <p>學生的方案大膽，不是因為他們有更高的美學品味——是因為他們<strong>還沒被限制壓過</strong>。資深設計師的保守，是被一次次「限制反噬」訓練出來的條件反射。</p>
+  <h3>但這條件反射是悲劇</h3>
+  <p>它讓資深設計師在<strong>前期願景階段就先自我審查</strong>，先放棄了所有「可能被結構打回」的大膽想法。結果就是大家做出來的東西越來越像彼此，越來越保守、越來越功能主義。</p>
+  <h3>解法不是「鼓勵大膽」</h3>
+  <p>解法是<strong>讓限制變得早期可見</strong>——這樣設計師敢大膽，因為他知道限制是什麼、他知道哪裡有迴旋空間。MCP 的角色就在這裡。</p>
+</div>
+
+<div class="drawer" id="drawer-1-3">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>傳統 BIM 工具的角色定位</h2>
+  <span class="prop-badge">P1</span><span class="prop-badge">P2</span>
+  <h3>Revit / ArchiCAD / Rhino 都是「執行作業」工具</h3>
+  <p>它們解決的問題是：「<strong>怎麼把腦中的方案畫出來</strong>」。畫得快、畫得準、畫得可協作。</p>
+  <h3>但它們不告訴你方案撞了哪些限制</h3>
+  <p>它們不會主動跳出來說「這道牆違反防火區劃」「這個窗台高於規範」「採光比不夠」。要查這些，你得自己手動跑各種檢核——而檢核工具又分散在不同軟體、不同 plug-in、不同 Excel 模板。</p>
+  <h3>這個分類為什麼重要</h3>
+  <p>因為它告訴你 MCP <strong>不是 Revit 的替代品</strong>。MCP 是補上 Revit 沒解決的另一半問題——「限制顯現」。兩者協作，不是競爭。</p>
+</div>
+
+<div class="drawer" id="drawer-1-4">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>MCP 突破「執行作業」的可能</h2>
+  <span class="prop-badge">P1</span><span class="prop-badge">P4</span>
+  <h3>傳統工具沒解決的</h3>
+  <ul>
+    <li>限制檢核分散，每次要重跑</li>
+    <li>檢核結果是文字 / 表格，不在模型上呈現</li>
+    <li>檢核工具不知道彼此的存在，無法 orchestration</li>
+    <li>檢核結果不會自動回饋到下個設計動作</li>
+  </ul>
+  <h3>MCP 有機會做的</h3>
+  <ul>
+    <li>一個 prompt 編排多個檢核並行</li>
+    <li>結果直接 override 在模型元素上（紅綠色）</li>
+    <li>96 個工具可以組合成劇本</li>
+    <li>對話介面降低「我該查哪個」的決策成本</li>
+  </ul>
+  <h3>但「有機會」不等於「會做對」</h3>
+  <p>下一節 Section 2 就是要把「該怎麼做才對」講清楚。包含兩個常見誤解：MCP 該不該主動？MCP 該不該給建議？</p>
+</div>
+
+<!-- Section 2 Drawers -->
+<div class="drawer" id="drawer-2-1">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>什麼是「限制顯現器」</h2>
+  <span class="prop-badge large">P4</span>
+  <h3>使用者原文（2026-05-18 第一輪論述）</h3>
+  <div class="user-quote">
+    我認為 MCP 就是快速讓這些「限制」顯現，來讓設計者在企圖保有的需求、美學、意象等極大化的拉扯上，<strong>給出最少的退讓，獲得到最美與自己最喜愛的那個成果</strong>。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+  <h3>關鍵字解析</h3>
+  <ul>
+    <li><strong>「快速」</strong>：早期、即時，不是事後</li>
+    <li><strong>「顯現」</strong>：讓看不見的變看得見，但不替你決定</li>
+    <li><strong>「最少的退讓」</strong>：拉扯中找到讓步最小的方案</li>
+    <li><strong>「最美與自己最喜愛」</strong>：保住美學主權，不是接受平庸合規</li>
+  </ul>
+  <h3>跟「自動化」的差異</h3>
+  <p>自動化是「我替你做」。限制顯現器是「我讓你看見」。決策權還在你。</p>
+</div>
+
+<div class="drawer" id="drawer-2-2">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>人機分工新模型</h2>
+  <span class="prop-badge">P5</span><span class="prop-badge">P6</span>
+  <h3>為什麼舊模型錯了</h3>
+  <p>「AI 設計、人類審核」這個模型是 AI hype 帶來的——它假設 AI 能做「創意工作」，人類退到「品管」角色。</p>
+  <p>實務上這個模型崩潰：AI 生出的設計品味平庸（訓練資料是業界平均），人類審核又被資訊淹沒（要看 100 個方案）。</p>
+  <h3>新模型的翻轉</h3>
+  <p>「AI 揭露限制邊界，人類在限制可視化的前提下放大膽追美學」——AI 退到「限制顯現」這個高價值但低姿態的角色，人類重新成為設計主導。</p>
+  <h3>哲學意義</h3>
+  <p>這個翻轉把「設計師之所以為設計師」還給設計師。AI 不取代你的創意，AI 把「枯燥的限制檢核」這塊枯燥的工作做掉，讓你的創意有更多空間。</p>
+</div>
+
+<div class="drawer" id="drawer-2-3">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>誤解 #1：MCP 不該主動</h2>
+  <span class="prop-badge large">P8</span>
+  <h3>使用者原文（2026-05-18 第二輪論述）</h3>
+  <div class="user-quote">
+    限制應該不是主動，而是在設計者製作工作的過程中⋯⋯在尚未到達<strong>階段完成點</strong>的時候，如果有過多的資訊進入或來討論，會造成設計者的<strong>思緒上陷入迴圈打轉</strong>，而無法完成工作！⋯⋯因此<strong>主動跳出限制我覺得很怪，被動反倒是個好的狀態</strong>。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+  <h3>技術上可以「主動」 vs 設計上選擇「不做」</h3>
+  <p>技術上 MCP 完全可以接 Webhook、watcher、可以做 fail-fast。但<strong>「能做」不等於「該做」</strong>——主動跳出會打斷設計師的「思維落地」過程。</p>
+  <h3>業界類比</h3>
+  <p><a href="https://martinfowler.com/ieeeSoftware/failFast.pdf" target="_blank">Martin Fowler 的 Fail-Fast Architecture</a> 在軟體工程是好設計，但搬到「設計師創作過程」就是噪音。場域不同、要求不同。</p>
+</div>
+
+<div class="drawer" id="drawer-2-4">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>誤解 #2：MCP 是 0/1 執行器</h2>
+  <span class="prop-badge large">P13</span>
+  <h3>使用者糾正我的原文（2026-05-18 第三輪論述）</h3>
+  <div class="user-quote">
+    我認為部分的檢討就是 2 元，而不是我講的光譜做法。光譜是解決辦法，<strong>MCP 是執行的結果，結果只有對錯</strong>，但不代表錯誤一旦被忽略則專案無法執行，這件事情你必須要先能夠同意。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+  <h3>這條糾正非常重要</h3>
+  <p>我前面建議「Domain 重構為光譜回應」是錯的。MCP 的本質就是「檢核出對/錯」，光譜思維是設計師接到結果後的人類決策，<strong>不是 MCP 該承擔的</strong>。</p>
+  <h3>「對錯不代表無法執行」</h3>
+  <p>很多送審圖也是「妥協後通過」的——FAIL 不是 GAME OVER，是設計師決策的起點。Domain 不需要重構為光譜回應，<strong>現有 0/1 設計是對的</strong>。</p>
+</div>
+
+<!-- Section 3 Drawers -->
+<div class="drawer" id="drawer-3-1">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>階段完成點概念</h2>
+  <span class="prop-badge large">P7</span>
+  <h3>使用者定義</h3>
+  <div class="user-quote">
+    這個完成點不是我們說的主計畫里程碑，大多是在它們思維或者想法上被<strong>首次落地的那個剎那</strong>，所以稱為階段完成。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+  <h3>為什麼不能更早</h3>
+  <p>在「想法尚未落地」之前，過多資訊會讓設計師<strong>思緒打轉</strong>。沒有具象成果可以被檢視，所有檢核都是抽象的——「假設你做 X 就會違反 Y」沒有實際幫助。</p>
+  <p>必須等想法落地——畫出一個具象方案——MCP 才有東西可以檢，設計師才有東西可以接收結果做決策。</p>
+  <h3>怎麼判定「階段完成點」</h3>
+  <p>這是命題 P16（Work Breakdown）的工作——把設計拆成小單元，每個單元有可交付物，每個交付物 = 一個階段完成點。</p>
+</div>
+
+<div class="drawer" id="drawer-3-2">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>排程死線是設計流程的第一限制</h2>
+  <span class="prop-badge large">P15</span>
+  <h3>使用者原文</h3>
+  <div class="user-quote">
+    抵達死線下的完成度 <strong>80 和 60 和 100 的差異其實無差異</strong>，反而是 0 才是無法被判斷的狀態，那這樣的工作流程就可以開始轉動。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+  <h3>業界對標：Stage-Gate 模型</h3>
+  <p>Robert Cooper 1986 起源汽車業的 <a href="https://www.stage-gate.com/blog/the-stage-gate-model-an-overview/" target="_blank">Stage-Gate Model</a> 有三元決策：<strong>Go / Recycle / Kill</strong>——對應「完成度 100 / 80-60 / 0」。40 年產業驗證。</p>
+  <h3>Agile 哲學的呼應</h3>
+  <p>「Incompleteness is harnessed」（Zero Blockers）——<strong>不完整是策略，不是缺陷</strong>。Design-Build 正式承認「the architectural and engineering design cannot be complete」(Korte Company)。</p>
+  <h3>實務含意</h3>
+  <p>只要有交付物（不管完成度多少），下個審視動作就能啟動。0 才會卡死整條工作流。MCP 該支援這個哲學——能接受 80/60 完成度的模型也跑檢核，而不是堅持「沒做完不能查」。</p>
+</div>
+
+<div class="drawer" id="drawer-3-3">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>Work Breakdown 讓階段點可識別</h2>
+  <span class="prop-badge large">P16</span>
+  <h3>沒拆分的後果</h3>
+  <p>「我在做設計」——這是一個太大的工作單位。沒有節點，MCP 只能等「整塊完成」（可能要 1-2 週）才能介入。</p>
+  <h3>拆分後</h3>
+  <p>「1F 平面 LOD 200 完成」「外牆系統 LOD 300 完成」「樓梯 LOD 250 完成」——每個都是可被識別的階段完成點，每個都可以觸發 MCP 對應的檢查工具組。</p>
+  <h3>業界標準</h3>
+  <ul>
+    <li><a href="https://nibs.org/nbims/v4/bep/" target="_blank">BEP (BIM Execution Plan)</a> — ISO 19650</li>
+    <li><a href="https://bimforum.org/resource/lod-level-of-development-lod-specification/" target="_blank">LOD Specification</a> — AIA / BIM Forum</li>
+    <li><a href="https://www.projectmanager.com/guides/work-breakdown-structure" target="_blank">Work Breakdown Structure Guide</a></li>
+  </ul>
+  <h3>反模式警告：8/80 Rule</h3>
+  <p>WBS 業界規則：工作包應 8-80 小時，過細變 micromanagement 反而拖垮。<strong>警告：96 工具不該變成 500 個微任務。</strong></p>
+</div>
+
+<div class="drawer" id="drawer-3-4">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>業界對標物：BEP / LOD / IDS</h2>
+  <h3>三個都成熟，但沒被串成工具鏈</h3>
+  <p>BEP 是「該檢查什麼的計畫」、LOD 是「檢查的完成度標準」、IDS 是「機器可讀的檢查規格」。三件事業界都有，但沒人把它們串成一個一鍵觸發的工具鏈。</p>
+  <p>這就是「96 工具編排平台 = 業界真空白」的具體含義。我們不是發明新概念，是 orchestration 既有概念。</p>
+  <h3>外部資源</h3>
+  <ul>
+    <li><a href="https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/" target="_blank">IDS – buildingSMART 官方</a>（2024-06 才正式）</li>
+    <li><a href="https://plannerly.com/information-delivery-specification-ids-the-complete-guide-to-automating-bim-validation/" target="_blank">IDS Complete Guide – Plannerly</a></li>
+    <li><a href="https://nibs.org/nbims/v4/bep/" target="_blank">BEP Standard – NBIMS</a></li>
+    <li><a href="https://bimforum.org/resource/lod-level-of-development-lod-specification/" target="_blank">LOD Specification – BIM Forum</a></li>
+  </ul>
+</div>
+
+<!-- Section 4 Drawers -->
+<div class="drawer" id="drawer-4-1">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>設計 = 解決問題，美學 = 手段</h2>
+  <span class="prop-badge large">P10</span>
+  <h3>使用者糾正原文</h3>
+  <div class="user-quote">
+    這件事情不該被強調。<strong>設計的真實重點叫做解決問題，美學是一個重要的手段</strong>，但是能夠解決各方問題同時保持美感的結果，就是設計者的功力考驗，因此沒有你說的悖逆項限制。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+  <h3>糾正的對象</h3>
+  <p>我前面提過「美學被限制反噬」的論述——使用者明確說這是<strong>假命題</strong>。設計師不是「美學主義者」，是「解決問題者」。能在解決問題時保持美感才是真功力。</p>
+  <h3>對 MCP 設計的影響</h3>
+  <p>MCP 不該假裝「在保護設計師的美學」——它的任務就是把限制呈現清楚，至於「保住多少美學」是設計師的本事，不是 MCP 的責任。</p>
+</div>
+
+<div class="drawer" id="drawer-4-2">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>光譜決策 vs 0/1 執行</h2>
+  <span class="prop-badge">P11</span><span class="prop-badge">P13</span>
+  <h3>實例</h3>
+  <p>採光 FAIL。MCP 回「<span class="fail-tag">FAIL</span>」+ 數據。設計師面對的光譜：</p>
+  <ul>
+    <li>選項 A：加大窗 → 結構衝突？立面美感衝突？</li>
+    <li>選項 B：扣除台度太苛刻 → 法規這樣寫的，沒得改</li>
+    <li>選項 C：把房間定義改成「儲藏室」就不用查採光 → 業主想要當臥室</li>
+    <li>選項 D：跳出 AI，找老闆/業主討論（P12 死局）</li>
+  </ul>
+  <h3>為什麼 MCP 不該幫你選</h3>
+  <p>每個選項的權重涉及業主關係、預算、立面美學、結構可行性、未來改建空間⋯⋯這些 MCP 不知道。把光譜決策交給 AI 等於把「設計判斷」這個職業核心交出去。</p>
+</div>
+
+<div class="drawer" id="drawer-4-3">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>死局時跳出找人</h2>
+  <span class="prop-badge large">P12</span>
+  <h3>使用者原文</h3>
+  <div class="user-quote">
+    一旦被限制住，我認為人應該要<strong>跳脫與人機互動的死局</strong>，反而應該要去<strong>求助更多的【人】來進行腦力激盪</strong>。
+    <span class="user-quote-attr">— 使用者，2026-05-18</span>
+  </div>
+  <h3>死局判定</h3>
+  <p>當你發現自己在問 AI 同一個問題的不同變形、AI 一直給類似建議都沒解、感覺被困住——那就是死局。</p>
+  <h3>正確做法</h3>
+  <p>關掉 AI 對話。打電話給老闆、業主、結構技師、室內設計師、之前合作過的同事。讓「人 + 人」的腦力激盪上場，因為這個層級的問題本來就是 AI 解不了的。</p>
+  <h3>AI 認輸是好事</h3>
+  <p>一個會說「這超出我能解的範圍」的 AI，比一個會硬掰建議的 AI 好得多——前者誠實、後者危險。</p>
+</div>
+
+<!-- Section 5 Drawers -->
+<div class="drawer" id="drawer-5-1">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>100x 成本規則 + 70% 返工本可避免</h2>
+  <span class="prop-badge">經濟學證據</span>
+  <h3>Boehm & Basili 100x 規則</h3>
+  <p>「Finding and fixing a software problem is <strong>100 times more expensive</strong> than during the requirements and design phase」——這個規則來自軟體工程 40 年的實證，已被廣泛搬到工程設計領域。</p>
+  <p>來源：<a href="https://scirp.org/html/4305.html" target="_blank">Software Reliability Early Prediction in Architectural Design Phase – SCIRP</a></p>
+  <h3>70% 營建返工本可避免</h3>
+  <p>「<strong>70% of total rework in construction = design-induced errors</strong> that could have been caught in the model」</p>
+  <p>來源：<a href="https://www.united-bim.com/how-revit-clash-coordination-reduces-costly-rework-in-construction-projects/" target="_blank">united-bim.com</a></p>
+  <h3>具體成本</h3>
+  <p>2 吋誤差 = $15,000-$25,000 直接損失。來源：<a href="https://www.nexoradesign.net/post/the-hidden-engineering-problem-killing-mep-projects-coordination-failures-causes-impacts-and-pr" target="_blank">Nexora Design</a></p>
+  <h3>對 MCP 的論證意義</h3>
+  <p>這就是「為什麼要早讓限制顯現」最強的經濟學論證。不是哲學，是錢。</p>
+</div>
+
+<div class="drawer" id="drawer-5-2">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>成熟方法論借鏡</h2>
+  <h3>Stage-Gate 模型（1986 汽車業）</h3>
+  <p>Robert Cooper 提出，40 年產業驗證。每個 Gate 做 Go / Recycle / Kill 三元決策——對應 P15「80/60/100 無差異，0 才是 no-go」。</p>
+  <p><a href="https://www.stage-gate.com/blog/the-stage-gate-model-an-overview/" target="_blank">Stage-Gate Model Overview</a></p>
+  <h3>Definition of Done (Agile)</h3>
+  <p>「完成 = DoD checklist 全打勾」，不是 100% 完整。對應「LOD 300 達成 = 對應檢核 PASS」的概念。</p>
+  <p><a href="https://www.scrum.org/resources/what-definition-done" target="_blank">Definition of Done – Scrum.org</a></p>
+  <h3>CI/CD Quality Gates</h3>
+  <p>軟體業常見：branch protection + automated checks 自動觸發。對應 MCP 工具自動編排觸發。</p>
+  <p><a href="https://www.infoq.com/articles/pipeline-quality-gates/" target="_blank">Pipeline Quality Gates – InfoQ</a></p>
+</div>
+
+<div class="drawer" id="drawer-5-3">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>Early Mover 時機</h2>
+  <h3>5 個時機證據</h3>
+  <ul>
+    <li><strong>IDS</strong>（buildingSMART）2024-06 才官方標準化 — <a href="https://www.buildingsmart.org/standards/bsi-standards/information-delivery-specification-ids/" target="_blank">link</a></li>
+    <li><strong>Procore AI Agents</strong> 2024-11 才發布 — <a href="https://siliconangle.com/2024/11/20/procore-add-ai-agents-to-its-construction-management-software-platform/" target="_blank">link</a></li>
+    <li><strong>Dassault Virtual Companions</strong> 2025-2026 NVIDIA GTC 才出 — <a href="https://www.nvidia.com/en-us/on-demand/session/gtc26-s81834/" target="_blank">link</a></li>
+    <li><strong>Revit 內建 MCP</strong> 要 Revit 2027 才有 — <a href="https://www.autodesk.com/blogs/aec/2026/04/07/whats-new-in-revit-2027/" target="_blank">link</a></li>
+    <li><strong>Autodesk Assistant Tech Preview</strong> — <a href="https://www.autodesk.com/blogs/aec/2026/04/22/autodesk-assistant-in-revit-tech-preview/" target="_blank">link</a></li>
+  </ul>
+  <h3>結論</h3>
+  <p>業界對「AI + BIM + Workflow Orchestration」的官方支援都在 2024-2026 才到位。我們現在介入是 early mover——再晚 2 年就只是跟風。</p>
+</div>
+
+<!-- Section 6 Drawers -->
+<div class="drawer" id="drawer-6-2">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>用日本 Revit Sample 示範</h2>
+  <h3>為什麼選日本 sample</h3>
+  <ul>
+    <li>Revit 內建，所有人都能取得</li>
+    <li>純 ARCHI 模型，不涉及 MEP / 結構複雜性（P22 ARCHI 優先）</li>
+    <li>不是依台灣法規設計 → FAIL 是預期的，正好做光譜決策示範</li>
+    <li>不涉及 IP / 隱私（vs 用真實案子模型）</li>
+  </ul>
+  <h3>Demo Anchor 不綁死 1F（5/22 redesign）</h3>
+  <ul>
+    <li>原版設計：強制切到「平面図 1階」(53189012)</li>
+    <li>5/22 dry-run 發現：使用者真實工作流會在多視圖間隨意切換（1F→6F→2F 都常見），demo 強制 1F 不貼合 P8「被動就緒」精神</li>
+    <li>新版：<strong>Step 0 read-only anchor 使用者當下視圖</strong>，後續所有步驟以該樓層為基準。對應第四憲法 Active State Re-Anchoring（L-025）</li>
+  </ul>
+  <h3>Fallback 設計（Demo 失敗）</h3>
+  <ul>
+    <li><strong>Plan A</strong>：實機跑 Live Demo（首選）</li>
+    <li><strong>Plan B</strong>：預錄影片播放（5 min 精華版）</li>
+    <li><strong>Plan C</strong>：Screenshot 序列 + 講解</li>
+    <li><strong>Plan D</strong>：MCP 連線中斷 → 預演 Restart Server / 點任意視圖重建 focus（5/22 dry-run 實證可救回）</li>
+  </ul>
+  <h3>觀眾回家複製</h3>
+  <p>用 <a href="0523-handson.html" target="_blank">練習頁</a>，跟著 10 個複製貼上的 prompt 自己試。</p>
+</div>
+
+<div class="drawer" id="drawer-6-3">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>5 個 ARCHI 工具並行</h2>
+  <h3>觸發 prompt（複製貼上，5/22 redesign 含 re-anchor）</h3>
+  <pre style="background:#111;border:1px solid rgba(255,255,255,0.1);padding:14px;border-radius:6px;font-family:'SF Mono','Consolas',monospace;font-size:12px;line-height:1.6;color:#e0e0e0;white-space:pre-wrap;">請先呼叫 get_active_view re-anchor 確認當前視圖 / 樓層。
+然後我已完成此樓層建築設計（LOD 300 階段完成點），
+請依台灣建築技術規則做 ARCHI 合規批次檢查，
+並行呼叫以下 5 個工具（4 個需帶 levelName=<re-anchor 樓層>）：
+
+1. check_exterior_wall_openings — §45 / §110（project-wide，不帶 level）
+2. check_smoke_exhaust_windows — §188（level-scoped）
+3. check_stair_headroom — 樓梯淨高（level-scoped）
+4. get_room_daylight_info — §41 採光（level-scoped）
+5. check_floor_effective_openings — 樓板開口（level-scoped）
+
+回報格式：
+- 每個工具 PASS / FAIL（簡短）+ 標明 scope（project-wide 或樓層）
+- FAIL 列出不通過項目 + 為什麼
+- 不要給「應該怎麼修」的建議</pre>
+  <h3>預期觀察</h3>
+  <ul>
+    <li>AI 先呼叫 get_active_view re-anchor（第四憲法 Active Re-Anchoring）</li>
+    <li>並行（或快速序列）呼叫 5 個工具</li>
+    <li>回報 3-4 個 <span class="pass-tag">PASS</span> + 1-2 個 <span class="fail-tag">FAIL</span></li>
+    <li>不主動給「該怎麼修」（對應 P13）</li>
+    <li>主動 surface tool scope mismatch（exterior 是 project-wide，其他 4 個是 level-scoped）—— L-026</li>
+  </ul>
+  <h3>5/22 dry-run 新發現</h3>
+  <ul>
+    <li><strong>Tool Scope Mismatch（L-026）</strong>：<code>check_exterior_wall_openings</code> 不吃 level 參數，回的 8 項違規跨多個樓層（z 座標分布在 0/100/3170）。AI 應主動 surface「整案結果跨樓層，請勿假設都在當前樓層」</li>
+    <li><strong>BIM 內在不一致（L-029）</strong>：每間房有「面積」（幾何計算）vs「面積 部屋 調整値」（手填校正）兩個值，差 0.5-5%。在 2% 排煙邊界 case 上可能跨越合規門檻</li>
+  </ul>
+  <h3>講者互動點</h3>
+  <p>問現場：「你們各位看到的 FAIL 數量一樣嗎？」（同 sample 應該結果一致——這就是 MCP 的可重現性 vs 人工檢查的隨機性）</p>
+  <p style="margin-top:8px;font-size:13px;color:rgba(255,255,255,0.7);">補：「<strong>但如果你開 1F 跑跟我開 2F 跑，結果會不同——因為 level-scoped 工具看的不是同一層</strong>。這正是第四憲法的核心場景——MCP 對齊你眼前的視圖，不是文件預設的視圖。」</p>
+</div>
+
+<div class="drawer" id="drawer-6-4">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>報告解讀 + 失敗 fallback</h2>
+  <h3>三條決策路徑</h3>
+  <ol>
+    <li><strong>全 PASS</strong>（<span class="pass-tag">GO</span>）→ 標記 LOD 300 達成，進下階段</li>
+    <li><strong>部分 FAIL，可接受</strong>（RECYCLE）→ 設計師在光譜上判斷</li>
+    <li><strong>部分 FAIL，死局</strong> → 跳出找人（P12）</li>
+  </ol>
+  <h3>失敗 fallback 設計</h3>
+  <ul>
+    <li>某個 check_* 工具 timeout → 跳過該工具，繼續其他</li>
+    <li>某個工具 0 結果 → 標示「該類別無元素，跳過」</li>
+    <li>連結模型問題（P22 ARCHI 範圍內不發生）</li>
+    <li>AI hallucination ID → 立刻打斷，強制 re-tool-call</li>
+  </ul>
+  <h3>業界對應</h3>
+  <p>「26% 返工來自 miscommunication」<a href="https://eracore.com/bim-coordination-meetings/" target="_blank">Eracore</a>——好的報告格式（清晰、可決策）是 BIM Coordination Meeting 業界做的事，我們把它即時化。</p>
+</div>
+
+<!-- Section 7 Drawers -->
+<div class="drawer" id="drawer-7-1">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>同步協作會議 — 3 種模式 UX 對比</h2>
+  <span class="prop-badge large">P14</span><span class="prop-badge">P18</span>
+  <table>
+    <tr><th>模式</th><th>UX 設計</th><th>適用情境</th></tr>
+    <tr><td>(c) 沉默 <span class="pass-tag">推薦</span></td><td>全程旁聽不發言，會議結束自動產報告</td><td>多數會議的默認</td></tr>
+    <tr><td>(a) 主持人</td><td>會議指定 BIM Coordinator 有 invoke 權</td><td>正式 design review</td></tr>
+    <tr><td>(b) 自主拋限制 <span class="fail-tag">不建議</span></td><td>MCP 偵測「方案決議階段」主動拋限制</td><td>違反 P8 — 不採用</td></tr>
+  </table>
+  <h3>最佳實踐</h3>
+  <p><strong>(c) 沉默 + (a) 主持人切換</strong>——默認沉默，主持人可隨時切換到 invoke 模式。(b) 違反設計師主控 + 不可預測，不採用。</p>
+  <h3>為什麼會議是「終極目標」</h3>
+  <p>3 個設計師 + MCP 一起決策的場景，是命題 P14 標出的 MCP 專案終極價值場域——但目前還沒到，因為大多設計人員沒有「工作任務盤點與排序」習慣。</p>
+</div>
+
+<div class="drawer" id="drawer-7-2">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>MCP 會議記錄者</h2>
+  <span class="prop-badge large">P21</span>
+  <h3>三類自動產出</h3>
+  <ol>
+    <li><strong>觸及的限制清單</strong>：即時抓對話關鍵詞 → 對應 domain/*.md 規範
+      <ul>
+        <li>「採光不夠」→ 標記觸及 §41 / daylight-area-check.md</li>
+        <li>「走廊太窄」→ 標記觸及 corridor-analysis-protocol.md</li>
+      </ul>
+    </li>
+    <li><strong>未解決衝突</strong>：哪些方案沒決定、為何卡住（限制衝突 / 業主偏好 / 預算 / 工期）</li>
+    <li><strong>待後續決策項目</strong>：Action items + 負責人 + Due date（呼應 P15 死線）</li>
+  </ol>
+  <h3>業界對應</h3>
+  <p><a href="https://eracore.com/bim-coordination-meetings/" target="_blank">BIM Coordination Meetings – Eracore</a> 提到 26% 返工來自 miscommunication，紀錄是解藥。</p>
+  <h3>獨特價值</h3>
+  <p>AI 即時對應「對話 ↔ 規範」是業界沒有的能力——人類記錄者要會後查規範對應，AI 即時做。</p>
+</div>
+
+<div class="drawer" id="drawer-7-3">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>Domain 集眾人開源 + 自舉式 AI 審查</h2>
+  <span class="prop-badge">P9</span><span class="prop-badge">P17</span>
+  <h3>P9 滾動式集眾人開源</h3>
+  <p>Domain 不必一次補齊。44 個 Domain 已在用，新的可以靠社群 PR 補。這是 MCP 專案存在的目的之一——作為集合知識的開源庫。</p>
+  <h3>P17 自舉式 AI 審查分身的精神</h3>
+  <p><strong>使用者明示（2026-05-18）</strong>：「這個把它未來變成 /HANDOFF 的一項獨立的工程來和我討論。本次不做但是非常的需要！被記錄下來這樣的精神。」</p>
+  <ul>
+    <li><strong>短期</strong>：使用者親自審查所有 Domain 貢獻</li>
+    <li><strong>長期</strong>：透過「使用者 + AI」對話互動，逐步把審查邏輯外化、形式化</li>
+    <li><strong>終極</strong>：訓練出有審查能力的 AI 分身</li>
+  </ul>
+  <h3>未來 /handoff 議題框架（待開）</h3>
+  <ul>
+    <li>使用者現在的審查邏輯是什麼？</li>
+    <li>怎麼透過對話訓練 AI 分身？</li>
+    <li>AI 分身的能力邊界？（哪些可全自主？哪些必須升級回使用者？）</li>
+    <li>與既有 ultrareview 工具的關係？</li>
+  </ul>
+</div>
+
+<!-- Section 8 Drawers -->
+<div class="drawer" id="drawer-8-1">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <h2>三條對外敘事</h2>
+  <h3>敘事 1：把成熟業界實踐用 AI + MCP 重新實現在 BIM 域</h3>
+  <p>我們不是發明新概念。BEP（ISO 19650）+ Stage-Gate（1986）+ IDS（2024 buildingSMART）+ Agile DoD + CI/CD Quality Gates 都已成熟。我們做的是 <strong>orchestration</strong>——把這些已存在的概念在 BIM 領域串成一個工具鏈。</p>
+  <h3>敘事 2：時機正好（Early Mover）</h3>
+  <p>IDS 在 2024-06 才官方標準化、Procore AI Agents 在 2024-11 才發布、Dassault Virtual Companions 在 2025-2026 才出、Revit 內建 MCP 要 Revit 2027 才有。我們現在介入正是 early mover 期。</p>
+  <h3>敘事 3：用業界數據說服客戶 ROI</h3>
+  <ul>
+    <li>100x 成本規則（Boehm & Basili）</li>
+    <li>70% 返工本來可避免（united-bim.com）</li>
+    <li>2 吋誤差 = $15-25K（Nexora Design）</li>
+  </ul>
+  <p>對客戶說：「早 1 週讓限制顯現，可能省下 100 倍的後期修正成本」——這比講哲學有效得多。</p>
+</div>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+// 12 nav sections（cover 已移到 0523-presentation.html）
+const sections = [
+  { id: 'slide-why', label: '22 命題網格' },
+  { id: 'slide-gateway', label: '為什麼越做越醜' },
+  { id: 'slide-setup', label: '60 分鐘 timeline' },
+  { id: 'slide-1-1', label: 'S1 痛點' },
+  { id: 'slide-2-1', label: 'S2 限制顯現器' },
+  { id: 'slide-3-1', label: 'S3 階段完成點' },
+  { id: 'slide-4-1', label: 'S4 美學假命題' },
+  { id: 'slide-5-1', label: 'S5 業界證據' },
+  { id: 'slide-6-1', label: 'S6 🔴 Live Demo' },
+  { id: 'slide-7-1', label: 'S7 未來' },
+  { id: 'slide-8-1', label: 'S8 結語' },
+  { id: 'slide-ending', label: 'Takeaway' },
+];
+
+// Map every slide id → section index
+const slideToSection = {};
+slideToSection['slide-why'] = 0;
+slideToSection['slide-gateway'] = 1;
+slideToSection['slide-setup'] = 2;
+slideToSection['slide-ending'] = 11;
+document.querySelectorAll('[data-section]').forEach(el => {
+  const sec = parseInt(el.dataset.section);
+  slideToSection[el.id] = sec + 2; // offset by 3 (why, gateway, setup) — section indices start at 0
+});
+
+// Build nav dots
+const nav = document.getElementById('navDots');
+sections.forEach((s, i) => {
+  const dot = document.createElement('button');
+  dot.className = 'nav-dot section-start';
+  dot.dataset.label = s.label;
+  dot.onclick = () => document.getElementById(s.id).scrollIntoView({behavior:'smooth'});
+  nav.appendChild(dot);
+});
+
+// Scroll spy
+const sectionDots = nav.querySelectorAll('.nav-dot');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const secIdx = slideToSection[entry.target.id];
+      if (secIdx !== undefined) {
+        sectionDots.forEach(d => d.classList.remove('active'));
+        if (sectionDots[secIdx]) sectionDots[secIdx].classList.add('active');
+      }
+    }
+  });
+}, { threshold: 0.4 });
+document.querySelectorAll('.slide, .cover, .why-page, .setup-page, .ending-page').forEach(el => {
+  if (el.id) observer.observe(el);
+});
+
+// Drawer
+function openDrawer(id) {
+  const d = document.getElementById(id);
+  if (!d) return;
+  d.classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDrawer() {
+  document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open'));
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDrawer();
+});
+
+// Hash navigation
+window.addEventListener('load', () => {
+  const hash = window.location.hash;
+  if (hash) {
+    const target = document.querySelector(hash);
+    if (target) setTimeout(() => target.scrollIntoView({ behavior: 'instant' }), 100);
+  }
+});
+</script>
+</body>
+</html>

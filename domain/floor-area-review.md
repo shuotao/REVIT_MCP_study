@@ -1,7 +1,18 @@
 ---
 name: floor-area-review
 description: 執行建築容積檢討流程。當用戶提到「容積」「樓地板面積」「法規檢討」「送審」時啟用。
-tags: [容積, 法規, 送審, 面積]
+metadata:
+  version: "1.0"
+  updated: "2026-03-10"
+  created: "2026-01-04"
+  contributors:
+    - "Admin"
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by:
+    - building-compliance
+  tags: [容積, 法規, 送審, 面積]
 ---
 
 # 容積檢討流程

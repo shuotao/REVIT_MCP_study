@@ -12,11 +12,21 @@
 
 ## 輸出格式
 
+**Frontmatter 規範**：遵循 `domain/frontmatter-standard.md`（對齊 Anthropic Agent Skills spec）。完整規格與各欄位說明請讀該檔。
+
 ```markdown
 ---
-trigger: [關鍵字1, 關鍵字2]
-tools: [tool_name_1, tool_name_2]
-version: 1.0
+name: {workflow-name}
+description: "{做什麼 + 什麼時候用，1-1024 字元}"
+metadata:
+  version: "1.0"
+  updated: "{YYYY-MM-DD，本次建立日期}"
+  references:
+    - "{法規條號或外部依據}"
+  related:
+    - "{相關 domain 檔名.md}"
+  referenced_by: []  # 若已知被哪些 skill 引用則填入
+  tags: [{關鍵字1}, {關鍵字2}]
 ---
 
 # {工作流程名稱}
@@ -36,6 +46,8 @@ version: 1.0
 
 - 儲存前先檢查 `domain/` 是否已有類似流程，避免重複
 - 步驟必須可被其他 AI 直接執行，不得含有模糊描述
+- **Frontmatter 必填**：`name` + `description` + `metadata.version` + `metadata.updated`。其他 metadata 欄位可留空 `[]` 但仍要列出
+- 完整 frontmatter 規範見 `domain/frontmatter-standard.md`
 
 ## 完成後：這份 Domain 需要變成 Skill 嗎？
 

@@ -150,7 +150,7 @@ namespace RevitMCP.Core
                 }
                 catch (Exception ex)
                 {
-                    Logger.Info($"GetLineStyles 跳過樣式: {ex.Message}");
+                    Logger.Debug($"GetLineStyles 跳過樣式: {ex.Message}");
                 }
             }
 

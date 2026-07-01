@@ -1,0 +1,66 @@
+#!/bin/bash
+# post-commit — Layer 1 event logging
+# 在每次 commit 後自動 append 到 log/YYYY-MM.md
+# AI-agnostic：任何 AI 或人做 commit 都會觸發
+
+set -e
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+LOG_DIR="$REPO_ROOT/log"
+DATE_MONTH="$(date +%Y-%m)"
+DATE_FULL="$(date +"%Y-%m-%d %H:%M")"
+LOG_FILE="$LOG_DIR/$DATE_MONTH.md"
+
+# Gather commit metadata
+SHA="$(git log -1 --pretty=%h)"
+SUBJECT="$(git log -1 --pretty=%s)"
+AUTHOR="$(git log -1 --pretty=%an)"
+PARENT_COUNT="$(git log -1 --pretty=%P | wc -w | tr -d ' ')"
+
+# Get changed files
+FILES_ALL="$(git diff-tree --no-commit-id --name-only -r HEAD)"
+
+# 跳過「僅修改 log/」的 commit，避免 log 自我膨脹
+NON_LOG_FILES="$(echo "$FILES_ALL" | grep -v '^log/' || true)"
+if [ -z "$NON_LOG_FILES" ]; then
+  exit 0
+fi
+
+# Determine event type
+if [ "$PARENT_COUNT" -gt 1 ]; then
+  EVENT_TYPE="merge"
+else
+  EVENT_TYPE="commit"
+fi
+
+# Files: top 5, summarize overflow
+FILE_COUNT="$(echo "$FILES_ALL" | wc -l | tr -d ' ')"
+FILES_TOP5="$(echo "$FILES_ALL" | head -5 | tr '\n' ',' | sed 's/,$//; s/,/, /g')"
+FILES_OVERFLOW=""
+if [ "$FILE_COUNT" -gt 5 ]; then
+  FILES_OVERFLOW=" (+$((FILE_COUNT - 5)) more)"
+fi
+
+# Ensure log dir exists and initialize monthly file if needed
+mkdir -p "$LOG_DIR"
+if [ ! -f "$LOG_FILE" ]; then
+  cat > "$LOG_FILE" <<EOF
+# Event Log — $DATE_MONTH
+
+> 事件流水帳，由 git hooks 和 AI Agent 共同維護。
+> **嚴禁修改已有條目**，只能 append。
+> 詳見 \`log/README.md\`。
+
+EOF
+fi
+
+# Append event entry
+cat >> "$LOG_FILE" <<EOF
+## [$DATE_FULL] $EVENT_TYPE | $SUBJECT
+- actor: $AUTHOR (via git-hook/post-commit)
+- files: $FILES_TOP5$FILES_OVERFLOW
+- sha: $SHA
+
+EOF
+
+exit 0

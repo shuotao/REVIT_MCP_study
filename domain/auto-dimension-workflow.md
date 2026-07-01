@@ -1,9 +1,17 @@
 ---
-description: 自動標註工作流程 - 使用射線偵測 (Ray-Casting) 標註空間淨尺寸
-trigger_keywords: [標註, 尺寸, dimension, ray cast, 淨寬, 機電]
-tools: [create_dimension_by_ray, get_room_info]
-version: 1.0
-last_updated: 2026-02-06
+name: auto-dimension-workflow
+description: "自動標註工作流程：使用射線偵測 (Ray-Casting) 或 BoundingBox 方法標註空間淨尺寸、走廊淨寬、MEP 設備。當使用者提到標註、尺寸、dimension、ray cast、淨寬、auto dimension 時觸發。"
+metadata:
+  version: "1.0"
+  updated: "2026-03-16"
+  created: "2026-03-16"
+  contributors:
+    - "unknown"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by:
+    - auto-dimension
+  tags: [標註, 尺寸, dimension, ray cast, 淨寬, 機電]
 ---
 
 # 自動標註工作流程 (Ray-Casting)

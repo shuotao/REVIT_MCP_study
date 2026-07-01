@@ -1,3 +1,21 @@
+---
+name: path-maintenance-qa
+description: "路徑維護與 QA/QC 工作流程：專案目錄重構後同步更新所有相關路徑參照的維護指南（舊 MCP/MCP/ 雙層嵌套 → 新 MCP/ 單層）。當使用者提到路徑、維護、QA、QC、目錄重構、path maintenance 時觸發。"
+metadata:
+  version: "1.0"
+  updated: "2026-03-13"
+  created: "2025-12-18"
+  contributors:
+    - "Admin"
+    - "Shuotao Chiang/江碩濤/CTCI-ATFT"
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by:
+    - qa-review
+  tags: [路徑, 維護, QA, QC, 目錄重構, path maintenance]
+---
+
 # 路徑維護與 QA/QC 工作流程
 
 > 專案目錄重構後的維護指南

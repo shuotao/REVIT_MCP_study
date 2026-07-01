@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>0523 Hands-on — MCP × Revit 練習頁</title>
+<meta property="og:title" content="0523 Hands-on：10 個 Prompt 體會 MCP × Revit 的未來">
+<meta property="og:description" content="跟著 10 個可複製貼上的 Prompt，用日本 Revit Sample 體會「限制顯現器」的設計哲學。10 分鐘體驗 / 30 分鐘深入。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://shuotao.github.io/REVIT_MCP_study/docs/0523-handson.html">
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #000; color: #fff;
+    font-family: 'Helvetica Neue', 'Inter', 'Noto Sans TC', sans-serif;
+    line-height: 1.7; overflow-x: hidden;
+  }
+  ::selection { background: #fff; color: #000; }
+  a { color: #60a5fa; text-decoration: none; border-bottom: 1px solid rgba(96,165,250,0.3); transition: border-color 0.3s; }
+  a:hover { border-color: #60a5fa; }
+
+  /* ===== TOP NAV ===== */
+  .topnav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 14px 32px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .topnav-title {
+    font-size: 14px; font-weight: 600; color: #fff;
+  }
+  .topnav-title span { color: #60a5fa; }
+  .topnav-actions { display: flex; gap: 12px; align-items: center; }
+  .topnav-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 100px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.7); font-size: 13px; cursor: pointer; font-family: inherit;
+    transition: all 0.2s; text-decoration: none;
+  }
+  .topnav-btn:hover { border-color: #fff; color: #fff; background: rgba(255,255,255,0.08); }
+  .topnav-btn.primary {
+    background: #60a5fa; color: #000; border-color: #60a5fa;
+  }
+  .topnav-btn.primary:hover { background: #fff; border-color: #fff; }
+
+  /* ===== HERO ===== */
+  .hero {
+    min-height: 75vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 100px 40px 60px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .hero-eyebrow {
+    font-size: 12px; letter-spacing: 5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.35); margin-bottom: 24px;
+  }
+  .hero-title {
+    font-size: 52px; font-weight: 800; line-height: 1.15;
+    letter-spacing: -1.5px; margin-bottom: 16px; max-width: 900px;
+  }
+  .hero-title span { color: #60a5fa; }
+  .hero-sub {
+    font-size: 19px; color: rgba(255,255,255,0.55); font-weight: 300;
+    line-height: 1.6; margin-bottom: 36px; max-width: 700px;
+  }
+  .hero-meta {
+    display: flex; gap: 36px; flex-wrap: wrap; justify-content: center;
+    margin-bottom: 32px;
+  }
+  .hero-meta-item { text-align: center; }
+  .hero-meta-label {
+    font-size: 11px; letter-spacing: 2px; color: rgba(255,255,255,0.3); text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .hero-meta-value { font-size: 15px; color: rgba(255,255,255,0.85); font-weight: 600; }
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 32px; background: #60a5fa; color: #000;
+    border-radius: 100px; font-size: 16px; font-weight: 700;
+    text-decoration: none; border: 1px solid #60a5fa;
+    transition: all 0.2s; cursor: pointer;
+  }
+  .hero-cta:hover { background: #fff; border-color: #fff; transform: translateY(-2px); }
+
+  /* ===== SECTION ===== */
+  section.hands-section {
+    padding: 80px 40px; max-width: 1100px; margin: 0 auto;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .section-eyebrow {
+    font-size: 12px; letter-spacing: 4px; text-transform: uppercase;
+    color: #60a5fa; margin-bottom: 12px; font-weight: 600;
+  }
+  .section-title {
+    font-size: 32px; font-weight: 800; line-height: 1.2; letter-spacing: -0.5px;
+    margin-bottom: 12px;
+  }
+  .section-desc { font-size: 16px; color: rgba(255,255,255,0.6); line-height: 1.7; margin-bottom: 36px; max-width: 760px; }
+
+  /* ===== ENV CHECK ===== */
+  .env-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+    margin-bottom: 32px;
+  }
+  .env-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px; padding: 18px 20px;
+  }
+  .env-card-label { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 6px; letter-spacing: 1px; }
+  .env-card-value { font-size: 14px; color: #fff; font-weight: 600; }
+  .env-card-check { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 8px; line-height: 1.6; }
+  .env-card-check code { background: rgba(96,165,250,0.1); color: #60a5fa; padding: 2px 6px; border-radius: 3px; font-family: 'SF Mono','Consolas',monospace; font-size: 11px; }
+
+  /* ===== TIMELINE ===== */
+  .startup-steps {
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 24px 28px;
+  }
+  .startup-step {
+    display: flex; gap: 16px; align-items: flex-start; padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .startup-step:last-child { border-bottom: none; }
+  .startup-num {
+    flex: 0 0 32px; height: 32px; border-radius: 50%;
+    background: rgba(96,165,250,0.15); border: 1px solid rgba(96,165,250,0.4);
+    color: #60a5fa; font-size: 14px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .startup-text { font-size: 14px; color: rgba(255,255,255,0.8); line-height: 1.7; }
+  .startup-text code { background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 3px; font-family: 'SF Mono','Consolas',monospace; font-size: 12px; color: #fff; }
+
+  /* ===== STEP CARD ===== */
+  .step-card {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 28px 32px;
+    margin-bottom: 24px; transition: border-color 0.3s;
+  }
+  .step-card:hover { border-color: rgba(96,165,250,0.3); }
+  .step-card.core { border-left: 4px solid #60a5fa; }
+  .step-card.bonus { border-left: 4px solid rgba(255,255,255,0.2); }
+  .step-card.core-star { border-left: 4px solid #fbbf24; background: rgba(251,191,36,0.04); }
+  .step-card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; flex-wrap: wrap; gap: 12px;
+  }
+  .step-tag {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    letter-spacing: 2px; padding: 4px 12px;
+    background: rgba(96,165,250,0.12); color: #60a5fa;
+    border: 1px solid rgba(96,165,250,0.3); border-radius: 100px;
+  }
+  .step-tag.bonus { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); border-color: rgba(255,255,255,0.15); }
+  .step-tag.star { background: rgba(251,191,36,0.12); color: #fbbf24; border-color: rgba(251,191,36,0.4); }
+  .step-num {
+    font-size: 13px; color: rgba(255,255,255,0.4); letter-spacing: 2px;
+  }
+  .step-title {
+    font-size: 22px; font-weight: 700; line-height: 1.3;
+    margin-bottom: 12px; color: #fff; letter-spacing: -0.3px;
+  }
+  .step-why {
+    font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.7;
+    background: rgba(96,165,250,0.04); border-left: 3px solid rgba(96,165,250,0.3);
+    padding: 12px 16px; border-radius: 0 6px 6px 0; margin-bottom: 18px;
+  }
+  .step-why strong { color: #60a5fa; }
+
+  /* ===== CODE BLOCK / COPY ===== */
+  .prompt-block {
+    position: relative; background: #0a0a0a;
+    border: 1px solid rgba(96,165,250,0.2); border-radius: 10px;
+    padding: 44px 20px 18px 20px; margin: 14px 0 18px;
+    font-family: 'SF Mono','Fira Code','Consolas',monospace;
+    font-size: 13px; line-height: 1.75; color: #e0e0e0;
+    overflow-x: auto; white-space: pre-wrap;
+  }
+  .prompt-block-label {
+    position: absolute; top: 12px; left: 16px;
+    background: rgba(96,165,250,0.12);
+    border: 1px solid rgba(96,165,250,0.3);
+    border-radius: 4px;
+    padding: 3px 10px;
+    font-size: 10px; letter-spacing: 2px; color: #60a5fa; font-weight: 700;
+    font-family: 'Helvetica Neue', sans-serif;
+    white-space: nowrap;
+  }
+  .prompt-hint {
+    background: rgba(251,191,36,0.06);
+    border: 1px solid rgba(251,191,36,0.25);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 14px 0 8px 0;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.7;
+    font-family: 'Helvetica Neue','Noto Sans TC',sans-serif;
+  }
+  .prompt-hint::before {
+    content: '📌 替換指示：';
+    color: #fbbf24;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-right: 4px;
+  }
+  .prompt-hint code {
+    background: rgba(96,165,250,0.15);
+    color: #60a5fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'SF Mono','Consolas',monospace;
+    font-size: 12px;
+  }
+  .copy-btn {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.3);
+    color: #60a5fa; padding: 5px 12px; border-radius: 5px;
+    cursor: pointer; font-size: 12px; font-family: inherit; font-weight: 600;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { background: rgba(96,165,250,0.2); }
+  .copy-btn.copied { background: rgba(74,222,128,0.15); border-color: rgba(74,222,128,0.4); color: #4ade80; }
+
+  /* ===== EXPECT / TIPS ===== */
+  .expect-box {
+    background: rgba(74,222,128,0.04); border: 1px solid rgba(74,222,128,0.18);
+    border-radius: 8px; padding: 14px 18px; margin: 14px 0;
+  }
+  .expect-box-title { font-size: 12px; letter-spacing: 2px; color: #4ade80; font-weight: 700; margin-bottom: 8px; }
+  .expect-box ul { padding-left: 20px; }
+  .expect-box li { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.7; margin-bottom: 4px; }
+  .pass-tag { display: inline-block; padding: 1px 8px; border-radius: 100px; font-size: 10px; font-weight: 700; letter-spacing: 1px; background: rgba(74,222,128,0.15); color: #4ade80; }
+  .fail-tag { display: inline-block; padding: 1px 8px; border-radius: 100px; font-size: 10px; font-weight: 700; letter-spacing: 1px; background: rgba(239,68,68,0.15); color: #ef4444; }
+
+  .reflection-box {
+    background: rgba(96,165,250,0.04); border: 1px solid rgba(96,165,250,0.2);
+    border-radius: 8px; padding: 14px 18px; margin: 14px 0;
+  }
+  .reflection-box-title { font-size: 12px; letter-spacing: 2px; color: #60a5fa; font-weight: 700; margin-bottom: 8px; }
+  .reflection-box p { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.7; font-style: italic; }
+
+  /* ===== BONUS DETAILS ===== */
+  .bonus-summary {
+    cursor: pointer; padding: 16px 0; list-style: none;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .bonus-summary::-webkit-details-marker { display: none; }
+  .bonus-summary::before {
+    content: '▶'; font-size: 12px; color: rgba(255,255,255,0.4); transition: transform 0.2s;
+  }
+  details[open] .bonus-summary::before { transform: rotate(90deg); }
+
+  /* ===== REFLECTION ===== */
+  .reflect-card {
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08);
+    border-left: 4px solid #fbbf24;
+    border-radius: 8px; padding: 24px 28px; margin-bottom: 16px;
+  }
+  .reflect-num {
+    font-size: 13px; letter-spacing: 2px; color: #fbbf24; font-weight: 700; margin-bottom: 8px;
+  }
+  .reflect-q {
+    font-size: 18px; font-weight: 600; color: #fff; font-style: italic;
+    line-height: 1.5; letter-spacing: -0.2px;
+  }
+  .reflect-hint { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 10px; line-height: 1.7; }
+
+  /* ===== FAQ ===== */
+  .faq-table {
+    width: 100%; border-collapse: collapse; font-size: 14px;
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; overflow: hidden;
+  }
+  .faq-table th, .faq-table td {
+    padding: 12px 16px; text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .faq-table th { background: rgba(255,255,255,0.04); color: #fff; font-weight: 600; font-size: 13px; letter-spacing: 1px; }
+  .faq-table td { color: rgba(255,255,255,0.75); line-height: 1.7; }
+  .faq-table td:first-child { color: #ef4444; font-weight: 600; width: 30%; }
+  .faq-table code { background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 3px; font-family: 'SF Mono','Consolas',monospace; font-size: 12px; }
+
+  /* ===== FOOTER ===== */
+  footer {
+    text-align: center; padding: 60px 40px;
+    color: rgba(255,255,255,0.4); font-size: 13px; line-height: 1.8;
+  }
+  .footer-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+  .footer-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px; border-radius: 100px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.85); font-size: 14px; font-weight: 600;
+    text-decoration: none; transition: all 0.2s;
+  }
+  .footer-btn:hover { border-color: #fff; color: #fff; background: rgba(255,255,255,0.08); }
+  .footer-btn.primary { background: #60a5fa; color: #000; border-color: #60a5fa; }
+  .footer-btn.primary:hover { background: #fff; border-color: #fff; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .topnav { padding: 12px 16px; }
+    .topnav-title { font-size: 12px; }
+    .topnav-btn { font-size: 11px; padding: 5px 10px; }
+    .hero { padding: 80px 20px 40px; }
+    .hero-title { font-size: 30px; }
+    .hero-sub { font-size: 14px; }
+    .hero-meta { gap: 16px; }
+    section.hands-section { padding: 50px 20px; }
+    .section-title { font-size: 22px; }
+    .section-desc { font-size: 14px; }
+    .env-grid { grid-template-columns: 1fr; }
+    .step-card { padding: 20px 18px; }
+    .step-title { font-size: 18px; }
+    .prompt-block { font-size: 11px; padding: 14px 14px 14px 14px; }
+    .copy-btn { font-size: 11px; padding: 4px 8px; }
+    .reflect-card { padding: 18px 20px; }
+    .reflect-q { font-size: 15px; }
+    .faq-table { font-size: 12px; }
+    .faq-table th, .faq-table td { padding: 8px 10px; }
+  }
+
+  /* ===== PRINT ===== */
+  @media print {
+    .topnav, .copy-btn, footer { display: none !important; }
+    body { background: #fff; color: #000; }
+    a { color: #2563eb; }
+    .prompt-block { background: #f5f5f5; color: #000; border: 1px solid #ccc; }
+    .step-card { break-inside: avoid; border-color: #ccc; background: #fff; }
+    details { display: block; }
+    details > .bonus-summary { display: none; }
+  }
+</style>
+</head>
+<body>
+<div data-snapshot="2026-05-23" style="position:fixed;bottom:12px;right:12px;z-index:9999;background:rgba(15,23,42,.92);color:#fbbf24;padding:6px 14px;font-size:12px;border:1px solid #334155;border-radius:8px;pointer-events:none;">2026-05-23 活動快照 snapshot · 數字為當時狀態，最新統計見 BIM_MCP 知識站</div>
+
+<!-- ===== TOP NAV ===== -->
+<nav class="topnav">
+  <div class="topnav-title">0523 Hands-on · <span>MCP × Revit 練習頁</span></div>
+  <div class="topnav-actions">
+    <a href="0523-monthly.html" class="topnav-btn">← 回主簡報</a>
+    <a href="0425-presentation.html" class="topnav-btn">← 0425</a>
+    <a href="https://github.com/shuotao/REVIT_MCP_study" class="topnav-btn" target="_blank">GitHub</a>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-eyebrow">FIELD NOTES NO. 03 · HANDS-ON</div>
+  <h1 class="hero-title">10 個 Prompt<br>體會 MCP × Revit 的<span>未來</span></h1>
+  <p class="hero-sub">所有 prompt 可一鍵複製貼上。<br>用 Revit 內建日本 Sample 模型跑，10 分鐘核心練習 + 30 分鐘深入 + 5 個反思題。</p>
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <div class="hero-meta-label">Time</div>
+      <div class="hero-meta-value">10-45 min</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-label">Mode</div>
+      <div class="hero-meta-value">現場跟做 / 回家練</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-label">Prereq</div>
+      <div class="hero-meta-value">已部署 MCP（見 0425）</div>
+    </div>
+    <div class="hero-meta-item">
+      <div class="hero-meta-label">Model</div>
+      <div class="hero-meta-value">Revit 日本 Sample</div>
+    </div>
+  </div>
+  <a href="#step-0" class="hero-cta">↓ 開始第一個 Prompt</a>
+</section>
+
+<!-- ===== ENV CHECK ===== -->
+<section class="hands-section">
+  <div class="section-eyebrow">PREREQUISITES · 5 分鐘</div>
+  <h2 class="section-title">先確認環境</h2>
+  <p class="section-desc">如果你已跟著 <a href="0425-presentation.html" target="_blank">0425-presentation.html</a> 的 Setup 部署過，直接跳到「步驟 0」。沒部署的人先把下表跑一遍。</p>
+
+  <div class="env-grid">
+    <div class="env-card">
+      <div class="env-card-label">Autodesk Revit</div>
+      <div class="env-card-value">2022 / 2023 / 2024 / 2025 / 2026 任一</div>
+      <div class="env-card-check">確認：開得起來，能載入 sample 模型</div>
+    </div>
+    <div class="env-card">
+      <div class="env-card-label">Node.js</div>
+      <div class="env-card-value">18+</div>
+      <div class="env-card-check">確認：<code>node -v</code></div>
+    </div>
+    <div class="env-card">
+      <div class="env-card-label">RevitMCP Add-in</div>
+      <div class="env-card-value">已部署到 AppData</div>
+      <div class="env-card-check">確認：Revit 功能區看到「RevitMCP」面板</div>
+    </div>
+    <div class="env-card">
+      <div class="env-card-label">MCP Server</div>
+      <div class="env-card-value">已 build</div>
+      <div class="env-card-check">確認：<code>MCP-Server/build/index.js</code> 存在</div>
+    </div>
+    <div class="env-card">
+      <div class="env-card-label">AI Client</div>
+      <div class="env-card-value">Claude Desktop / Gemini CLI / VS Code Copilot / Claude Code 任一</div>
+      <div class="env-card-check">已寫入 MCP config（路徑見 0425 Setup）</div>
+    </div>
+    <div class="env-card">
+      <div class="env-card-label">測試模型</div>
+      <div class="env-card-value">日本 Revit Sample（晚點測試時告知具體檔名）</div>
+      <div class="env-card-check">從 Revit 開啟畫面的「Sample Models」找</div>
+    </div>
+  </div>
+
+  <h3 style="font-size:18px;margin:32px 0 16px;color:#fff;">1 分鐘啟動順序</h3>
+  <div class="startup-steps">
+    <div class="startup-step">
+      <div class="startup-num">1</div>
+      <div class="startup-text">開 Revit → 載入<strong>日本 Sample 模型</strong></div>
+    </div>
+    <div class="startup-step">
+      <div class="startup-num">2</div>
+      <div class="startup-text">Revit 面板按 <strong>RevitMCP → Start Server</strong>（功能區顯示綠燈）</div>
+    </div>
+    <div class="startup-step">
+      <div class="startup-num">3</div>
+      <div class="startup-text">開 AI Client（Claude Desktop / Gemini CLI / ...）</div>
+    </div>
+    <div class="startup-step">
+      <div class="startup-num">4</div>
+      <div class="startup-text">在 AI Client 輸入 <code>get_active_view</code>，回傳 JSON = 連線 OK</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CORE STEPS ===== -->
+<section class="hands-section">
+  <div class="section-eyebrow">CORE · 10 MIN</div>
+  <h2 class="section-title">核心練習：步驟 0-6</h2>
+  <p class="section-desc">每個藍色 code block 都是「直接貼到 AI Client 對話框」的 prompt。執行後對照「預期觀察」確認。卡住請看下方常見問題。<br><strong style="color:#60a5fa;">設計原則</strong>：每個 prompt 單一意圖、語意完整，避免 LLM 自由發揮。對應命題 P8「被動就緒」——你不問，AI 不答。</p>
+
+  <!-- Step 0 -->
+  <article class="step-card core" id="step-0">
+    <div class="step-card-head">
+      <span class="step-tag">CORE</span>
+      <span class="step-num">STEP 0 / 6</span>
+    </div>
+    <h3 class="step-title">Anchor — 讀使用者當下實際在哪</h3>
+    <p class="step-why"><strong>為什麼這步</strong>：對應命題 P8「被動就緒」+ 憲法級「Tool Call Data Honesty」+ 「Active State Re-Anchoring」（5/22 新增）。先讓 AI 讀使用者當下實際所在的視圖/樓層，**所有後續操作以這個 anchor 為基準**——不假設使用者在 1F，不依賴 handson 文件預設的「日本 sample 應該是 53189012」這類 hardcoded 期望。</p>
+    <div class="prompt-block">
+      <span class="prompt-block-label">COPY</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請呼叫 get_active_view 告訴我我現在在 Revit 哪個視圖。
+請列出：視圖名稱、類型、樓層、ViewId（4 項都要）。
+不要做任何進一步推論。</span></div>
+    <div class="expect-box">
+      <div class="expect-box-title">✓ 預期觀察</div>
+      <ul>
+        <li>AI 回一行：「您目前在『{視圖名}』，類型『{FloorPlan/Section/...}』，樓層『{LevelName}』，ViewId=<code>{數字}</code>。」</li>
+        <li><span class="pass-tag">PASS</span> 如果 AI 開始建議「您可以做 X、Y、Z」——那是它違規（沒被問就答）。命題 P8 被破壞的樣子</li>
+        <li><span class="fail-tag">FAIL</span> AI 列出具體房間 ID 但你沒呼叫 <code>get_rooms_by_level</code>——違反 Tool Call Data Honesty</li>
+        <li><strong>📌 把 ViewId 與 LevelName 抄下來</strong>，但**這只是「Step 0 時的 anchor」**——後續每個 level/view-anchored 步驟（Step 2/3/5）AI 都應該重新 re-anchor，不依賴 Step 0 的 snapshot</li>
+      </ul>
+    </div>
+    <div class="expect-box" style="background:rgba(96,165,250,0.06);border-color:rgba(96,165,250,0.25);">
+      <div class="expect-box-title" style="color:#60a5fa;">📌 Active State Re-Anchoring 規則（5/22 新增，憲法級）</div>
+      <p>**任何引用 view-state / level-state 的 claim 之前，AI 必須在 claim 時點重新呼叫 <code>get_active_view</code> 確認**——不能依賴 session 較早的 read 結果。使用者隨時可能切視圖（這是真實設計師工作流，一邊看作業用、一邊翻法規、一邊跳到矩計），AI 沒有任何「異常」可偵測，只是在 stale snapshot 上繼續做 claim。詳見 <code>domain/session-context-guard.md</code> 與 <code>domain/lessons.md L-025</code>。</p>
+    </div>
+    <div class="reflection-box">
+      <div class="reflection-box-title">💭 互動反思</div>
+      <p>你想要的 AI 是「對」的 AI 還是「快」的 AI？</p>
+    </div>
+  </article>
+
+  <!-- Step 1 -->
+  <article class="step-card core" id="step-1">
+    <div class="step-card-head">
+      <span class="step-tag">CORE</span>
+      <span class="step-num">STEP 1 / 6</span>
+    </div>
+    <h3 class="step-title">確認當下視圖是否適合後續操作（read-only intake）</h3>
+    <p class="step-why"><strong>為什麼這步</strong>：5/22 redesign。<strong>原版設計「強制切到 1F」是錯的</strong>——真實設計師不會配合 demo 文件預期，他們會繼續按自己工作流切視圖。Step 1 改為 read-only intake：確認 Step 0 抄下的視圖類型 / 樓層**適不適合**後續 ARCHI 合規檢查；若不適合（例如使用者在 3D 視圖 / 剖面視圖 / 非檢討樓層），由使用者決定要不要手動切到合適的平面。</p>
+    <div class="prompt-block">
+      <span class="prompt-block-label">COPY</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">根據 Step 0 抄下的視圖類型與樓層，請判斷後續 ARCHI 合規檢查（外牆開口、排煙、樓梯淨高、採光、樓板有效開口）是否能在這個視圖上正常進行：
+
+- 視圖類型必須是 FloorPlan（平面）——若是 3D/Section/Elevation，請告訴我「請手動切到平面視圖再繼續」
+- 樓層必須是有實際房間定義的（不能是 GL/設計GL/外構等）——若是無效樓層，請告訴我「此樓層無房間資料，請手動切到 1F-7F 任一」
+- 若視圖名稱含「詳図/作業用/法規チェック/階段/建具/矩計/展開」等專用前綴，視圖內容可能被 view template 過濾——建議切到「平面図 X 階」這類主平面視圖
+
+不要呼叫 set_active_view 替我切視圖——讓我自己決定切到哪。
+回報格式：「您目前的視圖『{name}』是 {OK/不建議}，原因：{...}。」</span></div>
+    <div class="expect-box">
+      <div class="expect-box-title">✓ 預期觀察</div>
+      <ul>
+        <li>AI **不呼叫 set_active_view**——這是 read-only intake，光譜決策（要不要切視圖）在使用者端</li>
+        <li>AI 給出 OK / 不建議的判斷 + 一句原因</li>
+        <li>若視圖 OK → 直接進 Step 2，**Step 2 會以這個視圖的 LevelName 為基準**</li>
+        <li>若視圖不建議 → 你手動切到合適平面（或不切，後續結果可能異常）</li>
+        <li><span class="pass-tag">PASS</span> AI 沒幫你決定要切哪個視圖——光譜在使用者端</li>
+        <li><span class="fail-tag">FAIL</span> AI 自己 set_active_view 切到「它認為對的」視圖——這違反 Step 1 的 read-only intake 精神</li>
+      </ul>
+    </div>
+    <div class="reflection-box">
+      <div class="reflection-box-title">⚠ 真實工作流場景（5/22 dry-run 實證）</div>
+      <p>5/22 dry-run 中段使用者刻意在 Step 1 後再切 6F → 2F duplicate → 不告訴 AI。**正確的 AI 應該在每個後續步驟（Step 2/3/5）開頭都重 re-anchor**，跟著使用者眼前的畫面跑，而不是綁死在 Step 0/1 抄下的 LevelName。這對應雙向 Context Sync 協議——使用者切視圖是天然行為，AI 應主動跟上。</p>
+    </div>
+  </article>
+
+  <!-- Step 2 -->
+  <article class="step-card core" id="step-2">
+    <div class="step-card-head">
+      <span class="step-tag">CORE</span>
+      <span class="step-num">STEP 2 / 6</span>
+    </div>
+    <h3 class="step-title">看看這層樓有什麼</h3>
+    <p class="step-why"><strong>為什麼這步</strong>：對應命題 P7「階段完成點」——我們先看「具象成果」是什麼，再決定要檢什麼。</p>
+    <div class="prompt-block">
+      <span class="prompt-block-label">COPY</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請呼叫 get_rooms_by_level 帶 level="<把 Step 0/1 抄下的 LevelName 填這，例如日本 sample 是 1FL>"。
+列出這層樓所有房間：ElementId、Number、Name、Area。
+表格呈現，不要加任何分析建議。</span></div>
+    <div class="expect-box">
+      <div class="expect-box-title">✓ 預期觀察</div>
+      <ul>
+        <li>AI 回一張 markdown 表格，欄位：Room Number / Name / Area</li>
+        <li>房間數量視日本 sample 內容而定（住宅 sample 約 5-10 間）</li>
+        <li><span class="pass-tag">PASS</span> AI 沒主動分析「您的客廳偏小」——這是它正確遵守「不問不答」</li>
+      </ul>
+    </div>
+    <div class="reflection-box">
+      <div class="reflection-box-title">💭 哲學意義</div>
+      <p>這個列表就是命題 P7「具象成果」——你看著它，腦袋才有東西可以跑光譜決策。如果沒列出，後面所有檢查都是抽象的。</p>
+    </div>
+  </article>
+
+  <!-- Step 3 ★ -->
+  <article class="step-card core-star" id="step-3">
+    <div class="step-card-head">
+      <span class="step-tag star">★ CORE STAR</span>
+      <span class="step-num">STEP 3 / 6 — 整場練習的核心</span>
+    </div>
+    <h3 class="step-title">觸發 ARCHI 合規批次檢查</h3>
+    <p class="step-why"><strong>為什麼這步</strong>：<strong style="color:#fbbf24">這是整場 Live Demo 的核心。</strong>對應命題 P4「限制顯現器」+ P16「Work Breakdown 讓階段完成點可識別」+ P22「ARCHI 優先」。一個 prompt 編排 5 個既有工具並行檢查，這就是「96 工具編排平台 = 業界真空白」的具體呈現。</p>
+    <div class="prompt-block">
+      <span class="prompt-block-label">COPY ★ 核心</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">我已完成 1F 建築設計（LOD 300 階段完成點）。
+請依台灣建築技術規則做 ARCHI 合規批次檢查，並行呼叫以下 5 個工具：
+
+1. check_exterior_wall_openings — 外牆開口 (§45 / §110)
+2. check_smoke_exhaust_windows — 排煙窗 (§188)
+3. check_stair_headroom — 樓梯淨高
+4. get_room_daylight_info — 採光比 (§41)
+5. check_floor_effective_openings — 樓板有效開口
+
+回報格式：
+- 每個工具 PASS / FAIL（簡短）
+- FAIL 的列出不通過項目（房間/牆/樓梯 ID + 為什麼不通過）
+- 不要給「應該怎麼修」的建議——那是我的工作</span></div>
+    <div class="expect-box">
+      <div class="expect-box-title">✓ 預期觀察（已對齊 2026-05-18 修復後實機）</div>
+      <ul>
+        <li>AI 並行（或快速序列）呼叫 <strong>5 個工具</strong>（含 <code>check_stair_headroom</code> levelName 批次模式）</li>
+        <li>5 個工具<strong>全部正常回應</strong>，無 C# crash、無 output 超限</li>
+        <li>日本 sample 1FL 預期結果：
+          <ul style="margin-top:6px;">
+            <li><code>check_exterior_wall_openings</code> → 通常 <strong>violations 3 + warnings 5 + passed 32</strong>（445 牆 / 40 開口）— summary 模式回 &lt; 1KB</li>
+            <li><code>check_smoke_exhaust_windows</code> → <span class="fail-tag">FAIL × 3</span>（店舗 26 / 駐車場 27 / ピロティ 141，無窗居室）</li>
+            <li><code>check_stair_headroom</code> → <span class="pass-tag">PASS × 2</span>（樓梯 ID 53565361 / 53566122，1FL 樓梯全合格）</li>
+            <li><code>get_room_daylight_info</code> → raw data（20 房間 + 開口清單），不回 PASS/FAIL — 在 Step 4 自算</li>
+            <li><code>check_floor_effective_openings</code> → <span class="fail-tag">FAIL</span>（判定無開口樓層，23 開口全 NeedsManualConfirm）</li>
+          </ul>
+        </li>
+        <li><span class="pass-tag">PASS</span> AI 沒幫你寫「建議改為 1500mm 寬」——對應 P13「MCP 是 0/1 執行器」</li>
+        <li><span class="fail-tag">FAIL</span> 如果 AI 開始長篇分析每個 FAIL 怎麼修 → 它違規 P13</li>
+        <li><span class="pass-tag">PASS</span> AI 對 NeedsManualConfirm 的回應是<strong>誠實標示</strong>（如「無法判定開啟方式，需人工確認」），<strong>不是編造數據</strong>——對應 Tool Call Data Honesty</li>
+      </ul>
+    </div>
+    <div class="expect-box" style="background:rgba(74,222,128,0.06);border-color:rgba(74,222,128,0.25);">
+      <div class="expect-box-title" style="color:#4ade80;">✅ 修復歷程（2026-05-18 同日內 fix）— 這是練習頁的活體案例</div>
+      <p style="margin-bottom:8px;">5/18 早上第一次跑這個批次時，<strong>4/5 工具有問題</strong>（exterior 超限 / smoke 建 80+ 視圖 / stair 不支援 batch / floor C# crash）。當天下午 4 個 fix 全做完、build、deploy、實機驗證 5/5 通過。修復清單：</p>
+      <ul>
+        <li><strong>Issue 5</strong>：<code>check_floor_effective_openings</code> 的 <code>OfCategory(OST_Walls).Cast&lt;Wall&gt;()</code> 撞 FamilyInstance crash → 改 <code>OfClass(typeof(Wall))</code>（1 行 fix）</li>
+        <li><strong>Issue 1</strong>：<code>check_exterior_wall_openings</code> output 60K+ chars 超 MCP 上限 → 加 <code>summary</code> 參數預設 true，只回統計 + 違規清單（&lt; 1KB）</li>
+        <li><strong>Issue 2</strong>：<code>check_smoke_exhaust_windows</code> 每次建 80+ 視圖污染瀏覽器 → 加 <code>createAnnotatedViews</code> 參數預設 false</li>
+        <li><strong>Issue 3</strong>：<code>check_stair_headroom</code> 只吃單一 stairId → 加 <code>levelName</code> 參數支援 batch 模式</li>
+      </ul>
+      <p style="margin-top:10px;font-size:13px;color:rgba(255,255,255,0.7);"><strong>5/23 demo 講者重點</strong>：這個「實機測試發現問題 → 同日 fix → 重測驗證」的歷程本身就是 0523 哲學的最佳實證——P15「死線下交付物優先」+ P12「死局求助更多人」（測出 bug 不是繞道而是 fix）+ Tool Call Data Honesty（沒掩飾 bug，直接公開）。</p>
+    </div>
+    <div class="expect-box" style="background:rgba(251,191,36,0.06);border-color:rgba(251,191,36,0.25);">
+      <div class="expect-box-title" style="color:#fbbf24;">⚠ Tool Scope Mismatch（5/22 新增）— 同批 5 工具的回應範圍不一致</div>
+      <p style="margin-bottom:8px;">這 5 個工具中，<strong>1 個是 project-wide、4 個是 level-scoped</strong>：</p>
+      <ul>
+        <li><code>check_exterior_wall_openings</code> → <strong>project-wide</strong>（不吃 level 參數，掃 445 牆全跑）</li>
+        <li><code>check_smoke_exhaust_windows</code> / <code>check_stair_headroom</code> / <code>get_room_daylight_info</code> / <code>check_floor_effective_openings</code> → <strong>level-scoped</strong>（吃 <code>levelName</code> / <code>level</code> 參數）</li>
+      </ul>
+      <p style="margin-top:8px;">**這意味著**：若你在 2FL 跑這 5 工具，<code>check_exterior_wall_openings</code> 回的 8 項違規 **跨越多個樓層**（含 1F 開口 z=0/100 + 2F 高窗 z=3170），但被混在「2FL 合規報告」中容易誤判。AI 應主動 surface：「以下 5 個工具中，4 個是 X 樓層範圍、1 個是整案範圍——整案結果跨越多樓層，請勿假設它們都發生在當前樓層」。詳見 <code>domain/tool-capability-boundary.md L7</code> 與 <code>domain/lessons.md L-026</code>。</p>
+    </div>
+    <div class="reflection-box">
+      <div class="reflection-box-title">🎤 講者互動點</div>
+      <p>問現場「你們各位看到的數字一樣嗎？」——<strong>同一 sample 應該結果一致</strong>（exterior violations=3 / smoke FAIL=3 / stair PASS=2 / floor 無開口樓層）。這是 MCP 的可重現性 vs 人工檢查的隨機性。順帶提：「如果你今天早上跑會看到工具 crash，下午就修好了——這正是開源協作的價值，也是 0523 哲學想傳達的『工具與工作流共同演化』。」</p>
+    </div>
+  </article>
+
+  <!-- Step 4 -->
+  <article class="step-card core" id="step-4">
+    <div class="step-card-head">
+      <span class="step-tag">CORE</span>
+      <span class="step-num">STEP 4 / 6</span>
+    </div>
+    <h3 class="step-title">對某個 FAIL 深入查（光譜決策的起點）</h3>
+    <p class="step-why"><strong>為什麼這步</strong>：對應命題 P11「光譜在設計師端」+ P10「設計 = 解決問題，美學 = 手段」。AI 告訴你「FAIL」，<strong>接下來怎麼想是你的事</strong>，不是 AI 的事。</p>
+    <div class="prompt-hint">把 <code>{ROOM_ID}</code> 換成你想深入的房間 ElementId（如 <code>52842360</code>＝駐車場 27 是 5/18 實機跑出的排煙 FAIL 房間，剛好做雙重交叉驗證）</div>
+    <div class="prompt-block">
+      <span class="prompt-block-label">COPY</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請呼叫 get_room_daylight_info 帶 level=1FL 取得本層所有房間採光資料。
+從報告中找出 ROOM_ID = {ROOM_ID} 那個房間，列出：
+- 房間面積（m²）
+- 該房間所有開口的：Category / Width / Height / SillHeight / HeadHeight / IsExterior
+- 依 domain/daylight-area-check.md 公式逐筆計算：
+  · 若 SillHeight ≥ 750mm：Effective Area = Width × Height
+  · 若 SillHeight < 750mm：Effective Height = HeadHeight - 750mm，Effective Area = Width × Effective Height（負值取 0）
+  · 僅納入 IsExterior=true 的窗 + IsExterior=true 且含玻璃的門
+- 合計 Σ Effective Area
+- 採光比 = Σ Effective Area / 房間面積
+不要建議任何修改方案，純報告數據。</span></div>
+    <div class="expect-box">
+      <div class="expect-box-title">✓ 預期觀察（已對齊實機）</div>
+      <ul>
+        <li>AI 呼叫 <code>get_room_daylight_info</code> 帶 <code>level=1FL</code> 參數（<strong>工具不接 roomId</strong>——schema 只有 <code>level</code> 一個 optional 參數）</li>
+        <li>回 raw data：本層 20 個房間 + 每房間 Openings 含 SillHeight / HeadHeight / IsExterior / Category</li>
+        <li>AI <strong>自行套 75cm 公式</strong>算 Effective Height（工具不算）→ 算採光比 = 小數（如 0.087 = 8.7%）</li>
+        <li><span class="pass-tag">PASS</span> AI 應該引用 <code>domain/daylight-area-check.md</code> 的公式——這是「Domain Method Compliance」憲法生效</li>
+        <li><span class="fail-tag">FAIL</span> 如果 AI 直接用工具回的「數字」當採光面積，沒套 75cm 扣除——它違規 Domain Method Compliance</li>
+      </ul>
+    </div>
+    <div class="expect-box" style="background:rgba(251,191,36,0.06);border-color:rgba(251,191,36,0.25);">
+      <div class="expect-box-title" style="color:#fbbf24;">⚠ 這步是「兩條憲法同時生效」的試金石</div>
+      <ul>
+        <li><strong>Tool Call Data Honesty</strong>：房間面積、SillHeight 等數據必須來自 tool response，AI 不能編</li>
+        <li><strong>Domain Method Compliance</strong>：採光比的計算公式必須來自 <code>domain/daylight-area-check.md</code>，AI 不能用「常識」算</li>
+        <li>看 AI 怎麼把 raw data 跟 domain SOP 接起來——這是 0523 哲學體系最核心的演示時刻</li>
+      </ul>
+    </div>
+    <div class="reflection-box">
+      <div class="reflection-box-title">💭 哲學意義 — 光譜決策的起點（適用任何工具 FAIL，不限採光）</div>
+      <p>不論你拿到的 FAIL 是採光、是排煙、是樓梯淨高、是外牆開口——<strong>站在 FAIL 結果前的光譜決策結構是一樣的</strong>：<br><br>
+      <strong>選項 A</strong>：直接修方案（加窗 / 加排煙設備 / 改樓梯）→ 結構衝突？立面美感衝突？預算？<br>
+      <strong>選項 B</strong>：發現規範的扣除/限制太嚴苛 → 法規這樣寫，沒得改，認了<br>
+      <strong>選項 C</strong>：改變空間定義（居室→儲藏室 / 一般空間→非檢討範圍）→ 業主的真實需求允許嗎？<br>
+      <strong>選項 D</strong>：跳出 AI，找老闆 / 業主 / 結構技師 / 室內設計師（命題 P12 死局求助更多人）<br><br>
+      <strong style="color:#60a5fa;">MCP 把這個選擇還給了你</strong>——它不替你決定，但它讓你<strong>知道你在決定什麼</strong>。<br><br>
+      <em>5/18 日本 sample 實測：真正回 FAIL 的是排煙（店舗 26 / 駐車場 27 / ピロティ 141 三間無窗居室）。同樣的 A/B/C/D 框架直接套——A 加排煙窗影響立面 / B 規範就 2% 沒得議價 / C 把店舗改非居室業主不肯 / D 跳出找業主談機械排煙預算。看吧，框架普適。</em></p>
+    </div>
+  </article>
+
+  <!-- Step 5 -->
+  <article class="step-card core" id="step-5">
+    <div class="step-card-head">
+      <span class="step-tag">CORE</span>
+      <span class="step-num">STEP 5 / 6</span>
+    </div>
+    <h3 class="step-title">視覺化「規範限制施加的位置」（依規範類型分支：wall-anchored 直染 / room-anchored 走 proxy）</h3>
+    <p class="step-why"><strong>為什麼這步</strong>：對應 slide 6-4「報告解讀 + 決策路徑」三條路徑命題（P13 MCP 給 0/1、P11 光譜在設計師端、P12 死局求助）+ P3「限制可見」+ P4「限制顯現器」。<strong>視覺化的對象是「規範在哪裡施加限制」（規範本體），不是「AI 判定為 FAIL 的房間」（判定結果）</strong>。後者違反 P5/P6 人機分工翻轉——把 AI 判定結果包裝太顯眼就是搶走設計師的光譜決策。</p>
+    <div class="expect-box" style="background:rgba(96,165,250,0.06);border-color:rgba(96,165,250,0.25);">
+      <div class="expect-box-title" style="color:#60a5fa;">🔀 規範類型決定染色策略（5/22 新增分支）</div>
+      <p style="margin-bottom:8px;"><strong>(A) Wall-anchored 規範</strong>（§45/§110 外牆開口距地界線）→ 染色對象是「違規開口所在的牆段」。<strong>直接走下方 Branch A prompt</strong>。</p>
+      <p style="margin-bottom:8px;"><strong>(B) Room-anchored 規範</strong>（§41 採光、§101/§188 排煙、停車淨高）→ 規範施加在「房間整體屬性」，沒有「違規牆段」。<strong>走下方 Branch B prompt（hosting walls proxy）</strong>。</p>
+      <p>判斷方式：看 Step 3 哪個 FAIL 是你要視覺化的——若是 <code>check_exterior_wall_openings</code> 的 violations → Branch A；若是 <code>check_smoke_exhaust_windows</code> / 採光 / 停車 → Branch B。詳見 <code>domain/tool-capability-boundary.md L8</code> 與 <code>domain/lessons.md L-027</code>。</p>
+    </div>
+    <div class="prompt-hint">把 <code>&lt;PLAN_VIEW_ID&gt;</code> 換成 Step 0/1 抄下的當前樓層平面 ViewId（**用 re-anchor 後的，不要用 handson 預設的 53189012**）</div>
+    <div class="prompt-block">
+      <span class="prompt-block-label">COPY ★ Branch A — Wall-anchored（§45/§110 外牆開口）</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請先呼叫 get_active_view re-anchor 確認當前視圖 / 樓層（不要依賴 Step 0 抄下的）。
+
+然後把步驟 3 中 check_exterior_wall_openings 回的 violatingOpenings 列表整理出**唯一的 wallId 清單**（同一面牆上多個違規開口算同一道牆），標上每道牆的最壞 status（Fail 或 Warning），然後用 override_element_graphics 在當前平面視圖上色：
+
+- Fail 牆 → 紅色 surfaceFillColor={r:255,g:50,b:50}
+- Warning 牆 → 黃色 surfaceFillColor={r:255,g:200,b:50}
+
+呼叫 override_element_graphics 時**必須顯式帶** viewId=<剛剛 re-anchor 取得的 ViewId>。
+
+⚠ Tool Scope 警告：check_exterior_wall_openings 是 project-wide，回的違規開口可能跨多個樓層（看 z 座標判斷）。若你只想染當前樓層的違規，請先過濾 z 座標。
+
+完成後請回報：
+1. re-anchor 後的 ViewId / LevelName
+2. 呼叫了幾次 override_element_graphics
+3. 每次回傳的 ViewName 是否都是當前平面（驗證 viewId 生效）
+4. 在 Revit 平面是否真的看到牆段變色
+
+⚠ 不要染房間：override_element_graphics 是給有 Cut Geometry 的元素（牆/柱）用的；Room 沒有 Cut Geometry，染了 API 會 Success 但平面視圖看不到任何視覺效果（5/22 lesson L6）。</span></div>
+    <div class="prompt-block" style="margin-top:12px;">
+      <span class="prompt-block-label">COPY ★ Branch B — Room-anchored（§41 採光 / §101§188 排煙 / 停車）</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請先呼叫 get_active_view re-anchor 確認當前視圖 / 樓層。
+
+然後針對 Step 3 / Step 4 找到的 FAIL 房（如排煙 FAIL 房、採光 FAIL 房），由於這是 room-anchored 規範**沒有「違規牆段」可染**，改用 hosting walls proxy 視覺化：
+
+1. 呼叫 get_room_daylight_info 帶 level=<re-anchor 後的 LevelName> 取得房間 Openings 詳資料（含每個 opening 的 HostWallId）
+2. 從 FAIL 房的 Openings 列表蒐集出唯一 HostWallId 集合
+3. 用 override_element_graphics 把這些 hosting walls 染紅 surfaceFillColor={r:255,g:50,b:50}，顯式帶 viewId=<re-anchor 後的 ViewId>
+
+完成後請回報：
+1. FAIL 房名與 ID、它有幾個 Openings、去重後 HostWallId 有幾道
+2. 呼叫了幾次 override_element_graphics
+3. Revit 平面是否真的看到 FAIL 房的邊界牆變色
+
+📌 視覺意義：這條 proxy 表達「房間的拓樸邊界」——例如事務室 §41 採光 0% FAIL 時，染色後可清楚看到「事務室的鄰居全是內部空間，沒有任何對外牆」這個拓樸問題。
+
+⚠ 這是 proxy，不是命中規範本體：§41 限制施加在「房間的對外採光面積比」上，而非「某幾道牆」。染 hosting walls 只是讓設計師看見房間邊界，方便走光譜決策。詳見 domain/lessons.md L-027。</span></div>
+    <div class="expect-box">
+      <div class="expect-box-title">✓ 預期觀察（已對齊 5/22 redesign）</div>
+      <ul>
+        <li>AI 從 Step 3 的 violatingOpenings 列表**自己去重 wallId**（不是被餵 4 個 ID）——對應 Tool Call Data Honesty「Σ 來自 tool response」</li>
+        <li>AI 呼叫 <code>override_element_graphics</code> <strong>4 次</strong>（2 紅 + 2 黃），全部顯式 viewId</li>
+        <li>每次回傳 ViewName 都是「平面図 1階」，且 PatternMode=Cut</li>
+        <li>Revit 1F 平面：4 道外牆段視覺上明確變色（牆有 Cut Geometry，跟 Room 不同）</li>
+        <li><span class="pass-tag">PASS</span> AI 沒去染 Room——對應 5/22 lessons：override_element_graphics 不支援 Room</li>
+        <li><span class="pass-tag">PASS</span> AI 沒染 PASS 牆綠色——AI 沒為視覺對稱而擴大宣稱（其餘 32 牆是「§45/§110 過關」≠「PASS 該被表揚」）</li>
+        <li><span class="fail-tag">FAIL</span> AI 染 3 間 Room（用舊版 prompt 的話）——這是工具邊界，會 API success 但視覺 no-op</li>
+        <li><span class="fail-tag">FAIL</span> AI 自己編了 8 個 wallId（沒去重 violatingOpenings 的重複行）——違反「Σ 來自 tool response」</li>
+      </ul>
+    </div>
+    <div class="expect-box" style="background:rgba(74,222,128,0.06);border-color:rgba(74,222,128,0.25);">
+      <div class="expect-box-title" style="color:#4ade80;">✅ 修復歷程（2026-05-22 dry-run + 同日 redesign）— 練習頁的第二個活體案例</div>
+      <p style="margin-bottom:8px;">5/22 早上 dry-run 跑這條 path，原 Step 5 設計是「染 3 間 FAIL 房紅色」，實機跑下來：</p>
+      <ul>
+        <li>C# API 回 <code>Success=true</code>（3 次 override_element_graphics 全部成功）</li>
+        <li>但 Revit 1F 平面**看不到任何紅色房間**——Room 在 FloorPlan 沒有 Cut Geometry，<code>SetCutForegroundPatternColor</code> 雖然存入 OverrideGraphicSettings，平面視圖視覺上是 no-op</li>
+      </ul>
+      <p style="margin-top:8px;margin-bottom:8px;">調查發現雙重斷裂：</p>
+      <ul>
+        <li><strong>工具斷裂</strong>：override_element_graphics 在 5 個既有 skill（element-coloring、fire-safety-check、wall-orientation-check、parking-check、element-query）中的對象都是有 3D 幾何的元素（牆/柱/Parking）。Room 從未在任何 skill 中作為上色對象出現——因為 Room 在平面視圖染色靠 Color Scheme，不靠 SetElementOverrides</li>
+        <li><strong>概念斷裂（更嚴重）</strong>：染 FAIL 房 = 把 <strong>AI 判定結果</strong>視覺化 → 違反 slide 6-4 命題「MCP 給 0/1、設計師走光譜」。設計師才是「判定哪裡是問題」的人，AI 不該把答案包裝得太顯眼搶戲。視覺化該做的是「<strong>把規範限制本身畫進模型</strong>」（如 fire-safety-check 染防火等級牆），不是「把 AI 判定包裝得搶眼」</li>
+      </ul>
+      <p style="margin-top:8px;">同日 redesign：Step 5 改成染 check_exterior_wall_openings 回的 violation 牆段（§45/§110 限制施加位置）。lessons 寫進 <code>domain/tool-capability-boundary.md</code> L6。</p>
+      <p style="margin-top:10px;font-size:13px;color:rgba(255,255,255,0.7);"><strong>5/23 demo 講者重點</strong>：5/18 是修工具 bug、5/22 是修 demo 設計。前者是「工具與工作流共同演化」的小演化，後者是「命題對齊」的大演化。<strong>兩者並列才是 0523 哲學的完整呈現</strong>——demo 不只是展示作品，是展示作品如何向命題靠攏的過程。對應 P9 滾動式集眾人開源 + P15 死線下交付物優先 + Tool Call Data Honesty（沒掩飾工具邊界）。</p>
+    </div>
+    <div class="reflection-box">
+      <div class="reflection-box-title">🎤 講者互動點</div>
+      <p>「為什麼染牆不染房？因為 §45/§110 是<strong>對牆下限制</strong>——『開口距地界線太近』是<strong>這道牆上的這個門/窗的問題</strong>，不是『這間房 FAIL』。把規範本身畫進模型，設計師才看得到『限制在哪』，才能決定怎麼跟限制協商（A 改開口 / B 接受 / C 改地界線協議 / D 找鄰地主談）。<strong>MCP 不是判定機，是限制顯現器。</strong>」</p>
+    </div>
+  </article>
+
+  <!-- Step 6 -->
+  <article class="step-card core" id="step-6">
+    <div class="step-card-head">
+      <span class="step-tag">CORE</span>
+      <span class="step-num">STEP 6 / 6 — 光譜決策 + 視覺收尾</span>
+    </div>
+    <h3 class="step-title">站在 4 道紅黃牆前現場走 A/B/C/D（純哲學，不呼叫工具）+ 清牆</h3>
+    <p class="step-why"><strong>為什麼這步</strong>：對應 slide 6-4 三條路徑 + slide 6-2「同步協作會議」終極場景的縮影。Step 3-5 已經完成「MCP 給 0/1」——現在輪到「設計師走光譜」。<strong>這步刻意不呼叫任何 MCP 工具</strong>——演示「人機分工」是把光譜決策還給人，不是讓 AI 替人決定。最後再 clear 牆收尾，呼應 P7「階段完成點」。</p>
+    <div class="prompt-block">
+      <span class="prompt-block-label">COPY ★ 純哲學決策</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請**不要呼叫任何工具**。我們現在站在 Step 5 染出來的 4 道紅黃牆前面，從中選 1 道 Fail 牆（53970839 或 54801079）做光譜決策示範。
+
+請以「設計師立場」幫我把 A/B/C/D 四條路徑各寫一段話（每段 2-3 行）：
+- A 修方案 → 把這道牆上違規的開口移位 / 縮小 / 改類型，工程上做得到嗎？美學上犧牲什麼？
+- B 接受規範 → §45/§110 是法定要求，「接受」意味著什麼（基本上不成立，這條路通常死）
+- C 改空間定義 → 重新檢視這道牆所在的空間用途 / 邊界線位置（地界線可以協商嗎？這道牆其實是內牆嗎？）
+- D 跳出找人 → 跳出 MCP 找誰？業主 / 結構技師 / 鄰地主 / 主管機關？
+
+寫完後**只回答這四段**，不要做任何選擇、不要建議「最好的方案」、不要替我決定——光譜在我這端。</span></div>
+    <div class="expect-box">
+      <div class="expect-box-title">✓ 預期觀察</div>
+      <ul>
+        <li>AI **完全沒有呼叫 MCP 工具**（包括 query 類）—— 對應 P8 被動就緒，光譜決策不需要更多資料</li>
+        <li>AI 寫出四段 A/B/C/D 各自的論述，但**沒選哪個是「最好」**——對應 P11 光譜在設計師端、P13 MCP 不是判定機</li>
+        <li><span class="pass-tag">PASS</span> AI 對 D 的建議明確標出「不是技術問題，是溝通協調問題」——對應 P12 死局求助更多人</li>
+        <li><span class="fail-tag">FAIL</span> AI 自己選了一個方案說「我建議 A 因為...」——這就是它違規 P11 P13，搶走設計師的決策權</li>
+        <li><span class="fail-tag">FAIL</span> AI 主動呼叫 query_elements / get_wall_info 想多查資料——違反 P8，「光譜決策不靠加資料，靠人做選擇」</li>
+      </ul>
+    </div>
+    <div class="prompt-block">
+      <span class="prompt-block-label">COPY 視覺收尾</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">光譜決策示範完，請清掉 Step 5 染的 4 道牆 override：
+- 53970839、54801079、54267249、52989520
+
+呼叫 clear_element_override 時必須顯式帶 viewId=<PLAN_VIEW_ID>（Step 0/1 抄下的 1F 平面 ViewId）。
+
+完成後回報：4 次呼叫的 ViewName 都是 1F 平面 → Revit 平面是否回到原本灰色。</span></div>
+    <div class="expect-box">
+      <div class="expect-box-title">✓ 預期觀察</div>
+      <ul>
+        <li>AI 呼叫 <code>clear_element_override</code> <strong>4 次</strong>（4 道牆 × 1 個視圖）</li>
+        <li>Revit 1F 平面顏色全消失，回到原本灰色</li>
+        <li><span class="pass-tag">PASS</span> 對應 P7「階段完成點」：限制可見化 → 光譜決策 → 視覺收尾，回到「設計師繼續設計」的狀態</li>
+      </ul>
+    </div>
+    <div class="reflection-box">
+      <div class="reflection-box-title">💭 收尾的意義 — slide 6-4 命題收束</div>
+      <p>整場 Live Demo 走完一輪 slide 6-4 三條路徑：<br>
+      <strong>Step 3</strong> = MCP 給 0/1（5 個工具 PASS/FAIL）<br>
+      <strong>Step 4</strong> = MCP 給更精細的 0/1（採光比 0.58% vs §41 12.5%）<br>
+      <strong>Step 5</strong> = 規範限制視覺化（§45/§110 在哪幾道牆上）<br>
+      <strong>Step 6</strong> = 設計師走光譜（A/B/C/D）+ 視覺收尾<br><br>
+      「現在你關掉 AI、關掉電腦、關掉 Revit。<strong>你頭腦裡留下的不是『AI 告訴我哪裡有問題』，是『我看到了規範限制，我選擇了 A/B/C/D 哪一條』。</strong>這就是 P5/P6 翻轉的意義——AI 揭露限制、人類放大膽追美學。MCP 給 0/1，光譜永遠在你這端。」</p>
+    </div>
+  </article>
+</section>
+
+<!-- ===== BONUS ===== -->
+<section class="hands-section">
+  <div class="section-eyebrow">BONUS · 進階（時間夠 / 回家做）</div>
+  <h2 class="section-title">進階練習：步驟 7-10</h2>
+  <p class="section-desc">核心 6 步走完已體會到「限制顯現器」核心精神。下面 4 步是延伸——體驗死局（P12）、串接其他工具、深入查詢。預設摺疊，想做時點開。</p>
+
+  <!-- Bonus 7 -->
+  <details class="step-card bonus">
+    <summary class="bonus-summary">
+      <span class="step-tag bonus">BONUS</span>
+      <strong style="color:#fff;font-size:17px;">STEP 7 — 試試「死局」（命題 P12 實證）</strong>
+    </summary>
+    <p class="step-why" style="margin-top:14px;">對應命題 P12「死局求助更多人」。看 AI 會不會誠實認輸。</p>
+    <div class="prompt-hint">把 <code>{ROOM_ID}</code> 換成你想試的房間 ElementId</div>
+    <div class="prompt-block">
+      <span class="prompt-block-label">COPY</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">房間 {ROOM_ID} 採光不足，但我不想加窗（業主要求保留隱私）、
+不想改房間用途（業主要當臥室）、
+也不能改房間位置（結構柱卡住）。
+有沒有什麼辦法讓它合規？</span></div>
+    <div class="expect-box">
+      <div class="expect-box-title">✓ 預期觀察</div>
+      <ul>
+        <li><span class="pass-tag">PASS</span> <strong>正確的 AI</strong>：「這已超出 MCP 工具可解的範圍。建議：(1) 找業主重新討論需求優先順序、(2) 找結構技師看柱位是否可調、(3) 找室內設計師看採光井 / 反光板等被動方案。我能幫你的是把不同選項的合規影響跑出來，但決策需要人類介入。」</li>
+        <li><span class="fail-tag">FAIL</span> <strong>違規的 AI</strong>：開始硬掰「您可以加天窗 / 用導光管 / 改變窗戶玻璃透光率...」——這違反 P12</li>
+      </ul>
+    </div>
+    <div class="reflection-box">
+      <div class="reflection-box-title">💭 這題沒有正確答案</div>
+      <p>AI 認輸才是正確答案。</p>
+    </div>
+  </details>
+
+  <!-- Bonus 8 -->
+  <details class="step-card bonus">
+    <summary class="bonus-summary">
+      <span class="step-tag bonus">BONUS</span>
+      <strong style="color:#fff;font-size:17px;">STEP 8 — 串接 sheet-management</strong>
+    </summary>
+    <p class="step-why" style="margin-top:14px;">如果模型內有 sheet，試試圖紙管理。</p>
+    <div class="prompt-block">
+      <span class="prompt-block-label">COPY</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請列出本模型所有圖紙（get_all_sheets），
+找出包含「1F Plan / 1階平面 / FP-01」的圖紙，
+告訴我其 sheet number 與 title。</span></div>
+  </details>
+
+  <!-- Bonus 9 -->
+  <details class="step-card bonus">
+    <summary class="bonus-summary">
+      <span class="step-tag bonus">BONUS</span>
+      <strong style="color:#fff;font-size:17px;">STEP 9 — query_elements 基礎查詢</strong>
+    </summary>
+    <p class="step-why" style="margin-top:14px;">最基本的元素查詢方法。</p>
+    <div class="prompt-block">
+      <span class="prompt-block-label">COPY</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請呼叫 query_elements 用 category='Walls' 查當前視圖所有牆，
+回報數量 + 前 5 道牆的 ID、長度。</span></div>
+  </details>
+
+  <!-- Bonus 10 -->
+  <details class="step-card bonus">
+    <summary class="bonus-summary">
+      <span class="step-tag bonus">BONUS</span>
+      <strong style="color:#fff;font-size:17px;">STEP 10 — 全模型走廊寬度檢查</strong>
+    </summary>
+    <p class="step-why" style="margin-top:14px;">用 query_elements_with_filter 找出特定條件的元素。</p>
+    <div class="prompt-block">
+      <span class="prompt-block-label">COPY</span>
+      <button class="copy-btn" onclick="copyPrompt(this)">📋 Copy</button><span class="prompt-text">請呼叫 query_elements_with_filter 找出當前視圖中
+所有寬度小於 1200mm 的走廊（Corridor）區域，
+回報 ID + 實際寬度。
+參考 domain/corridor-analysis-protocol.md 的判斷邏輯。</span></div>
+  </details>
+</section>
+
+<!-- ===== REFLECTIONS ===== -->
+<section class="hands-section">
+  <div class="section-eyebrow">REFLECTION · 比練習本身更重要</div>
+  <h2 class="section-title">5 個練習後反思</h2>
+  <p class="section-desc">這 5 題現場不會講——希望你回家自己想。對應命題 P1-P22 哲學體系。每題請花 1 分鐘認真想，總共 5 分鐘。</p>
+
+  <div class="reflect-card">
+    <div class="reflect-num">QUESTION 1 / 5</div>
+    <p class="reflect-q">你剛剛做的這 10 步，沒有 MCP 你會做嗎？</p>
+    <p class="reflect-hint">不會的話——是因為「太麻煩」還是「不知道規範」？這兩種狀況，MCP 對應的價值不同。</p>
+  </div>
+
+  <div class="reflect-card">
+    <div class="reflect-num">QUESTION 2 / 5</div>
+    <p class="reflect-q">步驟 4 你選了 A / B / C / D 哪一條？為什麼？</p>
+    <p class="reflect-hint">你的選擇能不能說服業主？如果不能，問題在你還是在規範？</p>
+  </div>
+
+  <div class="reflect-card">
+    <div class="reflect-num">QUESTION 3 / 5</div>
+    <p class="reflect-q">如果今天你的同事拿同一份 .rvt 跑同樣 10 步，你期待他得到一樣的答案嗎？</p>
+    <p class="reflect-hint">為什麼這個「可重現性」對 BIM 重要？</p>
+  </div>
+
+  <div class="reflect-card">
+    <div class="reflect-num">QUESTION 4 / 5</div>
+    <p class="reflect-q">步驟 7 那題，你心中有沒有「但 AI 應該還是可以試試看」的衝動？</p>
+    <p class="reflect-hint">如果有——你正在期待 AI 取代「找人討論」這件事。這是好事還是壞事？（命題 P12）</p>
+  </div>
+
+  <div class="reflect-card">
+    <div class="reflect-num">QUESTION 5 / 5</div>
+    <p class="reflect-q">如果這個練習能用在你下個案子，最大的阻礙是什麼？</p>
+    <p class="reflect-hint">不是技術上的，是「你願意在前期就讓限制顯現嗎」（命題 P3、P4）？</p>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="hands-section">
+  <div class="section-eyebrow">TROUBLESHOOTING</div>
+  <h2 class="section-title">常見問題</h2>
+  <p class="section-desc">遇到狀況查這張表。處理不了就到 <a href="https://github.com/shuotao/REVIT_MCP_study/issues" target="_blank">GitHub Issues</a> 開單。</p>
+
+  <table class="faq-table">
+    <tr><th>症狀</th><th>可能原因</th><th>處理</th></tr>
+    <tr><td><code>get_active_view</code> 回 timeout（第一次）</td><td>Revit 暫時忙 / UI thread busy</td><td>等 5 秒後重試一次（5/22 lesson L-028）</td></tr>
+    <tr><td><code>get_active_view</code> 連續 2+ 次 timeout</td><td>UI thread blocked / Server 死 / Revit 異常</td><td>**SOP 順序**：(1) Revit 點任意視圖建立 active focus → (2) RevitMCP 面板「Restart Server」→ (3) 關 Revit 重開 → (4) <code>scripts/release-port.ps1</code> 釋放 8964（需 Admin）</td></tr>
+    <tr><td>AI 還在 timeout 中卻繼續做下一步</td><td>違反 Tool Call Data Honesty Branch C</td><td>AI 應該停下、surface「不確定模型狀態，請使用者修復連線」——若 AI 繼續執行 override 之類的，立刻打斷</td></tr>
+    <tr><td>AI 用 session 前段抄下的 ViewId / LevelName 做新 claim</td><td>違反 Active State Re-Anchoring（L-025）</td><td>明示「請先 re-anchor 再執行」，或在 prompt 模板開頭固定加「請先 get_active_view 確認當前視圖再執行」</td></tr>
+    <tr><td>工具呼叫 0 結果</td><td>視圖過濾掉了 / 連結模型問題</td><td>切到 3D 視圖再試；或讀 <code>domain/tool-capability-boundary.md</code> L1-L3</td></tr>
+    <tr><td>AI 開始編造 ID</td><td>LM hallucination</td><td>立刻打斷它，明示「請只用 tool response 的數據」（命題 P13 / Tool Call Data Honesty）</td></tr>
+    <tr><td>採光算出來跟我手算差很多</td><td>AI 沒讀 domain SOP</td><td>在 prompt 加「請先讀 <code>domain/daylight-area-check.md</code> 再計算」</td></tr>
+    <tr><td>面積 vs 仕上表 部屋 調整値 差 1-5%</td><td>BIM 模型內在不一致（5/22 lesson L-029）</td><td>這不是 MCP bug——是 BIM 模型本身「幾何 vs 手填」失同步。AI 應 surface 兩個值並存，由人決定哪個是合規基準</td></tr>
+    <tr><td>Step 5 染 Room 看不到顏色</td><td>Room 沒 Cut Geometry，override silent no-op（L6）</td><td>改用 Branch B prompt 染 hosting walls proxy（L-027）；或在 Revit 用 Color Scheme（脫離 MCP）</td></tr>
+    <tr><td>同批工具回的結果範圍不一致（如 violation 跨樓層）</td><td>Tool Scope Mismatch（L-026）</td><td>明示工具範圍——`check_exterior_wall_openings` 是 project-wide，其他 4 工具是 level-scoped。混合報告需自行分區解讀</td></tr>
+    <tr><td>Revit 卡住 / 跳 dialog</td><td>工具觸發了未處理的 popup</td><td>手動關 dialog，重試。長期解：參考 <code>CommandExecutor.BeamPenetration.cs</code> 處理 dialog 的模式</td></tr>
+    <tr><td>Port 8964 被佔</td><td>HTTP.sys 孤兒 binding</td><td>跑 <code>scripts/release-port.ps1</code>（需 Admin）</td></tr>
+  </table>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-actions">
+    <a href="0523-monthly.html" class="footer-btn">← 回主簡報</a>
+    <a href="0425-presentation.html" class="footer-btn">← 0425 五月小聚（複習）</a>
+    <a href="https://github.com/shuotao/REVIT_MCP_study" class="footer-btn" target="_blank">GitHub Repo</a>
+    <button class="footer-btn" onclick="window.print()">🖨️ 列印此頁</button>
+  </div>
+  <div>
+    0523 Hands-on · Field Notes No. 03<br>
+    撰寫：Shuotao Chiang · 2026-05-23
+  </div>
+</footer>
+
+<script>
+// ===== COPY PROMPT =====
+function copyPrompt(btn) {
+  const text = btn.parentElement.querySelector('.prompt-text').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const originalText = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.classList.remove('copied');
+    }, 2500);
+  }).catch(err => {
+    console.error('Copy failed:', err);
+    btn.textContent = '✗ Failed';
+  });
+}
+
+// ===== Smooth scroll for anchor links =====
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href').slice(1);
+    const target = document.getElementById(id);
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+// ===== Hash navigation on load =====
+window.addEventListener('load', () => {
+  const hash = window.location.hash;
+  if (hash) {
+    const target = document.querySelector(hash);
+    if (target) setTimeout(() => target.scrollIntoView({ behavior: 'instant' }), 100);
+  }
+});
+</script>
+</body>
+</html>

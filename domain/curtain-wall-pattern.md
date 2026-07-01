@@ -1,14 +1,18 @@
 ---
-name: 帷幕牆面板排列工作流程
-description: 透過視覺化預覽工具設計帷幕牆面板排列，並套用到 Revit (整合技術規格與 SOP)
-triggers:
-  - 帷幕牆
-  - 面板排列
-  - 帷幕
-  - curtain wall
-  - panel pattern
-version: 1.1
-last_updated: 2026-02-20
+name: curtain-wall-pattern
+description: "帷幕牆面板排列工作流程：透過視覺化預覽工具設計帷幕牆面板排列，並套用到 Revit（整合技術規格與 SOP）。當使用者提到帷幕牆、面板排列、curtain wall、panel pattern 時觸發。"
+metadata:
+  version: "1.1"
+  updated: "2026-03-10"
+  created: "2026-02-20"
+  contributors:
+    - "Admin"
+    - "Alex Huang"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by:
+    - curtain-wall
+  tags: [帷幕牆, 面板排列, 帷幕, curtain wall, panel pattern]
 ---
 
 # 帷幕牆面板排列工作流程

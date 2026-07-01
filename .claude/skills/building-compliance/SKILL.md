@@ -1,6 +1,13 @@
 ---
 name: building-compliance
 description: "建築法規檢討：居室採光比（第 41 條）、容積率與樓地板面積計算、停車位尺寸與數量檢核。觸發條件：使用者提到採光、daylight、容積率、FAR、樓地板面積、建蔽率、停車、parking、法規檢討、送審、regulatory。工具：get_room_daylight_info、query_elements_with_filter、get_rooms_by_level。"
+metadata:
+  references:
+    - domain/daylight-area-check.md
+    - domain/floor-area-review.md
+    - domain/parking-clearance-check.md
+    - domain/parking-space-review.md
+    - domain/references/building-code-tw.md
 ---
 
 # 建築法規檢討

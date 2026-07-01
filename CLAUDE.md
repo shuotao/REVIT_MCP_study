@@ -1,277 +1,491 @@
 # CLAUDE.md
 
-本檔案為本專案的統一行為指引，供所有 AI Client 共用。GEMINI.md 內容為 `CLAUDE.md`（單行指向），Gemini CLI 會直接讀取本檔案。
+This is the canonical AI instruction file for Revit MCP. `AGENTS.md` and `GEMINI.md` intentionally redirect here.
+
+Human-facing installation and onboarding content belongs in `README.md` / `README.en.md`.
+Shared BIM methods belong in `domain/*.md` and must remain bilingual or Chinese-friendly.
+AI-only operating instructions belong here and should be written in English to avoid encoding drift and mojibake.
 
 ## Project Overview
 
-Revit MCP is a bridge between AI language models and Autodesk Revit via the Model Context Protocol (MCP). It enables AI-driven BIM workflows through natural language commands. The project has two main components that communicate over WebSocket on `localhost:8964`.
+Revit MCP bridges AI language models and Autodesk Revit through the Model Context Protocol (MCP). It enables AI-assisted BIM workflows through natural-language tool calls.
 
-## Architecture (4+1 Pattern)
+The project has two main runtime components:
 
+```text
+AI Client (Claude Desktop / Claude Code / Gemini CLI / VS Code Copilot / Antigravity)
+  -> stdio
+MCP Server (Node.js / TypeScript)
+  -> MCP-Server/src/index.ts
+  -> WebSocket client
+Revit Add-in (C#)
+  -> MCP/Application.cs
+  -> HttpListener WebSocket server on localhost:8964
+  -> ExternalEventManager
+  -> Revit API
 ```
-AI Client (Claude Desktop / Gemini CLI / VS Code Copilot / Antigravity)
-  ↓ stdio
-MCP Server (Node.js/TypeScript) — MCP-Server/src/index.ts
-  ↓ WebSocket (ws://localhost:8964)
-Revit Add-in (C# .NET 4.8) — MCP/Application.cs
-  ↓ ExternalEventManager (UI thread)
-CommandExecutor → Revit API
+
+There is also an optional embedded-chat direction where a Revit WPF window can call an AI API directly. That embedded option is separate from the MCP stdio server path.
+
+## Current Source-of-Truth Counts
+
+These counts must be derived from source, not copied by memory.
+
+| Item | Current Count | Source of Truth |
+|---|---:|---|
+| Runtime MCP tools | 101 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 55 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
+| Claude skills | 25 | `.claude/skills/*/SKILL.md` |
+
+When these numbers change, update `CLAUDE.md`, `README.md`, `README.en.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
+
+## Session Start Protocol
+
+At the start of a session, read the latest project log entry if available:
+
+```powershell
+Get-ChildItem log\*.md |
+  Where-Object { $_.Name -ne 'README.md' } |
+  Sort-Object Name |
+  Select-Object -Last 1 |
+  ForEach-Object { Get-Content -Tail 80 -LiteralPath $_.FullName }
 ```
 
-A 5th "embedded" option bypasses the MCP Server entirely — a WPF chat window inside the Revit Add-in calls the Gemini API directly.
+Treat `log/YYYY-MM.md` as append-only. Do not rewrite historical entries unless the user explicitly asks.
 
-## Multi-Client Unified Architecture
+## MCP Connection Status
 
-本專案支援多個 AI Client，採用「不同入口、同一目的地」的統一指向規範：
+This repository can configure MCP clients, but a coding agent is not automatically connected to Revit just because `.mcp.json` exists.
 
-| 項目 | Claude Code | Gemini CLI | VS Code Copilot |
-|------|-------------|------------|-----------------|
-| 行為指引 | CLAUDE.md | GEMINI.md → CLAUDE.md | .github/copilot-instructions.md |
-| Skills | `.claude/skills/SKILL.md` | `.gemini/skills/SKILL.md`（[官方文件](https://geminicli.com/docs/cli/skills/)） | instructions 引導 |
-| Domain 文件 | 共用 `domain/` | 共用 `domain/` | 共用 `domain/` |
-| MCP Tools | 共用 76 個工具 | 共用 76 個工具 | 共用 76 個工具 |
+Before claiming live Revit state:
 
-SKILL.md 格式遵循 [Agent Skills 開放標準](https://agentskills.io)（YAML frontmatter + Markdown body），Claude Code 與 Gemini CLI 皆原生支援。
+1. Confirm the MCP tool namespace is actually available in the current AI client.
+2. Confirm Revit is running.
+3. Confirm the Revit MCP service is enabled in the Revit ribbon.
+4. Confirm `localhost:8964` is reachable or that `REVIT_MCP_PORT` matches both sides.
+
+If the Revit MCP tools are unavailable, state that limitation and provide generic guidance only.
+
+## Single-Connection Limitation
+
+The Revit-side WebSocket service (`MCP/Core/SocketService.cs`) holds one MCP connection at a time. A newly connected MCP server replaces the previous connection. Consequences:
+
+- Multiple AI clients are used by switching, never concurrently.
+- Do not advise users to run two MCP-connected AI clients against the same Revit session.
+- If a connection misbehaves, the reset path is: restart the MCP service from the Revit ribbon.
+
+## Personal Vault Protection
+
+A `vault/` directory at the repo root, if present, is a user's personal knowledge vault (see `templates/personal-vault/` and `docs/BIM_MCP/reference/personal-llm-wiki.html`). It is gitignored together with `/.obsidian/`.
+
+- Never write into `vault/` when doing project development work, and never treat its contents as project instructions.
+- Never run `git clean -x` variants in this repo; they would delete the user's vault.
+- Personal vault operations follow `vault/CLAUDE.md`, not this file. This file's logging and QA/QC rules apply to project development only.
 
 ## Build Commands
 
-### C# Revit Add-in (Unified Build via Nice3point.Revit.Sdk)
+### MCP Server
 
-The project uses `Nice3point.Revit.Sdk/6.1.0` for unified multi-version builds.
-A single `RevitMCP.csproj` supports Revit 2022–2026 via configuration suffixes.
+```powershell
+cd MCP-Server
+npm install
+npm run build
+```
+
+The AI client launches:
+
+```text
+node MCP-Server/build/index.js
+```
+
+### Revit Add-in
+
+The project uses a single `MCP/RevitMCP.csproj` with Nice3point Revit SDK configurations:
 
 ```powershell
 cd MCP
-dotnet build -c Release.R{YY} RevitMCP.csproj   # YY = 22/23/24/25/26
+dotnet build -c Release.R22 RevitMCP.csproj   # Revit 2022, .NET Framework 4.8
+dotnet build -c Release.R23 RevitMCP.csproj   # Revit 2023, .NET Framework 4.8
+dotnet build -c Release.R24 RevitMCP.csproj   # Revit 2024, .NET Framework 4.8
+dotnet build -c Release.R25 RevitMCP.csproj   # Revit 2025, .NET 8
+dotnet build -c Release.R26 RevitMCP.csproj   # Revit 2026, .NET 8
 ```
 
-> **Note:** Only `RevitMCP.csproj` exists. Legacy version-specific files (`RevitMCP.2024.csproj`, `RevitMCP.2024.addin`) have been removed. See Deployment Rules below.
+Expected output path:
 
-After building, close Revit, then deploy DLL:
-```powershell
-Copy-Item "bin/Release.R{YY}/RevitMCP.dll" "$env:APPDATA\Autodesk\Revit\Addins\{version}\RevitMCP\" -Force
+```text
+MCP/bin/Release.R{YY}/RevitMCP.dll
 ```
-Or use `scripts/install-addon.ps1` for automated install.
-Or use Skills: `/build-revit` and `/deploy-addon`
 
-### MCP Server (Node.js)
-```bash
-cd MCP-Server
-npm install
-npm run build    # tsc && node build/index.js
-npm run watch    # tsc --watch (development)
-```
+Deploy with `scripts/install-addon.ps1` or the `/deploy-addon` skill. Do not rely on old `bin/Release/RevitMCP.dll` instructions.
 
 ## Key Source Files
 
 | File | Role |
-|------|------|
-| `MCP/Application.cs` | Revit IExternalApplication entry point, creates ribbon panel |
-| `MCP/Core/CommandExecutor.cs` | Central command dispatcher (76+ commands), largest file |
-| `MCP/Core/SocketService.cs` | HttpListener-based WebSocket server in Revit |
-| `MCP/Core/RevitCompatibility.cs` | Cross-version compatibility layer (ElementId int→long for 2025+) |
-| `MCP/Core/ExternalEventManager.cs` | Ensures commands execute on Revit UI thread |
-| `MCP-Server/src/index.ts` | MCP Server entry (StdioServerTransport) |
-| `MCP-Server/src/socket.ts` | RevitSocketClient — WebSocket client to Revit |
-| `MCP-Server/src/tools/` | Tool definitions (76 tools, 分 13 個模組) |
-| `scripts/setup.ps1` | One-click setup for new users (prereqs, build, deploy, AI config) |
+|---|---|
+| `MCP/Application.cs` | Revit `IExternalApplication` entry point and ribbon setup |
+| `MCP/Core/SocketService.cs` | Revit-side WebSocket server using `HttpListener` |
+| `MCP/Core/ExternalEventManager.cs` | Marshals work onto the Revit UI thread |
+| `MCP/Core/CommandExecutor.cs` | Main command dispatcher |
+| `MCP/Core/Commands/*.cs` | Command modules split by workflow area |
+| `MCP/Core/RevitCompatibility.cs` | Cross-version `ElementId` helpers |
+| `MCP/RevitMCP.csproj` | Single multi-version build project |
+| `MCP/RevitMCP.addin` | Single version-agnostic add-in manifest |
+| `MCP-Server/src/index.ts` | MCP stdio server entry |
+| `MCP-Server/src/socket.ts` | WebSocket client to Revit |
+| `MCP-Server/src/tools/index.ts` | Tool module registry and `MCP_PROFILE` filtering |
+| `MCP-Server/src/tools/revit-tools.ts` | Execution bridge from tool name to Revit command |
+| `bridge/python/skills/ezdxf_worker.py` | Optional Python subprocess (spawned by `DwgColumnExecutor`) that reads DXF/DWG text for column-number mapping (`dwg-column-import` mode C). Needs system Python + `ezdxf`; DWG additionally needs ODA File Converter. Deployed to `%APPDATA%\RevitMCP` by `install-addon.ps1`. |
+| `scripts/verify-qaqc.ps1` | Repository QA/QC gate |
+| `docs/DOCUMENT_AUDIENCE_INVENTORY.md` | Canonical AI/human/shared document classification |
+| `.claude-plugin/marketplace.json` | Plugin marketplace manifest — packages shareable skills (currently `hj-pr-proposal`) as installable plugins for `/plugin marketplace add` → `/plugin install`. |
 
 ## Code Conventions
 
-- **C# namespace**: `RevitMCP` — all classes use this namespace
-- **Revit API safety**: All Revit operations MUST use `Transaction` and be reversible. Commands run through `ExternalEventManager` to ensure UI thread execution.
-- **Command pattern**: Commands in `CommandExecutor.cs` follow a `case "command_name":` switch pattern, each returning data objects wrapped in `RevitCommandResponse`.
-- **Singletons**: `ConfigManager`, `ExternalEventManager`, `Logger` are all singletons
-- **Config storage**: `%AppData%\RevitMCP\config.json` (default port 8964)
-- **Logs**: `%AppData%\RevitMCP\Logs\RevitMCP_YYYYMMDD.log`
+- C# namespace: `RevitMCP`.
+- Revit model changes must run inside `Transaction` and be reversible.
+- Revit API work must go through `ExternalEventManager` when called from the WebSocket flow.
+- C# command payloads use the existing `RevitCommandRequest` / `RevitCommandResponse` shape.
+- MCP tool names use snake_case.
+- C# command cases use the existing switch/dispatcher pattern unless the surrounding module already defines a better local pattern.
+- Do not introduce a second add-in manifest or version-specific csproj.
 
-## AI Guard Rails — MCP 工具鏈使用規則
+## Deployment Rules
 
-> **本專案已有完整的 Revit 通訊工具鏈，任何 AI 模型都 MUST 遵守以下規則。**
+Forbidden:
 
-### 禁止事項
-- **DO NOT** 自行撰寫 WebSocket 腳本連接 `ws://localhost:8964`
-- **DO NOT** 自行組裝 JSON 封包（`CommandName`/`Parameters`/`RequestId`）
-- **DO NOT** 繞過 MCP Server 直接與 Revit Add-in 通訊
-- **DO NOT** 用 `node -e` 或臨時腳本複製 MCP Server 已有的功能
+- Do not create `MCP/RevitMCP.2024.csproj`, `MCP/RevitMCP.2025.csproj`, or any version-specific project file.
+- Do not create `MCP/RevitMCP.2024.addin`, `MCP/RevitMCP.2025.addin`, or any version-specific add-in file.
+- Do not create nested `MCP/MCP/` directories.
+- Do not hardcode absolute DLL paths in `.addin` files.
+- Do not change `<AddInId>` unless explicitly requested and coordinated.
+- Do not set `<DeployAddin>true</DeployAddin>` in `MCP/RevitMCP.csproj`.
+- Do not change port `8964` without updating every config template and documentation reference.
 
-### 正確做法
-1. **查詢/操作 Revit** → 使用 MCP Server 已註冊的 tools（定義在 `MCP-Server/src/tools/*.ts`）
-2. **執行 BIM 合規流程** → 使用 Skills（`.claude/skills/*/SKILL.md`），它們會編排正確的 tool 呼叫順序
-3. **查閱法規知識** → 讀取 Domain 文件（`domain/*.md`）
+Required:
 
-### 為什麼
-MCP Server 已封裝 55 個 tools，處理了格式轉換、錯誤處理、重連機制。自寫腳本會：
-- 繞過既有的錯誤處理與格式驗證
-- 產生 process 掛起（如自動重連導致無法退出）
-- 與 Revit API 的 PascalCase 欄位不一致而靜默失敗
-- 重造輪子，浪費使用者時間
+- One csproj: `MCP/RevitMCP.csproj`.
+- One add-in manifest: `MCP/RevitMCP.addin`.
+- One primary installer: `scripts/install-addon.ps1`.
+- Build configs: `Release.R22`, `Release.R23`, `Release.R24`, `Release.R25`, `Release.R26`.
+- Add-in assembly path remains relative: `RevitMCP\RevitMCP.dll`.
 
-## Domain vs Skill 架構原則
+## AI Guard Rails
 
-本專案的 Domain 和 Skill 是不同角色，不是不同等級：
-- **Domain**（`domain/*.md`）= 知識（法規、SOP、步驟）。被 Skill 引用時才載入。**任何老師都能寫。**
-- **Skill**（`.claude/skills/`）= 編排（何時觸發、什麼順序呼叫哪些工具）。metadata 永遠常駐。
+### Do Not Bypass MCP
 
-BIM 的知識是共用的——防火法規同時被消防檢查、走廊分析、建築合規引用。Domain 獨立於 Skill 存在，是因為**知識不應該重複在每個 Skill 裡**。這是對 Anthropic 官方模型（references 放在 Skill 內部）的合理特化。
+Do not write ad hoc WebSocket scripts that directly send JSON to `ws://localhost:8964`.
+Do not bypass `MCP-Server/src/tools/*.ts` and the Revit command dispatcher.
+Do not invent raw `CommandName` / `Parameters` / `RequestId` payloads outside the established bridge.
 
-> **不要把每個 Domain 都升級成 Skill。** Domain 被引用就已經在發揮作用了。詳見 `domain/skill-authoring-standard.md`。
+If a tool is missing, create or modify the proper MCP tool definition and matching Revit command implementation.
 
-## Skills（18 個）
+### Tool Call Data Honesty
 
-Skills 位於 `.claude/skills/`，每個 Skill 為一個資料夾 + `SKILL.md`。
+Every concrete datum in an answer must trace to a tool response in the current turn:
 
-| Skill | Description |
-|-------|-------------|
-| `/build-revit` | Build for one or all Revit versions |
-| `/deploy-addon` | Deploy DLL to correct AppData path (Windows only) |
-| `/qa-review` | 專案品質檢核（圖紙、詳圖、視圖、參數、系統健康度） |
-| `/fire-safety-check` | 消防安全檢討（防火時效、走廊、外牆開口） |
-| `/smoke-exhaust` | 排煙窗法規檢討（無窗居室、無開口樓層、有效面積） |
-| `/building-compliance` | 建築法規檢討（採光比、容積率、停車位） |
-| `/parking-check` | 停車場檢討（淨空高度、數量分類統計） |
-| `/element-query` | 元素查詢與視覺化（三階段查詢協議） |
-| `/element-coloring` | 元素上色工作流程（依參數值顏色標記） |
-| `/wall-orientation-check` | 牆壁內外方向檢查 |
-| `/curtain-wall` | 帷幕牆面板配置（設計→預覽→套用） |
-| `/facade-generation` | 立面面板生成（AI 照片分析→五種幾何） |
-| `/auto-dimension` | 自動標註尺寸（Ray-Casting / BoundingBox） |
-| `/detail-component-sync` | 2D 詳圖元件同步（編號與圖紙號碼） |
-| `/dependent-view-crop` | 從屬視圖批次裁剪（依網格線邊界） |
-| `/sheet-management` | 圖紙與視圖埠管理（批次建立、重新排序） |
-| `/stair-hidden-line` | 剖面隱藏樓梯可視化（虛線詳圖線） |
-| `/claude-md-sync` | CLAUDE.md 雙向同步驗證（合併/Skill異動/Tools異動後觸發） |
+- IDs, GUIDs, element names, room names, view names.
+- Lists of entities.
+- Counts, areas, lengths, percentages, coordinates, measurements.
+- Native external-system type names.
 
-> **Cross-version compatibility:** `MCP/Core/RevitCompatibility.cs` provides `GetIdValue()` and `ToElementId()` extension methods.
-> Revit 2025+ uses `ElementId` as `long`; 2022-2024 uses `int`. Use `REVIT2025_OR_GREATER` preprocessor symbol for conditional compilation.
+Do not fill these from memory or from a previous turn.
 
-## AI Client Setup
+Before output:
 
-All AI clients connect to the MCP Server via the same config format. Replace `{absolute-path}` with your actual project path.
+1. If the draft contains a six-or-more digit number, it must appear in a tool response from this turn.
+2. If the draft lists two or more named entities of the same kind, each must appear in a tool response from this turn.
+3. If the draft states a count, area, length, or percentage, it must be derivable from tool output.
+4. If the draft names a Revit-native type or class in a project-specific way, it must come from a tool response.
+
+If tools are unavailable, say so and switch to generic guidance.
+
+### Domain Method Compliance
+
+When a task involves code compliance, regulation checks, engineering analysis, BIM quantity calculations, or a workflow covered by `domain/*.md`, the domain file defines the method.
+
+The model's general knowledge does not define the method.
+
+Before computing:
+
+1. Identify whether the request matches a domain trigger.
+2. Read the relevant domain file.
+3. Follow its formulas, exclusions, deductions, multipliers, and edge cases.
+4. If tool output lacks required fields, stop and fetch the missing fields or state that the analysis is under-specified.
+
+Output should cite the domain file used, for example:
+
+```text
+Per domain/daylight-area-check.md, step N: ...
+```
+
+### Active State Re-Anchoring
+
+Any claim or action depending on active Revit context must be anchored in this turn.
+
+Re-anchor before using:
+
+- current document
+- active view
+- active level
+- current selection
+- view ID
+- level name
+- side-effecting view overrides or model edits
+
+Use `get_active_view` before the dependent operation; if it is unavailable, call `get_all_views` and identify the active view from its result. Do not reuse a view ID or level name from an earlier turn.
+
+If the anchor tool times out, retry once. If it still fails, stop and report the limitation.
+
+## Domain vs Skill
+
+Domain files and skills have different responsibilities:
+
+| Layer | Location | Purpose | Language Policy |
+|---|---|---|---|
+| Domain | `domain/*.md` | Shared BIM SOP, regulations, formulas, review methods | Must remain readable by both humans and AI; do not convert to English-only |
+| Skill | `.claude/skills/*/SKILL.md` | AI workflow orchestration and tool sequence guidance | Prefer English; preserve exact local terms where needed |
+| Command | `.claude/commands/*.md` | Slash-command behavior | English preferred |
+| AI constitution | `CLAUDE.md` | Global AI rules and project map | English only |
+| Human docs | `README.md`, `README.en.md`, `docs/` | Installation, onboarding, teaching | Use the target human audience language |
+
+## Domain Knowledge and Workflow Files
+
+Read the matching file before applying a workflow or calculation.
+
+| Trigger Keywords | File |
+|---|---|
+| building code, code compliance, FAR, floor area, fire compartment, egress, stair width, corridor width | `domain/references/building-code-tw.md` |
+| auto dimension, ray cast, dimension workflow | `domain/auto-dimension-workflow.md` |
+| corridor, escape route, egress route, corridor analysis | `domain/corridor-analysis-protocol.md` |
+| curtain wall, panel pattern, curtain panel | `domain/curtain-wall-pattern.md` |
+| daylight, daylight area, natural lighting | `domain/daylight-area-check.md` |
+| dependent view, crop, grid crop, view split | `domain/dependent-view-crop-workflow.md` |
+| dwg, cad, 柱匯入, 圖層建柱, 批次建柱, column from dwg, 柱號對應, 柱名稱對應, textLayerName | `domain/dwg-column-import.md` |
+| dwg, cad, 樑翻模, 圖層建樑, 批次建樑, beam from dwg, 大樑, 次樑, 地樑, create_beams_from_dwg | `domain/dwg-beam-import.md` |
+| beam penetration, sleeve, 穿梁套管, 套管檢核, RC 梁開孔, 開孔, 穿梁 | `domain/beam-penetration-base.md` |
+| RC beam penetration, RC 梁穿孔, 圓孔, 禁開區, H/3, 相鄰套管淨距 | `domain/beam-penetration-rc.md` |
+| SC beam penetration, 鋼梁穿孔, 腹板開孔, web opening | `domain/beam-penetration-sc.md` |
+| SRC beam penetration, 鋼骨混凝土梁穿孔, 鋼骨避讓 | `domain/beam-penetration-src.md` |
+| beam penetration algorithm, 實體投影降維, JoinGeometry, 端面消失, 法向量過濾 | `domain/beam-penetration-algorithm.md` |
+| sleeve classification, 套管分類, 穿梁穿牆穿板判定, 套管身分 | `domain/sleeve-classification-protocol.md` |
+| scope box, range box, crop box, 範圍框, 裁剪框, ExpandCropBox | `domain/detect-range-box.md` |
+| detail component, detail sync, annotation component | `domain/detail-component-sync.md` |
+| door legend, window legend, schedule legend | `domain/door-window-legend-workflow.md` |
+| element coloring, visualization, graphic override | `domain/element-coloring-workflow.md` |
+| family inventory, type inventory, unused type, duplicate type, purge type, merge type, 族群整理, 類型盤點, 未使用類型, 重複類型 | `domain/family-inventory-cleanup.md` |
+| element query, filter, category fields | `domain/element-query-workflow.md` |
+| exterior wall opening, facade opening | `domain/exterior-wall-opening-check.md` |
+| facade generation, AI facade design | `domain/facade-generation.md` |
+| finish legend, room finish legend | `domain/finish-legend-creation.md` |
+| fire rating, fireproofing | `domain/fire-rating-check.md` |
+| floor area, FAR review, gross floor area | `domain/floor-area-review.md` |
+| floor slope, drainage slope, slab slope, 樓板坡度, 排水坡度, 洩水 | `domain/floor-slope-analysis.md` |
+| IFC, structural sync, imported structural framing | `domain/ifc-structural-sync.md` |
+| mechanical part, assembly, BIP, mechanical documentation | `domain/mechanical-part-doc.md` |
+| MEP clash, CSA clash, penetration, beam penetration | `domain/mep-csa-clash-detection.md` |
+| MEP extension, pyRevit MEP guide | `domain/mep-extension-guide.md` |
+| parking numbering, auto parking numbering | `domain/parking-auto-numbering.md` |
+| parking clearance, vehicle clearance, 210cm | `domain/parking-clearance-check.md` |
+| parking count, parking space review | `domain/parking-space-review.md` |
+| PDF export, DCC, PDFExportOptions | `domain/pdf-export-comparison.md` |
+| fill pattern, Revit fill pattern conversion | `domain/revit-fill-pattern-conversion.md` |
+| partition takeoff, partition quantity | `domain/revit-partition-takeoff.md` |
+| room boundary, room boundary model | `domain/room-boundary.md` |
+| room numbering, automatic room numbering | `domain/room-numbering-workflow.md` |
+| room surface area, finish surface area | `domain/room-surface-area-review.md` |
+| section numbering, auto section numbering | `domain/section-auto-numbering.md` |
+| section datum, crop box, section adjustment | `domain/section-datum-adjustment.md` |
+| sheet, viewport, titleblock, sheet management | `domain/sheet-viewport-management.md` |
+| smoke exhaust, smoke vent, effective opening | `domain/smoke-exhaust-review.md` |
+| stair compliance, stair headroom, stair check | `domain/stair-compliance-check.md` |
+| stair hidden line, stair graphics | `domain/stair-hidden-line-workflow.md` |
+| wall orientation, wall check | `domain/wall-check.md` |
+
+Meta and governance domain files:
+
+| Purpose | File |
+|---|---|
+| Domain catalog | `domain/README.md` |
+| QA/QC checklist | `domain/qa-checklist.md` |
+| Lessons learned | `domain/lessons.md` |
+| Frontmatter standard | `domain/frontmatter-standard.md` |
+| Path maintenance QA | `domain/path-maintenance-qa.md` |
+| Session context guard | `domain/session-context-guard.md` |
+| Skill authoring standard | `domain/skill-authoring-standard.md` |
+| Tool capability boundary | `domain/tool-capability-boundary.md` |
+| Core reload boundary (opt-in) | `domain/core-reload-boundary.md` |
+| Domain flow visualization | `domain/domain-flow-visualization.md` |
+
+## Skills
+
+Available Claude skills:
+
+- `/auto-dimension`
+- `/building-compliance`
+- `/build-revit`
+- `/claude-md-sync`
+- `/core-reload-dev`
+- `/curtain-wall`
+- `/dependent-view-crop`
+- `/deploy-addon`
+- `/detail-component-sync`
+- `/detect-clashes`
+- `/domain-diagram`
+- `/dwg-beam-import`
+- `/dwg-column-import`
+- `/element-coloring`
+- `/element-query`
+- `/facade-generation`
+- `/family-inventory-cleanup`
+- `/fire-safety-check`
+- `/hj-pr-proposal`
+- `/parking-check`
+- `/qa-review`
+- `/sheet-management`
+- `/smoke-exhaust`
+- `/stair-hidden-line`
+- `/wall-orientation-check`
+
+Use the smallest relevant skill set. If a skill and a domain file conflict on the method, the domain file wins.
+
+## Skill Packaging & Upstream Watch
+
+Shareable skills are packaged as installable plugins via `.claude-plugin/marketplace.json` (marketplace name: `revit-mcp-skills`). Consumer install path:
+
+```text
+/plugin marketplace add shuotao/REVIT_MCP_study
+/plugin install <plugin>@revit-mcp-skills
+```
+
+A packaged skill MUST be self-contained: bundle any referenced files inside the skill folder (e.g. `.claude/skills/<name>/references/`); never point at repo paths outside the skill directory, or the plugin breaks on install. Packaging a skill does NOT change the `Claude skills` source-of-truth count — that count is `.claude/skills/*/SKILL.md` only.
+
+### Upstream Watch (ongoing)
+
+Periodically check `github.com/anthropics/skills` for changes to the Agent Skills spec — specifically the `SKILL.md` frontmatter contract and the `.claude-plugin/marketplace.json` schema. If upstream changes the format, update our `SKILL.md` files and `marketplace.json` to match, then re-run QA/QC.
+
+Snapshot as of 2026-06: `SKILL.md` frontmatter is `name` + `description` (+ optional `license`); marketplace schema version is `1.0.0`. There is NO breaking "2.0" file-format change — the shift is packaging/distribution (open standard + plugin marketplace), not the skill file format.
+
+## MCP Profiles
+
+`MCP-Server/src/tools/index.ts` supports `MCP_PROFILE`:
+
+- `full`
+- `architect`
+- `mep`
+- `structural`
+- `fire-safety`
+
+Use `full` unless a constrained client context explicitly needs a smaller tool surface.
+
+## AI Client Configuration
+
+Project-level Claude Code config:
 
 ```json
 {
   "mcpServers": {
     "revit-mcp": {
+      "type": "stdio",
       "command": "node",
-      "args": ["{absolute-path}/MCP-Server/build/index.js"]
+      "args": ["./MCP-Server/build/index.js"],
+      "env": {}
     }
   }
 }
 ```
 
-| AI Client | Config File Location | Notes |
-|-----------|---------------------|-------|
-| Claude Desktop | `%APPDATA%\Claude\claude_desktop_config.json` (Windows) | Restart app after edit |
-| Gemini CLI | `~/.gemini/settings.json` | No restart needed |
-| VS Code Copilot | `.vscode/mcp.json` (project root) | Can use `${workspaceFolder}` instead of absolute path |
-| Claude Code (CLI) | `.mcp.json` (project root) | Restart session after edit, or use `claude mcp add` |
+VS Code config:
 
-> Run `npm run build` in `MCP-Server/` before first use. Verify port 8964 is free.
+```json
+{
+  "servers": {
+    "revit-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${workspaceFolder}/MCP-Server/build/index.js"],
+      "env": {}
+    }
+  }
+}
+```
 
 ## Troubleshooting
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| 56 warnings on build (Revit 2024) | Normal — project uses 2022-compatible syntax | Ignore, does not affect functionality |
-| `RevitMCP.dll` not found after build | Wrong build config | Use `dotnet build -c Release.RXX RevitMCP.csproj` where XX = 22/23/24/25/26 |
-| MCP Server connection failed | Wrong path or not built | Check absolute path in config, re-run `npm run build`, verify port 8964 free |
-| Port 8964 被 System (PID: 4) 佔用 | Revit 異常關閉後 HTTP.sys 孤兒 Request Queue | 執行 `scripts\release-port.ps1`，或手動：`net stop http /y && net start http` |
-| Commands not responding in Revit | Revit UI thread issue | Ensure `ExternalEventManager` is used; check `%AppData%\RevitMCP\Logs\` |
+| Symptom | Likely Cause | Fix |
+|---|---|---|
+| AI cannot find Revit tools | MCP server not configured or build output missing | Run `npm run build` in `MCP-Server`, then restart the AI client |
+| MCP server cannot connect to Revit | Revit is not running or MCP service is off | Start Revit and click MCP service on/off in the ribbon |
+| Port `8964` is unavailable | Existing listener or orphaned HTTP.sys queue | Run `scripts/release-port.ps1` as needed |
+| Add-in not visible in Revit | Add-in manifest or DLL missing | Re-run `scripts/install-addon.ps1` |
+| Build succeeds but docs mention old DLL path | Stale documentation | Use `MCP/bin/Release.R{YY}/RevitMCP.dll` |
 
-## Domain Knowledge & Workflow Files（31 個）
+## QA/QC
 
-The `domain/` directory contains BIM compliance workflows that AI must consult before executing related tasks:
+Before completing changes that affect docs, tools, skills, domain files, build config, or deployment:
 
-| Trigger Keywords | File |
-|-----------------|------|
-| fire rating, fireproofing, 防火, 耐燃 | `domain/fire-rating-check.md` |
-| corridor, escape route, 走廊, 逃生, 通道寬度 | `domain/corridor-analysis-protocol.md` |
-| floor area, FAR, 容積, 樓地板面積, 送審 | `domain/floor-area-review.md` |
-| element coloring, visualization, 上色, 顏色標示 | `domain/element-coloring-workflow.md` |
-| exterior wall openings, 外牆開口, 鄰地距離 | `domain/exterior-wall-opening-check.md` |
-| daylight area, 採光 | `domain/daylight-area-check.md` |
-| QA, verification, 檢查, 驗證, 一致性 | `domain/qa-checklist.md` |
-| room boundary, 房間邊界 | `domain/room-boundary.md` |
-| lessons learned, 開發經驗, 避坑 | `domain/lessons.md` |
-| 排煙, 排煙窗, 無窗居室, 無開口樓層, smoke exhaust | `domain/smoke-exhaust-review.md` |
-| 帷幕牆, curtain wall, 面板排列, panel layout | `domain/curtain-wall-pattern.md` |
-| 立面, facade, 面板, AI design | `domain/facade-generation.md` |
-| 停車, 車位淨高, clearance, >210cm | `domain/parking-clearance-check.md` |
-| 停車位數量, 停車檢討, parking count | `domain/parking-space-review.md` |
-| 標註, 尺寸, dimension, ray cast, 淨寬 | `domain/auto-dimension-workflow.md` |
-| 詳圖, detail, 圖號, 標頭, 同步 | `domain/detail-component-sync.md` |
-| 從屬視圖, dependent view, 網格裁剪, grid crop | `domain/dependent-view-crop-workflow.md` |
-| 查詢, 元素, 參數, element query, filter | `domain/element-query-workflow.md` |
-| 圖紙, sheet, 視埠, viewport, titleblock | `domain/sheet-viewport-management.md` |
-| 樓梯, 虛線, stair, hidden line, 剖面 | `domain/stair-hidden-line-workflow.md` |
-| 牆壁, 內外方向, wall orientation, wall check | `domain/wall-check.md` |
-| 路徑, 維護, QA, QC, 目錄重構 | `domain/path-maintenance-qa.md` |
-| 上下文, context guard, 視圖, 樓層, 連結模型 | `domain/session-context-guard.md` |
-| 工具, 能力邊界, capability, 限制 | `domain/tool-capability-boundary.md` |
-| skill 規範, skill 品質, 編寫標準 | `domain/skill-authoring-standard.md` |
-| 停車自動編號, parking numbering | `domain/parking-auto-numbering.md` |
-| 填充圖案, fill pattern, 轉換 | `domain/revit-fill-pattern-conversion.md` |
-| 房間編號, room numbering, 自動編號 | `domain/room-numbering-workflow.md` |
-| 房間表面積, 粉刷, surface area, finish | `domain/room-surface-area-review.md` |
-| 樓梯法規, stair compliance, 淨高, 級高級深 | `domain/stair-compliance-check.md` |
-
-## Deployment Rules (DO NOT VIOLATE)
-
-These rules ensure unified multi-version deployment. **Any AI assistant or code reviewer MUST follow them.**
-
-### Forbidden Actions
-- **DO NOT** create version-specific `.csproj` files (e.g., `RevitMCP.2024.csproj`, `RevitMCP.2025.csproj`)
-- **DO NOT** create version-specific `.addin` files (e.g., `RevitMCP.2024.addin`)
-- **DO NOT** create nested `MCP/MCP/` directories
-- **DO NOT** hardcode absolute DLL paths in `.addin` files (use relative `RevitMCP.dll` only)
-- **DO NOT** modify `<AddInId>` in `RevitMCP.addin` — duplicates cause Revit to load twice
-- **DO NOT** set `<DeployAddin>true</DeployAddin>` in csproj — Nice3point SDK 會自動產生 `RevitMCP.{version}.addin`，與手動的 `RevitMCP.addin` 衝突導致「重複 AddInId」錯誤
-
-### Required Architecture
-- **ONE** `.csproj`: `MCP/RevitMCP.csproj` (Nice3point.Revit.Sdk, supports 2022-2026)
-- **ONE** `.addin`: `MCP/RevitMCP.addin` (version-agnostic, relative assembly path)
-- **ONE** install script: `scripts/install-addon.ps1` (primary, all versions)
-- Build config format: `Release.R{YY}` where YY = 22/23/24/25/26
-- `<DeployAddin>false</DeployAddin>` — 部署由 `setup.ps1` 或 `/deploy-addon` skill 負責
-
-### Multi-Version Build
+```powershell
+.\scripts\verify-qaqc.ps1 -SkipBuild -SkipDeploy
 ```
-dotnet build -c Release.R22 → Revit 2022 (.NET Framework 4.8)
-dotnet build -c Release.R23 → Revit 2023 (.NET Framework 4.8)
-dotnet build -c Release.R24 → Revit 2024 (.NET Framework 4.8)
-dotnet build -c Release.R25 → Revit 2025 (.NET 8, ElementId=long)
-dotnet build -c Release.R26 → Revit 2026 (.NET 8, ElementId=long)
+
+For release or deployment validation, run without skip flags on Windows with the required SDKs installed:
+
+```powershell
+.\scripts\verify-qaqc.ps1 -Version 2024
 ```
-Output to `bin\Release.R{YY}\RevitMCP.dll` (e.g. `bin\Release.R24\RevitMCP.dll`). Each version outputs to its own directory. Deploy using `setup.ps1` or `/deploy-addon` skill（`<DeployAddin>` 已關閉，不會自動部署）。
 
-### Adding New Tools/Commands Safely
-When adding new `IExternalCommand` in `Commands/` folder:
-1. Add ribbon button in `Application.OnStartup()` — isolated, won't break existing buttons
-2. Add case in `CommandExecutor.cs` switch block — existing cases unaffected
-3. Run `/qaqc` (or `scripts/verify-qaqc.ps1` on Windows) to validate no deployment issues
-4. Do NOT modify singleton initialization (`ConfigManager`, `ExternalEventManager`, `Logger`)
-5. Do NOT change WebSocket port (8964) without updating all config templates
+QA/QC must cover:
 
-## Script Organization
+- forbidden legacy files
+- required file structure
+- stale path references
+- build config consistency
+- add-in manifest safety
+- runtime tool count alignment
+- domain and skill count alignment
+- domain table forward/reverse link checks
+- local markdown link rot
+- AI/human/shared document audience classification
+- mojibake risk in AI-only and human-facing canonical docs
+- markdown count-table claims (`| Runtime MCP tools | N |` style) in CLAUDE.md, README, README.en, and the audience inventory
+- client config template portability (no hardcoded user paths; `<YOUR_PROJECT_PATH>` placeholder required)
+- snapshot banner (`data-snapshot="YYYY-MM-DD"`) on date-prefixed `docs/MMDD-*.html`
 
-- `MCP-Server/scripts/` — Stable, reusable workflow scripts (e.g., `fire_rating_full.js`)
-- `MCP-Server/scratch/` — Temporary debug/one-off scripts
-- `scripts/` — Installation & deployment PowerShell scripts
-- `scripts/setup.ps1` — One-click full setup (prerequisites + build + deploy + AI config + port check)
-- `scripts/setup.bat` — Double-click wrapper for setup.ps1 (bypasses ExecutionPolicy)
-- `scripts/release-port.ps1` — Release port 8964 from orphaned HTTP.sys binding (requires Admin for PID 4)
+## Logging Protocol
 
-## CODEOWNERS
+Append meaningful AI-driven changes to the current monthly log:
 
-- `MCP/`, `MCP-Server/src/`, `scripts/` — Core code, owner-reviewed only
-- `domain/`, `.claude/skills/` — Knowledge contributions accepted via PR
+```markdown
+## [YYYY-MM-DD HH:MM] {event-type} | {short-description}
+- actor: {model-id} (via {client-name})
+- files: {comma-separated list}
+- trigger: {git-hook | claude-hook | manual}
+- summary: {one-liner}
+```
 
-## Development Workflow
+Do not log secrets, API keys, or large tool outputs.
 
-1. After any C# change: close Revit → `/build-revit` → `/deploy-addon` → restart Revit
-   (or manually: `dotnet build -c Release.R{YY}` then copy DLL)
-2. After TypeScript changes: `npm run build` in MCP-Server (no Revit restart needed)
-3. Config/addin file changes: restart may be needed depending on scope
-4. Use `/lessons` to capture new rules, `/domain` to convert workflows to SOP
-5. Before writing new scripts, check `domain/`, `scripts/`, and `MCP-Server/scripts/` for existing workflows — avoid duplicating logic
+## Documentation Writing Policy
+
+Use `docs/DOCUMENT_AUDIENCE_INVENTORY.md` as the classification source.
+
+Rules:
+
+1. AI-only documents should be English.
+2. Human-facing Traditional Chinese documents may be Chinese, but must be valid UTF-8 and readable.
+3. English human-facing documents should not contain mojibake.
+4. Domain files are shared by humans and AI. They must not become English-only.
+5. Domain files may use bilingual headings and terminology when useful.
+6. Any new domain file must include frontmatter consistent with `domain/frontmatter-standard.md`.
+7. Any new AI instruction file must declare whether it is canonical, redirect, command, skill, or local-only.
+8. Date-prefixed `docs/MMDD-*.html` files are immutable event snapshots: they must carry a `data-snapshot="YYYY-MM-DD"` banner, their numbers are never re-synced, and QA/QC count checks intentionally skip them.
+
+## Final Pre-Response Checklist
+
+Before answering with project-specific facts:
+
+1. Did I read the latest relevant files in this turn?
+2. If live Revit state is involved, did I call the relevant MCP tool in this turn?
+3. If a domain method applies, did I read and follow the domain file?
+4. If active view/level/selection matters, did I re-anchor in this turn?
+5. If I changed docs or counts, did I run QA/QC or state why I could not?

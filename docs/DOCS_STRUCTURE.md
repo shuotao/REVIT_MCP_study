@@ -1,80 +1,93 @@
-# 文檔目錄結構說明
+# Docs Structure
 
-## 目錄職責
+This file explains the purpose of the documentation folders. For the AI/human/shared audience classification, see [DOCUMENT_AUDIENCE_INVENTORY.md](./DOCUMENT_AUDIENCE_INVENTORY.md).
 
-| 目錄 | 用途 | 讀者 |
-|------|------|------|
-| **`docs/tools/`** | 工具 API 技術文檔 | 開發者 |
-| **`docs/workflows/`** | 工作流程設計文檔 | 開發者 |
-| **`domain/`** | 領域知識與工作流程 SOP | AI Agent |
-| **`教材/`** | 教學講義、投影片、學習筆記 | 學生 / 老師 |
+## Top-Level Documentation Map
 
----
+| Path | Audience | Purpose |
+|---|---|---|
+| `README.md` | Human, Traditional Chinese | Primary installation and onboarding entry |
+| `README.en.md` | Human, English | English installation and onboarding entry |
+| `CLAUDE.md` | AI-only | Canonical AI constitution and project map |
+| `AGENTS.md` | AI-only redirect | Redirects to `CLAUDE.md` |
+| `GEMINI.md` | AI-only redirect | Redirects to `CLAUDE.md` |
+| `domain/` | Shared | BIM SOPs, regulatory workflows, computation methods |
+| `.claude/commands/` | AI-only | Slash-command behavior |
+| `.claude/skills/` | AI-only | AI workflow orchestration |
+| `docs/BIM_MCP/` | Human-facing | Public knowledge site source |
+| `docs/_archive/` | Historical | Old notes, handoffs, reviews, and snapshots |
+| `scripts/` | Human + maintainer | Setup, deployment, QA/QC scripts |
+| `log/` | Shared history | Append-only event and session log |
 
-## docs/tools/ - 技術文檔
+## `docs/BIM_MCP/`
 
-**目的：** 記錄 MCP 工具的技術設計和 API 使用方式
+Public knowledge-site source for architecture explanations, deployment guidance, contributor onboarding, Domain and Skill indexes, and visual teaching assets.
 
-**內容類型：**
-- 工具設計規格
-- API 參數說明
-- 使用範例代碼
+Default handling:
 
-**目前檔案：**
-- `override_element_color_design.md` - 元素圖形覆寫工具設計
-- `override_graphics_examples.md` - 圖形覆寫 API 範例
+- Keep it human-readable.
+- Keep public links working.
+- Avoid using old site snapshots as current source of truth.
+- Source-of-truth rules still live in `CLAUDE.md`, `domain/*.md`, and scripts.
 
----
+## `docs/_archive/`
 
-## docs/workflows/ - 工作流程設計
+Historical material such as old handoffs, design notes, PR review notes, and post-mortems.
 
-**目的：** 記錄特定功能的開發設計過程與 Code Review
+Default handling:
 
-**目前檔案：**
-- `corridor_code_review.md` - 走廊分析程式碼審查
-- `corridor_dimension_review.md` - 走廊標註審查
+- Preserve content unless the user explicitly asks for migration.
+- Do not treat archive content as current project rules.
+- QA/QC should normally exclude archive content from stale-count failures.
 
----
+## `domain/`
 
-## docs/ 根目錄 - 歷史紀錄
+Shared BIM method layer. This is authoritative for workflows, calculations, legal/regulatory review logic, and AI method compliance.
 
-- `QUICK_TEST.md` - 外牆開口檢討功能測試文件
-- `Recent_Update_Review.md` - GitHub PR/Issue 解析報告
+Important:
 
----
+- Domain files must remain readable by both humans and AI.
+- Do not convert Domain files to English-only.
+- Bilingual headings and English keywords are acceptable when they improve AI precision.
+- Every active Domain file should follow `domain/frontmatter-standard.md`.
 
-## domain/ - 領域知識
+## `.claude/`
 
-**目的：** 給 AI 讀取的工作流程和業務知識
+AI operating layer.
 
-**內容類型：**
-- 操作工作流程 SOP
-- 業務規則與法規參考
-- 品質檢查清單
+| Path | Purpose |
+|---|---|
+| `.claude/commands/` | Slash-command instructions such as `/qaqc`, `/domain`, `/lessons`, `/review` |
+| `.claude/skills/` | Reusable AI workflows such as `/build-revit`, `/deploy-addon`, `/fire-safety-check` |
+| `.claude/hooks/` | Claude Code hooks used for reminders or automation |
 
-**完整清單：** 請參考 `domain/README.md`
+AI-only docs should be migrated toward English to avoid encoding drift.
 
----
+## `log/`
 
-## 教材/ - 教學資源
+Append-only monthly log. It complements `git log` by recording AI decisions, lessons, manual reviews, and session summaries.
 
-**目的：** 24 小時深度課程的講義與學習材料
+Default handling:
 
-**內容類型：**
-- 堂次講義（01~08）
-- 投影片與圖片
-- Skill 學習筆記與範例解說
+- Read the latest entry at session start.
+- Append new entries for meaningful AI-driven documentation or rule changes.
+- Do not rewrite historical entries unless explicitly requested.
 
-**完整清單：** 請參考 `教材/README.md`
+## Where To Put New Content
 
----
+| If you are adding... | Put it in... |
+|---|---|
+| Installation instructions | `README.md`, `README.en.md`, or `scripts/README.md` |
+| AI behavior rules | `CLAUDE.md` or `.claude/commands/` |
+| Reusable AI workflow | `.claude/skills/{skill}/SKILL.md` |
+| BIM calculation method or regulation workflow | `domain/*.md` |
+| Public teaching page | `docs/BIM_MCP/` |
+| One-off implementation notes | `docs/_archive/YYYY-qN/` |
+| Setup/deployment automation | `scripts/` |
+| Significant AI session event | `log/YYYY-MM.md` |
 
-## 新增文檔時的選擇
+## Current QA/QC Entry Point
 
-| 如果要記錄... | 放在... |
-|--------------|--------|
-| 工具的 API 設計和參數 | `docs/tools/` |
-| 如何一步步執行某任務（給 AI） | `domain/` |
-| 業務規則和法規注意事項 | `domain/` |
-| 代碼範例和技術細節 | `docs/tools/` |
-| 教學講義或學習筆記 | `教材/` |
+```powershell
+.\scripts\verify-qaqc.ps1 -SkipBuild -SkipDeploy
+```

@@ -1,9 +1,17 @@
 ---
-description: 詳圖元件同步工作流程
-trigger_keywords: [詳圖, detail, 圖號, 標頭, 同步, sync, AE-圖號]
-tools: [get_detail_components, create_detail_component_type, sync_detail_component_numbers]
-version: 4.0
-last_updated: 2026-04-02
+name: detail-component-sync
+description: "2D 詳圖元件同步工作流程：將詳圖圖頭（AE-numbering）的編號與圖紙號碼自動同步。當使用者提到詳圖同步、圖頭、detail header、AE-numbering、圖紙編號同步時觸發。"
+metadata:
+  version: "4.0"
+  updated: "2026-04-02"
+  created: "2026-03-16"
+  contributors:
+    - "unknown"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by:
+    - detail-component-sync
+  tags: [詳圖, detail, 圖號, 標頭, 同步, sync, AE-圖號]
 ---
 
 # 詳圖元件同步工作流程

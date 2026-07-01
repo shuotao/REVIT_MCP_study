@@ -1,12 +1,19 @@
 ---
-description: 走廊防火分析與標註標準流程 (SOP)
-trigger_keywords:
-  - 走廊
-  - 廊道
-  - 寬度分析
-  - 防火分析
-  - 比對法規
-version: 2026-02-13
+name: corridor-analysis-protocol
+description: "走廊防火分析與標註標準流程 (SOP)：自動偵測 Revit 走廊元素、計算淨寬、比對法規並建立標註。當使用者提到走廊、廊道、寬度分析、逃生通道時觸發。"
+metadata:
+  version: "1.0"
+  updated: "2026-03-10"
+  created: "2026-01-02"
+  contributors:
+    - "Admin"
+    - "Gemini"
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by:
+    - fire-safety-check
+  tags: [走廊, corridor, 廊道, 寬度分析, 防火分析, 比對法規]
 ---
 
 # 走廊防火分析與標註策略 (Corridor Analysis Protocol)
@@ -22,24 +29,26 @@ version: 2026-02-13
 3. **分析 (Analysis)**:
    - 檢查寬度是否符合建築技術規則（1.2m 與 1.6m 閥值）。
 4. **標註 (Annotation)**:
-   - 使用 `create_dimension` 在房間 BoundingBox 的中心線上建立標註。
-   - 必須指定與房間一致的樓層 (`LevelId`) 並選擇正確的視圖。
+   - 優先使用 `analyze_corridor_width` 做純分析，再視需要呼叫 `create_corridor_dimension` 建立標註。
+   - 必須指定與房間一致的樓層並選擇正確的平面視圖。
 
 ## 🛠️ 成功工具組合範例
 ```javascript
 // 取得當前樓層走廊
-const rooms = await call('get_rooms_by_level', { levelId: currentLevelId });
-const corridor = rooms.find(r => r.name.includes('廊下'));
+const rooms = await call('get_rooms_by_level', { level: currentLevelName });
+const corridor = rooms.Rooms.find(r => r.Name?.includes('走廊') || r.Name?.includes('Corridor'));
 
-// 根據 BoundingBox 中心點建立尺寸標註線
-const centerStart = { x: min.x, y: (min.y + max.y) / 2, z: 0 };
-const centerEnd = { x: max.x, y: (min.y + max.y) / 2, z: 0 };
+const analysis = await call('analyze_corridor_width', {
+    roomId: corridor.ElementId,
+    minWidth: 1200
+});
 
-await call('create_dimension', {
-    elements: [corridor.id],
-    type: 'Linear',
-    viewId: activeViewId,
-    line: { start: centerStart, end: centerEnd }
+console.log(`最小寬度: ${analysis.Summary.MinWidth} mm`);
+console.log(`是否合規: ${analysis.Summary.AllPass ? 'PASS' : 'FAIL'}`);
+
+await call('create_corridor_dimension', {
+    roomId: corridor.ElementId,
+    viewId: activeViewId
 });
 ```
 
@@ -73,15 +82,14 @@ await call('create_dimension', {
    - `method: "bbox_estimate"` - 估算 (不精確)
 
 ```javascript
-import { calculateCorridorWidth } from '../src/utils/corridor-geometry.js';
+const result = await call('analyze_corridor_width', {
+    roomId: corridorRoomId,
+    minWidth: 1200
+});
 
-const result = calculateCorridorWidth(
-    roomData.BoundarySegments, 
-    roomData.BoundingBox
-);
-
-console.log(`寬度: ${result.width.toFixed(1)} mm`);
-console.log(`方法: ${result.method}`);
+console.log(`最小寬度: ${result.Summary.MinWidth} mm`);
+console.log(`區段數量: ${result.Summary.TotalSegments}`);
+console.log(`整體結果: ${result.Summary.AllPass ? 'PASS' : 'FAIL'}`);
 ```
 
 ## 🔀 多區段走廊分析 (Segment-First Algorithm)
@@ -124,6 +132,10 @@ console.log(`方法: ${result.method}`);
 - **幾何直觀**: 直接基於走廊「細長形」的本質特徵進行分析。
 
 ### 使用範例 (SDK)
+
+> Note:
+> `corridor-geometry.js` 目前保留為演算法參考/備用實作。
+> 正式工具流程以 `analyze_corridor_width` 與 `create_corridor_dimension` 為主。
 
 ```javascript
 import { analyzeMultiSegmentCorridor } from '../src/utils/corridor-geometry.js';

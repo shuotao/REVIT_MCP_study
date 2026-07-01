@@ -6,9 +6,7 @@
             "args": [
                 "${workspaceFolder}/MCP-Server/build/index.js"
             ],
-            "env": {
-                "REVIT_VERSION": "2024"
-            }
+            "env": {}
         }
     }
 }

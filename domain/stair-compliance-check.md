@@ -1,9 +1,16 @@
 ---
 name: stair-compliance-check
 description: 同時檢討一般樓梯與無障礙樓梯的標準流程。當用戶提到「樓梯檢查」「無障礙樓梯」「梯級」「扶手」「淨高」時啟用。
-tags: [樓梯, 無障礙, 法規, QA, 建築技術規則]
-version: 2026-03-23
-revit_versions: [2022, 2023, 2024, 2025, 2026]
+metadata:
+  version: "1.0"
+  updated: "2026-03-23"
+  created: "2026-04-05"
+  contributors:
+    - "shuotao"
+  references: []  # TODO: 月小聚補法規條號或外部依據
+  related: []  # TODO: 月小聚補相關 domain（檔名）
+  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  tags: [樓梯, 無障礙, 法規, QA, 建築技術規則]
 ---
 
 # 全樓梯法規檢討流程 (一般 + 無障礙)

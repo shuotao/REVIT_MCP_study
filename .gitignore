@@ -3,6 +3,8 @@ MCP/MCP/bin/
 MCP/MCP/obj/
 MCP-Server/build/
 MCP-Server/node_modules/
+MCP.Contracts/
+MCP.CoreRuntime/
 
 # IDE and Editor files
 .vs/
@@ -38,8 +40,20 @@ npm-debug.log*
 # Agent/workflow files
 .agent/
 
+# AI client 本機設定
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.gemini/
+
+# 開發暫存腳本（非穩定，不該共享）
+MCP-Server/scratch/
+
 # Private User Guide (Excluded from Push)
 PRIVATE_INSTRUCTIONS.md
+
+# 私人內容（電子郵件 / 內部文件，不公開閱覽）
+thank.md
+docs/newsletters/
 
 # 教材（已開放，供學生練習使用）
 # 教材/
@@ -83,3 +97,16 @@ MCP-Server/scripts/rooms_output.txt
 MCP-Server/scripts/exterior_wall_check_report.json
 MCP-Server/far_report.txt
 Recent_Update_Review.md
+
+# 個人 IDE / Obsidian workspace（不入庫）
+REVIT_MCP.code-workspace
+domain/MCP knowledge/
+
+# Fork 逆向盤點報告（點名個人活動，私密、本地保留，不入庫）
+# 腳本 scripts/fork-audit.ps1 仍入庫；只有產出報告排除。
+docs/fork-audit/
+
+
+# Personal knowledge vault (see templates/personal-vault/ and docs/BIM_MCP/reference/personal-llm-wiki.html)
+/vault/
+/.obsidian/

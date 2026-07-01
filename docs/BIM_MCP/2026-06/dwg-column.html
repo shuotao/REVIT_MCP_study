@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026-06 Hands-on · DWG 圖層自動建柱 · BIM_MCP</title>
+<meta property="og:title" content="DWG 圖層自動建柱 — 兩波更新 hands-on">
+<meta property="og:description" content="從 CAD 圖層批次建 Revit 柱：掃描 → 預覽 → 建模。Wave 1 批次建模 + Wave 2 柱號對應三模式、自動單位偵測、DXF/DWG 優雅降級。六月小聚實作頁。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../nav.css">
+</head>
+<body>
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">2026-06 · DWG 自動建柱</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener" class="bim-topnav-btn bim-topnav-btn-github" title="View source on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+    <a href="../../0621-presentation.html" class="bim-topnav-btn">六月簡報</a>
+    <a href="../index.html" class="bim-topnav-btn">回首頁</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">2026-06 HANDS-ON · DWG COLUMN</div>
+  <h1 class="bim-hero-title">DWG 圖層<span class="accent">自動建柱</span><br>兩波更新</h1>
+  <p class="bim-hero-sub">從 CAD/DWG 圖層的幾何，批次建出 Revit 結構柱／建築柱：掃描圖層 → 預覽健檢 → 批次建模。Wave 1 完成基礎批次建模；Wave 2 收編 Roy-y111 的「柱號對應」，加入三模式、自動單位偵測與 DXF/DWG 優雅降級。斷點放編排層，不一口氣建模。</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">3</div>
+      <div class="data-emph-label">MCP 工具</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">掃描 / 預覽 / 建模</div>
+    </div>
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">3</div>
+      <div class="data-emph-label">模式 A/B/C</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">自動 / 尺寸 / 柱號</div>
+    </div>
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">30/30</div>
+      <div class="data-emph-label">FL1 實測</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">E-S-COLM 100%</div>
+    </div>
+  </div>
+</header>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">TWO WAVES</div>
+  <h2 class="bim-section-title">兩波更新：從一個人到兩個人</h2>
+  <p class="bim-section-desc">同一個能力，兩波貢獻；工具沒變多，智能變強。</p>
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">WAVE 1 · 06/09 · s9101800111-byte</h4>
+      <p>基礎批次建模：掃描圖層 → 預覽 → 建模。幾何辨識涵蓋封閉聚合線（含 13 點導角）、四線環、CAD block。實測 FL1 圖層 <code>E-S-COLM</code> 30 根 → 30 建，100% 成功。</p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">WAVE 2 · 06/18 · Roy-y111（作者 ROY）</h4>
+      <p>柱號對應（<code>textLayerName</code>）：同樣三工具 + 新智能——自動單位偵測、三模式路由、DWG 經 ODA 優雅降級。live 實測 mm 與 <code>$INSUNITS=0</code> cm 檔 <code>matchDebug</code> 皆 <code>dist=0</code>，6 根滿配 C1~C5。domain/skill 標來源 fork、commit 帶 Co-Authored-By。</p>
+    </div>
+  </div>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">WORKFLOW · 3 STEPS</div>
+  <h2 class="bim-section-title">三步工作流</h2>
+  <p class="bim-section-desc">三個 MCP 工具串成一條；preview 是第一個驗證點。</p>
+  <table>
+    <thead><tr><th>步驟</th><th>工具</th><th>做什麼 / 回什麼</th></tr></thead>
+    <tbody>
+      <tr><td><strong>① 掃描</strong></td><td><code>get_dwg_column_layers</code></td><td>列出目前平面視圖所有 CAD 圖層，推薦含「柱/column/col」關鍵字者</td></tr>
+      <tr><td><strong>② 預覽</strong></td><td><code>preview_dwg_columns(layerName)</code></td><td>解析矩形幾何，回根數、尺寸、尺寸分群 + <code>preflight</code> 單位/放樣健檢</td></tr>
+      <tr><td><strong>③ 建模</strong></td><td><code>create_columns_from_dwg(layerName, columnType, familyName?, textLayerName?)</code></td><td>批次建出 Revit 柱實例，回 <code>created</code> / <code>failed</code> / <code>typesUsed</code> / <code>unmatchedLabels</code></td></tr>
+    </tbody>
+  </table>
+  <p class="bim-section-desc" style="margin-top:14px;">幾何演算法：最長邊定向 → 反旋轉 → bounding box → 5mm 量化；每邊範圍 100–3000mm（超出剔除），50mm 內視為重複去除。</p>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">3 MODES</div>
+  <h2 class="bim-section-title">三模式：靠參數選</h2>
+  <p class="bim-section-desc">同一個 <code>create_columns_from_dwg</code>，由 skill/domain 依情境路由；選模式是使用者裁決，不自動選。</p>
+  <div class="bim-grid bim-grid-3">
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">A · 自動建型別</h4>
+      <p>沒指定族群，依幾何自動建「寬x深(cm)」型別。<br><code>layerName</code></p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">B · 既有族群·尺寸對應</h4>
+      <p>給 <code>familyName</code>，依尺寸沿用既有型別名（C1/C2…），缺尺寸才補建。</p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">C · 既有族群·柱號對應</h4>
+      <p>再給 <code>textLayerName</code>，讀 CAD 柱號標籤，對到同名型別；對不上的列入 <code>unmatchedLabels</code>、不亂建。</p>
+    </div>
+  </div>
+  <p class="bim-section-desc" style="margin-top:14px;">柱號比對優先序：型別名完全相符 → 前綴相符（C3a_/C3a-/C3a）→ 前綴＋尺寸雙重比對。2000mm 半徑內找最近標籤。</p>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">DUAL CHECKPOINTS · UNIT DETECT</div>
+  <h2 class="bim-section-title">雙斷點、自動單位偵測、DXF/DWG 降級</h2>
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">斷點 1 · 單位/放樣健檢</h4>
+      <p>preview 回 <code>preflight</code>：<code>unitSanity=ok|check</code>。若 <code>check</code> → 停，先在 Revit 連結對話框修單位再建。定位放樣/尺寸/單位是參考 DWG/DXF 建模的第一要務。</p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">斷點 2 · 選 family + 模式</h4>
+      <p>列出可用族群與既有型別名，請使用者確認 A/B/C；缺類型走「先建尺寸型別 → 改名到位 → 模式 C 重跑」逐步協作，避免幻覺誤建。</p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">自動單位偵測</h4>
+      <p>柱號讀取經 <code>ezdxf_worker.py</code>，試 mm/cm/m/inch/ft 五種比例，取讓「標籤↔最近柱」總距離最小者。<code>matchDebug</code> 的 <code>dist≈0</code> 即偵測成功。</p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">DXF / DWG 與降級</h4>
+      <p>DXF 直讀（需 Python + <code>ezdxf</code>）；DWG 經 ODA File Converter。未裝 ODA → <code>labelReadStatus=no_oda</code> 優雅降級，柱照建、只是不對應柱號。worker 由 <code>install-addon.ps1</code> 自動部署到 <code>%APPDATA%\RevitMCP</code>。</p>
+    </div>
+  </div>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">GOTCHAS</div>
+  <h2 class="bim-section-title">兩個常見技術陷阱</h2>
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card">
+      <h4 style="color:#f87171;">feet 單位坑</h4>
+      <p><code>modify_element_parameter</code> 的值是 Revit 內部 feet，不是 mm。600mm 要傳 <code>600/304.8 = 1.9685</code>；改名用 <code>parameterName="Name"</code>（接受 名稱／類型名稱／-1002001）。</p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:#f87171;">Import vs Link</h4>
+      <p>幾何（A/B/C）兩者皆可；柱號對應（C）<strong>只認 Link CAD</strong>——Import 無檔案路徑，讀不到文字標籤。視圖內若以「匯入」加入，請改「插入 → 連結 CAD」。</p>
+    </div>
+  </div>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">RELATED REFERENCE</div>
+  <h2 class="bim-section-title">深度閱讀</h2>
+  <div class="bim-grid bim-grid-3">
+    <a class="bim-card" href="https://github.com/shuotao/REVIT_MCP_study/blob/main/domain/dwg-column-import.md" target="_blank">
+      <h4>domain/dwg-column-import.md</h4>
+      <p>三模式並行 SOP、雙斷點、DXF/DWG 通用、技術坑全文</p>
+    </a>
+    <a class="bim-card" href="../reference/domain-index.html">
+      <h4>Domain 索引</h4>
+      <p>45 個 Domain SOP 總表</p>
+    </a>
+    <a class="bim-card" href="../../0621-presentation.html">
+      <h4>六月小聚簡報</h4>
+      <p>Obsidian 個人 LLM Wiki 主軸 + 本月出貨路由</p>
+    </a>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="../index.html" class="bim-footer-btn primary">← 回 BIM_MCP 首頁</a>
+    <a href="family-inventory.html" class="bim-footer-btn">族群盤點 hands-on</a>
+    <a href="../../0621-presentation.html" class="bim-footer-btn">六月簡報</a>
+  </div>
+  <p>BIM_MCP · 2026-06 月小聚 hands-on · DWG 圖層自動建柱（Wave 1 s9101800111-byte / Wave 2 Roy-y111）</p>
+</footer>
+
+<script src="../shared.js"></script>
+<script>initAll();</script>
+</body>
+</html>
