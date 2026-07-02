@@ -31,13 +31,25 @@
     <Compile Include="..\MCP\Core\SocketService.cs" Link="Core\SocketService.cs" />
     <Compile Include="..\MCP\Core\ExternalEventManager.cs" Link="Core\ExternalEventManager.cs" />
     <Compile Include="..\MCP\Core\ExteriorWallOpeningChecker.cs" Link="Core\ExteriorWallOpeningChecker.cs" />
+    <Compile Include="..\MCP\Core\ClashDetector.cs" Link="Core\ClashDetector.cs" />
+    <Compile Include="..\MCP\Core\LinkedModelHelper.cs" Link="Core\LinkedModelHelper.cs" />
+    <Compile Include="..\MCP\Core\DwgColumnExecutor.cs" Link="Core\DwgColumnExecutor.cs" />
+    <Compile Include="..\MCP\Core\DwgBeamExecutor.cs" Link="Core\DwgBeamExecutor.cs" />
+    <Compile Include="..\MCP\Core\FloorSlopeAnalyzer.cs" Link="Core\FloorSlopeAnalyzer.cs" />
     <Compile Include="..\MCP\Core\CommandExecutor.cs" Link="Core\CommandExecutor.cs" />
     <Compile Include="..\MCP\Core\RevitCompatibility.cs" Link="Core\RevitCompatibility.cs" />
+    <Compile Include="..\MCP\Core\Commands\CommandExecutor.BeamPenetration.cs" Link="Core\Commands\CommandExecutor.BeamPenetration.cs" />
     <Compile Include="..\MCP\Core\Commands\CommandExecutor.CurtainWall.cs" Link="Core\Commands\CommandExecutor.CurtainWall.cs" />
     <Compile Include="..\MCP\Core\Commands\CommandExecutor.DependentView.cs" Link="Core\Commands\CommandExecutor.DependentView.cs" />
     <Compile Include="..\MCP\Core\Commands\CommandExecutor.DetailComponent.cs" Link="Core\Commands\CommandExecutor.DetailComponent.cs" />
     <Compile Include="..\MCP\Core\Commands\CommandExecutor.Dimension.cs" Link="Core\Commands\CommandExecutor.Dimension.cs" />
+    <Compile Include="..\MCP\Core\Commands\CommandExecutor.DoorWindowLegend.cs" Link="Core\Commands\CommandExecutor.DoorWindowLegend.cs" />
+    <Compile Include="..\MCP\Core\Commands\CommandExecutor.ElementOps.cs" Link="Core\Commands\CommandExecutor.ElementOps.cs" />
+    <Compile Include="..\MCP\Core\Commands\CommandExecutor.FinishLegend.cs" Link="Core\Commands\CommandExecutor.FinishLegend.cs" />
+    <Compile Include="..\MCP\Core\Commands\CommandExecutor.Level.cs" Link="Core\Commands\CommandExecutor.Level.cs" />
+    <Compile Include="..\MCP\Core\Commands\CommandExecutor.RoomSurface.cs" Link="Core\Commands\CommandExecutor.RoomSurface.cs" />
     <Compile Include="..\MCP\Core\Commands\CommandExecutor.Sheet.cs" Link="Core\Commands\CommandExecutor.Sheet.cs" />
+    <Compile Include="..\MCP\Core\Commands\CommandExecutor.ViewOps.cs" Link="Core\Commands\CommandExecutor.ViewOps.cs" />
     <Compile Include="..\MCP\Core\Commands\CommandExecutor.SmokeExhaust.cs" Link="Core\Commands\CommandExecutor.SmokeExhaust.cs" />
     <Compile Include="..\MCP\Core\Commands\CommandExecutor.StairCompliance.cs" Link="Core\Commands\CommandExecutor.StairCompliance.cs" />
     <Compile Include="..\MCP\Core\Commands\CommandExecutor.WallType.cs" Link="Core\Commands\CommandExecutor.WallType.cs" />
