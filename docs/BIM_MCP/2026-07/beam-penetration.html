@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026-07 Hands-on · RC 穿梁套管自動檢核 · BIM_MCP</title>
+<meta property="og:title" content="RC 穿梁套管自動檢核 — PR #68 收編 + v2 續行">
+<meta property="og:description" content="RC 梁穿孔自動檢核：掃描視圖套管 → 幾何萃取分類 → H/3 / 禁開區 / 相鄰淨距法規判定。鈺傑（SEven777-a）23 commits 收編，R24+R26 雙 build。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../nav.css">
+</head>
+<body>
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">2026-07 · 穿梁套管檢核</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener" class="bim-topnav-btn bim-topnav-btn-github" title="View source on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+    <a href="../index.html" class="bim-topnav-btn">回首頁</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">2026-07 HANDS-ON · BEAM PENETRATION</div>
+  <h1 class="bim-hero-title">RC 穿梁套管<span class="accent">自動檢核</span></h1>
+  <p class="bim-hero-sub">掃描視圖內穿梁套管 → 幾何萃取 + 套管分類 → 按 RC 法規判定（H/3、禁開區、相鄰淨距）。鈺傑（SEven777-a）在 fork 分支開發 23 commits，PR #68 收編修正合併進 main（2026-07-02）；v2 完整線於 <code>feature/seven777-beam-penetration-v2</code> 續行。啟銘（ChimingLu）熱重載 opt-in 線同步更新。</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">+2</div>
+      <div class="data-emph-label">MCP 工具</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">掃描 / 幾何萃取</div>
+    </div>
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">23</div>
+      <div class="data-emph-label">commits 收編</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">SEven777-a 作者圖譜</div>
+    </div>
+    <div class="hero-stat">
+      <div style="font-size:28px;font-weight:800;color:var(--accent);">R24+R26</div>
+      <div class="data-emph-label">雙 build</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">0 error</div>
+    </div>
+  </div>
+</header>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">TWO WAVES</div>
+  <h2 class="bim-section-title">兩波推進：fork 開發 → 收編修正</h2>
+  <p class="bim-section-desc">同一條能力線，分兩段完成；收編採手動修正合併，確保 main 完整性。</p>
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">WAVE 1 · 05/23–06/12 · SEven777-a（作者 鈺傑）</h4>
+      <p>在 fork 分支 <code>feature/beam-penetration-rc</code> 獨力開發 23 commits：1650 行 <code>CommandExecutor.BeamPenetration.cs</code>（實體頂點極值投影法、正交梁邊界、雙重碰撞防禦、綠 PASS／紅 FAIL 圖面標記）、<code>CommandExecutor.AdvancedPenetration.cs</code>、4 個 MCP 工具、<code>check-beam-penetration</code> skill、連結模型套管掃描、梁端接柱／牆偵測（<code>IsStartAtColumn</code>/<code>IsEndAtColumn</code>）、WebSocket 大封包修正。</p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:var(--accent);">WAVE 2 · 06/30–07/02 · 收編 PR #68</h4>
+      <p>鈺傑自行把 step1（C# 幾何萃取 + 套管分類）切成 PR #68 提交（2026-06-30）。收編採修正式合併（2026-07-02）：還原 main 版 dispatcher（PR 原修改會誤刪 12 個現役 case）、僅手動補入 3 個新 case；追齊 7 個未隨附 helper 方法的依賴閉包（partial 611→959 行）；cherry-pick WebSocket 大封包截斷修正；R24（.NET FX 4.8）+ R26（.NET 8）雙 build 0 error；QA/QC 54 PASS。上線工具：<code>analyze_beam_penetration</code>、<code>scan_penetrated_beams_in_view</code>（工具計數 101→103）。</p>
+    </div>
+  </div>
+  <div class="bim-card" style="margin-top:var(--gap-md)">
+    <h4 style="color:var(--accent);">WAVE 2 續行（v2 分支）</h4>
+    <p>完整線已收編到 origin 分支 <code>feature/seven777-beam-penetration-v2</code>（保留他 23-commit 作者圖譜）：新增 <code>visualize_penetration</code>、<code>get_src_beam_mapping</code> 工具（分支上 105）、skill 改寫為 MCP 工具編排、SC/SRC domain 草稿（待江老師確認）、丟棄 6,000+ 行對話萃取暫存檔。</p>
+  </div>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">WORKFLOW · 4 STEPS</div>
+  <h2 class="bim-section-title">四步工作流</h2>
+  <p class="bim-section-desc">兩個 runtime 工具 + 一份法規 domain 串成一條；v2 分支再加圖面標記。</p>
+  <table>
+    <thead><tr><th>步驟</th><th>工具 / 方法</th><th>做什麼 / 回什麼</th></tr></thead>
+    <tbody>
+      <tr><td><strong>① 掃描</strong></td><td><code>scan_penetrated_beams_in_view</code></td><td>掃描視圖內所有穿梁套管，回梁清單與套管位置</td></tr>
+      <tr><td><strong>② 萃取</strong></td><td><code>analyze_beam_penetration</code></td><td>單梁幾何萃取 + 套管分類（位置、直徑、Zone 判定）</td></tr>
+      <tr><td><strong>③ 法規判定</strong></td><td><code>domain/beam-penetration-rc.md</code></td><td>H/3 限制、禁開區（Zone A）、相鄰套管淨距計算 → PASS / FAIL</td></tr>
+      <tr><td><strong>④ 圖面標記</strong><br><small style="color:var(--text-muted)">v2 分支</small></td><td><code>visualize_penetration</code></td><td>綠 PASS／紅 FAIL 批次上色，回標記數量</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">GOTCHAS</div>
+  <h2 class="bim-section-title">三個技術陷阱</h2>
+  <div class="bim-grid bim-grid-3">
+    <div class="bim-card">
+      <h4 style="color:#f87171;">fork PR 舊檔貼回陷阱</h4>
+      <p>GitHub 顯示 mergeable，textual merge 乾淨，但 PR 的 <code>CommandExecutor.cs</code> 是 fork 舊檔整個貼回：刪 12 個現役 case（門窗圖例、樑翻模、走廊分析等）。因方法在 partial class，build 照樣過、runtime 才壞。<strong>教訓</strong>：合併 fork PR 前先 diff dispatcher case 清單。</p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:#f87171;">PR 切片的依賴閉包</h4>
+      <p>從大分支切出來的 PR 可能呼叫沒隨附的方法；本次 PR 呼叫了 7 個未隨附的 helper 方法，無法單獨編譯。<strong>教訓</strong>：合併前要追依賴閉包，缺的從同作者原分支補。</p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:#f87171;">WebSocket 大封包截斷</h4>
+      <p>單次 <code>ReceiveAsync</code> + <code>GetString(count)</code> 遇分片 frame 會截斷 JSON；改 <code>MemoryStream</code> 累積至 <code>EndOfMessage</code> 才轉字串。此修正已 cherry-pick 進 main。</p>
+    </div>
+  </div>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">OPT-IN LINE</div>
+  <h2 class="bim-section-title">啟銘熱重載 opt-in 線</h2>
+  <div class="bim-card">
+    <h4 style="color:var(--accent);">ChimingLu（啟銘）· 熱重載架構更新</h4>
+    <p>熱重載架構（MCP.Contracts + MCP.CoreRuntime 多專案、TcpListener、shadow-copy）依單一 csproj 憲法維持 opt-in 不進 main；新 opt-in 線 = origin 分支 <code>feature/core-reload-optin</code>（取代舊 preview/chiming-pr42/43 快照），已同步 main 最新內容並補上 TcpListener 續傳 frame 累積與 CoreRuntime 編譯清單修正。文件指標：<code>docs/core-reload-architecture.md</code>、<code>/core-reload-dev</code> skill。</p>
+  </div>
+</section>
+
+<section class="bim-section">
+  <div class="bim-section-eyebrow">RELATED REFERENCE</div>
+  <h2 class="bim-section-title">深度閱讀</h2>
+  <div class="bim-grid bim-grid-3">
+    <a class="bim-card" href="https://github.com/shuotao/REVIT_MCP_study/blob/main/domain/beam-penetration-base.md" target="_blank" rel="noopener">
+      <h4>domain/beam-penetration-base.md</h4>
+      <p>共用基礎：梁類型判定 + 分派 RC/SC/SRC + 共用輸出格式</p>
+    </a>
+    <a class="bim-card" href="https://github.com/shuotao/REVIT_MCP_study/blob/main/domain/beam-penetration-rc.md" target="_blank" rel="noopener">
+      <h4>domain/beam-penetration-rc.md</h4>
+      <p>RC 梁規則：H/3 限制、Zone A 禁開區、相鄰淨距、PASS/FAIL 判定</p>
+    </a>
+    <a class="bim-card" href="https://github.com/shuotao/REVIT_MCP_study/blob/main/domain/beam-penetration-algorithm.md" target="_blank" rel="noopener">
+      <h4>domain/beam-penetration-algorithm.md</h4>
+      <p>實體投影降維、JoinGeometry 端面消失、法向量過濾演算法</p>
+    </a>
+    <a class="bim-card" href="https://github.com/shuotao/REVIT_MCP_study/blob/main/domain/sleeve-classification-protocol.md" target="_blank" rel="noopener">
+      <h4>domain/sleeve-classification-protocol.md</h4>
+      <p>套管分類 SOP：穿梁 / 穿牆 / 穿板判定、套管身分識別</p>
+    </a>
+    <a class="bim-card" href="../reference/domain-index.html">
+      <h4>Domain 索引</h4>
+      <p>55 個 Domain SOP 總表</p>
+    </a>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="../index.html" class="bim-footer-btn primary">← 回 BIM_MCP 首頁</a>
+    <a href="../reference/domain-index.html" class="bim-footer-btn">Domain 索引</a>
+  </div>
+  <p>BIM_MCP · 2026-07 hands-on · RC 穿梁套管自動檢核（Wave 1-2 SEven777-a（鈺傑）；opt-in 線 ChimingLu（啟銘））</p>
+</footer>
+
+<script src="../shared.js"></script>
+<script>initAll();</script>
+</body>
+</html>
