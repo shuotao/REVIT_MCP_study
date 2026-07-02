@@ -2,7 +2,8 @@
 
 > **適用版本**：Revit 2020–2026（R20–R26）  
 > **目標讀者**：後續接手開發、貢獻 PR 或需要調整 BIM 命令邏輯的開發者  
-> **最後更新**：2026-04-24（feature/loader-core-r26）
+> **最後更新**：2026-07-02（opt-in 分支 `feature/core-reload-optin`；SocketService 已改用 TcpListener）  
+> **分支導覽**：本分支的收編說明與 opt-in 偏差見 `docs/core-reload-optin-README.md`
 
 ---
 
@@ -37,7 +38,7 @@ Revit 進程（常駐）
     ├── RevitMcpCoreRuntime.cs         實作 IRevitMcpRuntime
     ├── Core/CommandExecutor.cs        76+ 個 Revit 命令（Shadow-copy 載入）
     ├── Core/Commands/CommandExecutor.*.cs  各分域命令 partial class
-    ├── Core/SocketService.cs          WebSocket 伺服器（HttpListener）
+    ├── Core/SocketService.cs          WebSocket 伺服器（TcpListener，原生 TCP 手動 framing）
     └── Core/ExternalEventManager.cs  Revit UI 執行緒調度
 ```
 
@@ -165,7 +166,8 @@ Revit UI 排程 → ReloadCoreEventHandler.Execute()  ← 真正的 ReloadCore()
 
 | 檔案 | 角色 |
 |------|------|
-| `MCP-Server/scripts/core-reload-verify.js` | 端到端驗證（`--auto` 模式：before → reload → after，自動比對 CoreVersion） |
+| `MCP-Server/scripts/core-reload-verify.js` | 端到端驗證（`--auto`：before → reload → after 自動比對 CoreVersion；`--full`：另以 `get_recent_logs` 確認 CoreRuntime 重載日誌） |
+| `MCP-Server/scripts/smoke-test.js` | 連 `ws://localhost:8964/` 對 Revit 做基本命令 smoke test（dev-only，直連 WebSocket，非 MCP 工具） |
 
 ---
 
@@ -337,5 +339,5 @@ Remove-Item "$rt\MCP.Contracts.dll" -ErrorAction SilentlyContinue
 | Core 重載後命令 timeout（8s） | `StartAsync()` 有 `TaskDialog.Show()` 阻塞 UI | 確認 `SocketService.StartAsync()` 無 `TaskDialog`（已修復） |
 | CoreVersion 重載後未變化 | `runtime/` 目錄的 DLL 未更新，或 shadow-copy 取了舊快照 | 確認部署時間戳晚於重載時間；檢查 `%TEMP%\RevitMCP\runtime-shadow\` |
 | `CoreRuntime 型別不存在` | CoreRuntime DLL 建置失敗，型別名稱變更 | 確認 `RevitMCP.CoreRuntime.RevitMcpCoreRuntime` 類別存在 |
-| Port 8964 被 PID 4 佔用，Revit 顯示「Port監聽: 是」但 WebSocket 連線 timeout | HTTP.sys 孤兒 Request Queue（Revit 上次異常關閉殘留）。`HttpListener.Start()` 在 HTTP.sys 共用模式下不會拋出例外，`_isRunning` / `IsListening` 顯示正常，但實際封包被孤兒 Queue 吃掉無法路由至 Revit | **最可靠解法：重開機**（HTTP.sys 孤兒 Queue 在重開機時自動清除）。<br>若不能重開機，以管理員 PowerShell 逐行執行：<br>`net stop http /y`（Print Spooler / SSDP 會一起停）<br>`net start http`<br>`net start spooler`<br>**注意：不可用 `&&` 串連（PowerShell 不支援）；`DO NOT` 任意更改 port 8964** |
+| ~~Port 8964 被 PID 4 佔用，Revit 顯示「Port監聽: 是」但 WebSocket 連線 timeout~~（本分支已不適用） | **歷史議題**：僅發生於 main 的 `HttpListener` 架構——HTTP.sys 孤兒 Request Queue（Revit 上次異常關閉殘留）會讓封包被孤兒 Queue 吃掉。**本 opt-in 分支已改用 `TcpListener` 直接綁 port，不經 HTTP.sys，故此症狀不會發生**；port 由 Revit 進程持有，crash 時 OS 自動釋放。 | 本分支無需處理；若在 main（HttpListener）遇到，最可靠解法為**重開機**，或以管理員 PowerShell 逐行 `net stop http /y` → `net start http` → `net start spooler`（勿改 port 8964）。 |
 | ~~**MCP 服務需按兩次才生效**~~（已修復） | Toggle 按鈕原本使用 `IsServiceConnected()`（外部 MCP Server 是否連線）而非 `IsRunning` 作為判斷依據，服務啟動後 MCP Server 尚未連線導致第一次按鈕無效 | ✅ 已修復（2026-04-24）：`ToggleServiceCommand` 改用 `IsServiceRunning()` 判斷，重建部署 Loader 後一次點擊即可 |

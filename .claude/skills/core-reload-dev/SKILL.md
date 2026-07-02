@@ -7,7 +7,7 @@ user-invocable: true
 Operational companion to `docs/core-reload-architecture.md` and `domain/core-reload-boundary.md`.
 
 > [!IMPORTANT]
-> **OPT-IN, NOT main 架構。** main 維持憲法的「單一 `MCP/RevitMCP.csproj`」結構，**不含** `MCP.Contracts` / `MCP.CoreRuntime` 子專案。本 skill 的步驟**只在 opt-in 熱重載分支（`feature/loader-core-r26`）上成立**。在 main（單一 csproj）執行 `dotnet build MCP.CoreRuntime/...` 會找不到專案 —— 此時請改用 `/build-revit` + `/deploy-addon`，並向使用者說明熱重載屬 opt-in 進階分支。
+> **OPT-IN, NOT main 架構。** main 維持憲法的「單一 `MCP/RevitMCP.csproj`」結構，**不含** `MCP.Contracts` / `MCP.CoreRuntime` 子專案。本 skill 的步驟**只在 opt-in 熱重載分支（`feature/core-reload-optin`）上成立**。在 main（單一 csproj）執行 `dotnet build MCP.CoreRuntime/...` 會找不到專案 —— 此時請改用 `/build-revit` + `/deploy-addon`，並向使用者說明熱重載屬 opt-in 進階分支。
 >
 > 知識來源：收編自 ChimingLu（啟銘）的熱重載分支（issue #33 決策：核心架構 opt-in、文件與邊界收編進 main）。
 
@@ -52,4 +52,4 @@ Operational companion to `docs/core-reload-architecture.md` and `domain/core-rel
 | 啟動錯誤「方法 'SetReloadCallback' 沒有實作」 | Loader/Contracts 已更新但 runtime DLL 是舊版 → 重建並部署 CoreRuntime；刪 `runtime\MCP.Contracts.dll` |
 | 命令 8s timeout | UI 執行緒被 modal 阻塞 → 確認 `SocketService.StartAsync()` 無 modal `TaskDialog`（main 已收編此修正） |
 | `CoreVersion` 重載後沒變 | `runtime\` DLL 未更新或 shadow-copy 取到舊快照 → 確認部署時間戳；清 `%TEMP%\RevitMCP\runtime-shadow\` |
-| Port 8964 監聽=是但連線 timeout | HTTP.sys 孤兒 Queue → 重開機最可靠；或系統管理員 `net stop http /y` → `net start http`（勿改 port 8964） |
+| Port 8964 監聽=是但連線 timeout | 本分支用 `TcpListener` 直綁 port（不經 HTTP.sys），故 main 的 HTTP.sys 孤兒 Queue 症狀不會發生；若 port 被占用，確認無殘留進程占用 8964 後重啟 MCP 服務（勿改 port 8964） |
