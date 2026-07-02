@@ -167,27 +167,63 @@ namespace RevitMCP.Core
 
         private async Task ReceiveMessagesAsync(Stream stream, CancellationToken ct)
         {
+            // 片段化訊息累積：WebSocket 資料訊息可能跨多個 frame（起始 frame FIN=0，
+            // 後續為 opcode 0x0 續傳 frame，最後一個 FIN=1）。累積直到 FIN 才派送，
+            // 等同 HttpListener 路徑的 MemoryStream+EndOfMessage 迴圈概念。
+            System.IO.MemoryStream fragmentBuffer = null;
+            int fragmentOpcode = 0;
+
             while (_isRunning && !ct.IsCancellationRequested)
             {
                 try
                 {
-                    var (opcode, payload) = await ReadFrameAsync(stream, ct);
+                    var (fin, opcode, payload) = await ReadFrameAsync(stream, ct);
 
-                    if (opcode == 0x1 || opcode == 0x2)
-                    {
-                        string message = Encoding.UTF8.GetString(payload);
-                        Logger.Debug($"[Socket] 接收到訊息: {message}");
-                        HandleMessage(message);
-                    }
-                    else if (opcode == 0x8)
+                    if (opcode == 0x8) // Close
                     {
                         Logger.Info("[Socket] 收到 Close frame");
                         await WriteFrameAsync(stream, 0x8, new byte[0], CancellationToken.None);
                         break;
                     }
-                    else if (opcode == 0x9)
+                    else if (opcode == 0x9) // Ping（控制 frame，永遠 FIN=1，不參與片段累積）
                     {
                         await WriteFrameAsync(stream, 0xA, payload, ct);
+                        continue;
+                    }
+                    else if (opcode == 0xA) // Pong，忽略
+                    {
+                        continue;
+                    }
+                    else if (opcode == 0x1 || opcode == 0x2) // 資料訊息起始 frame
+                    {
+                        if (fin)
+                        {
+                            // 單一 frame 完整訊息（常見情形）
+                            DispatchTextMessage(payload);
+                        }
+                        else
+                        {
+                            fragmentBuffer?.Dispose();
+                            fragmentBuffer = new System.IO.MemoryStream();
+                            fragmentBuffer.Write(payload, 0, payload.Length);
+                            fragmentOpcode = opcode;
+                        }
+                    }
+                    else if (opcode == 0x0) // 續傳 frame
+                    {
+                        if (fragmentBuffer == null)
+                        {
+                            Logger.Error("[Socket] 收到孤立的續傳 frame（無起始 frame），忽略");
+                            continue;
+                        }
+                        fragmentBuffer.Write(payload, 0, payload.Length);
+                        if (fin)
+                        {
+                            byte[] full = fragmentBuffer.ToArray();
+                            fragmentBuffer.Dispose();
+                            fragmentBuffer = null;
+                            DispatchTextMessage(full);
+                        }
                     }
                 }
                 catch (OperationCanceledException) { break; }
@@ -199,11 +235,21 @@ namespace RevitMCP.Core
                     break;
                 }
             }
+
+            fragmentBuffer?.Dispose();
         }
 
-        private static async Task<(int opcode, byte[] payload)> ReadFrameAsync(Stream stream, CancellationToken ct)
+        private void DispatchTextMessage(byte[] payload)
+        {
+            string message = Encoding.UTF8.GetString(payload);
+            Logger.Debug($"[Socket] 接收到訊息 (長度: {message.Length}): {message}");
+            HandleMessage(message);
+        }
+
+        private static async Task<(bool fin, int opcode, byte[] payload)> ReadFrameAsync(Stream stream, CancellationToken ct)
         {
             byte[] header = await ReadExactAsync(stream, 2, ct);
+            bool fin = (header[0] & 0x80) != 0;
             int opcode = header[0] & 0x0F;
             bool masked = (header[1] & 0x80) != 0;
             long payloadLen = header[1] & 0x7F;
@@ -226,7 +272,7 @@ namespace RevitMCP.Core
             if (masked && maskKey != null)
                 for (int i = 0; i < payload.Length; i++) payload[i] ^= maskKey[i % 4];
 
-            return (opcode, payload);
+            return (fin, opcode, payload);
         }
 
         private static async Task WriteFrameAsync(Stream stream, int opcode, byte[] payload, CancellationToken ct)
