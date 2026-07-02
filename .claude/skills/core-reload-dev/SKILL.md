@@ -7,7 +7,7 @@ user-invocable: true
 Operational companion to `docs/core-reload-architecture.md` and `domain/core-reload-boundary.md`.
 
 > [!IMPORTANT]
-> **OPT-IN, NOT main 架構。** main 維持憲法的「單一 `MCP/RevitMCP.csproj`」結構，**不含** `MCP.Contracts` / `MCP.CoreRuntime` 子專案。本 skill 的步驟**只在 opt-in 熱重載分支（`feature/loader-core-r26`）上成立**。在 main（單一 csproj）執行 `dotnet build MCP.CoreRuntime/...` 會找不到專案 —— 此時請改用 `/build-revit` + `/deploy-addon`，並向使用者說明熱重載屬 opt-in 進階分支。
+> **OPT-IN, NOT main 架構。** main 維持憲法的「單一 `MCP/RevitMCP.csproj`」結構，**不含** `MCP.Contracts` / `MCP.CoreRuntime` 子專案。本 skill 的步驟**只在 opt-in 熱重載分支（`feature/core-reload-optin`）上成立**。在 main（單一 csproj）執行 `dotnet build MCP.CoreRuntime/...` 會找不到專案 —— 此時請改用 `/build-revit` + `/deploy-addon`，並向使用者說明熱重載屬 opt-in 進階分支。
 >
 > 知識來源：收編自 ChimingLu（啟銘）的熱重載分支（issue #33 決策：核心架構 opt-in、文件與邊界收編進 main）。
 
