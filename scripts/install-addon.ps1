@@ -228,14 +228,8 @@ Write-Host ""
 Write-Host "正在驗證來源檔案..." -ForegroundColor Yellow
 Write-Host ""
 
-# 定義來源檔案路徑 (統一建構：Nice3point.Revit.Sdk)
-# ⚠️ 本專案只使用 RevitMCP.csproj + RevitMCP.addin（統一多版本建構）
-# ⚠️ 禁止新增 RevitMCP.2024.csproj / RevitMCP.2024.addin 等版本特定檔案
-$sourceDllRelease = Join-Path $projectRoot "MCP\bin\$buildConfig\RevitMCP.dll"
-$sourceDllDebug = Join-Path $projectRoot "MCP\bin\Debug\RevitMCP.dll"
-$sourceAddin = Join-Path $projectRoot "MCP\RevitMCP.addin"
-
 # 版本→組態對應表（統一建構，所有版本使用同一個 csproj）
+# ⚠️ 必須在 $sourceDllRelease 之前求值，否則 Strict Mode 下 $buildConfig 未定義
 $versionConfigMap = @{
     "2022" = "Release.R22"
     "2023" = "Release.R23"
@@ -244,6 +238,13 @@ $versionConfigMap = @{
     "2026" = "Release.R26"
 }
 $buildConfig = $versionConfigMap[$revitVersion]
+
+# 定義來源檔案路徑 (統一建構：Nice3point.Revit.Sdk)
+# ⚠️ 本專案只使用 RevitMCP.csproj + RevitMCP.addin（統一多版本建構）
+# ⚠️ 禁止新增 RevitMCP.2024.csproj / RevitMCP.2024.addin 等版本特定檔案
+$sourceDllRelease = Join-Path $projectRoot "MCP\bin\$buildConfig\RevitMCP.dll"
+$sourceDllDebug = Join-Path $projectRoot "MCP\bin\Debug\RevitMCP.dll"
+$sourceAddin = Join-Path $projectRoot "MCP\RevitMCP.addin"
 
 # 決定使用哪個 DLL
 $sourceDll = $null
