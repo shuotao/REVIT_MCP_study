@@ -453,6 +453,17 @@ namespace RevitMCP.Core
                         result = FloorSlopeAnalyzer.Run(_uiApp.ActiveUIDocument.Document, parameters);
                         break;
 
+                    // === RC 穿梁套管自動檢核（PR #68, 作者 鈺傑 SEven777-a）===
+                    case "analyze_beam_penetration":
+                        result = AnalyzeBeamPenetration(parameters);
+                        break;
+                    case "scan_penetrated_beams_in_view":
+                        result = ScanPenetratedBeamsInView(parameters);
+                        break;
+                    case "clear_previous_annotations":
+                        result = ClearPreviousAnnotations(parameters);
+                        break;
+
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
                 }
