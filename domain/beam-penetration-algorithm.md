@@ -2,8 +2,8 @@
 name: beam-penetration-algorithm
 description: "穿梁套管檢核的幾何接合與實體邊緣判定演算法：實體頂點極值投影法、法向量內積過濾、1D 降維排隊標註，破解 Revit JoinGeometry 造成的真實端面消失與標註誤差。引用 beam-penetration-base。"
 metadata:
-  version: "1.0"
-  updated: "2026-05-05"
+  version: "1.1"
+  updated: "2026-07-02"
   created: "2026-05-05"
   contributors: ["SEven777-a", "Antigravity"]
   references: ["beam-penetration-base"]
@@ -55,3 +55,17 @@ metadata:
 
 ## 3. 結論
 透過結合**「法向量過濾」**與**「實體極值投影法」**，我們成功避開了 Revit 幾何接合機制帶來的黑箱盲區。這套演算法不僅能在主模型內發揮作用，對於無法修改接合狀態的**連結模型 (Linked Model)** 同樣具備極高的強健性 (Robustness)。
+
+## 4. 實作對應 (Implementation Mapping)
+
+以下對應收編自鈺傑 (SEven777-a) rc 分支 `MCP/Core/Commands/CommandExecutor.BeamPenetration.cs` 的方法，供維護時追溯：
+
+| 演算法步驟 | 主要方法 (C#) |
+|---|---|
+| 步驟一 主梁端面（法向量過濾） | `GetBeamEndFaces` |
+| 步驟三 正交梁實體頂點投影 | `GetCollisionWidthAtPoint`、`FindElementInMainOrLinks`、`TransformOutline` |
+| 步驟四 降維排隊畫線 | `CreateSequentialDimensions` → `CreateDimensionByRef` → `CreateDimensionInternal` |
+| 相鄰套管淨距標註（rc §4） | `CreateSleeveSpacingDimension` |
+| 套管至側梁避讓標註（rc §2.3） | `CreateSleeveToSideBeamDimension` |
+
+> 註：`docs/BIM_MCP/BeamPenetration_JoinGeometry_Solution.md`（rc 分支散置文件）內容與本檔第 1–3 節逐字相同，收編時確認無獨有技術內容，已折併於此、不另留散檔。
