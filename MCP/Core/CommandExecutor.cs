@@ -463,6 +463,16 @@ namespace RevitMCP.Core
                     case "clear_previous_annotations":
                         result = ClearPreviousAnnotations(parameters);
                         break;
+                    // === RC 穿梁套管 wave-2（rc 完整線，作者 鈺傑 SEven777-a）===
+                    case "get_src_beam_mapping":
+                        result = GetSrcBeamMapping(parameters);
+                        break;
+                    case "visualize_penetration":
+                        result = VisualizePenetration(parameters);
+                        break;
+                    case "advanced_analyze":
+                        result = AdvancedAnalyzeAndTag(parameters);
+                        break;
 
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
@@ -1954,7 +1964,7 @@ namespace RevitMCP.Core
         private object CreateDimension(JObject parameters)
         {
             Document doc = _uiApp.ActiveUIDocument.Document;
-            
+
             IdType viewId = parameters["viewId"]?.Value<IdType>() ?? 0;
             double startX = parameters["startX"]?.Value<double>() ?? 0;
             double startY = parameters["startY"]?.Value<double>() ?? 0;
@@ -1972,47 +1982,8 @@ namespace RevitMCP.Core
             {
                 trans.Start();
 
-                // 轉換座標
-                XYZ start = new XYZ(startX / 304.8, startY / 304.8, 0);
-                XYZ end = new XYZ(endX / 304.8, endY / 304.8, 0);
-
-                // 建立參考線
-                Line line = Line.CreateBound(start, end);
-
-                // 建立尺寸標註用的參考陣列
-                ReferenceArray refArray = new ReferenceArray();
-
-                // 使用 DetailCurve 作為參考
-                // 先建立兩個詳圖線作為參考點
-                XYZ perpDir = new XYZ(-(end.Y - start.Y), end.X - start.X, 0).Normalize();
-                double offsetFeet = offset / 304.8;
-
-                // 偏移後的標註線位置
-                XYZ dimLinePoint = start.Add(perpDir.Multiply(offsetFeet));
-                Line dimLine = Line.CreateBound(
-                    start.Add(perpDir.Multiply(offsetFeet)),
-                    end.Add(perpDir.Multiply(offsetFeet))
-                );
-
-                // 使用 NewDetailCurve 建立參考（建立足夠長的線段）
-                // 詳圖線應垂直於標註方向，作為標註的參考點
-                double lineLength = 1.0; // 1 英尺 = 約 305mm
-
-                // 使用 perpDir（垂直方向）來建立詳圖線
-                DetailCurve dc1 = doc.Create.NewDetailCurve(view, Line.CreateBound(
-                    start.Subtract(perpDir.Multiply(lineLength / 2)), 
-                    start.Add(perpDir.Multiply(lineLength / 2))));
-                DetailCurve dc2 = doc.Create.NewDetailCurve(view, Line.CreateBound(
-                    end.Subtract(perpDir.Multiply(lineLength / 2)), 
-                    end.Add(perpDir.Multiply(lineLength / 2))));
-
-                refArray.Append(dc1.GeometryCurve.Reference);
-                refArray.Append(dc2.GeometryCurve.Reference);
-
-                // 建立尺寸標註
-                Dimension dim = doc.Create.NewDimension(view, dimLine, refArray);
-
-                // 注意：保留詳圖線作為標註參考點（如需刪除請手動處理）
+                // 公開工具維持 main 既有行為：不標記為穿梁輔助、詳圖線保持可見（markAsHelper: false）
+                Dimension dim = CreateDimensionInternal(doc, view, startX, startY, endX, endY, offset, markAsHelper: false);
 
                 trans.Commit();
 
@@ -2028,6 +1999,78 @@ namespace RevitMCP.Core
                     Message = $"成功建立尺寸標註: {Math.Round(dimValue, 0)} mm"
                 };
             }
+        }
+
+        /// <summary>
+        /// 建立尺寸標註的核心幾何邏輯（供 create_dimension 公開工具與穿梁自動標註共用）。
+        /// 呼叫端須自行開啟 Transaction。markAsHelper=true（穿梁輔助線預設）會將詳圖線與標註
+        /// 標記為 "BeamPenetration_Helper" 並設為不可見線型，供 ClearPreviousAnnotations 清除；
+        /// 公開的 create_dimension 傳 false 以完整保留 main 既有可見、未標記之行為。
+        /// 收編自鈺傑 rc 分支之 CreateDimension→CreateDimensionInternal 抽取（1650 行 partial 呼叫 3 次）。
+        /// </summary>
+        private Dimension CreateDimensionInternal(Document doc, View view, double startX, double startY, double endX, double endY, double offset, bool markAsHelper = true)
+        {
+            // 轉換座標
+            XYZ start = new XYZ(startX / 304.8, startY / 304.8, 0);
+            XYZ end = new XYZ(endX / 304.8, endY / 304.8, 0);
+
+            // 建立尺寸標註用的參考陣列
+            ReferenceArray refArray = new ReferenceArray();
+
+            XYZ perpDir = new XYZ(-(end.Y - start.Y), end.X - start.X, 0).Normalize();
+            double offsetFeet = offset / 304.8;
+
+            // 偏移後的標註線位置
+            Line dimLine = Line.CreateBound(
+                start.Add(perpDir.Multiply(offsetFeet)),
+                end.Add(perpDir.Multiply(offsetFeet))
+            );
+
+            // 詳圖線應垂直於標註方向，作為標註的參考點
+            double lineLength = 1.0; // 1 英尺 ≈ 305mm
+            DetailCurve dc1 = doc.Create.NewDetailCurve(view, Line.CreateBound(
+                start.Subtract(perpDir.Multiply(lineLength / 2)),
+                start.Add(perpDir.Multiply(lineLength / 2))));
+            DetailCurve dc2 = doc.Create.NewDetailCurve(view, Line.CreateBound(
+                end.Subtract(perpDir.Multiply(lineLength / 2)),
+                end.Add(perpDir.Multiply(lineLength / 2))));
+
+            if (markAsHelper)
+            {
+                // 標記為穿梁輔助線段
+                dc1.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("BeamPenetration_Helper");
+                dc2.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("BeamPenetration_Helper");
+
+                // 設為不可見線型以隱藏輔助線段
+                try
+                {
+                    Category invisibleCat = doc.Settings.Categories.get_Item(BuiltInCategory.OST_InvisibleLines);
+                    if (invisibleCat != null)
+                    {
+                        GraphicsStyle gs = invisibleCat.GetGraphicsStyle(GraphicsStyleType.Projection);
+                        if (gs != null)
+                        {
+                            dc1.LineStyle = gs;
+                            dc2.LineStyle = gs;
+                        }
+                    }
+                }
+                catch { /* 靜默失敗以防止有些專案無此線型 */ }
+            }
+
+            refArray.Append(dc1.GeometryCurve.Reference);
+            refArray.Append(dc2.GeometryCurve.Reference);
+
+            // 建立尺寸標註
+            Dimension dim = doc.Create.NewDimension(view, dimLine, refArray);
+
+            if (markAsHelper)
+            {
+                // 標記為穿梁輔助尺寸標註
+                dim.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("BeamPenetration_Helper");
+            }
+
+            return dim;
         }
 
         /// <summary>
