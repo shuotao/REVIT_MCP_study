@@ -161,19 +161,30 @@ namespace RevitMCP.Core
             {
                 while (socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
                 {
-                    var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+                    // 大封包接收：累積分段直到 EndOfMessage，避免單次 ReceiveAsync 截斷長訊息
+                    using (var ms = new System.IO.MemoryStream())
+                    {
+                        WebSocketReceiveResult result;
+                        do
+                        {
+                            result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
 
-                    if (result.MessageType == WebSocketMessageType.Text)
-                    {
-                        string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                        Logger.Debug($"[Socket] 接收到訊息: {message}");
-                        HandleMessage(message);
-                    }
-                    else if (result.MessageType == WebSocketMessageType.Close)
-                    {
-                        await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cancellationToken);
-                        Logger.Info("[Socket] MCP Server 已斷線");
-                        break;
+                            if (result.MessageType == WebSocketMessageType.Close)
+                            {
+                                await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cancellationToken);
+                                Logger.Info("[Socket] MCP Server 已斷線");
+                                return;
+                            }
+
+                            ms.Write(buffer, 0, result.Count);
+                        } while (!result.EndOfMessage);
+
+                        if (result.MessageType == WebSocketMessageType.Text)
+                        {
+                            string message = Encoding.UTF8.GetString(ms.ToArray());
+                            Logger.Debug($"[Socket] 接收到訊息 (長度: {message.Length}): {message}");
+                            HandleMessage(message);
+                        }
                     }
                 }
             }
