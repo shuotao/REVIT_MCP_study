@@ -31,7 +31,7 @@
 <header class="bim-hero">
   <div class="bim-hero-eyebrow">ARCHITECTURE V2 <span class="accent">3 層</span></div>
   <h1 class="bim-hero-title"><span class="accent">Skill / CLAUDE.md / Domain</span><br>三層模組架構</h1>
-  <p class="bim-hero-sub">REVIT_MCP 的核心架構：把 9 個系統、55 個 Domain、101 個工具按職責分到三層。Skill 管「何時觸發」、CLAUDE.md 管「跨 AI Client 橋接」、Domain 管「不可協商的知識」。本頁同時澄清「MCP ≠ Skill」的常見誤解。</p>
+  <p class="bim-hero-sub">REVIT_MCP 的核心架構：把 9 個系統、55 個 Domain、103 個工具按職責分到三層。Skill 管「何時觸發」、CLAUDE.md 管「跨 AI Client 橋接」、Domain 管「不可協商的知識」。本頁同時澄清「MCP ≠ Skill」的常見誤解。</p>
 </header>
 
 <!-- ============================================ -->
@@ -97,7 +97,7 @@
     <div class="how-tech-label">WHY</div>
     <div class="how-tech-content">社群常爭論「Skill 殺死 MCP」——這是把<strong>抽象層級</strong>搞混的結果。MCP 解決「<strong>AI 怎麼動 Revit</strong>」（基礎能力），Skill 解決「<strong>AI 該照什麼順序動 Revit</strong>」（編排知識）。兩件根本不同層級的事，沒有取代關係。</div>
     <div class="how-tech-label">HOW</div>
-    <div class="how-tech-content">本專案明確分層——MCP server 提供 101 個原子工具（純能力），Skill 編排工具呼叫順序（純知識）。一個 MCP 工具被多個 Skill 引用，一個 Skill 引用多個 MCP 工具——<strong>多對多關係</strong>，互不替代。</div>
+    <div class="how-tech-content">本專案明確分層——MCP server 提供 103 個原子工具（純能力），Skill 編排工具呼叫順序（純知識）。一個 MCP 工具被多個 Skill 引用，一個 Skill 引用多個 MCP 工具——<strong>多對多關係</strong>，互不替代。</div>
     <div class="how-tech-label">TECHNIQUE</div>
     <div class="how-tech-content technique">Layered Capability Architecture · MCP as Runtime Bridge · Skill as Workflow Choreographer · M:N Tool-Skill Composition</div>
   </div>
@@ -248,7 +248,7 @@ CommandExecutor → Revit API</code></pre>
 
   <div class="how-tech">
     <div class="how-tech-label">WHY</div>
-    <div class="how-tech-content">為什麼不直接 AI Client ↔ Revit API？因為<strong>Revit API 太底層</strong>——LLM 要傳 ElementId、Transaction、ViewSet 這些原生型別，每次都得編 boilerplate。MCP Server 中間層把這些封裝成 101 個語意化工具（<code>check_smoke_exhaust_windows</code> 比 <code>FilteredElementCollector.OfCategory(...)</code> 友善 100 倍）。</div>
+    <div class="how-tech-content">為什麼不直接 AI Client ↔ Revit API？因為<strong>Revit API 太底層</strong>——LLM 要傳 ElementId、Transaction、ViewSet 這些原生型別，每次都得編 boilerplate。MCP Server 中間層把這些封裝成 103 個語意化工具（<code>check_smoke_exhaust_windows</code> 比 <code>FilteredElementCollector.OfCategory(...)</code> 友善 100 倍）。</div>
     <div class="how-tech-label">HOW</div>
     <div class="how-tech-content">AI Client（stdio）→ MCP Server（Node.js TypeScript）→ WebSocket（port 8964）→ Revit Add-in（C# .NET）→ Revit API。每層做<strong>協議翻譯 + UI 執行緒守門</strong>。port 8964 由 Add-in 啟動（HttpListener），MCP Server 連入。</div>
     <div class="how-tech-label">TECHNIQUE</div>
@@ -300,9 +300,9 @@ CommandExecutor → Revit API</code></pre>
       </tr>
       <tr>
         <td>MCP Tools</td>
-        <td>共用 101 個工具</td>
-        <td>共用 101 個工具</td>
-        <td>共用 101 個工具</td>
+        <td>共用 103 個工具</td>
+        <td>共用 103 個工具</td>
+        <td>共用 103 個工具</td>
       </tr>
       <tr>
         <td>Event Log</td>
