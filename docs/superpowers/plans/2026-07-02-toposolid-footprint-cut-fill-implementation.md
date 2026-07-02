@@ -11,6 +11,7 @@
 ## 全域限制
 
 - 僅支援 Revit 2024 的 `Toposolid` 與 `Floor`。
+- 新增的 Revit API 程式以 `#if REVIT2024_OR_GREATER` 隔離，Revit 2022／2023 組態仍須可建置。
 - 本次只支援 `mode: "footprint_only"` 與 `targetFace: "bottom"`。
 - 不實作 Offset、坡度、指定邊界或 `IUpdater`。
 - 不使用反射呼叫未公開 Revit API，也不以 UI 模擬取代 API。
@@ -212,6 +213,8 @@ namespace RevitMCP.Core.Grading
 }
 ```
 
+此純資料檔不可引用 `Autodesk.Revit.DB.Toposolid`，確保 Revit 2022／2023 組態仍可編譯。
+
 - [ ] **Step 4：執行測試並確認 GREEN**
 
 執行：`dotnet test MCP.Tests/RevitMCP.Tests.csproj --filter GradingRequestTests`
@@ -333,6 +336,8 @@ internal interface IToposolidGradingAdapter
 
 - [ ] **Step 4：實作設計地形副本與階段檢查**
 
+`RevitToposolidGradingAdapter.cs` 全檔放在 `#if REVIT2024_OR_GREATER`／`#endif` 內。
+
 採用公開 API：`ElementTransformUtils.CopyElement` 建立完全重合副本；原地形必須位於較早階段，設計副本位於目前階段。若需要改動原地形的 `PHASE_CREATED`／`PHASE_DEMOLISHED` 且 `allowPhaseSetup=false`，拋出清楚錯誤並不修改模型。
 
 副本建立後必須 `doc.Regenerate()`，並確認其為 `Toposolid`、`SketchId` 有效、`GetSlabShapeEditor()` 有效；任一條件不成立即拋出例外。
@@ -395,6 +400,8 @@ case "grade_toposolid_to_floors":
     break;
 ```
 
+上述 case 與 `CommandExecutor.ToposolidGrading.cs` 全檔均以 `#if REVIT2024_OR_GREATER` 隔離。
+
 執行 R24 build，預期因方法不存在而失敗。
 
 - [ ] **Step 2：實作參數解析與交易群組**
@@ -423,9 +430,10 @@ request.Validate();
 ```powershell
 dotnet test MCP.Tests/RevitMCP.Tests.csproj
 dotnet build MCP/RevitMCP.csproj -c Release.R24
+dotnet build MCP/RevitMCP.csproj -c Release.R23
 ```
 
-預期：測試全綠；R24 build 零錯誤。
+預期：測試全綠；R24 與 R23 build 均為零錯誤。
 
 - [ ] **Step 4：提交**
 
