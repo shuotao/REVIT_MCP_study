@@ -32,8 +32,9 @@ export const gradingTools: Tool[] = [
                 },
                 allowPhaseSetup: {
                     type: "boolean",
-                    default: false,
-                    description: "是否允許建立整地所需階段；設為 true 可能調整原地形階段，執行前請先儲存模型",
+                    default: true,
+                    description:
+                        "是否自動設定整地所需階段（預設 true）：原地形會改為較早階段建立、於目前階段拆除，設計副本建立於目前階段——與 Revit 原生整地行為一致。設為 false 時不修改階段，僅回報所需變更。",
                 },
                 updateExisting: {
                     type: "boolean",

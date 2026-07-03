@@ -11,7 +11,7 @@ test("整地工具只暴露本次核准模式", () => {
     assert.deepEqual((tool.inputSchema.properties?.targetFace as { enum: string[] }).enum, ["bottom"]);
 });
 
-test("整地工具限制整數 ID、非空樓板清單與安全預設值", () => {
+test("整地工具限制整數 ID、非空樓板清單與預設值", () => {
     const tool = gradingTools.find(item => item.name === "grade_toposolid_to_floors");
     assert.ok(tool);
 
@@ -20,8 +20,9 @@ test("整地工具限制整數 ID、非空樓板清單與安全預設值", () =>
     assert.equal(properties.floorIds.type, "array");
     assert.equal(properties.floorIds.minItems, 1);
     assert.deepEqual(properties.floorIds.items, { type: "integer" });
-    assert.equal(properties.allowPhaseSetup.default, false);
-    assert.match(String(properties.allowPhaseSetup.description), /設為 true 可能調整原地形階段，執行前請先儲存模型/);
+    // 2026-07-03 產品決策：一般使用者的地形建立於新建階段，工具預設自動設定階段。
+    assert.equal(properties.allowPhaseSetup.default, true);
+    assert.match(String(properties.allowPhaseSetup.description), /自動設定整地所需階段/);
     assert.equal(properties.updateExisting.default, false);
     assert.match(String(properties.updateExisting.description), /只接受 false/);
 });

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace RevitMCP.Core.Grading
@@ -39,6 +40,67 @@ namespace RevitMCP.Core.Grading
         public long FloorId { get; set; }
         public IReadOnlyList<Point2D> OuterLoop { get; set; }
         public Func<double, double, double> BottomElevationAt { get; set; }
+    }
+
+    /// <summary>整地執行的單一階段耗時。</summary>
+    public sealed class GradingStage
+    {
+        public GradingStage(string name, long elapsedMilliseconds)
+        {
+            Name = name;
+            ElapsedMilliseconds = elapsedMilliseconds;
+        }
+
+        public string Name { get; }
+        public long ElapsedMilliseconds { get; }
+    }
+
+    /// <summary>整地執行的分段計時，供效能記錄與逐步優化使用。</summary>
+    public sealed class GradingTimeline
+    {
+        private readonly List<GradingStage> _stages = new List<GradingStage>();
+
+        public IReadOnlyList<GradingStage> Stages => _stages;
+
+        public IDisposable Measure(string name)
+        {
+            return new StageScope(this, name);
+        }
+
+        public void Record(string name, long elapsedMilliseconds)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentException("階段名稱不可空白。", nameof(name));
+            }
+
+            _stages.Add(new GradingStage(name, elapsedMilliseconds < 0 ? 0 : elapsedMilliseconds));
+        }
+
+        private sealed class StageScope : IDisposable
+        {
+            private readonly GradingTimeline _timeline;
+            private readonly string _name;
+            private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
+            private bool _disposed;
+
+            public StageScope(GradingTimeline timeline, string name)
+            {
+                _timeline = timeline;
+                _name = name;
+            }
+
+            public void Dispose()
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                _disposed = true;
+                _timeline.Record(_name, _stopwatch.ElapsedMilliseconds);
+            }
+        }
     }
 
     public sealed class GradingResult

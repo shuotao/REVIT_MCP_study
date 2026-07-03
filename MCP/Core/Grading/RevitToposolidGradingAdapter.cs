@@ -27,8 +27,23 @@ namespace RevitMCP.Core.Grading
         private const int MaximumDiscretizedPointCount = 100000;
         private const double ChordLengthToleranceFactor = 1e-9;
 
+        // 底面法向量 Z 分量上限：-cos(15°)。允許至約 15 度（約 1:3.7）的斜板底面，仍排除側面與頂面。
+        private const double BottomFaceNormalZMaximum = -0.965925826289068;
+
         private static readonly Guid AssociationSchemaGuid =
             new Guid("9B4B16C7-4C9C-4B73-9D13-B44F88650D29");
+
+        private readonly GradingTimeline _timeline;
+
+        public RevitToposolidGradingAdapter()
+            : this(null)
+        {
+        }
+
+        public RevitToposolidGradingAdapter(GradingTimeline timeline)
+        {
+            _timeline = timeline ?? new GradingTimeline();
+        }
 
         public Toposolid ValidateToposolid(Document doc, long id)
         {
@@ -97,7 +112,7 @@ namespace RevitMCP.Core.Grading
         public Toposolid CreateDesignCopy(Document doc, Toposolid original, bool allowPhaseSetup)
         {
             EnsureModifiable(doc);
-            if (original == null || original.Document != doc)
+            if (original == null || !doc.Equals(original.Document))
             {
                 throw new ArgumentException("原始 Toposolid 必須屬於指定文件。", nameof(original));
             }
@@ -175,7 +190,7 @@ namespace RevitMCP.Core.Grading
             IReadOnlyList<long> floorIds)
         {
             EnsureModifiable(doc);
-            if (design == null || design.Document != doc)
+            if (design == null || !doc.Equals(design.Document))
             {
                 throw new ArgumentException("設計 Toposolid 必須屬於指定文件。", nameof(design));
             }
@@ -204,7 +219,7 @@ namespace RevitMCP.Core.Grading
             IReadOnlyList<FloorFootprint> footprints)
         {
             EnsureModifiable(doc);
-            if (design == null || design.Document != doc)
+            if (design == null || !doc.Equals(design.Document))
             {
                 throw new ArgumentException("設計 Toposolid 必須屬於指定文件。", nameof(design));
             }
@@ -220,14 +235,389 @@ namespace RevitMCP.Core.Grading
                 throw new InvalidOperationException("設計 Toposolid 沒有有效的 SlabShapeEditor。");
             }
 
-            // Revit 2024 公開 API 可讀頂點 Position，卻未公開頂點目前的 offset。
-            // 缺少目前 offset 就無法由絕對 Z 校準參考平面，因此在任何形狀寫入前安全中止。
-            foreach (SlabShapeVertex vertex in editor.SlabShapeVertices)
+            var xyTolerance = UnitUtils.ConvertToInternalUnits(1.0, UnitTypeId.Millimeters);
+            var elevationTolerance = UnitUtils.ConvertToInternalUnits(2.0, UnitTypeId.Millimeters);
+            using (_timeline.Measure("重疊衝突檢查"))
             {
-                _ = vertex.Position;
+                EnsureNoConflictingOverlaps(footprints, xyTolerance, elevationTolerance);
             }
 
-            throw new InvalidOperationException(AbsoluteFinishUnavailableMessage);
+            if (!editor.IsEnabled)
+            {
+                using (_timeline.Measure("形狀編輯器啟用"))
+                {
+                    editor.Enable();
+                    doc.Regenerate();
+                }
+            }
+
+            // 現況地形頂面 Z 以垂直射線與設計副本實體求交；必須在任何形狀修改前取樣。
+            IReadOnlyList<Solid> solids;
+            BoundingBoxXYZ boundingBox;
+            List<XYZ> existingPositions;
+            using (_timeline.Measure("現況幾何擷取"))
+            {
+                solids = CollectSolids(design);
+                boundingBox = design.get_BoundingBox(null);
+                existingPositions = CollectVertexPositions(editor);
+            }
+
+            if (solids.Count == 0)
+            {
+                throw new InvalidOperationException("設計 Toposolid 沒有可用的實體幾何。");
+            }
+
+            if (boundingBox == null)
+            {
+                throw new InvalidOperationException("設計 Toposolid 沒有有效的範圍盒。");
+            }
+
+            var rayBottomZ = boundingBox.Min.Z - 10.0;
+            var rayTopZ = boundingBox.Max.Z + 10.0;
+            var pointsToAdd = new List<XYZ>();
+            var boundarySampleScope = _timeline.Measure("邊界射線取樣");
+            foreach (var footprint in footprints)
+            {
+                var terrainHitCount = 0;
+                foreach (var boundaryPoint in footprint.OuterLoop)
+                {
+                    var terrainZ = IntersectTerrainTopZ(solids, boundaryPoint, rayBottomZ, rayTopZ);
+                    if (!terrainZ.HasValue)
+                    {
+                        // 規格規則 7：投影超出地形的部分僅處理相交區域。
+                        continue;
+                    }
+
+                    terrainHitCount++;
+                    var candidate = new XYZ(boundaryPoint.X, boundaryPoint.Y, terrainZ.Value);
+                    if (HasNearbyXY(existingPositions, candidate, xyTolerance)
+                        || HasNearbyXY(pointsToAdd, candidate, xyTolerance))
+                    {
+                        continue;
+                    }
+
+                    pointsToAdd.Add(candidate);
+                }
+
+                if (terrainHitCount == 0
+                    && !existingPositions.Any(position => Polygon2D.Contains(
+                        footprint.OuterLoop,
+                        ToPoint2D(position),
+                        xyTolerance)))
+                {
+                    throw new InvalidOperationException(
+                        $"樓板 ID {footprint.FloorId} 的投影範圍完全不與地形相交。");
+                }
+            }
+
+            boundarySampleScope.Dispose();
+
+            if (pointsToAdd.Count > 0)
+            {
+                using (_timeline.Measure("邊界點加入與重生"))
+                {
+                    EnsurePointLimit(existingPositions.Count + pointsToAdd.Count);
+                    editor.AddPoints(pointsToAdd);
+                    doc.Regenerate();
+                }
+            }
+
+            // 分類全部頂點：XY 位於樓板投影內或邊界上者，目標高程為該處樓板底面。
+            var targets = new List<VertexTarget>();
+            var classifyScope = _timeline.Measure("頂點分類");
+            foreach (var position in CollectVertexPositions(editor))
+            {
+                double? targetZ = null;
+                foreach (var footprint in footprints)
+                {
+                    if (!Polygon2D.Contains(footprint.OuterLoop, ToPoint2D(position), xyTolerance))
+                    {
+                        continue;
+                    }
+
+                    var bottomZ = footprint.BottomElevationAt(position.X, position.Y);
+                    if (targetZ.HasValue && Math.Abs(targetZ.Value - bottomZ) > elevationTolerance)
+                    {
+                        throw new InvalidOperationException("樓板投影重疊且目標高程衝突，已中止整地。");
+                    }
+
+                    targetZ = targetZ ?? bottomZ;
+                }
+
+                if (targetZ.HasValue)
+                {
+                    targets.Add(new VertexTarget(position, targetZ.Value));
+                }
+            }
+
+            classifyScope.Dispose();
+
+            if (targets.Count == 0)
+            {
+                throw new InvalidOperationException("樓板投影範圍內沒有可修改的地形控制點。");
+            }
+
+            // 兩段式校準：先寫入 offset 0 讀回基準 Z，再寫入目標差值。
+            // 無論 ModifySubElement 的 offset 是絕對或增量語意，最終高程都收斂到目標值，
+            // 不猜測參考平面高程；偏差由下方 2 mm 驗收閘門把關。
+            using (_timeline.Measure("校準寫入第一輪"))
+            {
+                ApplyVertexOffsets(doc, editor, targets.Select(target => (target.Position, 0.0)).ToList());
+            }
+
+            double[] baselineZ;
+            using (_timeline.Measure("基準高程讀取"))
+            {
+                baselineZ = ReadVertexElevations(editor, targets);
+            }
+
+            using (_timeline.Measure("校準寫入第二輪"))
+            {
+                ApplyVertexOffsets(
+                    doc,
+                    editor,
+                    targets.Select((target, index) => (target.Position, target.TargetZ - baselineZ[index])).ToList());
+            }
+
+            using (_timeline.Measure("驗收檢查"))
+            {
+                var finalZ = ReadVertexElevations(editor, targets);
+                for (var index = 0; index < targets.Count; index++)
+                {
+                    if (Math.Abs(finalZ[index] - targets[index].TargetZ) > elevationTolerance)
+                    {
+                        throw new InvalidOperationException(AbsoluteFinishUnavailableMessage);
+                    }
+                }
+            }
+
+            return targets.Count;
+        }
+
+        private readonly struct VertexTarget
+        {
+            public VertexTarget(XYZ position, double targetZ)
+            {
+                Position = position;
+                TargetZ = targetZ;
+            }
+
+            public XYZ Position { get; }
+            public double TargetZ { get; }
+        }
+
+        // 頂點在 AddPoints 或重新生成後可能有極小的 XY 位移，比對採 10 mm 容差。
+        private static double VertexMatchTolerance =>
+            UnitUtils.ConvertToInternalUnits(10.0, UnitTypeId.Millimeters);
+
+        private static void EnsureNoConflictingOverlaps(
+            IReadOnlyList<FloorFootprint> footprints,
+            double xyTolerance,
+            double elevationTolerance)
+        {
+            for (var firstIndex = 0; firstIndex < footprints.Count; firstIndex++)
+            {
+                for (var secondIndex = firstIndex + 1; secondIndex < footprints.Count; secondIndex++)
+                {
+                    var first = footprints[firstIndex];
+                    var second = footprints[secondIndex];
+                    if (!Polygon2D.Overlaps(first.OuterLoop, second.OuterLoop, xyTolerance))
+                    {
+                        continue;
+                    }
+
+                    if (HasConflictingElevation(first, second, xyTolerance, elevationTolerance)
+                        || HasConflictingElevation(second, first, xyTolerance, elevationTolerance))
+                    {
+                        throw new InvalidOperationException(
+                            $"樓板 ID {first.FloorId} 與 {second.FloorId} 的投影重疊且底面高程不同，請先處理衝突。");
+                    }
+                }
+            }
+        }
+
+        private static bool HasConflictingElevation(
+            FloorFootprint sampled,
+            FloorFootprint other,
+            double xyTolerance,
+            double elevationTolerance)
+        {
+            foreach (var point in sampled.OuterLoop)
+            {
+                if (!Polygon2D.Contains(other.OuterLoop, point, xyTolerance))
+                {
+                    continue;
+                }
+
+                var sampledZ = sampled.BottomElevationAt(point.X, point.Y);
+                var otherZ = other.BottomElevationAt(point.X, point.Y);
+                if (Math.Abs(sampledZ - otherZ) > elevationTolerance)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static IReadOnlyList<Solid> CollectSolids(Toposolid toposolid)
+        {
+            var solids = new List<Solid>();
+            var geometry = toposolid.get_Geometry(new Options());
+            if (geometry != null)
+            {
+                foreach (var geometryObject in geometry)
+                {
+                    if (geometryObject is Solid solid && solid.Volume > 0)
+                    {
+                        solids.Add(solid);
+                    }
+                }
+            }
+
+            return solids;
+        }
+
+        private static double? IntersectTerrainTopZ(
+            IReadOnlyList<Solid> solids,
+            Point2D point,
+            double rayBottomZ,
+            double rayTopZ)
+        {
+            var ray = Line.CreateBound(
+                new XYZ(point.X, point.Y, rayBottomZ),
+                new XYZ(point.X, point.Y, rayTopZ));
+            var options = new SolidCurveIntersectionOptions
+            {
+                ResultType = SolidCurveIntersectionMode.CurveSegmentsInside
+            };
+
+            double? topZ = null;
+            foreach (var solid in solids)
+            {
+                var intersection = solid.IntersectWithCurve(ray, options);
+                if (intersection == null)
+                {
+                    continue;
+                }
+
+                for (var index = 0; index < intersection.SegmentCount; index++)
+                {
+                    var segment = intersection.GetCurveSegment(index);
+                    var segmentTopZ = Math.Max(segment.GetEndPoint(0).Z, segment.GetEndPoint(1).Z);
+                    topZ = topZ.HasValue ? Math.Max(topZ.Value, segmentTopZ) : segmentTopZ;
+                }
+            }
+
+            return topZ;
+        }
+
+        private static List<XYZ> CollectVertexPositions(SlabShapeEditor editor)
+        {
+            var positions = new List<XYZ>();
+            foreach (SlabShapeVertex vertex in editor.SlabShapeVertices)
+            {
+                if (vertex != null && vertex.IsValidObject)
+                {
+                    positions.Add(vertex.Position);
+                }
+            }
+
+            return positions;
+        }
+
+        private static bool HasNearbyXY(IReadOnlyList<XYZ> points, XYZ candidate, double tolerance)
+        {
+            var toleranceSquared = tolerance * tolerance;
+            foreach (var point in points)
+            {
+                if (XYDistanceSquared(point, candidate) <= toleranceSquared)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static double XYDistanceSquared(XYZ first, XYZ second)
+        {
+            var deltaX = second.X - first.X;
+            var deltaY = second.Y - first.Y;
+            return deltaX * deltaX + deltaY * deltaY;
+        }
+
+        private static void ApplyVertexOffsets(
+            Document doc,
+            SlabShapeEditor editor,
+            IReadOnlyList<(XYZ Position, double Offset)> entries)
+        {
+            var vertices = new List<SlabShapeVertex>();
+            foreach (SlabShapeVertex vertex in editor.SlabShapeVertices)
+            {
+                if (vertex != null && vertex.IsValidObject)
+                {
+                    vertices.Add(vertex);
+                }
+            }
+
+            foreach (var entry in entries)
+            {
+                SlabShapeVertex nearest = null;
+                var nearestDistanceSquared = double.MaxValue;
+                foreach (var vertex in vertices)
+                {
+                    var distanceSquared = XYDistanceSquared(vertex.Position, entry.Position);
+                    if (distanceSquared < nearestDistanceSquared)
+                    {
+                        nearestDistanceSquared = distanceSquared;
+                        nearest = vertex;
+                    }
+                }
+
+                var matchTolerance = VertexMatchTolerance;
+                if (nearest == null || nearestDistanceSquared > matchTolerance * matchTolerance)
+                {
+                    throw new InvalidOperationException(AbsoluteFinishUnavailableMessage);
+                }
+
+                editor.ModifySubElement(nearest, entry.Offset);
+            }
+
+            doc.Regenerate();
+        }
+
+        private static double[] ReadVertexElevations(
+            SlabShapeEditor editor,
+            IReadOnlyList<VertexTarget> targets)
+        {
+            var positions = CollectVertexPositions(editor);
+            var matchTolerance = VertexMatchTolerance;
+            var matchToleranceSquared = matchTolerance * matchTolerance;
+            var elevations = new double[targets.Count];
+            for (var index = 0; index < targets.Count; index++)
+            {
+                XYZ nearest = null;
+                var nearestDistanceSquared = double.MaxValue;
+                foreach (var position in positions)
+                {
+                    var distanceSquared = XYDistanceSquared(position, targets[index].Position);
+                    if (distanceSquared < nearestDistanceSquared)
+                    {
+                        nearestDistanceSquared = distanceSquared;
+                        nearest = position;
+                    }
+                }
+
+                if (nearest == null || nearestDistanceSquared > matchToleranceSquared)
+                {
+                    throw new InvalidOperationException(AbsoluteFinishUnavailableMessage);
+                }
+
+                elevations[index] = nearest.Z;
+            }
+
+            return elevations;
         }
 
         public (double cutCubicMeters, double fillCubicMeters) ReadCutFill(Toposolid design)
@@ -271,7 +661,7 @@ namespace RevitMCP.Core.Grading
 
                     foreach (Face face in solid.Faces)
                     {
-                        if (face is PlanarFace planarFace && planarFace.FaceNormal.Z < -0.999)
+                        if (face is PlanarFace planarFace && planarFace.FaceNormal.Z < BottomFaceNormalZMaximum)
                         {
                             bottomFaces.Add(planarFace);
                         }
