@@ -464,6 +464,12 @@ namespace RevitMCP.Core
                         result = ClearPreviousAnnotations(parameters);
                         break;
 
+#if REVIT2024_OR_GREATER
+                    case "grade_toposolid_to_floors":
+                        result = GradeToposolidToFloors(parameters);
+                        break;
+#endif
+
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
                 }
