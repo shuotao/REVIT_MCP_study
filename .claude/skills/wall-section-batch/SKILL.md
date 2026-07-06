@@ -1,3 +1,8 @@
+---
+name: wall-section-batch
+description: 依牆面套管（開孔）位置批次建立平行剖面視圖：確認命名前綴與流水號排序後，呼叫 batch_create_wall_sections 對有開孔的牆自動建剖面並依序命名。觸發：建立牆面套管剖面、批次建立套管剖面、幫我對有開孔的牆建剖面。
+---
+
 # wall-section-batch
 
 ## Purpose
