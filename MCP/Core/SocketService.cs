@@ -24,6 +24,9 @@ namespace RevitMCP.Core
         private bool _isRunning;
         private readonly ServiceSettings _settings;
         private CancellationTokenSource _cancellationTokenSource;
+        // WebSocket 同一時間只允許一個進行中的 SendAsync；
+        // 回應是 fire-and-forget 發送，連續命令可能重疊，需序列化。
+        private readonly SemaphoreSlim _sendLock = new SemaphoreSlim(1, 1);
 
         public event EventHandler<RevitCommandRequest> CommandReceived;
         public bool IsRunning => _isRunning;
@@ -230,7 +233,15 @@ namespace RevitMCP.Core
             {
                 string json = JsonConvert.SerializeObject(response);
                 byte[] bytes = Encoding.UTF8.GetBytes(json);
-                await _webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+                await _sendLock.WaitAsync();
+                try
+                {
+                    await _webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+                }
+                finally
+                {
+                    _sendLock.Release();
+                }
                 Logger.Debug($"[Socket] 已發送回應 (RequestId: {response.RequestId})");
             }
             catch (Exception ex)
