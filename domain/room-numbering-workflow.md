@@ -2,14 +2,15 @@
 name: room-numbering-workflow
 description: "在大規模 Revit 專案中，手動為數百個房間編號極易出錯且效率低下。本工作流旨在規範化房間編碼過程，確保命名邏輯一致並符合製圖標準。"
 metadata:
-  version: "1.0"
-  updated: "2026-04-02"
+  version: "1.1"
+  updated: "2026-07-07"
   created: "2026-04-02"
   contributors:
     - "unknown"
   references: []  # TODO: 月小聚補法規條號或外部依據
   related: []  # TODO: 月小聚補相關 domain（檔名）
-  referenced_by: []  # TODO: 月小聚補（被哪些 skill 引用）
+  referenced_by:
+    - room-numbering
   tags: [房間編號, room numbering, 自動編號, 命名邏輯, 製圖標準]
 ---
 
