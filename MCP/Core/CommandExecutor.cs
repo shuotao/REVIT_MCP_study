@@ -454,6 +454,14 @@ namespace RevitMCP.Core
                         result = DwgBeamExecutor.CreateBeamsFromDwg(_uiApp.ActiveUIDocument.Document, parameters);
                         break;
 
+                    // === CAD 文字標注回填模組 ===
+                    case "preview_comments_from_cad":
+                        result = CadAnnotationExecutor.PreviewCommentsFromCad(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+                    case "backfill_comments_from_cad":
+                        result = CadAnnotationExecutor.BackfillCommentsFromCad(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+
                     // === CAD 連結模組 ===
                     case "link_cad_to_view":
                         result = CadLinkExecutor.LinkCadToView(_uiApp.ActiveUIDocument.Document, parameters);
