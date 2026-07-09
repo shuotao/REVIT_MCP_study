@@ -676,7 +676,12 @@ namespace RevitMCP.Core.Grading
 
                     try
                     {
+#if REVIT2026_OR_GREATER
+                        // Revit 2026 API 將 SlabShapeEditor.DrawSplitLine 更名為 AddSplitLine（參數不變）。
+                        editor.AddSplitLine(startVertex, endVertex);
+#else
                         editor.DrawSplitLine(startVertex, endVertex);
+#endif
                     }
                     catch (Autodesk.Revit.Exceptions.ApplicationException)
                     {
