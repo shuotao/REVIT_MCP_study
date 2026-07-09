@@ -424,6 +424,17 @@ namespace RevitMCP.Core
                         result = MoveViewportTitles(parameters);
                         break;
 
+                    // === 跨檔案圖紙複製（劉啟祥 PR#30 bundle③）===
+                    case "read_source_file_sheets":
+                        result = ReadSourceFileSheets(parameters);
+                        break;
+                    case "copy_sheets_from_file":
+                        result = CopySheetsFromFile(parameters);
+                        break;
+                    case "sync_sheet_parameters_from_source":
+                        result = SyncSheetParametersFromSource(parameters);
+                        break;
+
                     // === 詳圖元件模組 ===
                     case "get_detail_components":
                         result = GetDetailComponents(parameters);

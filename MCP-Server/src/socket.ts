@@ -115,7 +115,7 @@ export class RevitSocketClient {
     /**
      * Send command to Revit
      */
-    async sendCommand(commandName: string, parameters: Record<string, any> = {}): Promise<RevitResponse> {
+    async sendCommand(commandName: string, parameters: Record<string, any> = {}, timeoutMs: number = 30000): Promise<RevitResponse> {
         if (!this.isConnected()) {
             throw new Error('Not connected to Revit Plugin');
         }
@@ -148,7 +148,7 @@ export class RevitSocketClient {
                     this.responseHandlers.delete(requestId);
                     reject(new Error('Command timed out'));
                 }
-            }, 30000); // 30 seconds timeout
+            }, timeoutMs); // default 30 seconds; cross-document commands pass a longer value
         });
     }
 
