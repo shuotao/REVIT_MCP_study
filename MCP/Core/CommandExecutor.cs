@@ -443,6 +443,15 @@ namespace RevitMCP.Core
                         result = DwgColumnExecutor.CreateColumnsFromDwg(_uiApp.ActiveUIDocument.Document, parameters);
                         break;
 
+                    // === CAD 連結模組 ===
+                    case "link_cad_to_view":
+                        result = CadLinkExecutor.LinkCadToView(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+
+                    case "link_cads_by_floor":
+                        result = CadLinkExecutor.LinkCadsByFloor(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+
                     // === DWG 圖層批次建樑模組 ===
                     case "get_dwg_beam_layers":
                         result = DwgBeamExecutor.GetDwgBeamLayers(_uiApp.ActiveUIDocument.Document);
