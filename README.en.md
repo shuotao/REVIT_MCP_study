@@ -12,9 +12,9 @@ Revit MCP lets AI clients call Autodesk Revit tools through the Model Context Pr
 
 | Item | Count | Source |
 |---|---:|---|
-| Runtime MCP tools | 115 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 58 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
-| Claude skills | 28 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 127 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 61 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
+| Claude skills | 34 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, this file, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and run:
 

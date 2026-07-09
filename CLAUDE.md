@@ -33,9 +33,9 @@ These counts must be derived from source, not copied by memory.
 
 | Item | Current Count | Source of Truth |
 |---|---:|---|
-| Runtime MCP tools | 115 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 58 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
-| Claude skills | 28 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 127 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 61 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
+| Claude skills | 34 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, `README.en.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
 
@@ -271,8 +271,10 @@ Read the matching file before applying a workflow or calculation.
 | sleeve classification, 套管分類, 穿梁穿牆穿板判定, 套管身分 | `domain/sleeve-classification-protocol.md` |
 | scope box, range box, crop box, 範圍框, 裁剪框, ExpandCropBox | `domain/detect-range-box.md` |
 | detail component, detail sync, annotation component | `domain/detail-component-sync.md` |
+| dedup detail, 重複詳圖, 清理重複, duplicate detail elements, deduplicate view | `domain/dedup-detail-elements-workflow.md` |
 | door legend, window legend, schedule legend | `domain/door-window-legend-workflow.md` |
 | element coloring, visualization, graphic override | `domain/element-coloring-workflow.md` |
+| unjoin geometry, 解除接合, 取消接合, 白模, join geometry | `domain/unjoin-geometry-workflow.md` |
 | family inventory, type inventory, unused type, duplicate type, purge type, merge type, 族群整理, 類型盤點, 未使用類型, 重複類型 | `domain/family-inventory-cleanup.md` |
 | element query, filter, category fields | `domain/element-query-workflow.md` |
 | exterior wall opening, facade opening | `domain/exterior-wall-opening-check.md` |
@@ -292,6 +294,7 @@ Read the matching file before applying a workflow or calculation.
 | fill pattern, Revit fill pattern conversion | `domain/revit-fill-pattern-conversion.md` |
 | partition takeoff, partition quantity | `domain/revit-partition-takeoff.md` |
 | room boundary, room boundary model | `domain/room-boundary.md` |
+| room height, 房間高度, upper limit, limit offset | `domain/room-height-limit.md` |
 | room numbering, automatic room numbering | `domain/room-numbering-workflow.md` |
 | room surface area, finish surface area | `domain/room-surface-area-review.md` |
 | section numbering, auto section numbering | `domain/section-auto-numbering.md` |
@@ -325,11 +328,14 @@ Meta and governance domain files:
 Available Claude skills:
 
 - `/auto-dimension`
+- `/batch-room-height`
 - `/building-compliance`
 - `/build-revit`
 - `/claude-md-sync`
+- `/copy-detail-items`
 - `/core-reload-dev`
 - `/curtain-wall`
+- `/dedup-detail-elements`
 - `/dependent-view-crop`
 - `/deploy-addon`
 - `/detail-component-sync`
@@ -350,6 +356,9 @@ Available Claude skills:
 - `/smoke-detector-check`
 - `/smoke-exhaust`
 - `/stair-hidden-line`
+- `/text-note-batch`
+- `/unjoin-geometry`
+- `/view-category-visibility`
 - `/wall-orientation-check`
 - `/wall-section-batch`
 
