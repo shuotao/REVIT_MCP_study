@@ -13,7 +13,7 @@ using IdType = System.Int32;
 namespace RevitMCP.Core
 {
     /// <summary>
-    /// 視圖元素隱藏/顯示與類別可見性控制（劉啟祥 PR#30 bundle⑥，view-category-visibility skill）。
+    /// 視圖元素隱藏/顯示與類別可見性控制（劉可 PR#30 bundle⑥，view-category-visibility skill）。
     ///
     /// 從 snapshot 的 CommandExecutor.cs inline 段落抽出為獨立 partial：
     ///   - hide_elements / unhide_elements：依 ElementId 精確控制主模型元素
