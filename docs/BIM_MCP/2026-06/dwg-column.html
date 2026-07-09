@@ -130,11 +130,11 @@
   <h2 class="bim-section-title">兩個常見技術陷阱</h2>
   <div class="bim-grid bim-grid-2">
     <div class="bim-card">
-      <h4 style="color:#f87171;">feet 單位坑</h4>
+      <h4 style="color:var(--bad);">feet 單位坑</h4>
       <p><code>modify_element_parameter</code> 的值是 Revit 內部 feet，不是 mm。600mm 要傳 <code>600/304.8 = 1.9685</code>；改名用 <code>parameterName="Name"</code>（接受 名稱／類型名稱／-1002001）。</p>
     </div>
     <div class="bim-card">
-      <h4 style="color:#f87171;">Import vs Link</h4>
+      <h4 style="color:var(--bad);">Import vs Link</h4>
       <p>幾何（A/B/C）兩者皆可；柱號對應（C）<strong>只認 Link CAD</strong>——Import 無檔案路徑，讀不到文字標籤。視圖內若以「匯入」加入，請改「插入 → 連結 CAD」。</p>
     </div>
   </div>
@@ -150,7 +150,7 @@
     </a>
     <a class="bim-card" href="../reference/domain-index.html">
       <h4>Domain 索引</h4>
-      <p>45 個 Domain SOP 總表</p>
+      <p>61 個 Domain SOP 總表</p>
     </a>
     <a class="bim-card" href="../../0621-presentation.html">
       <h4>六月小聚簡報</h4>
