@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>貢獻者致謝 · BIM_MCP</title>
+<meta property="og:title" content="BIM_MCP 貢獻者致謝 · 11 位建置協助人">
+<meta property="og:description" content="被收編進 main 的 fork 貢獻者名單：真名 + GitHub handle + 貢獻內容摘要 + 對應 PR／收編波次。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../nav.css">
+<style>
+  .contrib-card h4 { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  .contrib-card .handle-link { font-family:var(--font-tech); font-size:12px; color:var(--text-muted); border-bottom:none; }
+  .contrib-card .handle-link:hover { color:var(--accent); }
+  .contrib-card p { font-size:13px; color:var(--text-secondary); margin:6px 0 0; }
+  .contrib-card .contrib-refs { margin-top:10px; font-family:var(--font-tech); font-size:11px; color:var(--text-faint); }
+  .contrib-group-label { font-family:var(--font-tech); font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--accent); margin:var(--gap-lg) 0 12px; }
+  .contrib-group-label:first-child { margin-top:0; }
+</style>
+</head>
+<body>
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <a href="../index.html#reference" style="color:var(--text-secondary);border-bottom:none;">reference</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">貢獻者致謝</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener" class="bim-topnav-btn bim-topnav-btn-github" title="View source on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+    <a href="contributor-template.html" class="bim-topnav-btn">← Contributor Template</a>
+    <a href="../index.html" class="bim-topnav-btn">Hub →</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">CONTRIBUTORS <span class="accent">建置協助人</span></div>
+  <h1 class="bim-hero-title">致謝<span class="accent">建置協助人</span></h1>
+  <p class="bim-hero-sub">Revit MCP 是公開 fork 的專案，這些人把自己 fork 出去的分支做出了實際成果——修過的工具、補齊的 domain SOP、開過的 PR——後來被逐一手動核對、跑 build、過 QA/QC 後收編進 main。這裡列出的 11 位，每個人的貢獻都能追到具體的 PR、commit 或 <a href="../2026-07/harvest-waves.html">收編波次</a>，不是邀請名單，是實際發生過的工作記錄。</p>
+</header>
+
+<section class="bim-section bim-anchor" id="structure-beam">
+  <div class="bim-section-eyebrow">SECTION 01 · 結構／穿梁</div>
+  <h2 class="bim-section-title">結構、穿梁套管相關</h2>
+  <div class="bim-grid bim-grid-3">
+    <div class="bim-card contrib-card">
+      <h4>鈺傑 <a class="handle-link" href="https://github.com/SEven777-a" target="_blank" rel="noopener">@SEven777-a</a></h4>
+      <p>RC 穿梁套管收編 step1（101→103 工具）；平行剖面（<code>create_parallel_section_view</code> / <code>batch_create_wall_sections</code>）與偵煙探測器（<code>analyze_smoke_detectors</code> / <code>visualize_detector_results</code>）兩組工具與 skill；SC/SRC 穿梁 domain 草稿。</p>
+      <div class="contrib-refs">PR #68（merged）· Wave 1 收編</div>
+    </div>
+    <div class="bim-card contrib-card">
+      <h4>洪友川 <a class="handle-link" href="https://github.com/Roy-y111" target="_blank" rel="noopener">@Roy-y111</a></h4>
+      <p>結構樑翻模：DWG/CAD 圖層批次建立 Revit 結構樑（<code>create_beams_from_dwg</code> 相關流程），涵蓋大樑、次樑、地樑分批處理。</p>
+      <div class="contrib-refs">PR #67（merged）</div>
+    </div>
+    <div class="bim-card contrib-card">
+      <h4>任遠 <a class="handle-link" href="https://github.com/7alexhuang-ux" target="_blank" rel="noopener">@7alexhuang-ux</a></h4>
+      <p>Toposolid 分級轉樓板工具 <code>grade_toposolid_to_floors</code>，併入正典 <code>registerRevitTools()</code> 取代原先繞過路徑的 wrapper hack。</p>
+      <div class="contrib-refs">PR #70（merged）· Wave 1 收編</div>
+    </div>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="drawing-detail">
+  <div class="bim-section-eyebrow">SECTION 02 · 圖說／明細</div>
+  <h2 class="bim-section-title">圖說、明細、門窗圖例</h2>
+  <div class="bim-grid bim-grid-3">
+    <div class="bim-card contrib-card">
+      <h4>林孟毅 <a class="handle-link" href="https://github.com/916kevin-gif" target="_blank" rel="noopener">@916kevin-gif</a></h4>
+      <p>門窗圖例（door/window legend）與粉刷相關工作流貢獻，多個分支已合併或被後續版本取代。</p>
+      <div class="contrib-refs">PR #63 #55 #52 #51 #37 #27 #5（皆 merged）</div>
+    </div>
+    <div class="bim-card contrib-card">
+      <h4>劉可 <a class="handle-link" href="https://github.com/lesleyliuke" target="_blank" rel="noopener">@lesleyliuke</a></h4>
+      <p>PR #30 大型工具包（16 skill／4 domain／32 case）分階段試點收編，貢獻涵蓋圖紙／視埠管理、跨專案圖紙複製、Excel 轉圖例、材料批次修改、詳圖複製/去重/解接合、房間高度批次調整等大範圍 bundle。</p>
+      <div class="contrib-refs">PR #30（分階段收編）· Wave 4 + Wave 5 收編（bundle①②③④⑥，共 31 工具 / 14 skill / 3 domain）</div>
+    </div>
+    <div class="bim-card contrib-card">
+      <h4>郭柏賢 <a class="handle-link" href="https://github.com/EricKuo123" target="_blank" rel="noopener">@EricKuo123</a></h4>
+      <p>提出 DWG 版本檢查器構想（issue #62 討論中），持續探索 DWG/DXF 版本相容檢核，尚待 prototype PR 落地。</p>
+      <div class="contrib-refs">PR #61（closed）· issue #62（open）</div>
+    </div>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="hotreload-devtools">
+  <div class="bim-section-eyebrow">SECTION 03 · 熱重載／開發工具</div>
+  <h2 class="bim-section-title">熱重載、開發者工具鏈</h2>
+  <div class="bim-grid bim-grid-3">
+    <div class="bim-card contrib-card">
+      <h4>啟銘 <a class="handle-link" href="https://github.com/ChimingLu" target="_blank" rel="noopener">@ChimingLu</a></h4>
+      <p>Core 熱重載（core-reload）opt-in 開發線主體貢獻，<code>feat/DWSchedule</code> 收編為新 opt-in 分支；另有樓梯檢核（staircheck）相關 <code>.gitignore</code> 修正。</p>
+      <div class="contrib-refs">PR #66 #2（merged）· feature/core-reload-optin 分支</div>
+    </div>
+    <div class="bim-card contrib-card">
+      <h4>啟敏 <a class="handle-link" href="https://github.com/CyberPotato0416" target="_blank" rel="noopener">@CyberPotato0416</a></h4>
+      <p>pyRevit 工具鏈相關貢獻；2 個 domain 檔手動搬移收編。</p>
+      <div class="contrib-refs">PR #65 #46 #39 #35（merged）</div>
+    </div>
+    <div class="bim-card contrib-card">
+      <h4>朱宣宇 <a class="handle-link" href="https://github.com/s9101800111-byte" target="_blank" rel="noopener">@s9101800111-byte</a></h4>
+      <p>7 個工具貢獻（schedule 讀取 ×2、<code>join_wall_tops</code>、<code>export_families</code>、<code>list_categories</code>、CAD link ×2）+ <code>dll-to-mcp-tool</code> skill，用於把既有 DLL/.cs command 封裝成 MCP 工具。</p>
+      <div class="contrib-refs">Wave 2 收編（108→115 工具）</div>
+    </div>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="code-landscape">
+  <div class="bim-section-eyebrow">SECTION 04 · 法規／景觀</div>
+  <h2 class="bim-section-title">法規檢討、景觀、IFC 結構</h2>
+  <div class="bim-grid bim-grid-3">
+    <div class="bim-card contrib-card">
+      <h4>光凱 <a class="handle-link" href="https://github.com/Jacky820507" target="_blank" rel="noopener">@Jacky820507</a></h4>
+      <p>IFC 結構同步（<code>ifc-structural-sync</code>）相關工具貢獻，另有 10 個 domain 檔與 4 個 skill 待拆分開 PR。</p>
+      <div class="contrib-refs">PR #47 #29 #14（merged）</div>
+    </div>
+    <div class="bim-card contrib-card">
+      <h4>陳昀 <a class="handle-link" href="https://github.com/yunchen-kt" target="_blank" rel="noopener">@yunchen-kt</a></h4>
+      <p>景觀相關 domain 工作流貢獻，<code>domain/local-update-workflow.md</code> 收編。</p>
+      <div class="contrib-refs">domain 檔收編</div>
+    </div>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="note">
+  <div class="bim-section-eyebrow">CLOSING NOTE</div>
+  <h2 class="bim-section-title">承認函，不是邀請函</h2>
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">為什麼是這種形式</span>
+    <div class="empathy-quote-text">這份名單不是邀請大家來貢獻的公關頁，是一份<strong>承認函</strong>——這些人各自 fork 出去，按自己的步調寫了東西，後來被逐一手動核對、追依賴閉包、跑跨版本 build、過 QA/QC 才收進 main。名單上每一行都能追到一個 PR 編號、一個 commit，或一個具名的<a href="../2026-07/harvest-waves.html">收編波次</a>。他們選擇了 fork 這條路，我們用這頁記下他們做過的事，謝謝。</div>
+    <span class="empathy-quote-context">完整的 fork 盤點方法與資料來源見 <code>docs/fork-audit/</code>（gitignored，內部工作檔）；本頁只呈現對外可公開的致謝內容。</span>
+  </div>
+  <div class="bim-card" style="margin-top:var(--gap-lg);">
+    <h4>想成為下一位被記在這裡的人？</h4>
+    <p>看看 <a href="contributor-template.html">Contributor Template</a>——先寫 Domain SOP，再視情況寫 Skill 編排，最後才考慮新增工具。三選一決策樹 + 撰寫骨架 + 6 步驟範例都在裡面。</p>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="contributor-template.html" class="bim-footer-btn">Contributor Template</a>
+    <a href="../2026-07/harvest-waves.html" class="bim-footer-btn">五波收編事件頁</a>
+    <a href="../index.html" class="bim-footer-btn primary">回 BIM_MCP 首頁</a>
+  </div>
+  <p>BIM_MCP · reference / contributors</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">2026-07-09 · 11 位建置協助人，資料來源 <code>docs/fork-audit/contributor-map.md</code> 與 <code>log/2026-07.md</code>。</p>
+</footer>
+
+<script src="../shared.js"></script><script>initAll();</script>
+</body></html>
