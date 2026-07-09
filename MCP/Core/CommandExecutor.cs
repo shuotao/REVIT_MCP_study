@@ -261,6 +261,14 @@ namespace RevitMCP.Core
                         result = CreateViewSchedule(parameters);
                         break;
 
+                    case "list_schedules":
+                        result = ListSchedules(parameters);
+                        break;
+
+                    case "read_schedule":
+                        result = ReadSchedule(parameters);
+                        break;
+
                     case "get_selected_elements":
                         result = GetSelectedElements();
                         break;
