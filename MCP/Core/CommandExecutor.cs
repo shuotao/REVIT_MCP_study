@@ -289,6 +289,10 @@ namespace RevitMCP.Core
                         result = ExportFamilies(parameters);
                         break;
 
+                    case "list_categories":
+                        result = ListCategories(parameters);
+                        break;
+
                     // === 帷幕牆模組 (PR#11) ===
                     case "get_curtain_wall_info":
                         result = GetCurtainWallInfo(parameters);
