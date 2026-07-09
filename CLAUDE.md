@@ -33,9 +33,9 @@ These counts must be derived from source, not copied by memory.
 
 | Item | Current Count | Source of Truth |
 |---|---:|---|
-| Runtime MCP tools | 127 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
+| Runtime MCP tools | 146 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
 | Domain SOP files | 61 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
-| Claude skills | 34 | `.claude/skills/*/SKILL.md` |
+| Claude skills | 42 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, `README.en.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
 
@@ -327,12 +327,16 @@ Meta and governance domain files:
 
 Available Claude skills:
 
+- `/align-views-on-sheets`
 - `/auto-dimension`
+- `/batch-apply-view-template`
+- `/batch-material`
 - `/batch-room-height`
 - `/building-compliance`
 - `/build-revit`
 - `/claude-md-sync`
 - `/copy-detail-items`
+- `/copy-sheets-cross-project`
 - `/core-reload-dev`
 - `/curtain-wall`
 - `/dedup-detail-elements`
@@ -346,12 +350,15 @@ Available Claude skills:
 - `/dwg-column-import`
 - `/element-coloring`
 - `/element-query`
+- `/excel-to-legend`
 - `/facade-generation`
 - `/family-inventory-cleanup`
 - `/fire-safety-check`
+- `/floor-plan-from-template`
 - `/hj-pr-proposal`
 - `/parking-check`
 - `/qa-review`
+- `/scale-drafting-width`
 - `/sheet-management`
 - `/smoke-detector-check`
 - `/smoke-exhaust`
@@ -359,6 +366,7 @@ Available Claude skills:
 - `/text-note-batch`
 - `/unjoin-geometry`
 - `/view-category-visibility`
+- `/viewport-arrangement`
 - `/wall-orientation-check`
 - `/wall-section-batch`
 
