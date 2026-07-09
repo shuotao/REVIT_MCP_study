@@ -84,40 +84,11 @@ A `vault/` directory at the repo root, if present, is a user's personal knowledg
 
 ## Build Commands
 
-### MCP Server
+Build via the `/build-revit` skill. Full commands (MCP Server npm build; `dotnet build -c Release.R{22,23,24,25,26} RevitMCP.csproj`) are in README.md's Build section.
 
-```powershell
-cd MCP-Server
-npm install
-npm run build
-```
+Expected output path stays `MCP/bin/Release.R{YY}/RevitMCP.dll`. Do not rely on old `bin/Release/RevitMCP.dll` instructions.
 
-The AI client launches:
-
-```text
-node MCP-Server/build/index.js
-```
-
-### Revit Add-in
-
-The project uses a single `MCP/RevitMCP.csproj` with Nice3point Revit SDK configurations:
-
-```powershell
-cd MCP
-dotnet build -c Release.R22 RevitMCP.csproj   # Revit 2022, .NET Framework 4.8
-dotnet build -c Release.R23 RevitMCP.csproj   # Revit 2023, .NET Framework 4.8
-dotnet build -c Release.R24 RevitMCP.csproj   # Revit 2024, .NET Framework 4.8
-dotnet build -c Release.R25 RevitMCP.csproj   # Revit 2025, .NET 8
-dotnet build -c Release.R26 RevitMCP.csproj   # Revit 2026, .NET 8
-```
-
-Expected output path:
-
-```text
-MCP/bin/Release.R{YY}/RevitMCP.dll
-```
-
-Deploy with `scripts/install-addon.ps1` or the `/deploy-addon` skill. Do not rely on old `bin/Release/RevitMCP.dll` instructions.
+Deploy with `scripts/install-addon.ps1` or the `/deploy-addon` skill.
 
 ## Key Source Files
 
@@ -325,69 +296,13 @@ Meta and governance domain files:
 
 ## Skills
 
-Available Claude skills:
-
-- `/align-views-on-sheets`
-- `/auto-dimension`
-- `/batch-apply-view-template`
-- `/batch-material`
-- `/batch-room-height`
-- `/building-compliance`
-- `/build-revit`
-- `/claude-md-sync`
-- `/copy-detail-items`
-- `/copy-sheets-cross-project`
-- `/core-reload-dev`
-- `/curtain-wall`
-- `/dedup-detail-elements`
-- `/dependent-view-crop`
-- `/deploy-addon`
-- `/detail-component-sync`
-- `/detect-clashes`
-- `/dll-to-mcp-tool`
-- `/domain-diagram`
-- `/dwg-beam-import`
-- `/dwg-column-import`
-- `/element-coloring`
-- `/element-query`
-- `/excel-to-legend`
-- `/facade-generation`
-- `/family-inventory-cleanup`
-- `/fire-safety-check`
-- `/floor-plan-from-template`
-- `/hj-pr-proposal`
-- `/parking-check`
-- `/qa-review`
-- `/scale-drafting-width`
-- `/sheet-management`
-- `/smoke-detector-check`
-- `/smoke-exhaust`
-- `/stair-hidden-line`
-- `/text-note-batch`
-- `/unjoin-geometry`
-- `/view-category-visibility`
-- `/viewport-arrangement`
-- `/wall-orientation-check`
-- `/wall-section-batch`
+The canonical skill catalog is the .claude/skills/ directory itself (42 skills; count table above is the gate).
 
 Use the smallest relevant skill set. If a skill and a domain file conflict on the method, the domain file wins.
 
 ## Skill Packaging & Upstream Watch
 
-Shareable skills are packaged as installable plugins via `.claude-plugin/marketplace.json` (marketplace name: `revit-mcp-skills`). Consumer install path:
-
-```text
-/plugin marketplace add shuotao/REVIT_MCP_study
-/plugin install <plugin>@revit-mcp-skills
-```
-
-A packaged skill MUST be self-contained: bundle any referenced files inside the skill folder (e.g. `.claude/skills/<name>/references/`); never point at repo paths outside the skill directory, or the plugin breaks on install. Packaging a skill does NOT change the `Claude skills` source-of-truth count — that count is `.claude/skills/*/SKILL.md` only.
-
-### Upstream Watch (ongoing)
-
-Periodically check `github.com/anthropics/skills` for changes to the Agent Skills spec — specifically the `SKILL.md` frontmatter contract and the `.claude-plugin/marketplace.json` schema. If upstream changes the format, update our `SKILL.md` files and `marketplace.json` to match, then re-run QA/QC.
-
-Snapshot as of 2026-06: `SKILL.md` frontmatter is `name` + `description` (+ optional `license`); marketplace schema version is `1.0.0`. There is NO breaking "2.0" file-format change — the shift is packaging/distribution (open standard + plugin marketplace), not the skill file format.
+Shareable skills are packaged as installable plugins via `.claude-plugin/marketplace.json` (marketplace name: `revit-mcp-skills`). See `domain/skill-authoring-standard.md` section 8 for packaging rules and the upstream spec watch.
 
 ## MCP Profiles
 
@@ -403,45 +318,11 @@ Use `full` unless a constrained client context explicitly needs a smaller tool s
 
 ## AI Client Configuration
 
-Project-level Claude Code config:
-
-```json
-{
-  "mcpServers": {
-    "revit-mcp": {
-      "type": "stdio",
-      "command": "node",
-      "args": ["./MCP-Server/build/index.js"],
-      "env": {}
-    }
-  }
-}
-```
-
-VS Code config:
-
-```json
-{
-  "servers": {
-    "revit-mcp": {
-      "type": "stdio",
-      "command": "node",
-      "args": ["${workspaceFolder}/MCP-Server/build/index.js"],
-      "env": {}
-    }
-  }
-}
-```
+See README.md / README.en.md "AI Client Configuration" for the full per-client setup. Config templates live in `MCP-Server/*_config.json`.
 
 ## Troubleshooting
 
-| Symptom | Likely Cause | Fix |
-|---|---|---|
-| AI cannot find Revit tools | MCP server not configured or build output missing | Run `npm run build` in `MCP-Server`, then restart the AI client |
-| MCP server cannot connect to Revit | Revit is not running or MCP service is off | Start Revit and click MCP service on/off in the ribbon |
-| Port `8964` is unavailable | Existing listener or orphaned HTTP.sys queue | Run `scripts/release-port.ps1` as needed |
-| Add-in not visible in Revit | Add-in manifest or DLL missing | Re-run `scripts/install-addon.ps1` |
-| Build succeeds but docs mention old DLL path | Stale documentation | Use `MCP/bin/Release.R{YY}/RevitMCP.dll` |
+See `docs/troubleshoot-first-install.md` for the full walkthrough. Port `8964` stuck on HTTP.sys: run `scripts/release-port.ps1`.
 
 ## QA/QC
 
