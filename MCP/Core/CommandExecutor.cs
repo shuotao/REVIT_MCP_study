@@ -301,6 +301,14 @@ namespace RevitMCP.Core
                         result = BatchCreateWallSections(parameters);
                         break;
 
+                    // === 偵煙探測器設置檢討 ===
+                    case "analyze_smoke_detectors":
+                        result = AnalyzeSmokeDetectors(parameters);
+                        break;
+                    case "visualize_detector_results":
+                        result = VisualizeDetectorResults(parameters);
+                        break;
+
                     // === 排煙窗模組 (PR#12) ===
                     case "check_smoke_exhaust_windows":
                         result = CheckSmokeExhaustWindows(parameters);
