@@ -244,7 +244,11 @@ namespace RevitMCP.Core
                     case "rejoin_wall_joins":
                         result = RejoinWallJoins(parameters);
                         break;
-                    
+
+                    case "join_wall_tops":
+                        result = JoinWallTops(parameters);
+                        break;
+
                     case "check_exterior_wall_openings":
                         result = CheckExteriorWallOpenings(parameters);
                         break;
