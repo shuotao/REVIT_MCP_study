@@ -132,6 +132,20 @@ export const wallTools: Tool[] = [
         inputSchema: { type: "object", properties: {} },
     },
     {
+        name: "join_wall_tops",
+        description: "將指定樓層的牆，其頂部與上方的樓板、天花板、結構樑做幾何接合 (JoinGeometry)。回傳成功接合/已接合跳過/失敗的統計與各樓層明細。常用於樓層牆體建模後的批次頂接合。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                levels: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "要處理的樓層名稱列表，例如 [\"2F\", \"3F\"]。省略或空陣列代表處理全部樓層。",
+                },
+            },
+        },
+    },
+    {
         name: "get_all_grids",
         description: "取得專案中所有網格線（Grid）的資訊。",
         inputSchema: { type: "object", properties: {} },
