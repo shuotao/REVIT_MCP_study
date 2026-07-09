@@ -128,8 +128,37 @@ export const wallTools: Tool[] = [
     },
     {
         name: "rejoin_wall_joins",
-        description: "恢復先前由 unjoin_wall_joins 取消的牆體接合關係。",
+        description: "恢復先前由 unjoin_wall_joins / unjoin_column_joins / unjoin_element_joins 取消的接合關係（共用 pair 儲存，限同一 Revit session）。",
         inputSchema: { type: "object", properties: {} },
+    },
+    {
+        name: "unjoin_column_joins",
+        description: "以柱子為中心解除其與鄰近元素的幾何接合，涵蓋牆、樓板、結構樑。未指定 columnIds 時預設整個專案所有柱（或 viewId 內的柱）。可用 rejoin_wall_joins 還原（限同一 Revit session）。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                columnIds: { type: "array", items: { type: "number" }, description: "要處理的柱子 Element ID 列表（選填，預設為全部柱）" },
+                viewId: { type: "number", description: "視圖 ID（選填，未給 columnIds 時用來限縮範圍）" },
+            },
+        },
+    },
+    {
+        name: "unjoin_element_joins",
+        description: "通用版：以任一類別為中心解除其與指定 target 類別的幾何接合。預設 target 為 8 類（Walls、Floors、Columns、StructuralColumns、StructuralFraming、StructuralFoundation、Roofs、Ceilings）。共用 _unjoinedPairs，可用 rejoin_wall_joins 還原（限同一 Revit session）。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                sourceCategory: { type: "string", description: "來源類別名稱（不含 OST_ 前綴，例如 StructuralFraming、Walls、Floors）" },
+                targetCategories: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "目標類別名稱陣列（選填，預設 8 類：Walls、Floors、Columns、StructuralColumns、StructuralFraming、StructuralFoundation、Roofs、Ceilings）",
+                },
+                elementIds: { type: "array", items: { type: "number" }, description: "要處理的來源 Element ID 列表（選填，預設為該類別全部）" },
+                viewId: { type: "number", description: "視圖 ID（選填，未給 elementIds 時用來限縮範圍）" },
+            },
+            required: ["sourceCategory"],
+        },
     },
     {
         name: "join_wall_tops",
