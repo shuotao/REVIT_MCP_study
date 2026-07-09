@@ -290,5 +290,22 @@ export const baseTools: Tool[] = [
                 }
             }
         }
+    },
+    {
+        name: "list_categories",
+        description: "列舉專案中所有品類 (Category) 及其 CategoryType (Model / Annotation / Internal / AnalyticalModel / Invalid)。回傳每個品類的 Name、CategoryType、Id、子品類數量，並附各 CategoryType 的統計。唯讀查詢。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                categoryType: {
+                    type: "string",
+                    description: "只列出指定 CategoryType 的品類 (Model / Annotation / Internal / AnalyticalModel / Invalid)；省略則全部列出。"
+                },
+                includeSubcategories: {
+                    type: "boolean",
+                    description: "是否連同各品類的子品類名稱一併回傳 (預設 false，僅回傳子品類數量)。"
+                }
+            }
+        }
     }
 ];
