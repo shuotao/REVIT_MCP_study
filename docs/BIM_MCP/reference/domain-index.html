@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Domain 索引（55 個 SOP）· BIM_MCP</title>
+<title>Domain 索引（58 個 SOP）· BIM_MCP</title>
 <meta property="og:title" content="BIM_MCP Domain SOP Index — 43 個知識層檔案">
 <meta property="og:description" content="依 domain/*.md 整理的 BIM compliance 與 workflow SOP 索引。五分類各自彩色，含觸發關鍵字、反查 Skill、5 個重點 domain 抽屜摘要。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -72,9 +72,9 @@
 </nav>
 
 <header class="bim-hero">
-  <div class="bim-hero-eyebrow">DOMAIN INDEX <span class="accent">55 個 SOP / 5 分類</span></div>
+  <div class="bim-hero-eyebrow">DOMAIN INDEX <span class="accent">58 個 SOP / 5 分類</span></div>
   <h1 class="bim-hero-title">Domain · <span class="accent">知識層</span><br>方法寫一次，多個 Skill 共用</h1>
-  <p class="bim-hero-sub">Domain 是<strong>知識本身</strong>——法規條文、SOP、公式、例外。Skill 是<strong>編排</strong>（22 個）。Tool 是<strong>原子執行</strong>（99 個）。<strong>知識不應該重複在每個 Skill 裡</strong>——這是本專案核心架構原則。本頁列 55 個 <code>domain/*.md</code>，依五大類彩色標示，每張 card 含觸發關鍵字與反查 Skill。</p>
+  <p class="bim-hero-sub">Domain 是<strong>知識本身</strong>——法規條文、SOP、公式、例外。Skill 是<strong>編排</strong>（22 個）。Tool 是<strong>原子執行</strong>（99 個）。<strong>知識不應該重複在每個 Skill 裡</strong>——這是本專案核心架構原則。本頁列 58 個 <code>domain/*.md</code>，依五大類彩色標示，每張 card 含觸發關鍵字與反查 Skill。</p>
   <figure class="bim-hero-figure"><img src="../images/domain__hero__45-grains.svg" alt="49 個 domain SOP，依五大類彩色方塊排列" width="1200" height="900"></figure>
 </header>
 
@@ -102,7 +102,7 @@
   </div>
 
   <div class="bim-grid bim-grid-3">
-    <div class="bim-card"><h4>Tool（103）</h4><p style="font-size:13px;">執行 Revit 查詢、建立、修改。<strong>所有具體資料</strong>必須來自工具回傳。</p></div>
+    <div class="bim-card"><h4>Tool（107）</h4><p style="font-size:13px;">執行 Revit 查詢、建立、修改。<strong>所有具體資料</strong>必須來自工具回傳。</p></div>
     <div class="bim-card bim-card-accent"><h4>Domain（49）</h4><p style="font-size:13px;">保存 SOP、公式、例外與判斷流程。<strong>方法的單一來源</strong>。</p></div>
     <div class="bim-card"><h4><a href="skills-index.html" style="border-bottom:1px solid var(--accent-border);">Skill（22）</a></h4><p style="font-size:13px;">把 Domain 與工具串成工作流。<strong>不藏方法在 Skill body</strong>。</p></div>
   </div>
@@ -231,6 +231,17 @@
       <div class="domain-meta">
         <span class="domain-trigger">wall orientation</span><span class="domain-trigger">內外方向</span>
         <a href="skills-index.html#skills" class="domain-skill">↔ /wall-orientation-check</a>
+      </div>
+    </div>
+
+    <div id="smoke-detector-check" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">smoke-detector-check.md</div>
+        <div class="domain-desc">消防偵煙探測器設置法規檢討——出風口距離、壁樑距、天花板貼附、區格涵蓋、探測面積五項規定檢核。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">偵煙探測器</span><span class="domain-trigger">smoke detector</span><span class="domain-trigger">探測面積</span>
+        <a href="skills-index.html#skills" class="domain-skill">↔ /smoke-detector-check</a>
       </div>
     </div>
 
@@ -497,6 +508,16 @@
       </div>
     </div>
 
+    <div id="view-link-cleanup-workflow" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">view-link-cleanup-workflow.md</div>
+        <div class="domain-desc">關閉連結模型基準元件（樓層線／網格線／參考平面）維持圖面整潔；技術結案負面結果（對應上游 issue #72）。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">視圖連結</span><span class="domain-trigger">連結模型基準</span><span class="domain-trigger">圖面整潔</span>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -606,6 +627,16 @@
       <div class="domain-meta">
         <span class="domain-trigger">流程圖像化</span><span class="domain-trigger">mermaid</span><span class="domain-trigger">流程健檢</span>
         <a href="skills-index.html#skills" class="domain-skill">↔ /domain-diagram</a>
+      </div>
+    </div>
+
+    <div id="local-update-workflow" class="bim-card domain-card">
+      <div>
+        <div class="domain-name">local-update-workflow.md</div>
+        <div class="domain-desc">本機環境更新部署流程（環境專屬）——pull 後重新編譯 MCP Server、SDK 相容處理、手動部署 DLL 至 Revit Addins。</div>
+      </div>
+      <div class="domain-meta">
+        <span class="domain-trigger">本機更新</span><span class="domain-trigger">local update</span><span class="domain-trigger">環境專屬</span>
       </div>
     </div>
 
