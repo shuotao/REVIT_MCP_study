@@ -249,6 +249,15 @@ namespace RevitMCP.Core
                         result = JoinWallTops(parameters);
                         break;
 
+                    // === 解除幾何接合（劉啟祥 PR#30 bundle②）===
+                    case "unjoin_column_joins":
+                        result = UnjoinColumnJoins(parameters);
+                        break;
+
+                    case "unjoin_element_joins":
+                        result = UnjoinElementJoins(parameters);
+                        break;
+
                     case "check_exterior_wall_openings":
                         result = CheckExteriorWallOpenings(parameters);
                         break;
@@ -395,6 +404,14 @@ namespace RevitMCP.Core
                         break;
                     case "list_family_symbols":
                         result = ListFamilySymbols(parameters);
+                        break;
+
+                    // === 詳圖項目複製 / 去重（劉啟祥 PR#30 bundle②）===
+                    case "copy_detail_items_to_views":
+                        result = CopyDetailItemsToViews(parameters);
+                        break;
+                    case "dedup_detail_elements_in_view":
+                        result = DedupDetailElementsInView(parameters);
                         break;
 
                     // === 尺寸標註模組 ===

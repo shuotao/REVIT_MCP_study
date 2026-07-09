@@ -40,4 +40,21 @@ export const detailComponentTools: Tool[] = [
             },
         },
     },
+    {
+        name: "dedup_detail_elements_in_view",
+        description: "找出當前視圖（或指定視圖）中重複的 detail element（同 Type + 位置量化後相同），保留 Detail Group 內的副本，刪除 group 外的副本。涵蓋 DetailComponent / DetailCurve / FilledRegion / TextNote / Dimension。只認 Detail Group（OST_IOSDetailGroups），不認 Model Group。預設 dryRun=true 只列清單；確認後設 dryRun=false 才實際刪除。邊界情形（全部都在 group 中、或全部都不在 group 中）會回報但不動。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                viewId: { type: "number", description: "目標視圖 ID（選填，預設使用當前 active view）" },
+                categories: {
+                    type: "array",
+                    items: { type: "string", enum: ["All", "DetailComponent", "DetailCurve", "FilledRegion", "TextNote", "Dimension"] },
+                    description: "處理的類別清單（選填，預設 ['All']）"
+                },
+                tolerance: { type: "number", description: "位置比對容差（公釐），預設 1.0", default: 1.0 },
+                dryRun: { type: "boolean", description: "true=只列清單不刪除（預設）；false=實際刪除 group 外的重複副本", default: true }
+            }
+        }
+    },
 ];
