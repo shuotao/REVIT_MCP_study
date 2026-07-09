@@ -249,7 +249,7 @@ namespace RevitMCP.Core
                         result = JoinWallTops(parameters);
                         break;
 
-                    // === 解除幾何接合（劉啟祥 PR#30 bundle②）===
+                    // === 解除幾何接合（劉可 PR#30 bundle②）===
                     case "unjoin_column_joins":
                         result = UnjoinColumnJoins(parameters);
                         break;
@@ -392,7 +392,7 @@ namespace RevitMCP.Core
                         result = GetViewportMap();
                         break;
 
-                    // === 圖紙/視埠管理（劉啟祥 PR#30 bundle①）===
+                    // === 圖紙/視埠管理（劉可 PR#30 bundle①）===
                     case "get_sheet_viewport_details":
                         result = GetSheetViewportDetails(parameters);
                         break;
@@ -424,7 +424,7 @@ namespace RevitMCP.Core
                         result = MoveViewportTitles(parameters);
                         break;
 
-                    // === 跨檔案圖紙複製（劉啟祥 PR#30 bundle③）===
+                    // === 跨檔案圖紙複製（劉可 PR#30 bundle③）===
                     case "read_source_file_sheets":
                         result = ReadSourceFileSheets(parameters);
                         break;
@@ -435,7 +435,7 @@ namespace RevitMCP.Core
                         result = SyncSheetParametersFromSource(parameters);
                         break;
 
-                    // === Excel/Legend 批次（劉啟祥 PR#30 bundle④）===
+                    // === Excel/Legend 批次（劉可 PR#30 bundle④）===
                     case "create_legends":
                         result = CreateLegends(parameters);
                         break;
@@ -446,7 +446,7 @@ namespace RevitMCP.Core
                         result = ImportExcelToDraftingViews(parameters);
                         break;
 
-                    // === 材質批次修改（劉啟祥 PR#30 bundle④）===
+                    // === 材質批次修改（劉可 PR#30 bundle④）===
                     case "get_types_by_category":
                         result = GetTypesByCategory(parameters);
                         break;
@@ -471,7 +471,7 @@ namespace RevitMCP.Core
                         result = ListFamilySymbols(parameters);
                         break;
 
-                    // === 詳圖項目複製 / 去重（劉啟祥 PR#30 bundle②）===
+                    // === 詳圖項目複製 / 去重（劉可 PR#30 bundle②）===
                     case "copy_detail_items_to_views":
                         result = CopyDetailItemsToViews(parameters);
                         break;
@@ -479,7 +479,7 @@ namespace RevitMCP.Core
                         result = DedupDetailElementsInView(parameters);
                         break;
 
-                    // === 房間高度 / 視圖細部（劉啟祥 PR#30 bundle⑥）===
+                    // === 房間高度 / 視圖細部（劉可 PR#30 bundle⑥）===
                     case "batch_set_room_height":
                         result = BatchSetRoomHeight(parameters);
                         break;
