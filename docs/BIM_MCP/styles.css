@@ -836,3 +836,45 @@ tr:last-child td { border-bottom: none; }
   .bim-hero, .bim-section { padding: 30px 0; max-width: 100%; }
   .bim-card { border-color: #ccc; background: #fff; break-inside: avoid; }
 }
+
+/* ===== HARVEST GROWTH LADDER — pure CSS, no JS/canvas/CDN ===== */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes grow-bar {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+  }
+  @keyframes count-rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .harvest-step {
+    position: relative;
+    overflow: hidden;
+  }
+  .harvest-step::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--accent);
+    transform-origin: bottom;
+    animation: grow-bar 0.6s ease-out both;
+  }
+  .harvest-step .data-emph {
+    animation: count-rise 0.5s ease-out 0.15s both;
+  }
+  .harvest-step:hover {
+    transform: translateY(-2px);
+    transition: transform 0.3s;
+  }
+}
+
+/* Global reduce-motion kill switch — must stay last to win the cascade */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
