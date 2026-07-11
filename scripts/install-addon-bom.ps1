@@ -431,7 +431,7 @@ Write-Host "  2. 重新開啟 Revit" -ForegroundColor White
 Write-Host "  3. 應該會看到「MCP Tools」面板" -ForegroundColor White
 Write-Host "  4. 點擊「MCP 服務 (開/關)」啟動服務" -ForegroundColor White
 Write-Host ""
-Write-Host "如有問題，請參考 README.md 的「常見問題」章節" -ForegroundColor Cyan
+Write-Host "如有問題，請參考 README.zh-TW.md 的「常見問題」章節" -ForegroundColor Cyan
 Write-Host ""
 
 Read-Host "按 Enter 結束"

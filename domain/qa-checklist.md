@@ -141,7 +141,7 @@ The check must compare:
 
 - `CLAUDE.md`
 - `README.md`
-- `README.en.md`
+- `README.zh-TW.md`
 - `docs/BIM_MCP/**`
 - active demo docs that make grand-total claims
 
@@ -154,7 +154,7 @@ Documents must declare or fit one of these audiences:
 | Audience | Examples | Language Policy |
 |---|---|---|
 | AI-only | `CLAUDE.md`, `.claude/commands/*.md`, `.claude/skills/*/SKILL.md` | Prefer English |
-| Human-facing | `README.md`, `README.en.md`, `scripts/README.md`, teaching docs | Match target audience |
+| Human-facing | `README.md`, `README.zh-TW.md`, `scripts/README.md`, teaching docs | Match target audience |
 | Shared | `domain/*.md`, `log/README.md` | Bilingual or Chinese-friendly; never English-only for Domain |
 | Historical | `docs/_archive/**`, old logs | Preserve unless explicitly migrated |
 

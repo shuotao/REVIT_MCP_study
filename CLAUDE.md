@@ -2,7 +2,7 @@
 
 This is the canonical AI instruction file for Revit MCP. `AGENTS.md` and `GEMINI.md` intentionally redirect here.
 
-Human-facing installation and onboarding content belongs in `README.md` / `README.en.md`.
+Human-facing installation and onboarding content belongs in `README.md` / `README.zh-TW.md`.
 Shared BIM methods belong in `domain/*.md` and must remain bilingual or Chinese-friendly.
 AI-only operating instructions belong here and should be written in English to avoid encoding drift and mojibake.
 
@@ -37,7 +37,7 @@ These counts must be derived from source, not copied by memory.
 | Domain SOP files | 61 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
 | Claude skills | 42 | `.claude/skills/*/SKILL.md` |
 
-When these numbers change, update `CLAUDE.md`, `README.md`, `README.en.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
+When these numbers change, update `CLAUDE.md`, `README.md`, `README.zh-TW.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
 
 ## Session Start Protocol
 
@@ -218,7 +218,7 @@ Domain files and skills have different responsibilities:
 | Skill | `.claude/skills/*/SKILL.md` | AI workflow orchestration and tool sequence guidance | Prefer English; preserve exact local terms where needed |
 | Command | `.claude/commands/*.md` | Slash-command behavior | English preferred |
 | AI constitution | `CLAUDE.md` | Global AI rules and project map | English only |
-| Human docs | `README.md`, `README.en.md`, `docs/` | Installation, onboarding, teaching | Use the target human audience language |
+| Human docs | `README.md`, `README.zh-TW.md`, `docs/` | Installation, onboarding, teaching | Use the target human audience language |
 
 ## Domain Knowledge and Workflow Files
 
@@ -318,7 +318,7 @@ Use `full` unless a constrained client context explicitly needs a smaller tool s
 
 ## AI Client Configuration
 
-See README.md / README.en.md "AI Client Configuration" for the full per-client setup. Config templates live in `MCP-Server/*_config.json`.
+See README.md / README.zh-TW.md "AI Client Configuration" for the full per-client setup. Config templates live in `MCP-Server/*_config.json`.
 
 ## Troubleshooting
 
@@ -351,7 +351,7 @@ QA/QC must cover:
 - local markdown link rot
 - AI/human/shared document audience classification
 - mojibake risk in AI-only and human-facing canonical docs
-- markdown count-table claims (`| Runtime MCP tools | N |` style) in CLAUDE.md, README, README.en, and the audience inventory
+- markdown count-table claims (`| Runtime MCP tools | N |` style) in CLAUDE.md, README, README.zh-TW, and the audience inventory
 - client config template portability (no hardcoded user paths; `<YOUR_PROJECT_PATH>` placeholder required)
 - snapshot banner (`data-snapshot="YYYY-MM-DD"`) on date-prefixed `docs/MMDD-*.html`
 
