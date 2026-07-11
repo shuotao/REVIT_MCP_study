@@ -6,8 +6,8 @@ This file explains the purpose of the documentation folders. For the AI/human/sh
 
 | Path | Audience | Purpose |
 |---|---|---|
-| `README.md` | Human, Traditional Chinese | Primary installation and onboarding entry |
-| `README.en.md` | Human, English | English installation and onboarding entry |
+| `README.md` | Human, English | Primary installation and onboarding entry |
+| `README.zh-TW.md` | Human, Traditional Chinese | Traditional Chinese installation and onboarding entry |
 | `CLAUDE.md` | AI-only | Canonical AI constitution and project map |
 | `AGENTS.md` | AI-only redirect | Redirects to `CLAUDE.md` |
 | `GEMINI.md` | AI-only redirect | Redirects to `CLAUDE.md` |
@@ -77,7 +77,7 @@ Default handling:
 
 | If you are adding... | Put it in... |
 |---|---|
-| Installation instructions | `README.md`, `README.en.md`, or `scripts/README.md` |
+| Installation instructions | `README.md`, `README.zh-TW.md`, or `scripts/README.md` |
 | AI behavior rules | `CLAUDE.md` or `.claude/commands/` |
 | Reusable AI workflow | `.claude/skills/{skill}/SKILL.md` |
 | BIM calculation method or regulation workflow | `domain/*.md` |
