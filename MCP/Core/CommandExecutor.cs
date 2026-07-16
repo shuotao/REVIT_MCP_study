@@ -623,6 +623,58 @@ namespace RevitMCP.Core
                         break;
 #endif
 
+                    // === 施工架/隔間/門窗/RC填充 算量 + 圖案轉換 (PR #79/#81/#82, 作者 Jacky820507) ===
+                    case "calculate_exterior_wall_scaffold_perimeter":
+                        result = CalculateExteriorWallScaffoldPerimeter(parameters);
+                        break;
+                    case "calculate_room_scaffold_perimeters":
+                        result = CalculateRoomScaffoldPerimeters(parameters);
+                        break;
+                    case "calculate_selected_detail_line_perimeter":
+                        result = CalculateSelectedDetailLinePerimeter(parameters);
+                        break;
+                    case "analyze_tall_partition_rooms":
+                        result = AnalyzeTallPartitionRooms(parameters);
+                        break;
+                    case "duplicate_views_with_detailing":
+                        result = DuplicateViewsWithDetailing(parameters);
+                        break;
+                    case "create_room_filled_regions":
+                        result = CreateRoomFilledRegions(parameters);
+                        break;
+                    case "get_room_door_counts":
+                        result = GetRoomDoorCounts(parameters);
+                        break;
+                    case "get_room_window_counts":
+                        result = GetRoomWindowCounts(parameters);
+                        break;
+                    case "auto_convert_rotated_viewport_patterns":
+                        result = AutoConvertRotatedViewportPatterns();
+                        break;
+                    case "batch_create_rc_filled_region":
+                        result = BatchCreateRCFilledRegions(parameters);
+                        break;
+                    case "convert_drafting_to_model_pattern":
+                        result = ConvertDraftingToModelPattern();
+                        break;
+                    case "create_rc_filled_region":
+                        result = CreateRCFilledRegion(parameters);
+                        break;
+                    case "sync_ifc_structural_to_native":
+                        result = SyncIfcStructuralToNative(parameters);
+                        break;
+
+                    // === 帷幕立面 (PR #85, 作者 林孟毅 916kevin-gif) ===
+                    case "create_curtain_wall_elevations":
+                        result = CreateCurtainWallElevations(parameters);
+                        break;
+                    case "diagnose_curtain_wall_elevation_direction":
+                        result = DiagnoseCurtainWallElevationDirection(parameters);
+                        break;
+                    case "diagnose_curtain_wall_elevation_directions":
+                        result = DiagnoseCurtainWallElevationDirections(parameters);
+                        break;
+
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
                 }
