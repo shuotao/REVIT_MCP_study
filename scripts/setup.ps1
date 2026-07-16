@@ -90,6 +90,22 @@ function Add-Result {
     }
 }
 
+function Invoke-ExternalCommand {
+    # Runs a native-command scriptblock (that redirects stderr with 2>&1) without
+    # letting $ErrorActionPreference = "Stop" turn ordinary stderr output (npm/dotnet
+    # progress or warning lines) into a terminating exception under PowerShell 5.1.
+    # $LASTEXITCODE from the native call remains readable by the caller afterwards.
+    param([Parameter(Mandatory)][scriptblock]$Command)
+    $prevEAP = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & $Command
+    }
+    finally {
+        $ErrorActionPreference = $prevEAP
+    }
+}
+
 function Test-SafePath {
     param([string]$Path, [string]$Description = "Path")
     if ([string]::IsNullOrWhiteSpace($Path)) { return $false }
@@ -257,7 +273,7 @@ else {
         if ($hasWinget) {
             Write-Info "正在透過 winget 更新 Node.js..."
             try {
-                $wingetOutput = & winget install OpenJS.NodeJS.LTS --scope user --accept-source-agreements --accept-package-agreements 2>&1
+                $wingetOutput = Invoke-ExternalCommand { & winget install OpenJS.NodeJS.LTS --scope user --accept-source-agreements --accept-package-agreements 2>&1 }
                 Refresh-PathEnv
                 $newMajor = Get-NodeMajorVersion
                 if ($newMajor -ge 20) {
@@ -289,7 +305,7 @@ else {
         if ($hasWinget) {
             Write-Info "正在透過 winget 安裝 Node.js LTS..."
             try {
-                $wingetOutput = & winget install OpenJS.NodeJS.LTS --scope user --accept-source-agreements --accept-package-agreements 2>&1
+                $wingetOutput = Invoke-ExternalCommand { & winget install OpenJS.NodeJS.LTS --scope user --accept-source-agreements --accept-package-agreements 2>&1 }
                 Refresh-PathEnv
                 $newMajor = Get-NodeMajorVersion
                 if ($newMajor -ge 20) {
@@ -364,7 +380,7 @@ else {
         if ($hasWinget) {
             Write-Info "正在透過 winget 安裝 .NET 8 SDK..."
             try {
-                $wingetOutput = & winget install Microsoft.DotNet.SDK.8 --scope user --accept-source-agreements --accept-package-agreements 2>&1
+                $wingetOutput = Invoke-ExternalCommand { & winget install Microsoft.DotNet.SDK.8 --scope user --accept-source-agreements --accept-package-agreements 2>&1 }
                 Refresh-PathEnv
                 if (Test-CommandAvailable "dotnet") {
                     Write-OK ".NET 8 SDK 安裝完成"
@@ -595,7 +611,7 @@ else {
         if (-not (Test-Path $nodeModulesPath)) {
             Write-Info "正在安裝 Node.js 相依套件（npm install）..."
             Write-Info "這可能需要 1-3 分鐘，請耐心等待..."
-            $npmInstallResult = & npm install 2>&1
+            $npmInstallResult = Invoke-ExternalCommand { & npm install 2>&1 }
             $npmInstallExit = $LASTEXITCODE
             if ($npmInstallExit -ne 0) {
                 Write-Fail "npm install 失敗"
@@ -614,7 +630,7 @@ else {
         # npm run build
         if ($mcpServerOk) {
             Write-Info "正在編譯 MCP Server（npm run build）..."
-            $npmBuildResult = & npm run build 2>&1
+            $npmBuildResult = Invoke-ExternalCommand { & npm run build 2>&1 }
             $npmBuildExit = $LASTEXITCODE
             if ($npmBuildExit -ne 0) {
                 Write-Fail "npm run build 失敗"
@@ -689,7 +705,7 @@ else {
                 Write-Info "正在編譯 Revit $ver（dotnet build -c $config）..."
                 Push-Location $mcpDir
                 try {
-                    $buildOutput = & dotnet build -c $config RevitMCP.csproj 2>&1
+                    $buildOutput = Invoke-ExternalCommand { & dotnet build -c $config RevitMCP.csproj 2>&1 }
                     $buildExit = $LASTEXITCODE
                     if ($buildExit -ne 0) {
                         Write-Fail "Revit $ver 編譯失敗"
@@ -992,9 +1008,9 @@ else {
         if ($isAdmin) {
             Write-Host "    正在重啟 HTTP 服務以釋放 Port..." -ForegroundColor Yellow
             try {
-                $null = net stop http /y 2>&1
+                $null = Invoke-ExternalCommand { net stop http /y 2>&1 }
                 Start-Sleep -Seconds 1
-                $null = net start http 2>&1
+                $null = Invoke-ExternalCommand { net start http 2>&1 }
                 Start-Sleep -Milliseconds 500
                 $listeners3 = [System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners()
                 $released = ($listeners3 | Where-Object { $_.Port -eq 8964 }).Count -eq 0
