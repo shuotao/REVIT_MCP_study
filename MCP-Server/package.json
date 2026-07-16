@@ -1,7 +1,7 @@
 {
   "name": "@shuotao/revit-mcp-server",
   "mcpName": "io.github.shuotao/revit-mcp-server",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "MCP Server for Revit integration - AI-Powered Revit Control",
   "main": "build/index.js",
   "type": "module",

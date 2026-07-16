@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/logo.png" alt="Revit MCP" width="140" height="140">
+</div>
+
 # Revit MCP - AI-Powered Revit Control
 
 English | [繁體中文](README.zh-TW.md)
