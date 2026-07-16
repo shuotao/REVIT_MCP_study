@@ -10,7 +10,8 @@ metadata:
     - revit-partition-takeoff.md
     - finish-schedule-governance.md
     - room-boundary.md
-  referenced_by: []
+  referenced_by:
+    - "quantity-takeoff-excel"
   tags: [Revit, quantity-takeoff, Excel, room-boundary, opening, net-height, 輕隔間, 踢腳, 內牆粉刷, 數量計算]
 ---
 

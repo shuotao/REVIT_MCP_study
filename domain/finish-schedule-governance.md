@@ -12,7 +12,8 @@ metadata:
     - room-surface-area-review.md
     - finish-legend-creation.md
     - room-numbering-workflow.md
-  referenced_by: []
+  referenced_by:
+    - "finish-schedule-governance"
   tags: [finish-schedule, room-finish, powder-finish, 粉刷明細表, 材料編號, 材料表對照, AE-材料版, F, B, W, C, CSV]
 ---
 
