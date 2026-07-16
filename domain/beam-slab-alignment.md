@@ -15,8 +15,7 @@ metadata:
     - "tool-capability-boundary.md"
     - "session-context-guard.md"
     - "lessons.md"
-  referenced_by:
-    - "beam-slab-alignment"
+  referenced_by: []
   tags: [Revit, StructuralFraming, beam, slab underside, floor bottom, offset, dry-run, 降樑, 樑, 梁, 樓板底, 起始樓層偏移, 結束樓層偏移]
 ---
 

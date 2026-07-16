@@ -8,12 +8,9 @@ metadata:
     - "Autodesk Revit API: SpatialElement.GetBoundarySegments"
   related:
     - revit-partition-takeoff.md
-    - room-space-table-sync.md
-    - scaffold-takeoff.md
     - finish-schedule-governance.md
     - room-boundary.md
-  referenced_by:
-    - quantity-takeoff-excel
+  referenced_by: []
   tags: [Revit, quantity-takeoff, Excel, room-boundary, opening, net-height, 輕隔間, 踢腳, 內牆粉刷, 數量計算]
 ---
 

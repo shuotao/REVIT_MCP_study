@@ -16,8 +16,7 @@ metadata:
     - "ifc-structural-sync.md"
     - "beam-slab-alignment.md"
     - "lessons.md"
-  referenced_by:
-    - "ifc-structural-sync"
+  referenced_by: []
   tags: [IFC, Revit, StructuralFraming, StructuralColumns, native sync, beam, column, b/h, slab underside, replaceExisting]
 ---
 
