@@ -104,12 +104,22 @@ function Release-HttpSysPort {
             }
 
             try {
-                # Stop HTTP service (/y auto-confirms dependent services)
-                $null = net stop http /y 2>&1
-                Start-Sleep -Seconds 1
+                # Native net.exe writes progress to stderr; under $ErrorActionPreference = "Stop"
+                # + 2>&1, PowerShell 5.1 would turn that into a terminating exception (see issue #89).
+                # Temporarily relax EAP around the native calls, matching setup.ps1's fix.
+                $prevEAP = $ErrorActionPreference
+                $ErrorActionPreference = 'Continue'
+                try {
+                    # Stop HTTP service (/y auto-confirms dependent services)
+                    $null = net stop http /y 2>&1
+                    Start-Sleep -Seconds 1
 
-                # Restart HTTP service
-                $null = net start http 2>&1
+                    # Restart HTTP service
+                    $null = net start http 2>&1
+                }
+                finally {
+                    $ErrorActionPreference = $prevEAP
+                }
                 Start-Sleep -Milliseconds 500
 
                 if (-not (Test-PortInUse -Port $Port)) {
