@@ -244,6 +244,7 @@ namespace RevitMCP.Core
             }
             catch
             {
+                // FromRoom/ToRoom 於某些相位或未放置窗時會擲例外；交由相位回退法處理
             }
 
             return SafeGetWindowRoomByPhase(doc, window, false);
@@ -258,6 +259,7 @@ namespace RevitMCP.Core
             }
             catch
             {
+                // FromRoom/ToRoom 於某些相位或未放置窗時會擲例外；交由相位回退法處理
             }
 
             return SafeGetWindowRoomByPhase(doc, window, true);

@@ -585,7 +585,7 @@ namespace RevitMCP.Core
                         createdCount++;
                     }
                 }
-                catch { }
+                catch (Exception ex) { Logger.Info($"[RC貼紙] 略過一個無法建立的填滿區域: {ex.Message}"); }
             }
 
             Logger.Info($"[RC貼紙] 視圖 '{view.Name}': 刪除 {deletedCount} 舊 → 建立 {createdCount} 新");
