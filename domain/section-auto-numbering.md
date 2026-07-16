@@ -7,7 +7,7 @@ metadata:
   created: "2026-05-20"
   contributors:
     - "AI Assistant"
-  references: [] 
+  references: []
   related: ["parking-auto-numbering.md"]
   referenced_by: []
   tags: [Revit, Automation, Section, MCP, 剖面自動命名, section numbering]
@@ -58,7 +58,7 @@ metadata:
 
 ### 1. 選取到的不是 `View` 而是 `SectionMarker` (剖面標記)
 - **現象**：使用者在平面圖框選的是剖面符號，在 C# 中其底層型別是 `Element` 而非 `View` 物件，直接類型轉換會回傳 `null`，導致無法使用 `view.Name = newName` 修改名稱。
-- **處理方法**：在 C# [`CommandExecutor.ViewOps.cs`](../MCP/Core/Commands/CommandExecutor.ViewOps.cs) 的 `RenameView` 函數中加入類型檢索容錯：
+- **處理方法**：在 upstream C# `CommandExecutor.ViewOps.cs` 的 `RenameView` 函數中加入類型檢索容錯；Jacky R20 分支若尚未合併該後端檔，需先確認本地 routing 是否存在：
   ```csharp
   View view = elem as View;
   if (view == null)
