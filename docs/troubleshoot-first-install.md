@@ -26,6 +26,25 @@ Windows 有兩種黑色視窗（終端機），它們長得很像但規則不同
 
 **我們已經修正了。** 所有安裝腳本都加上了正確的編碼標記，Windows 現在可以正確讀取中文。
 
+### 問題三：setup.bat 在 [4/8] 回報編譯例外，但手動 dotnet build 成功
+
+**白話解釋：**
+Windows 內建的 PowerShell 5.1，遇到「嚴格模式（`$ErrorActionPreference = "Stop"`）+ 外部程式（dotnet/npm/winget）的一般輸出」時，會把那些其實只是進度或警告訊息的文字，誤判成程式壞掉、直接中斷腳本。
+這就像對方講話時清了清喉嚨，PowerShell 卻以為對方昏倒了，直接叫救護車——但對方其實好好的。
+所以即使你自己手動跑 `dotnet build` 明明是 0 error，setup.bat 還是會在 `[4/8]` 那步報「編譯例外」。
+
+**我們已經修正了（issue #89，由社群成員 @ray92chiu-png 首次回報並定位）。**
+1. 回到終端機
+2. 貼上以下指令更新到最新版本：
+```
+cd Desktop\REVIT_MCP_study
+git pull
+```
+3. 更新完後，再回去雙擊 setup.bat
+
+**如果你暫時還在用舊版本、來不及更新：**
+改用 PowerShell 7（`pwsh`）執行 setup 腳本即可繞過這個問題（PowerShell 7 沒有這個誤判行為）。若電腦還沒裝 PowerShell 7，前往 https://aka.ms/powershell 下載安裝，安裝完在終端機輸入 `pwsh` 進入，再照原本步驟跑 setup 腳本。
+
 ---
 
 ## 重新安裝步驟（從頭來）
@@ -175,4 +194,4 @@ powershell -ExecutionPolicy Bypass -File scripts\install-addon.ps1
 > 如果以上都試過了還是不行，請截圖你的錯誤畫面，
 > 傳到讀書會群組或 GitHub Issue，我們會幫你看。
 >
-> 最後更新：2026-03-22
+> 最後更新：2026-07-16

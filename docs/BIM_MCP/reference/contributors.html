@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>貢獻者致謝 · BIM_MCP</title>
-<meta property="og:title" content="BIM_MCP 貢獻者致謝 · 15 位建置協助人">
+<meta property="og:title" content="BIM_MCP 貢獻者致謝 · 16 位建置協助人">
 <meta property="og:description" content="被收編進 main 的 fork 貢獻者名單：真名 + GitHub handle + 貢獻內容摘要 + 對應 PR／收編波次。依 domain 分類與貢獻數量排序。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,7 +51,7 @@
 <header class="bim-hero">
   <div class="bim-hero-eyebrow">CONTRIBUTORS <span class="accent">建置協助人</span></div>
   <h1 class="bim-hero-title">致謝<span class="accent">建置協助人</span></h1>
-  <p class="bim-hero-sub">Revit MCP 是公開 fork 的專案，這些人把自己 fork 出去的分支做出了實際成果——修過的工具、補齊的 domain SOP、開過的 PR——後來被逐一手動核對、跑 build、過 QA/QC 後收編進 main。這裡列出的 15 位，每個人的貢獻都能追到具體的 PR、commit 或 <a href="../2026-07/harvest-waves.html">收編波次</a>，不是邀請名單，是實際發生過的工作記錄。排序依 domain 分類與貢獻數量：<strong>法規檢查（紅）→ 圖說管理（藍）→ 開發工具（黃）→ 結構穿梁（綠）→ 教材參考（紫）</strong>。</p>
+  <p class="bim-hero-sub">Revit MCP 是公開 fork 的專案，這些人把自己 fork 出去的分支做出了實際成果——修過的工具、補齊的 domain SOP、開過的 PR——後來被逐一手動核對、跑 build、過 QA/QC 後收編進 main。這裡列出的 16 位，每個人的貢獻都能追到具體的 PR、commit 或 <a href="../2026-07/harvest-waves.html">收編波次</a>，不是邀請名單，是實際發生過的工作記錄。排序依 domain 分類與貢獻數量：<strong>法規檢查（紅）→ 圖說管理（藍）→ 開發工具（黃）→ 結構穿梁（綠）→ 教材參考（紫）</strong>。</p>
 </header>
 
 <section class="bim-section bim-anchor" id="compliance" data-cat="compliance">
@@ -132,6 +132,11 @@
       <p>7 個工具貢獻（schedule 讀取 ×2、<code>join_wall_tops</code>、<code>export_families</code>、<code>list_categories</code>、CAD link ×2）+ <code>dll-to-mcp-tool</code> skill，用於把既有 DLL/.cs command 封裝成 MCP 工具。</p>
       <div class="contrib-refs">Wave 2 收編（108→115 工具）</div>
     </div>
+    <div class="bim-card contrib-card">
+      <h4>邱仁 <a class="handle-link" href="https://github.com/ray92chiu-png" target="_blank" rel="noopener">@ray92chiu-png</a></h4>
+      <p>部署腳本 PowerShell 5.1 相容性修正——精準定位 setup.ps1 在 <code>$ErrorActionPreference = "Stop"</code> 下 native 指令 <code>2>&amp;1</code> 誤判編譯例外的根因，附完整 diff 與重現/驗證步驟。</p>
+      <div class="contrib-refs">issue #89（fix 已收攏，commit 1b5a71e）</div>
+    </div>
   </div>
 </section>
 
@@ -185,7 +190,7 @@
     <a href="../index.html" class="bim-footer-btn primary">回 BIM_MCP 首頁</a>
   </div>
   <p>BIM_MCP · reference / contributors</p>
-  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">2026-07-09 · 15 位建置協助人（5 大分類，依 domain 順序與貢獻數量排序），資料來源 <code>docs/fork-audit/contributor-map.md</code> 與 <code>log/2026-07.md</code>。</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">2026-07-16 · 16 位建置協助人（5 大分類，依 domain 順序與貢獻數量排序），資料來源 <code>docs/fork-audit/contributor-map.md</code> 與 <code>log/2026-07.md</code>。</p>
 </footer>
 
 <script src="../shared.js"></script><script>initAll();</script>
