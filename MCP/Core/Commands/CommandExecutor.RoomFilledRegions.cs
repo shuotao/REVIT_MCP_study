@@ -168,7 +168,7 @@ namespace RevitMCP.Core
                 created.ForegroundPatternId = solidPatternId;
             }
             created.ForegroundPatternColor = color;
-            try { created.IsMasking = false; } catch { }
+            try { created.IsMasking = false; } catch { /* IsMasking 非所有型別/版本可設，失敗維持預設 */ }
             return created;
         }
 
