@@ -33,9 +33,9 @@ These counts must be derived from source, not copied by memory.
 
 | Item | Current Count | Source of Truth |
 |---|---:|---|
-| Runtime MCP tools | 146 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 67 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
-| Claude skills | 42 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 166 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 72 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
+| Claude skills | 50 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, `README.zh-TW.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
 
@@ -284,6 +284,11 @@ Read the matching file before applying a workflow or calculation.
 | quantity takeoff excel, 數量計算, excel export, 數量表 | `domain/quantity-takeoff-excel.md` |
 | matchline, 接圖線, 定位線 automation | `domain/matchline-automation.md` |
 | viewport type scale, 視埠類型比例, viewport sync | `domain/viewport-type-scale-sync.md` |
+| scaffold takeoff, 施工架, 施工架算量, scaffold perimeter, calculate_room_scaffold_perimeters, calculate_exterior_wall_scaffold_perimeter | `domain/scaffold-takeoff.md` |
+| tall partition, 高牆, 高隔間, 到頂隔間, tall partition index, analyze_tall_partition_rooms | `domain/tall-partition-index-workflow.md` |
+| threshold opening, 門檻開口, 門窗統計, door count, window count, get_room_door_counts, get_room_window_counts | `domain/threshold-opening-takeoff.md` |
+| RC filled region, RC 填充區域, 批次填充, batch fill region, batch_create_rc_filled_region, create_rc_filled_region | `domain/rc-filled-region-workflow.md` |
+| curtain wall elevation, 帷幕立面, 帷幕外立面, curtain elevation, create_curtain_wall_elevations | `domain/curtain-wall-elevation-workflow.md` |
 
 Meta and governance domain files:
 
@@ -302,7 +307,7 @@ Meta and governance domain files:
 
 ## Skills
 
-The canonical skill catalog is the .claude/skills/ directory itself (42 skills; count table above is the gate).
+The canonical skill catalog is the .claude/skills/ directory itself (50 skills; count table above is the gate).
 
 Use the smallest relevant skill set. If a skill and a domain file conflict on the method, the domain file wins.
 
