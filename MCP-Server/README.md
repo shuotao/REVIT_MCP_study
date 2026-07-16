@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="https://raw.githubusercontent.com/shuotao/REVIT_MCP_study/main/assets/logo.png" alt="Revit MCP" width="140" height="140">
+</div>
+
 # @shuotao/revit-mcp-server
 
 AI-powered control of **Autodesk Revit** through the [Model Context Protocol](https://modelcontextprotocol.io/). This npm package is the **Node.js stdio MCP server** — the bridge that lets an AI client (Claude, etc.) drive Revit with natural-language tool calls.

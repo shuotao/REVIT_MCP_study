@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Revit MCP app icon</title>
+  <desc id="desc">A modern square app icon combining an isometric BIM building block with AI connection nodes and an MCP plug accent.</desc>
+  <defs>
+    <linearGradient id="bg" x1="72" y1="56" x2="430" y2="456" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#123A73"/>
+      <stop offset="1" stop-color="#061B3A"/>
+    </linearGradient>
+    <linearGradient id="top" x1="166" y1="124" x2="354" y2="246" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E8FAFF"/>
+      <stop offset="1" stop-color="#78DFF1"/>
+    </linearGradient>
+    <linearGradient id="left" x1="140" y1="218" x2="264" y2="388" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#18B9CA"/>
+      <stop offset="1" stop-color="#0B6AA6"/>
+    </linearGradient>
+    <linearGradient id="right" x1="274" y1="212" x2="392" y2="386" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1F8FD1"/>
+      <stop offset="1" stop-color="#123A73"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="150%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#020A18" flood-opacity=".28"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M96 118c0-14 11-25 25-25h270c14 0 25 11 25 25v276c0 14-11 25-25 25H121c-14 0-25-11-25-25V118Z" fill="#FFFFFF" opacity=".045"/>
+  <path d="M86 270h340" stroke="#6FEAF0" stroke-width="2" opacity=".09"/>
+  <path d="M256 78v356" stroke="#6FEAF0" stroke-width="2" opacity=".08"/>
+  <path d="M135 145h242M135 367h242" stroke="#6FEAF0" stroke-width="2" opacity=".07"/>
+
+  <g filter="url(#softShadow)">
+    <path d="M256 103 386 178 256 253 126 178Z" fill="url(#top)"/>
+    <path d="M126 178 256 253v154L126 332Z" fill="url(#left)"/>
+    <path d="M386 178 256 253v154l130-75Z" fill="url(#right)"/>
+
+    <path d="M256 139 326 179 256 220 186 179Z" fill="#08305F" opacity=".22"/>
+    <path d="M256 139v81M186 179l70 41 70-41" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linejoin="round" opacity=".7"/>
+    <path d="M256 253v154M126 178l130 75 130-75" fill="none" stroke="#D8FBFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity=".72"/>
+
+    <path d="M158 236 218 271v62l-60-35Z" fill="#08284F" opacity=".28"/>
+    <path d="M184 252v62M158 267l60 35" stroke="#9AF4FA" stroke-width="7" stroke-linecap="round" opacity=".75"/>
+    <path d="M354 236 294 271v62l60-35Z" fill="#061E43" opacity=".3"/>
+    <path d="M328 252v62M354 267l-60 35" stroke="#9AF4FA" stroke-width="7" stroke-linecap="round" opacity=".68"/>
+  </g>
+
+  <g fill="none" stroke="#6FEAF0" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M103 178h48"/>
+    <path d="M409 178h-48"/>
+    <path d="M256 67v55"/>
+    <path d="M256 407v40"/>
+    <path d="M395 315h-50c-15 0-27-12-27-27v-28"/>
+    <path d="M117 315h50c15 0 27-12 27-27v-28"/>
+  </g>
+
+  <g>
+    <circle cx="103" cy="178" r="18" fill="#6FEAF0"/>
+    <circle cx="409" cy="178" r="18" fill="#6FEAF0"/>
+    <circle cx="256" cy="67" r="17" fill="#6FEAF0"/>
+    <circle cx="256" cy="447" r="17" fill="#6FEAF0"/>
+    <circle cx="395" cy="315" r="16" fill="#6FEAF0"/>
+    <circle cx="117" cy="315" r="16" fill="#6FEAF0"/>
+    <circle cx="103" cy="178" r="7" fill="#08305F"/>
+    <circle cx="409" cy="178" r="7" fill="#08305F"/>
+    <circle cx="256" cy="67" r="7" fill="#08305F"/>
+    <circle cx="256" cy="447" r="7" fill="#08305F"/>
+  </g>
+
+  <g transform="translate(323 337)">
+    <path d="M0 21h42c14 0 25 11 25 25v10H25C11 56 0 45 0 31V21Z" fill="#FFB547"/>
+    <path d="M67 41h22" stroke="#FFB547" stroke-width="12" stroke-linecap="round"/>
+    <path d="M27 0v21M45 0v21" stroke="#FFB547" stroke-width="10" stroke-linecap="round"/>
+    <path d="M25 37h31" stroke="#7A3D00" stroke-width="7" stroke-linecap="round" opacity=".38"/>
+  </g>
+
+  <path d="M123 395c31 28 79 45 133 45 53 0 102-17 133-45" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity=".1"/>
+</svg>
