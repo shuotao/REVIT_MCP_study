@@ -73,6 +73,16 @@ powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -NonInteractive -Revi
 
 The setup script checks prerequisites, installs dependencies, builds the MCP server, builds and deploys the Revit add-in, and helps configure common AI clients.
 
+## Install from MCP Registry
+
+The MCP server is published on the [MCP Registry](https://registry.modelcontextprotocol.io/) as `io.github.shuotao/revit-mcp-server` (npm package `@shuotao/revit-mcp-server`). Run it directly with:
+
+```bash
+npx -y @shuotao/revit-mcp-server
+```
+
+Note: this npm package is only the Node stdio bridge. The C# Revit add-in (`MCP/`) must still be installed separately — follow **Manual Setup** below for your Revit version.
+
 ## Manual Setup
 
 ### 1. Build the MCP Server

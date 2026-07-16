@@ -73,6 +73,16 @@ powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -NonInteractive -Revi
 
 腳本會檢查環境、安裝相依套件、編譯 MCP Server、編譯並部署 Revit Add-in，並協助設定常見 AI Client。
 
+## 從 MCP Registry 安裝
+
+MCP Server 已發佈到 [MCP Registry](https://registry.modelcontextprotocol.io/)，名稱為 `io.github.shuotao/revit-mcp-server`（npm 套件 `@shuotao/revit-mcp-server`）。可直接執行：
+
+```bash
+npx -y @shuotao/revit-mcp-server
+```
+
+注意：此 npm 套件只是 Node stdio 橋接。C# Revit Add-in（`MCP/`）仍須單獨安裝——請依下方**手動安裝**針對你的 Revit 版本編譯與部署。
+
 ## 手動安裝
 
 ### 1. 編譯 MCP Server

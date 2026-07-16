@@ -1,0 +1,22 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.shuotao/revit-mcp-server",
+  "description": "MCP Server for Revit integration - AI-Powered Revit Control",
+  "title": "Revit MCP",
+  "repository": {
+    "url": "https://github.com/shuotao/REVIT_MCP_study",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@shuotao/revit-mcp-server",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

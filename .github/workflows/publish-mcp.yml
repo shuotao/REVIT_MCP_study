@@ -1,0 +1,76 @@
+name: Publish to MCP Registry
+
+# 打一個 v* tag(例如 v1.1.0)即自動:
+#   1. 依 tag 同步版本號到 server.json 與 MCP-Server/package.json
+#   2. 跑一致性校驗(validate_publish_consistency.py)當 gate
+#   3. 發佈 npm 套件 @shuotao/revit-mcp-server
+#   4. 用 GitHub OIDC 免密登入並發佈 server.json 到 MCP Registry
+#
+# 需在 repo Settings > Secrets 設定:
+#   NPM_TOKEN  — npm 的 Automation token(具 @shuotao scope 發佈權)
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # OIDC 驗證所需
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "lts/*"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      # 依 tag(去掉開頭的 v)把版本號寫進兩個檔,保證三處一致
+      - name: Sync version from tag
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "Publishing version: $VERSION"
+          jq --arg v "$VERSION" '.version = $v | (.packages[]?.version) |= $v' \
+            server.json > server.tmp && mv server.tmp server.json
+          jq --arg v "$VERSION" '.version = $v' \
+            MCP-Server/package.json > pkg.tmp && mv pkg.tmp MCP-Server/package.json
+
+      # 送出前一致性校驗:文字/數字/字元/編碼一致才放行
+      - name: Validate publish consistency
+        run: |
+          python -m pip install --quiet jsonschema
+          python scripts/validate_publish_consistency.py
+
+      - name: Install npm dependencies
+        working-directory: MCP-Server
+        run: npm ci
+
+      - name: Build MCP server
+        working-directory: MCP-Server
+        run: npm run build
+
+      - name: Publish package to npm
+        working-directory: MCP-Server
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+          chmod +x mcp-publisher
+
+      - name: Authenticate to MCP Registry (OIDC)
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish server to MCP Registry
+        run: ./mcp-publisher publish
