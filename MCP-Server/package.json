@@ -1,24 +1,45 @@
 {
-  "name": "revit-mcp-server",
+  "name": "@shuotao/revit-mcp-server",
+  "mcpName": "io.github.shuotao/revit-mcp-server",
   "version": "1.0.0",
   "description": "MCP Server for Revit integration - AI-Powered Revit Control",
   "main": "build/index.js",
   "type": "module",
+  "bin": {
+    "revit-mcp-server": "build/index.js"
+  },
+  "files": [
+    "build"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shuotao/REVIT_MCP_study.git"
+  },
+  "homepage": "https://github.com/shuotao/REVIT_MCP_study#readme",
+  "bugs": {
+    "url": "https://github.com/shuotao/REVIT_MCP_study/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node build/index.js",
     "dev": "tsc && node build/index.js",
     "watch": "tsc --watch",
-    "clean": "rimraf build"
+    "clean": "rimraf build",
+    "prepublishOnly": "npm run clean && npm run build"
   },
   "keywords": [
     "mcp",
+    "modelcontextprotocol",
     "revit",
     "ai",
     "claude",
-    "autodesk"
+    "autodesk",
+    "bim"
   ],
-  "author": "",
+  "author": "shuotao",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
