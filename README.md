@@ -8,6 +8,23 @@ Revit MCP lets AI clients call Autodesk Revit tools through the Model Context Pr
 - Knowledge site: <https://shuotao.github.io/REVIT_MCP_study/>
 - Default WebSocket port: `8964`
 
+## What is this?
+
+Talk to Revit in plain language. Ask your AI client to *"dimension every wall on this view"* or *"check the curtain-wall elevations"*, and Revit does it — through **166 MCP tools** backed by **72 professional BIM SOPs** (building code, quantity take-off, compliance checks).
+
+**Who it's for:** BIM engineers and architects who use Revit and want AI-assisted, standards-based workflows. You'll need Revit (2022–2026) on Windows and to be comfortable installing an add-in.
+
+## Quickstart (3 steps)
+
+1. **Install the Revit add-in.** Build and deploy the C# add-in — see [Manual Setup](#manual-setup). This is the half that actually talks to Revit.
+2. **Point your AI client at the MCP server.** No cloning needed — it runs straight from npm:
+   ```json
+   { "mcpServers": { "revit-mcp": { "command": "npx", "args": ["-y", "@shuotao/revit-mcp-server"] } } }
+   ```
+3. **Open Revit, enable the MCP service in the ribbon, and start asking.** Full setup: [AI Client Configuration](#ai-client-configuration).
+
+Questions or want to show what you built? → **[Discussions](https://github.com/shuotao/REVIT_MCP_study/discussions)**
+
 ## Current Project Counts
 
 | Item | Count | Source |
