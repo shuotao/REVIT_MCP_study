@@ -66,4 +66,4 @@ metadata:
 
 ### Revit 群組警告
 - 批次改寫「備註」時若出現「已在群組編輯模式之外變更群組。變更之所以被允許，是因為此類型只有一個實體。」表示目前載入的 add-in 版本未在 `modify_element_parameter` transaction 套用 warning preprocessor。
-- 修正後需編譯並部署對應 Revit 版本，例如 Revit 2020 使用 `Release.R20`，再重啟 Revit 讓新 DLL 生效。
+- 修正後需編譯並部署對應 Revit 版本，例如 Revit 2022 使用 `Release.R22`，再重啟 Revit 讓新 DLL 生效。

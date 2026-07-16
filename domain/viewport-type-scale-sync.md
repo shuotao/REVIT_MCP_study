@@ -7,8 +7,9 @@ metadata:
   created: "2026-06-04"
   contributors:
     - "codex"
-  referenced_by:
-    - sheet-management
+  references: []
+  related: []
+  referenced_by: []
   tags: [sheet, viewport, view-scale, title-type, dry-run, revit]
 ---
 
