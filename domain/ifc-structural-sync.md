@@ -8,7 +8,8 @@ metadata:
   related:
     - mep-csa-clash-detection.md
     - tool-capability-boundary.md
-  referenced_by: []
+  referenced_by:
+    - "ifc-structural-sync"
   tags: [IFC, Revit, StructuralFraming, linked model, beam, centroid, slab underside, 鋼構, 結構樑, 幾何校正]
 ---
 
