@@ -127,4 +127,3 @@ get_rooms_by_level({
 
 - `domain/lessons.md`
 - `domain/session-context-guard.md`
-- `domain/user-specified-runtime-parameters.md`
