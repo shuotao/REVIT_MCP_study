@@ -1,4 +1,4 @@
-﻿# ============================================================================
+# ============================================================================
 # Revit MCP Add-in 自動安裝程式 (安全版本)
 # ============================================================================
 # 此指令稿會自動：
@@ -342,7 +342,9 @@ if (-not (Test-Path $addonPath)) {
 
 # 複製 DLL
 try {
-    Copy-Item -Path $sourceDll -Destination (Join-Path $addonPath "RevitMCP.dll") -Force -ErrorAction Stop
+    $dllDestDir = Join-Path $addonPath "RevitMCP"
+    if (-not (Test-Path $dllDestDir)) { New-Item -ItemType Directory -Path $dllDestDir -Force | Out-Null }
+    Copy-Item -Path $sourceDll -Destination (Join-Path $dllDestDir "RevitMCP.dll") -Force -ErrorAction Stop
     Write-Host "✓ 已複製 RevitMCP.dll" -ForegroundColor Green
 }
 catch {
@@ -372,7 +374,7 @@ catch {
 $sourceJson = Join-Path $projectRoot "MCP\bin\$buildConfig\Newtonsoft.Json.dll"
 if (Test-Path $sourceJson) {
     try {
-        Copy-Item -Path $sourceJson -Destination (Join-Path $addonPath "Newtonsoft.Json.dll") -Force -ErrorAction Stop
+        Copy-Item -Path $sourceJson -Destination (Join-Path $dllDestDir "Newtonsoft.Json.dll") -Force -ErrorAction Stop
         Write-Host "✓ 已複製 Newtonsoft.Json.dll" -ForegroundColor Green
     }
     catch {

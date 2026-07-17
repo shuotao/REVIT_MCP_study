@@ -237,7 +237,7 @@ namespace RevitMCP.Core
                             }
                         }
                         if (sym == null) { fail++; continue; }
-                        PlaceBeamInstance(doc, b, bLv, sym, typeMapping, ref ok);
+                        PlaceBeamInstance(doc, b, bLv, sym, typeMapping, ref ok, beamRole);
                     }
                     catch (Exception ex) { fail++; errors.Add(ex.Message); }
                 }
@@ -276,7 +276,7 @@ namespace RevitMCP.Core
                             }
                         }
                         if (sym == null) { fail++; continue; }
-                        PlaceBeamInstance(doc, b, bLv, sym, typeMapping, ref ok);
+                        PlaceBeamInstance(doc, b, bLv, sym, typeMapping, ref ok, beamRole);
                     }
                     catch (Exception ex) { fail++; errors.Add(ex.Message); }
                 }
@@ -329,7 +329,13 @@ namespace RevitMCP.Core
                             else if (obj is PolyLine pl)
                             {
                                 var pts = pl.GetCoordinates();
-                                for (int i = 0; i < pts.Count - 1; i++) result.Add(Line.CreateBound(pts[i], pts[i+1]));
+                                for (int i = 0; i < pts.Count - 1; i++) 
+                                {
+                                    if (pts[i].DistanceTo(pts[i+1]) > 0.005)
+                                    {
+                                        result.Add(Line.CreateBound(pts[i], pts[i+1]));
+                                    }
+                                }
                             }
                         }
                     }
@@ -480,7 +486,7 @@ namespace RevitMCP.Core
             return pt.DistanceTo(closest) * FtMm;
         }
 
-        static void PlaceBeamInstance(Document doc, BeamData b, Level bLv, FamilySymbol sym, List<string> typeMapping, ref int ok)
+        static void PlaceBeamInstance(Document doc, BeamData b, Level bLv, FamilySymbol sym, List<string> typeMapping, ref int ok, string beamRole)
         {
             if (!sym.IsActive) { sym.Activate(); doc.Regenerate(); }
             if (!typeMapping.Contains(sym.Name) && typeMapping.Count < 10)
@@ -490,18 +496,24 @@ namespace RevitMCP.Core
             XYZ en = new XYZ(b.EndPoint.X, b.EndPoint.Y, bLv.Elevation);
             var inst = doc.Create.NewFamilyInstance(Line.CreateBound(st, en), sym, bLv, StructuralType.Beam);
             if (inst == null) return;
-            try
+            if (beamRole == "大樑" || beamRole == "大梁")
             {
-                var yJust = inst.get_Parameter(BuiltInParameter.Y_JUSTIFICATION);
-                if (yJust != null && !yJust.IsReadOnly) yJust.Set(1); // Center
-
-                var zOff = inst.get_Parameter(BuiltInParameter.Z_OFFSET_VALUE);
-                if (zOff != null && !zOff.IsReadOnly) zOff.Set(0.0);
-
-                var zJust = inst.get_Parameter(BuiltInParameter.Z_JUSTIFICATION);
-                if (zJust != null && !zJust.IsReadOnly) zJust.Set(0); // Top
+                inst.StructuralUsage = Autodesk.Revit.DB.Structure.StructuralInstanceUsage.Girder;
             }
-            catch { }
+            else if (beamRole == "次樑" || beamRole == "次梁" || beamRole == "小梁" || beamRole == "小樑")
+            {
+                inst.StructuralUsage = Autodesk.Revit.DB.Structure.StructuralInstanceUsage.Joist;
+            }
+
+            var yJust = inst.get_Parameter(BuiltInParameter.Y_JUSTIFICATION);
+            if (yJust != null && !yJust.IsReadOnly) yJust.Set(1); // Center
+
+            var zOff = inst.get_Parameter(BuiltInParameter.Z_OFFSET_VALUE);
+            if (zOff != null && !zOff.IsReadOnly) zOff.Set(0.0);
+
+            var zJust = inst.get_Parameter(BuiltInParameter.Z_JUSTIFICATION);
+            if (zJust != null && !zJust.IsReadOnly) zJust.Set(0); // Top
+            
             ok++;
         }
 

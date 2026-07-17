@@ -802,7 +802,7 @@ namespace RevitMCP.Core
 
             // Step 1: 完整名稱完全符合
             var match = syms.FirstOrDefault(s =>
-                s.Name.Equals(labelText, StringComparison.OrdinalIgnoreCase));
+                s.Name.Equals(labelText, StringComparison.Ordinal));
             if (match != null) return match;
 
             // 萃取代號：去掉括號與尺寸後綴，如 "C3a(100×60)" → "C3a"
@@ -825,9 +825,9 @@ namespace RevitMCP.Core
 
             // Step 2: 代號前綴符合（"C3a_..." 或 "C3a-..." 或完全等於 "C3a"）
             match = syms.FirstOrDefault(s =>
-                s.Name.StartsWith(code + "_", StringComparison.OrdinalIgnoreCase) ||
-                s.Name.StartsWith(code + "-", StringComparison.OrdinalIgnoreCase) ||
-                s.Name.Equals(code, StringComparison.OrdinalIgnoreCase));
+                s.Name.StartsWith(code + "_", StringComparison.Ordinal) ||
+                s.Name.StartsWith(code + "-", StringComparison.Ordinal) ||
+                s.Name.Equals(code, StringComparison.Ordinal));
             if (match != null) return match;
 
             // Step 3: 代號前綴 + 尺寸雙重符合（代號相同但尺寸不同時區分）
@@ -836,7 +836,7 @@ namespace RevitMCP.Core
                 double wF = wMm * MmFt, dF = dMm * MmFt, t = Tol * MmFt;
                 match = syms.FirstOrDefault(s =>
                 {
-                    if (!s.Name.StartsWith(code, StringComparison.OrdinalIgnoreCase)) return false;
+                    if (!s.Name.StartsWith(code, StringComparison.Ordinal)) return false;
                     var pw = s.LookupParameter(wp); var pd = s.LookupParameter(dp);
                     if (pw == null || pd == null) return false;
                     double sw = pw.AsDouble() * FtMm, sd = pd.AsDouble() * FtMm;

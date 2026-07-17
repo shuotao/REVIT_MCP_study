@@ -4,8 +4,10 @@ import os
 
 try:
     import ezdxf
-except ImportError:
-    print(json.dumps({"error": "缺少 ezdxf 套件，請在系統 Python 環境中安裝 (pip install ezdxf)"}))
+except Exception as e:
+    import platform
+    err_msg = f"缺少 ezdxf 套件. Python EXE: {sys.executable}, Version: {platform.python_version()}, Error: {str(e)}"
+    print(json.dumps({"error": err_msg}))
     sys.exit(1)
 
 # 常見 ODA File Converter 安裝路徑，依版本由新到舊排列
