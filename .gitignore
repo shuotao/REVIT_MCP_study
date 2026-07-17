@@ -83,6 +83,11 @@ MCP.Contracts/obj/
 MCP.CoreRuntime/bin/
 MCP.CoreRuntime/obj/
 
+# 通用防線：任何 C# 專案的編譯產物一律不入庫
+# （2026-07-17 清除 27 個誤入庫的 obj/bin 檔後加入；CI check-tracked-artifacts.yml 為第二道防線）
+**/obj/
+**/bin/
+
 # Result 資料夾（與此專案無關）
 result/
 
