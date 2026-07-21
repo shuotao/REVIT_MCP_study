@@ -309,7 +309,8 @@ Write-Host "  - $sourceDll" -ForegroundColor White
 Write-Host "  - $currentSourceAddin" -ForegroundColor White
 Write-Host ""
 Write-Host "目標：" -ForegroundColor Cyan
-Write-Host "  - $addonPath" -ForegroundColor White
+Write-Host "  - $addonPath\RevitMCP.addin" -ForegroundColor White
+Write-Host "  - $addonPath\RevitMCP\*.dll（含相依套件）" -ForegroundColor White
 Write-Host ""
 
 $confirm = Read-Host "確認安裝？(Y/N)"
@@ -344,9 +345,13 @@ if (-not (Test-Path $addonPath)) {
 }
 
 # 複製 DLL
+# 注意：RevitMCP.addin 的 <Assembly> 是相對路徑 "RevitMCP\RevitMCP.dll"，DLL 必須放在
+# Addins\{版本}\RevitMCP\ 子資料夾，放根層 Revit 載不到。
+$dllDir = Join-Path $addonPath "RevitMCP"
 try {
-    Copy-Item -Path $sourceDll -Destination (Join-Path $addonPath "RevitMCP.dll") -Force -ErrorAction Stop
-    Write-Host "✓ 已複製 RevitMCP.dll" -ForegroundColor Green
+    if (-not (Test-Path $dllDir)) { New-Item -ItemType Directory -Path $dllDir -Force | Out-Null }
+    Copy-Item -Path $sourceDll -Destination (Join-Path $dllDir "RevitMCP.dll") -Force -ErrorAction Stop
+    Write-Host "✓ 已複製 RevitMCP.dll → RevitMCP\" -ForegroundColor Green
 }
 catch {
     Write-Host "❌ 錯誤：無法複製 RevitMCP.dll" -ForegroundColor Red
@@ -371,15 +376,16 @@ catch {
     exit 1
 }
 
-# 複製相依套件（如果存在）
-$sourceJson = Join-Path $projectRoot "MCP\bin\Release\Newtonsoft.Json.dll"
-if (Test-Path $sourceJson) {
+# 複製相依套件：build 輸出目錄的全部 DLL（Newtonsoft.Json、ClosedXML/OpenXml Excel 套件等）
+$sourceBinDir = Split-Path $sourceDll -Parent
+$depDlls = Get-ChildItem -Path $sourceBinDir -Filter "*.dll" | Where-Object { $_.Name -ne "RevitMCP.dll" }
+foreach ($dep in $depDlls) {
     try {
-        Copy-Item -Path $sourceJson -Destination (Join-Path $addonPath "Newtonsoft.Json.dll") -Force -ErrorAction Stop
-        Write-Host "✓ 已複製 Newtonsoft.Json.dll" -ForegroundColor Green
+        Copy-Item -Path $dep.FullName -Destination (Join-Path $dllDir $dep.Name) -Force -ErrorAction Stop
+        Write-Host "✓ 已複製 $($dep.Name) → RevitMCP\" -ForegroundColor Green
     }
     catch {
-        Write-Host "⚠️  警告：無法複製 Newtonsoft.Json.dll（非關鍵檔案）" -ForegroundColor Yellow
+        Write-Host "⚠️  警告：無法複製 $($dep.Name)（相關工具可能無法使用）" -ForegroundColor Yellow
     }
 }
 
