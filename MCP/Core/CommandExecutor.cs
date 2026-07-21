@@ -150,6 +150,10 @@ namespace RevitMCP.Core
                         result = GetRoomsByLevel(parameters);
                         break;
 
+                    case "renumber_rooms_by_level":
+                        result = RenumberRoomsByLevel(parameters);
+                        break;
+
                     case "get_room_surface_areas":
                         result = GetRoomSurfaceAreas(parameters);
                         break;
