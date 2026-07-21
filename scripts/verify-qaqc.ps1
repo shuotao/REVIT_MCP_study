@@ -179,7 +179,9 @@ $excludedFiles = @(
 )
 
 $mdFiles = Get-ChildItem -Path $projectRoot -Filter "*.md" -Recurse -ErrorAction SilentlyContinue |
-    Where-Object { $_.FullName -notmatch "node_modules|\.claude[\\/]plugins|docs[\\/]_archive" }
+    Where-Object { $_.FullName -notmatch "node_modules|\.claude[\\/]plugins|docs[\\/]_archive|docs[\\/]fork-audit|[\\/]log[\\/]" }
+    # log/ 為 append-only 事件日誌、docs/fork-audit/ 為 fork 盤點報告（gitignored）：
+    # 兩者屬敘事性歷史文件，描述修正/外部 fork 時合法引用禁用檔名，非規範性指引，排除於 stale-ref 掃描。
 
 $staleFound = $false
 foreach ($pattern in $stalePatterns) {
@@ -219,7 +221,7 @@ if (-not $staleFound) {
 Write-Host ""
 Write-Host "  2-2. Navigation table completeness:" -ForegroundColor Cyan
 
-foreach ($readme in @("README.md", "README.en.md")) {
+foreach ($readme in @("README.md", "README.zh-TW.md")) {
     $path = Join-Path $projectRoot $readme
     if (Test-Path $path) {
         $content = Read-FileText $path
@@ -574,7 +576,7 @@ $skipPatterns = @('_archive', '\log\', '\docs\0425-', '\docs\0523-', 'reference\
 $scanPaths = @(
     "$projectRoot\CLAUDE.md",
     "$projectRoot\README.md",
-    "$projectRoot\README.en.md",
+    "$projectRoot\README.zh-TW.md",
     "$projectRoot\docs\DOCUMENT_AUDIENCE_INVENTORY.md",
     "$projectRoot\docs\BIM_MCP\*.html",
     "$projectRoot\docs\BIM_MCP\reference\*.html",
@@ -585,7 +587,7 @@ $scanPaths = @(
 # Each: { Pattern (regex w/ 1 capture group) ; Truth ; Label }
 # Truth note: Domain Knowledge heading + N Domain refs use $domainCount+1 because 1 entry is from domain/references/
 $claimSites = @(
-    # Markdown count-table claims (CLAUDE.md / README.md / README.en.md / DOCUMENT_AUDIENCE_INVENTORY.md)
+    # Markdown count-table claims (CLAUDE.md / README.md / README.zh-TW.md / DOCUMENT_AUDIENCE_INVENTORY.md)
     @{ Pattern = '\|\s*Runtime MCP tools\s*\|\s*(\d+)\s*\|';           Truth = $toolCount;          Label = '| Runtime MCP tools | N |' },
     @{ Pattern = '\|\s*Domain SOP files\s*\|\s*(\d+)\s*\|';            Truth = $domainCount;        Label = '| Domain SOP files | N |' },
     @{ Pattern = '\|\s*Claude skills\s*\|\s*(\d+)\s*\|';               Truth = $skillCount;         Label = '| Claude skills | N |' },
@@ -743,7 +745,7 @@ Write-Check "No broken BIM_MCP -> source links" ($brokenLinks.Count -eq 0) `
     $(if ($brokenLinks.Count -gt 0) { "First broken: $($brokenLinks[0])" } else { "" })
 
 # 7-7: Local markdown-link rot lint
-# Scans README.md / README.en.md / DOCS_STRUCTURE.md / domain/*.md / .claude/skills/*/SKILL.md
+# Scans README.md / README.zh-TW.md / DOCS_STRUCTURE.md / domain/*.md / .claude/skills/*/SKILL.md
 # for markdown links [text](path) where path is a local relative file. Each target must exist.
 Write-Host ""
 Write-Host "  7-7. Local markdown link rot lint:" -ForegroundColor Cyan
@@ -751,7 +753,7 @@ Write-Host "  7-7. Local markdown link rot lint:" -ForegroundColor Cyan
 $linkScanFiles = @()
 $linkScanFiles += "$projectRoot\CLAUDE.md"
 $linkScanFiles += "$projectRoot\README.md"
-$linkScanFiles += "$projectRoot\README.en.md"
+$linkScanFiles += "$projectRoot\README.zh-TW.md"
 $linkScanFiles += "$projectRoot\docs\DOCS_STRUCTURE.md"
 $linkScanFiles += Get-ChildItem -Path "$projectRoot\domain" -Filter "*.md" -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
 $linkScanFiles += Get-ChildItem -Path "$projectRoot\.claude\skills\*\SKILL.md" -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
@@ -890,7 +892,7 @@ Write-Check "Canonical AI docs pass encoding check" ($aiDocFailures.Count -eq 0)
 Write-Host ""
 Write-Host "  8-3. README docs are mojibake-free:" -ForegroundColor Cyan
 $readmeFailures = @()
-foreach ($doc in @("$projectRoot\README.md", "$projectRoot\README.en.md")) {
+foreach ($doc in @("$projectRoot\README.md", "$projectRoot\README.zh-TW.md")) {
     $text = Read-FileText $doc
     $rel = $doc.Replace("$projectRoot\", "").Replace("\", "/")
     if (-not $text) {
@@ -899,7 +901,7 @@ foreach ($doc in @("$projectRoot\README.md", "$projectRoot\README.en.md")) {
     }
     if (Test-Mojibake $text) { $readmeFailures += "$rel contains mojibake-risk tokens" }
 }
-Write-Check "README.md and README.en.md pass encoding check" ($readmeFailures.Count -eq 0) `
+Write-Check "README.md and README.zh-TW.md pass encoding check" ($readmeFailures.Count -eq 0) `
     $(if ($readmeFailures.Count -gt 0) { ($readmeFailures | Select-Object -First 10) -join "`n" } else { "" })
 
 Write-Host ""

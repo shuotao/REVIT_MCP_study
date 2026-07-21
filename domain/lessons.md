@@ -238,3 +238,10 @@ metadata:
 - **實踐**：(a) 設計師若用 MCP 查面積、紙本仕上表查面積，兩個值會差→AI 應主動標記；(b) 法定報告用哪個 → 法務 / 業主決定 → AI 不替你選。
 - **更上游問題**：這不是 MCP 工具 bug，是 BIM 模型本身「幾何 vs 手填表格值」的失同步。可能來源——建模時牆邊界稍有移動但仕上表沒同步；校正値本來就是對齊圖紙標註的手調值；仕上表用「外側量測」vs 面積用「內側淨空」差異等。
 - **對照**：呼應 P4「限制顯現器」+ Tool Call Data Honesty——MCP 不會替你決定「哪個面積才算數」，把兩個都端出來，由你決定。
+
+## [L-030] PowerShell 腳本教訓——native 指令成敗要看 $LASTEXITCODE
+
+- **規則**：判斷 native 指令（dotnet/npm/winget/net 等外部程式）是否成功，唯一可靠依據是 `$LASTEXITCODE`，**不是** stderr 有沒有輸出。在 `$ErrorActionPreference = "Stop"` 下對 native 指令用 `2>&1` 重導向，PowerShell 5.1 會把 stderr 上的一般進度/警告行升級成終止例外，即使該指令實際 0 錯誤退出。
+- **避坑經驗**：`setup.ps1` 半年來對 8 個 native 呼叫點都用了 `2>&1` + 全域 EAP Stop，`dotnet build` 明明 0 error 卻被腳本誤報「編譯例外」。issue #89 由首次貢獻者 @ray92chiu-png 在乾淨 Windows + stock PowerShell 5.1 環境上首度踩到並精準定位根因，修法是新增 `Invoke-ExternalCommand` helper，在呼叫 native 指令前後暫時把 EAP 切回 Continue，事後仍靠 `$LASTEXITCODE` 判斷成敗（commit `1b5a71e`）。橫向掃描後發現 `scripts/release-port.ps1` 的 `net stop`/`net start http` 同款地雷，一併修正（commit `33f1a44`）。
+- **根因（為何半年沒事）**：CI 一律用 `-SkipBuild -SkipDeploy` 跑 `verify-qaqc.ps1`，setup.ps1 的 native 呼叫路徑從未被實際執行過；早期部署者剛好用 PowerShell 7（無此行為）或工具鏈已預裝、繞過了 native 安裝分支。**「半年沒事」是倖存者偏差，不是腳本沒問題**——CI 覆蓋率的空洞，會被下一個踩線的使用者（而非測試）發現。
+- **實踐**：任何跨版本執行環境（PS 5.1 vs PS 7、cmd vs bash）的腳本，涉及 native 指令 stderr 重導向時，一律用 exit code 判斷成敗，不要讓 stderr 存在與否影響控制流；CI gate 若刻意 skip 某段路徑（如 `-SkipBuild -SkipDeploy`），必須在文件或 log 中明確標記「此路徑未被 CI 覆蓋」，避免長期零覆蓋卻被誤認為已驗證。

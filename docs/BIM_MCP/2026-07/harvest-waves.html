@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026-07-09 五波收編 · 103→146 工具 · BIM_MCP</title>
+<meta property="og:title" content="五波收編：一日內 103→146 個 MCP 工具">
+<meta property="og:description" content="任遠、朱宣宇、劉可、鈺傑四位貢獻者的 fork 內容，一日五波手動收編進 main：+43 MCP 工具、+6 Domain SOP、+17 Claude Skill，dispatcher 零移除，跨版本 build 全過。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../nav.css">
+</head>
+<body>
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">2026-07 · 五波收編</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener" class="bim-topnav-btn bim-topnav-btn-github" title="View source on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+    <a href="../index.html" class="bim-topnav-btn">回首頁</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">2026-07-09 HARVEST · 五波收編</div>
+  <h1 class="bim-hero-title">五波收編<span class="accent">一日落地</span></h1>
+  <p class="bim-hero-sub">同一天內，四位貢獻者散落在各自 fork 分支的成果，被拆成五個波次，逐一手動核對、跑 build、過 QA/QC 後收編進 main。任遠（7alexhuang-ux）、朱宣宇（s9101800111-byte）、劉可（lesleyliuke）、鈺傑（SEven777-a）——沒有一次性大合併，dispatcher 零移除，跨版本 build 全過。</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="data-emph" style="font-size:32px;">+43</div>
+      <div class="data-emph-label">MCP 工具</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">103 → 146</div>
+    </div>
+    <div class="hero-stat">
+      <div class="data-emph" style="font-size:32px;">+6</div>
+      <div class="data-emph-label">Domain SOP</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">55 → 61</div>
+    </div>
+    <div class="hero-stat">
+      <div class="data-emph" style="font-size:32px;">+17</div>
+      <div class="data-emph-label">Claude Skill</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">25 → 42</div>
+    </div>
+  </div>
+</header>
+
+<section class="bim-section bim-anchor" id="waves">
+  <div class="bim-section-eyebrow">SECTION 01 · FIVE WAVES</div>
+  <h2 class="bim-section-title">五波總表</h2>
+  <p class="bim-section-desc">計數以 <code>registerRevitTools()</code>（runtime 實際載入）為準，起點 103 為 PR #68 收編後基線（見 <a href="beam-penetration.html">穿梁套管收編 hands-on</a>）。</p>
+  <table>
+    <thead>
+      <tr><th style="width:8%;">波次</th><th style="width:20%;">貢獻者</th><th style="width:52%;">內容</th><th style="width:20%;">計數</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Wave 1</strong></td>
+        <td>任遠 @7alexhuang-ux（PR #70）<br>鈺傑 @SEven777-a</td>
+        <td><code>grade_toposolid_to_floors</code>（PR #70，併入正典 <code>registerRevitTools()</code> 取代 wrapper hack）+ 鈺傑平行剖面（<code>create_parallel_section_view</code>／<code>batch_create_wall_sections</code>）與偵煙探測器（<code>analyze_smoke_detectors</code>／<code>visualize_detector_results</code>）兩組工具與 skill</td>
+        <td>107 → 108<br>domain +2</td>
+      </tr>
+      <tr>
+        <td><strong>Wave 2</strong></td>
+        <td>朱宣宇 @s9101800111-byte</td>
+        <td>7 工具（schedule 讀取、<code>join_wall_tops</code>、<code>export_families</code>、<code>list_categories</code>、CAD link 相關）+ <code>dll-to-mcp-tool</code> skill</td>
+        <td>108 → 115<br>skill +1</td>
+      </tr>
+      <tr>
+        <td><strong>Wave 4</strong></td>
+        <td>劉可 @lesleyliuke（PR #30 試點）</td>
+        <td>bundle②（詳圖複製/去重/解接合，4 工具）+ bundle⑥（房間高度/視圖細部，8 工具），共 12 工具</td>
+        <td>115 → 127<br>domain 58 → 61<br>skill 28 → 34</td>
+      </tr>
+      <tr>
+        <td><strong>Wave 5</strong></td>
+        <td>劉可 @lesleyliuke（PR #30 完結）</td>
+        <td>bundle①（圖紙/視埠，10 工具）+ bundle③（跨專案圖紙複製，3 工具）+ bundle④（Excel 轉圖例＋材料批次，6 工具），共 19 工具</td>
+        <td>127 → 146<br>skill 34 → 42</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="bim-section-desc" style="margin-top:var(--gap-sm);font-size:12px;">計數以 <code>registerRevitTools()</code> 為準，起點 103 為 PR #68 收編後基線。</p>
+</section>
+
+<section class="bim-section bim-anchor" id="growth">
+  <div class="bim-section-eyebrow">SECTION 02 · GROWTH</div>
+  <h2 class="bim-section-title">103 → 146 成長階梯</h2>
+  <p class="bim-section-desc">每一階都是一次獨立的手動收編：核對 dispatcher、追依賴閉包、build、QA/QC，缺一不可。</p>
+  <div class="bim-grid bim-grid-4">
+    <div class="bim-card harvest-step">
+      <div class="data-emph-label">起點 · PR #68 後</div>
+      <div class="data-emph">103</div>
+      <p style="font-size:12px;color:var(--text-muted);">鈺傑 RC 穿梁套管 step1</p>
+    </div>
+    <div class="bim-card harvest-step">
+      <div class="data-emph-label">Wave 1</div>
+      <div class="data-emph">108</div>
+      <p style="font-size:12px;color:var(--text-muted);">任遠 + 鈺傑</p>
+    </div>
+    <div class="bim-card harvest-step">
+      <div class="data-emph-label">Wave 2</div>
+      <div class="data-emph">115</div>
+      <p style="font-size:12px;color:var(--text-muted);">朱宣宇</p>
+    </div>
+    <div class="bim-card harvest-step">
+      <div class="data-emph-label">Wave 4</div>
+      <div class="data-emph">127</div>
+      <p style="font-size:12px;color:var(--text-muted);">劉可（試點）</p>
+    </div>
+  </div>
+  <div class="bim-grid bim-grid-4" style="margin-top:var(--gap-sm);">
+    <div class="bim-card harvest-step bim-card-accent">
+      <div class="data-emph-label">Wave 5 · 終點</div>
+      <div class="data-emph">146</div>
+      <p style="font-size:12px;color:var(--text-muted);">劉可（完結）</p>
+    </div>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="workflow">
+  <div class="bim-section-eyebrow">SECTION 03 · HARVEST WORKFLOW</div>
+  <h2 class="bim-section-title">收編波工作流</h2>
+  <table>
+    <thead><tr><th>角色</th><th>做什麼</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Haiku</strong></td><td>補掃 fork——對曾 push 過的分支逐一比對，找出原本被誤判為「純同步」的沉默貢獻者</td></tr>
+      <tr><td><strong>Sonnet</strong></td><td>移植——逐 case 手動搬移程式碼，追依賴閉包，保持 dispatcher 零移除</td></tr>
+      <tr><td><strong>Opus</strong></td><td>判定——比對本機 main、裁決哪些內容值得收，哪些已被取代（superseded）</td></tr>
+      <tr><td><strong>Fable</strong></td><td>編排——跨版本 build（R22/R24/R26）、QA/QC 全綠，統籌五波節奏</td></tr>
+    </tbody>
+  </table>
+
+  <div class="empathy-quote">
+    <span class="empathy-quote-label">業界口訣</span>
+    <div class="empathy-quote-text">收編波＝把散在 89 個 fork 裡的好東西一波波手動搬進主線，每件都手動核對、跑 build、過 QAQC，寧可慢也不讓 main 壞掉。</div>
+    <span class="empathy-quote-context">五波皆未 push，待老師核可；每波獨立可回退。</span>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="skip-rulings">
+  <div class="bim-section-eyebrow">SECTION 04 · SKIP RULINGS</div>
+  <h2 class="bim-section-title">兩個不收編的裁決</h2>
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card">
+      <h4 style="color:var(--warn);">jury-gate（Stop hook 治理工具）</h4>
+      <p>留給老師 opt-in 裁決，本輪五波不強制收編——治理工具涉及 Stop hook 行為變更，影響面較廣，不適合隨批次帶入。</p>
+    </div>
+    <div class="bim-card">
+      <h4 style="color:var(--warn);">bundle⑤（openai.yaml）</h4>
+      <p>非 Claude 依賴，經老師裁決 skip 定案，未收編——與本專案以 Claude/Anthropic 為主的 AI client 假設不符。</p>
+    </div>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="related">
+  <div class="bim-section-eyebrow">RELATED REFERENCE</div>
+  <h2 class="bim-section-title">深度閱讀</h2>
+  <div class="bim-grid bim-grid-3">
+    <a class="bim-card" href="../reference/domain-index.html">
+      <h4>Domain 索引</h4>
+      <p>61 個 Domain SOP 總表</p>
+    </a>
+    <a class="bim-card" href="beam-penetration.html">
+      <h4>穿梁套管收編 hands-on</h4>
+      <p>103 起點的前置收編——PR #68 修正式合併與依賴閉包教訓</p>
+    </a>
+    <a class="bim-card" href="../index.html">
+      <h4>BIM_MCP 首頁</h4>
+      <p>回站點入口，看最新事件與三層架構</p>
+    </a>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="../index.html" class="bim-footer-btn primary">← 回 BIM_MCP 首頁</a>
+    <a href="beam-penetration.html" class="bim-footer-btn">穿梁套管收編 hands-on</a>
+    <a href="../reference/domain-index.html" class="bim-footer-btn">Domain 索引</a>
+  </div>
+  <p>BIM_MCP · 2026-07 harvest · 五波收編（任遠 @7alexhuang-ux／朱宣宇 @s9101800111-byte／劉可 @lesleyliuke／鈺傑 @SEven777-a）</p>
+</footer>
+
+<script src="../shared.js"></script>
+<script>initAll();</script>
+</body>
+</html>

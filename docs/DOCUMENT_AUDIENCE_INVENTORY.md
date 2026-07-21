@@ -7,7 +7,7 @@ This inventory defines which project documents are for AI agents, human readers,
 | Audience | Rule |
 |---|---|
 | AI-only | Write in English. Keep instructions explicit, operational, and encoding-safe. |
-| Human-facing | Use the reader's language. `README.md` is Traditional Chinese; `README.en.md` is English. |
+| Human-facing | Use the reader's language. `README.md` is English; `README.zh-TW.md` is Traditional Chinese. |
 | Shared | Keep readable for both humans and AI. Domain files must not become English-only. |
 | Historical | Preserve unless the user explicitly asks for migration. Do not let archive content drive current rules. |
 
@@ -15,9 +15,9 @@ This inventory defines which project documents are for AI agents, human readers,
 
 | Item | Count | Source |
 |---|---:|---|
-| Runtime MCP tools | 116 | `registerRevitTools()` |
-| Domain SOP files | 56 | `domain/*.md` except README, plus `domain/references/*.md` |
-| Claude skills | 29 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 168 | `registerRevitTools()` |
+| Domain SOP files | 72 | `domain/*.md` except README, plus `domain/references/*.md` |
+| Claude skills | 50 | `.claude/skills/*/SKILL.md` |
 
 ## AI-Only Documents
 
@@ -51,8 +51,8 @@ These must remain understandable by both sides.
 
 | Path | Audience | Notes |
 |---|---|---|
-| `README.md` | Traditional Chinese onboarding | Installation, architecture, common workflows |
-| `README.en.md` | English onboarding | English counterpart of README |
+| `README.md` | English onboarding | Installation, architecture, common workflows |
+| `README.zh-TW.md` | Traditional Chinese onboarding | Traditional Chinese counterpart of README |
 | `CONTRIBUTING.md` | contributors | Contribution process |
 | `CHANGELOG.md` | users and maintainers | Release history |
 | `scripts/README.md` | installers and maintainers | Script usage |

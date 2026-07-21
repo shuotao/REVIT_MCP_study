@@ -89,15 +89,15 @@
   <h2 class="bim-section-title">三個技術陷阱</h2>
   <div class="bim-grid bim-grid-3">
     <div class="bim-card">
-      <h4 style="color:#f87171;">fork PR 舊檔貼回陷阱</h4>
+      <h4 style="color:var(--bad);">fork PR 舊檔貼回陷阱</h4>
       <p>GitHub 顯示 mergeable，textual merge 乾淨，但 PR 的 <code>CommandExecutor.cs</code> 是 fork 舊檔整個貼回：刪 12 個現役 case（門窗圖例、樑翻模、走廊分析等）。因方法在 partial class，build 照樣過、runtime 才壞。<strong>教訓</strong>：合併 fork PR 前先 diff dispatcher case 清單。</p>
     </div>
     <div class="bim-card">
-      <h4 style="color:#f87171;">PR 切片的依賴閉包</h4>
+      <h4 style="color:var(--bad);">PR 切片的依賴閉包</h4>
       <p>從大分支切出來的 PR 可能呼叫沒隨附的方法；本次 PR 呼叫了 7 個未隨附的 helper 方法，無法單獨編譯。<strong>教訓</strong>：合併前要追依賴閉包，缺的從同作者原分支補。</p>
     </div>
     <div class="bim-card">
-      <h4 style="color:#f87171;">WebSocket 大封包截斷</h4>
+      <h4 style="color:var(--bad);">WebSocket 大封包截斷</h4>
       <p>單次 <code>ReceiveAsync</code> + <code>GetString(count)</code> 遇分片 frame 會截斷 JSON；改 <code>MemoryStream</code> 累積至 <code>EndOfMessage</code> 才轉字串。此修正已 cherry-pick 進 main。</p>
     </div>
   </div>
@@ -134,7 +134,7 @@
     </a>
     <a class="bim-card" href="../reference/domain-index.html">
       <h4>Domain 索引</h4>
-      <p>55 個 Domain SOP 總表</p>
+      <p>61 個 Domain SOP 總表</p>
     </a>
   </div>
 </section>

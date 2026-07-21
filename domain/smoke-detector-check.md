@@ -10,7 +10,7 @@ metadata:
     - smoke-exhaust-review.md
     - mep-csa-clash-detection.md
   referenced_by:
-    - ".claude/skills/smoke-detector-check/SKILL.md"
+    - smoke-detector-check
 ---
 
 # 消防偵煙探測器設置法規檢討

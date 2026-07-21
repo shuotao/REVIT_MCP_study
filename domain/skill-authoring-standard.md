@@ -3,7 +3,7 @@ name: skill-authoring-standard
 description: "Revit MCP 專案的 Skill 編寫規範。供 skill-creator plugin 執行時參照，處理專案特有的約束（description 規則、觸發關鍵字、品質檢查）。當使用者提到 skill 規範、skill 品質、skill 編寫標準、description 規則時觸發。"
 metadata:
   version: "1.0"
-  updated: "2026-03-21"
+  updated: "2026-07-09"
   created: "2026-03-21"
   contributors:
     - "shuotao"
@@ -169,3 +169,20 @@ SKILL.md    = 編排（何時觸發、什麼順序、呼叫哪些工具）
 - [ ] 工具名稱在 body 的表格中，不在 description
 - [ ] name 為 kebab-case，與資料夾名稱一致
 - [ ] 已確認對應的 domain 文件存在
+
+## 8. Skill 打包與上游規格觀察（Skill Packaging & Upstream Watch）
+
+Shareable skills are packaged as installable plugins via `.claude-plugin/marketplace.json` (marketplace name: `revit-mcp-skills`). Consumer install path:
+
+```text
+/plugin marketplace add shuotao/REVIT_MCP_study
+/plugin install <plugin>@revit-mcp-skills
+```
+
+A packaged skill MUST be self-contained: bundle any referenced files inside the skill folder (e.g. `.claude/skills/<name>/references/`); never point at repo paths outside the skill directory, or the plugin breaks on install. Packaging a skill does NOT change the `Claude skills` source-of-truth count — that count is `.claude/skills/*/SKILL.md` only.
+
+### Upstream Watch (ongoing)
+
+Periodically check `github.com/anthropics/skills` for changes to the Agent Skills spec — specifically the `SKILL.md` frontmatter contract and the `.claude-plugin/marketplace.json` schema. If upstream changes the format, update our `SKILL.md` files and `marketplace.json` to match, then re-run QA/QC.
+
+Snapshot as of 2026-06: `SKILL.md` frontmatter is `name` + `description` (+ optional `license`); marketplace schema version is `1.0.0`. There is NO breaking "2.0" file-format change — the shift is packaging/distribution (open standard + plugin marketplace), not the skill file format.

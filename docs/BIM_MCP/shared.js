@@ -6,7 +6,7 @@
   // MEETUP_SIGNUP_URL — 月小聚報名表單，每月更新一次
   // ⚠ MONTHLY: 換月時只改這一行，所有 [data-meetup-link] 元素自動套用
   // ============================================================
-  var MEETUP_SIGNUP_URL = "https://forms.gle/m5CJfsrYTGVh1L5a6";
+  var MEETUP_SIGNUP_URL = "https://forms.gle/TFKZuxLyoWrtykoP6";
 
   window.initMeetupLinks = function initMeetupLinks() {
     qsa("[data-meetup-link]").forEach(function (el) {
@@ -147,8 +147,8 @@
     "reference/three-constitutions": { title: "四條憲法", desc: "Passive Ready / Data Honesty / Domain Method / Active Re-Anchoring。" },
     "reference/industry-evidence": { title: "業界證據", desc: "100× / 70% / $15-25K + 三套成熟方法論。" },
     "reference/spectrum-decision": { title: "光譜決策框架", desc: "FAIL 之後的 A/B/C/D 四條路線。" },
-    "reference/skills-index": { title: "Skills 索引（19）", desc: "編排層：何時觸發 / 什麼順序。" },
-    "reference/domain-index": { title: "Domain 索引（35+）", desc: "知識層：法規 / SOP / lessons。" },
+    "reference/skills-index": { title: "Skills 索引（50）", desc: "編排層：何時觸發 / 什麼順序。" },
+    "reference/domain-index": { title: "Domain 索引（72）", desc: "知識層：法規 / SOP / lessons。" },
     "reference/deployment-guide": { title: "部署指南", desc: "Nice3point / Release.R{YY} / setup.ps1。" },
     "reference/troubleshooting": { title: "Troubleshooting", desc: "5 經典 + 4 個 5/18 demo 修復。" },
     "reference/contributor-template": { title: "Contributor Template", desc: "新增 Domain / Skill / Tool 的順序。" },
@@ -157,8 +157,8 @@
     "three-constitutions": { title: "四條憲法", desc: "被動就緒 / 資料誠實 / Domain method / Active Re-Anchoring。" },
     "industry-evidence": { title: "業界證據", desc: "100× / 70% / $15-25K。" },
     "spectrum-decision": { title: "光譜決策", desc: "A/B/C/D 框架。" },
-    "skills-index": { title: "Skills 索引", desc: "19 個編排層 Skill。" },
-    "domain-index": { title: "Domain 索引", desc: "45 個 SOP 知識。" },
+    "skills-index": { title: "Skills 索引", desc: "50 個編排層 Skill。" },
+    "domain-index": { title: "Domain 索引", desc: "72 個 SOP 知識。" },
     "deployment-guide": { title: "部署指南", desc: "多版本 build / DLL 部署。" },
     "troubleshooting": { title: "Troubleshooting", desc: "經典問題 + live fixes。" },
     "contributor-template": { title: "Contributor Template", desc: "雙寫流程：知識先、編排後。" },

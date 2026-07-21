@@ -1,28 +1,49 @@
+<div align="center">
+  <img src="assets/logo.png" alt="Revit MCP" width="140" height="140">
+</div>
+
 # Revit MCP - AI-Powered Revit Control
 
-[English](README.en.md) | 繁體中文
+English | [繁體中文](README.zh-TW.md)
 
-Revit MCP 透過 Model Context Protocol (MCP) 讓 AI Client 呼叫 Revit 工具，並由 Revit Add-in 在本機執行 Revit API 工作流程。
+Revit MCP lets AI clients call Autodesk Revit tools through the Model Context Protocol (MCP). The MCP server forwards tool calls to a local Revit add-in, and the add-in executes the corresponding Revit API workflow.
 
-- 示範影片：[Revit MCP - AI 驅動的 BIM 工作流程示範](https://youtu.be/YpAYF-GxrhA)
-- 知識站：<https://shuotao.github.io/REVIT_MCP_study/>
-- 預設 WebSocket port：`8964`
+- Demo video: [Revit MCP - AI-Powered BIM Workflow Demonstration](https://youtu.be/YpAYF-GxrhA)
+- Knowledge site: <https://shuotao.github.io/REVIT_MCP_study/>
+- Default WebSocket port: `8964`
 
-## 目前專案狀態
+## What is this?
 
-| 項目 | 數量 | 來源 |
+Talk to Revit in plain language. Ask your AI client to *"dimension every wall on this view"* or *"check the curtain-wall elevations"*, and Revit does it — through **168 MCP tools** backed by **72 professional BIM SOPs** (building code, quantity take-off, compliance checks).
+
+**Who it's for:** BIM engineers and architects who use Revit and want AI-assisted, standards-based workflows. You'll need Revit (2022–2026) on Windows and to be comfortable installing an add-in.
+
+## Quickstart (3 steps)
+
+1. **Install the Revit add-in.** Build and deploy the C# add-in — see [Manual Setup](#manual-setup). This is the half that actually talks to Revit.
+2. **Point your AI client at the MCP server.** No cloning needed — it runs straight from npm:
+   ```json
+   { "mcpServers": { "revit-mcp": { "command": "npx", "args": ["-y", "@shuotao/revit-mcp-server"] } } }
+   ```
+3. **Open Revit, enable the MCP service in the ribbon, and start asking.** Full setup: [AI Client Configuration](#ai-client-configuration).
+
+Questions or want to show what you built? → **[Discussions](https://github.com/shuotao/REVIT_MCP_study/discussions)**
+
+## Current Project Counts
+
+| Item | Count | Source |
 |---|---:|---|
-| Runtime MCP tools | 116 | `MCP-Server/src/tools/index.ts` 的 `registerRevitTools()` |
-| Domain SOP files | 56 | `domain/*.md` 扣除 `README.md`，加上 `domain/references/*.md` |
-| Claude skills | 29 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 168 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 72 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
+| Claude skills | 50 | `.claude/skills/*/SKILL.md` |
 
-如果這些數字改變，請同步更新 `CLAUDE.md`、本 README、`README.en.md`、`docs/DOCUMENT_AUDIENCE_INVENTORY.md`，並執行：
+When these numbers change, update `CLAUDE.md`, `README.zh-TW.md`, this file, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and run:
 
 ```powershell
 .\scripts\verify-qaqc.ps1 -SkipBuild -SkipDeploy
 ```
 
-## 架構
+## Architecture
 
 ```text
 AI Client
@@ -46,36 +67,46 @@ Revit Add-in
 Autodesk Revit
 ```
 
-外部 AI Client 不需要在本專案內設定 AI API Key；AI 帳號與授權由各 AI Client 自己管理。只有「Revit 內嵌 AI Chat」這種直接呼叫 AI API 的方案才需要 API Key。
+External AI clients do not need an API key inside this repository. Their account and authorization are managed by the AI client itself. Only an embedded Revit chat feature that directly calls an AI API would need an API key.
 
-## 系統需求
+## Requirements
 
-| 項目 | 需求 |
+| Item | Requirement |
 |---|---|
-| OS | Windows 10 或更新版本 |
-| Revit | Autodesk Revit 2022、2023、2024、2025、2026 |
-| .NET | Revit 2022-2024 使用 .NET Framework 4.8；Revit 2025-2026 使用 .NET 8 |
-| Node.js | LTS，建議 20.x 或更新版本 |
+| OS | Windows 10 or later |
+| Revit | Autodesk Revit 2022, 2023, 2024, 2025, 2026 |
+| .NET | .NET Framework 4.8 for Revit 2022-2024; .NET 8 for Revit 2025-2026 |
+| Node.js | LTS, preferably 20.x or later |
 
-## 一鍵安裝
+## One-Click Setup
 
-新手建議使用：
+Recommended for new users:
 
 ```powershell
 .\scripts\setup.ps1
 ```
 
-AI Agent 或非互動模式可使用：
+For AI agents or non-interactive setup:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -NonInteractive -RevitVersions "2024,2025"
 ```
 
-腳本會檢查環境、安裝相依套件、編譯 MCP Server、編譯並部署 Revit Add-in，並協助設定常見 AI Client。
+The setup script checks prerequisites, installs dependencies, builds the MCP server, builds and deploys the Revit add-in, and helps configure common AI clients.
 
-## 手動安裝
+## Install from MCP Registry
 
-### 1. 編譯 MCP Server
+The MCP server is published on the [MCP Registry](https://registry.modelcontextprotocol.io/) as `io.github.shuotao/revit-mcp-server` (npm package `@shuotao/revit-mcp-server`). Run it directly with:
+
+```bash
+npx -y @shuotao/revit-mcp-server
+```
+
+Note: this npm package is only the Node stdio bridge. The C# Revit add-in (`MCP/`) must still be installed separately — follow **Manual Setup** below for your Revit version.
+
+## Manual Setup
+
+### 1. Build the MCP Server
 
 ```powershell
 cd MCP-Server
@@ -83,15 +114,15 @@ npm install
 npm run build
 ```
 
-AI Client 會啟動：
+AI clients launch:
 
 ```text
 node MCP-Server/build/index.js
 ```
 
-### 2. 編譯 Revit Add-in
+### 2. Build the Revit Add-in
 
-請依 Revit 版本選擇設定：
+Choose the configuration that matches your Revit version:
 
 ```powershell
 cd MCP
@@ -102,37 +133,37 @@ dotnet build -c Release.R25 RevitMCP.csproj   # Revit 2025
 dotnet build -c Release.R26 RevitMCP.csproj   # Revit 2026
 ```
 
-輸出路徑是：
+Expected output:
 
 ```text
 MCP/bin/Release.R{YY}/RevitMCP.dll
 ```
 
-例如 Revit 2024：
+Example for Revit 2024:
 
 ```text
 MCP/bin/Release.R24/RevitMCP.dll
 ```
 
-### 3. 部署 Add-in
+### 3. Deploy the Add-in
 
-建議使用：
+Recommended:
 
 ```powershell
 .\scripts\install-addon.ps1
 ```
 
-手動部署時，`.addin` 與 DLL 必須放在對應版本的 Revit Addins 位置，並維持 `RevitMCP.addin` 內的相對 assembly path：
+For manual deployment, place the `.addin` file and DLL under the matching Revit Addins directory, and keep the relative assembly path in `RevitMCP.addin`:
 
 ```xml
 <Assembly>RevitMCP\RevitMCP.dll</Assembly>
 ```
 
-不要建立版本專屬 `.addin`，也不要硬寫絕對 DLL 路徑。
+Do not create version-specific `.addin` files, and do not hardcode absolute DLL paths.
 
-## AI Client 設定
+## AI Client Configuration
 
-本專案已有 Claude Code / Codex 風格的 `.mcp.json`：
+Project-level `.mcp.json`:
 
 ```json
 {
@@ -147,7 +178,7 @@ MCP/bin/Release.R24/RevitMCP.dll
 }
 ```
 
-VS Code 設定在 `.vscode/mcp.json`：
+VS Code config in `.vscode/mcp.json`:
 
 ```json
 {
@@ -162,40 +193,40 @@ VS Code 設定在 `.vscode/mcp.json`：
 }
 ```
 
-其他 AI Client 的核心概念相同：使用 `node` 啟動 `MCP-Server/build/index.js`。
+Other AI clients use the same concept: launch `MCP-Server/build/index.js` with `node`.
 
-各 Client 的設定範本對照：
+Config template per client:
 
-| AI Client | 設定位置 | 範本 |
+| AI Client | Config location | Template |
 |---|---|---|
-| Claude Code | 專案根目錄 `.mcp.json` | 已內建，開箱即用 |
+| Claude Code | project root `.mcp.json` | built in, works out of the box |
 | Claude Desktop | `%APPDATA%\Claude\claude_desktop_config.json` | `MCP-Server/claude_desktop_config.json` |
 | Gemini CLI | `~/.gemini/settings.json` | `MCP-Server/gemini_mcp_config.json` |
-| VS Code Copilot | `.vscode/mcp.json` | 已內建 |
-| Antigravity | UI 設定 | `Antigravity_MCP_Complete_Guide.md` |
+| VS Code Copilot | `.vscode/mcp.json` | built in |
+| Antigravity | UI settings | `Antigravity_MCP_Complete_Guide.md` |
 
-範本中的 `<YOUR_PROJECT_PATH>` 需替換為本專案的實際路徑。
+Replace `<YOUR_PROJECT_PATH>` in the templates with the actual project path on your machine.
 
-### AI Client 切換與並用限制
+### Switching Between AI Clients
 
-Revit 端的 WebSocket 服務一次只接受一條 MCP 連線：後連上的 MCP Server 會取代先前的連線。因此多個 AI Client 是「切換使用」而不是「同時並用」：
+The Revit-side WebSocket service accepts only one MCP connection at a time: a newly connected MCP server replaces the previous connection. Multiple AI clients are therefore used by switching, not concurrently:
 
-1. 關閉目前使用的 AI Client（或停用其 MCP server）。
-2. 啟動另一個 AI Client，它的 MCP Server 連上 `localhost:8964` 後即接手。
-3. 若連線狀態異常，於 Revit ribbon 重啟 MCP 服務即可重置。
+1. Close the current AI client (or disable its MCP server).
+2. Start the other AI client; once its MCP server connects to `localhost:8964`, it takes over.
+3. If the connection misbehaves, restart the MCP service from the Revit ribbon to reset it.
 
-## 啟動流程
+## Startup Flow
 
-1. 啟動 Revit。
-2. 載入或建立專案。
-3. 在 Revit ribbon 的 MCP Tools 面板啟動 MCP 服務。
-4. 確認 Revit 顯示 WebSocket server 已監聽 `localhost:8964`。
-5. 啟動或重啟 AI Client，讓它載入 MCP Server。
-6. 在 AI Client 中呼叫 Revit MCP tools。
+1. Start Revit.
+2. Open or create a Revit project.
+3. Enable the MCP service from the Revit ribbon.
+4. Confirm the Revit add-in is listening on `localhost:8964`.
+5. Start or restart the AI client so it loads the MCP server.
+6. Call Revit MCP tools from the AI client.
 
-如果 `localhost:8964` 連不上，通常代表 Revit 沒開、MCP 服務沒開、port 被佔用，或 AI Client 的 `REVIT_MCP_PORT` 與 Revit 端設定不一致。
+If `localhost:8964` is unreachable, Revit may not be running, the MCP service may be off, the port may be occupied, or the AI client and Revit add-in may be using different port settings.
 
-## 專案結構
+## Project Structure
 
 ```text
 REVIT_MCP/
@@ -220,108 +251,107 @@ REVIT_MCP/
   log/                         Append-only session and commit logs
 ```
 
-## AI 文件與人類文件
+## AI Docs and Human Docs
 
-本專案刻意分層：
-
-| 類型 | 位置 | 原則 |
+| Type | Location | Rule |
 |---|---|---|
-| AI-only | `CLAUDE.md`, `.claude/commands/`, `.claude/skills/` | 以英文為主，避免 mojibake |
-| Human-facing | `README.md`, `README.en.md`, `docs/`, `scripts/README.md` | 依讀者語言撰寫 |
-| Shared | `domain/*.md`, `log/README.md` | Domain 必須保留中文可讀性，不可全英文化 |
-| Historical | `docs/_archive/**`, old logs | 預設保留，不拿來當現行規則 |
+| AI-only | `CLAUDE.md`, `.claude/commands/`, `.claude/skills/` | English-first to avoid mojibake |
+| Human-facing | `README.md`, `README.zh-TW.md`, `docs/`, `scripts/README.md` | Match the reader's language |
+| Shared | `domain/*.md`, `log/README.md` | Domain files must remain Chinese-readable and must not become English-only |
+| Historical | `docs/_archive/**`, old logs | Preserve by default |
 
-完整盤點見 [docs/DOCUMENT_AUDIENCE_INVENTORY.md](./docs/DOCUMENT_AUDIENCE_INVENTORY.md)。
+See [docs/DOCUMENT_AUDIENCE_INVENTORY.md](./docs/DOCUMENT_AUDIENCE_INVENTORY.md).
 
-## Domain、Skill、Tool 的分工
+## Domain, Skill, and Tool Responsibilities
 
-- `domain/*.md`：BIM SOP、法規邏輯、計算方法。這是人類與 AI 共用的知識層，不能全英文化。
-- `.claude/skills/*/SKILL.md`：AI 執行工作流程的編排層。
-- `MCP-Server/src/tools/*.ts`：MCP 工具定義與輸入 schema。
-- `MCP/Core/Commands/*.cs`：真正呼叫 Revit API 的實作。
+- `domain/*.md`: BIM SOPs, regulatory logic, and calculation methods. Shared by humans and AI.
+- `.claude/skills/*/SKILL.md`: AI workflow orchestration.
+- `MCP-Server/src/tools/*.ts`: MCP tool definitions and input schemas.
+- `MCP/Core/Commands/*.cs`: Revit API implementation.
 
-當 Domain 與 Skill 對方法描述不同時，以 Domain 為準。
+If a Domain file and a Skill disagree on method, the Domain file wins.
 
 ## QA/QC
 
-文件、工具、Domain、Skill、建置或部署相關修改後，至少執行：
+After documentation, tool, Domain, Skill, build, or deployment changes, run:
 
 ```powershell
 .\scripts\verify-qaqc.ps1 -SkipBuild -SkipDeploy
 ```
 
-正式部署前執行完整檢查：
+Before deployment, run a full check:
 
 ```powershell
 .\scripts\verify-qaqc.ps1 -Version 2024
 ```
 
-QA/QC 會檢查：
+QA/QC checks:
 
-- 禁止的 legacy 檔案與路徑。
-- 必要檔案是否存在。
-- README / CLAUDE / docs 的統計是否同步。
-- Domain table 與實際 Domain 檔案是否互相覆蓋。
-- Markdown local link 是否失效。
-- Domain frontmatter 是否完整。
-- AI-only、人類文件、Shared Domain 的受眾分類與 mojibake 風險。
+- forbidden legacy files and paths
+- required file structure
+- README / CLAUDE / docs count alignment
+- Domain table forward and reverse coverage
+- local Markdown link rot
+- Domain frontmatter
+- document audience classification
+- mojibake risk in canonical docs
 
-## 常見問題
+## Troubleshooting
 
-### AI 說找不到 Revit tools
+### AI cannot find Revit tools
 
-確認：
+Check:
 
-1. `MCP-Server` 已執行 `npm run build`。
-2. AI Client 的 MCP 設定指向正確的 `MCP-Server/build/index.js`。
-3. AI Client 已重啟或重新載入 MCP servers。
+1. `npm run build` has been run in `MCP-Server`.
+2. The AI client's MCP config points to the correct `MCP-Server/build/index.js`.
+3. The AI client has been restarted or has reloaded MCP servers.
 
-### MCP Server 連不上 Revit
+### MCP Server cannot connect to Revit
 
-確認：
+Check:
 
-1. Revit 已啟動。
-2. Revit ribbon 中 MCP 服務已開啟。
-3. `localhost:8964` 未被其他程式佔用。
-4. 若 port 被 HTTP.sys / PID 4 卡住，可嘗試：
+1. Revit is running.
+2. The MCP service is enabled in the Revit ribbon.
+3. `localhost:8964` is not occupied.
+4. If HTTP.sys / PID 4 is holding the port, try:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\release-port.ps1
 ```
 
-### Revit 看不到 MCP Tools 面板
+### Revit does not show the MCP Tools panel
 
-確認 `.addin` 與 DLL 已部署到對應版本的 `%APPDATA%\Autodesk\Revit\Addins\{version}`，然後重新啟動 Revit。
+Confirm the `.addin` file and DLL were deployed under the matching `%APPDATA%\Autodesk\Revit\Addins\{version}` directory, then restart Revit.
 
-## 重要規則
+## Important Rules
 
-- 只保留一個 `MCP/RevitMCP.csproj`。
-- 只保留一個 `MCP/RevitMCP.addin`。
-- 不建立版本專屬 `.csproj` 或 `.addin`。
-- 不建立 `MCP/MCP/` 巢狀目錄。
-- 不把 `.addin` 的 `<Assembly>` 改成絕對路徑。
-- 不把 Domain 改成全英文。
-- 不用手寫 WebSocket JSON 繞過 MCP Server。
-- 涉及 Revit 目前視圖、樓層、選取或文件狀態時，AI 必須重新查詢 live state，不能沿用舊記憶。
+- Keep one `MCP/RevitMCP.csproj`.
+- Keep one `MCP/RevitMCP.addin`.
+- Do not create version-specific `.csproj` or `.addin` files.
+- Do not create nested `MCP/MCP/` directories.
+- Do not change `.addin` `<Assembly>` to an absolute path.
+- Do not convert Domain files to English-only.
+- Do not bypass the MCP server with hand-written WebSocket JSON.
+- For live Revit view, level, selection, or document state, AI must query live state in the current turn.
 
-## 文件導覽
+## Document Navigation
 
-| 文件 | 用途 |
+| Document | Purpose |
 |---|---|
-| [CLAUDE.md](./CLAUDE.md) | AI agent 的主要規則與專案地圖 |
-| [AGENTS.md](./AGENTS.md) | redirect 到 `CLAUDE.md` |
-| [GEMINI.md](./GEMINI.md) | redirect 到 `CLAUDE.md` |
-| [README.en.md](./README.en.md) | English README |
-| [CONTRIBUTING.md](./CONTRIBUTING.md) | 貢獻流程 |
-| [CHANGELOG.md](./CHANGELOG.md) | 版本紀錄 |
-| [domain/README.md](./domain/README.md) | Domain SOP 目錄 |
-| [domain/lessons.md](./domain/lessons.md) | 專案經驗與教訓 |
+| [CLAUDE.md](./CLAUDE.md) | Main AI agent constitution and project map |
+| [AGENTS.md](./AGENTS.md) | Redirect to `CLAUDE.md` |
+| [GEMINI.md](./GEMINI.md) | Redirect to `CLAUDE.md` |
+| [README.zh-TW.md](./README.zh-TW.md) | Traditional Chinese README |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | Contribution guide |
+| [CHANGELOG.md](./CHANGELOG.md) | Release history |
+| [domain/README.md](./domain/README.md) | Domain SOP catalog |
+| [domain/lessons.md](./domain/lessons.md) | Project lessons |
 | [.claude/skills/](./.claude/skills/) | AI skills |
 | [.claude/commands/](./.claude/commands/) | AI slash commands |
-| [scripts/README.md](./scripts/README.md) | 腳本說明 |
-| [docs/DOCUMENT_AUDIENCE_INVENTORY.md](./docs/DOCUMENT_AUDIENCE_INVENTORY.md) | 文件受眾盤點 |
-| [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | docs 目錄說明 |
-| [log/README.md](./log/README.md) | log append 規則 |
+| [scripts/README.md](./scripts/README.md) | Script documentation |
+| [docs/DOCUMENT_AUDIENCE_INVENTORY.md](./docs/DOCUMENT_AUDIENCE_INVENTORY.md) | Document audience inventory |
+| [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | Docs directory guide |
+| [log/README.md](./log/README.md) | Log append rules |
 
 ## License
 

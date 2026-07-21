@@ -249,6 +249,15 @@ namespace RevitMCP.Core
                         result = JoinWallTops(parameters);
                         break;
 
+                    // === 解除幾何接合（劉可 PR#30 bundle②）===
+                    case "unjoin_column_joins":
+                        result = UnjoinColumnJoins(parameters);
+                        break;
+
+                    case "unjoin_element_joins":
+                        result = UnjoinElementJoins(parameters);
+                        break;
+
                     case "check_exterior_wall_openings":
                         result = CheckExteriorWallOpenings(parameters);
                         break;
@@ -383,6 +392,71 @@ namespace RevitMCP.Core
                         result = GetViewportMap();
                         break;
 
+                    // === 圖紙/視埠管理（劉可 PR#30 bundle①）===
+                    case "get_sheet_viewport_details":
+                        result = GetSheetViewportDetails(parameters);
+                        break;
+                    case "arrange_viewports_on_sheet":
+                        result = ArrangeViewportsOnSheet(parameters);
+                        break;
+                    case "scale_drafting_view_width":
+                        result = ScaleDraftingViewWidth(parameters);
+                        break;
+                    case "scale_drafting_view_height":
+                        result = ScaleDraftingViewHeight(parameters);
+                        break;
+                    case "create_floor_plans_from_template":
+                        result = CreateFloorPlansFromTemplate(parameters);
+                        break;
+                    case "batch_apply_view_template":
+                        result = BatchApplyViewTemplate(parameters);
+                        break;
+                    case "position_viewports_on_sheet":
+                        result = PositionViewportsOnSheet(parameters);
+                        break;
+                    case "debug_viewport_geometry":
+                        result = DebugViewportGeometry(parameters);
+                        break;
+                    case "align_titleblocks_on_sheets":
+                        result = AlignTitleblocksOnSheets(parameters);
+                        break;
+                    case "move_viewport_titles":
+                        result = MoveViewportTitles(parameters);
+                        break;
+
+                    // === 跨檔案圖紙複製（劉可 PR#30 bundle③）===
+                    case "read_source_file_sheets":
+                        result = ReadSourceFileSheets(parameters);
+                        break;
+                    case "copy_sheets_from_file":
+                        result = CopySheetsFromFile(parameters);
+                        break;
+                    case "sync_sheet_parameters_from_source":
+                        result = SyncSheetParametersFromSource(parameters);
+                        break;
+
+                    // === Excel/Legend 批次（劉可 PR#30 bundle④）===
+                    case "create_legends":
+                        result = CreateLegends(parameters);
+                        break;
+                    case "read_excel_tables":
+                        result = ReadExcelTables(parameters);
+                        break;
+                    case "import_excel_to_drafting_views":
+                        result = ImportExcelToDraftingViews(parameters);
+                        break;
+
+                    // === 材質批次修改（劉可 PR#30 bundle④）===
+                    case "get_types_by_category":
+                        result = GetTypesByCategory(parameters);
+                        break;
+                    case "batch_set_material":
+                        result = BatchSetMaterial(parameters);
+                        break;
+                    case "assign_existing_material":
+                        result = AssignExistingMaterial(parameters);
+                        break;
+
                     // === 詳圖元件模組 ===
                     case "get_detail_components":
                         result = GetDetailComponents(parameters);
@@ -395,6 +469,40 @@ namespace RevitMCP.Core
                         break;
                     case "list_family_symbols":
                         result = ListFamilySymbols(parameters);
+                        break;
+
+                    // === 詳圖項目複製 / 去重（劉可 PR#30 bundle②）===
+                    case "copy_detail_items_to_views":
+                        result = CopyDetailItemsToViews(parameters);
+                        break;
+                    case "dedup_detail_elements_in_view":
+                        result = DedupDetailElementsInView(parameters);
+                        break;
+
+                    // === 房間高度 / 視圖細部（劉可 PR#30 bundle⑥）===
+                    case "batch_set_room_height":
+                        result = BatchSetRoomHeight(parameters);
+                        break;
+                    case "set_scope_box_for_views":
+                        result = SetScopeBoxForViews(parameters);
+                        break;
+                    case "align_view_cropbox_to_element":
+                        result = AlignViewCropBoxToElement(parameters);
+                        break;
+                    case "shift_view_cropbox":
+                        result = ShiftViewCropBox(parameters);
+                        break;
+                    case "move_text_notes_in_views":
+                        result = MoveTextNotesInViews(parameters);
+                        break;
+                    case "hide_elements":
+                        result = HideElements(parameters);
+                        break;
+                    case "unhide_elements":
+                        result = UnhideElements(parameters);
+                        break;
+                    case "set_category_visibility":
+                        result = SetCategoryVisibility(parameters);
                         break;
 
                     // === 尺寸標註模組 ===
@@ -443,6 +551,15 @@ namespace RevitMCP.Core
                         result = DwgColumnExecutor.CreateColumnsFromDwg(_uiApp.ActiveUIDocument.Document, parameters);
                         break;
 
+                    // === CAD 連結模組 ===
+                    case "link_cad_to_view":
+                        result = CadLinkExecutor.LinkCadToView(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+
+                    case "link_cads_by_floor":
+                        result = CadLinkExecutor.LinkCadsByFloor(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+
                     // === DWG 圖層批次建樑模組 ===
                     case "get_dwg_beam_layers":
                         result = DwgBeamExecutor.GetDwgBeamLayers(_uiApp.ActiveUIDocument.Document);
@@ -462,15 +579,6 @@ namespace RevitMCP.Core
                         result = CadAnnotationExecutor.BackfillCommentsFromCad(_uiApp.ActiveUIDocument.Document, parameters);
                         break;
 
-                    // === CAD 連結模組 ===
-                    case "link_cad_to_view":
-                        result = CadLinkExecutor.LinkCadToView(_uiApp.ActiveUIDocument.Document, parameters);
-                        break;
-                    case "link_cads_by_floor":
-                        result = CadLinkExecutor.LinkCadsByFloor(_uiApp.ActiveUIDocument.Document, parameters);
-                        break;
-
-                    // === 連結模型與碰撞偵測模組 ===
                     case "get_linked_models":
                         result = GetLinkedModels();
                         break;
@@ -515,6 +623,64 @@ namespace RevitMCP.Core
                         break;
                     case "clear_previous_annotations":
                         result = ClearPreviousAnnotations(parameters);
+                        break;
+
+#if REVIT2024_OR_GREATER
+                    case "grade_toposolid_to_floors":
+                        result = GradeToposolidToFloors(parameters);
+                        break;
+#endif
+
+                    // === 施工架/隔間/門窗/RC填充 算量 + 圖案轉換 (PR #79/#81/#82, 作者 Jacky820507) ===
+                    case "calculate_exterior_wall_scaffold_perimeter":
+                        result = CalculateExteriorWallScaffoldPerimeter(parameters);
+                        break;
+                    case "calculate_room_scaffold_perimeters":
+                        result = CalculateRoomScaffoldPerimeters(parameters);
+                        break;
+                    case "calculate_selected_detail_line_perimeter":
+                        result = CalculateSelectedDetailLinePerimeter(parameters);
+                        break;
+                    case "analyze_tall_partition_rooms":
+                        result = AnalyzeTallPartitionRooms(parameters);
+                        break;
+                    case "duplicate_views_with_detailing":
+                        result = DuplicateViewsWithDetailing(parameters);
+                        break;
+                    case "create_room_filled_regions":
+                        result = CreateRoomFilledRegions(parameters);
+                        break;
+                    case "get_room_door_counts":
+                        result = GetRoomDoorCounts(parameters);
+                        break;
+                    case "get_room_window_counts":
+                        result = GetRoomWindowCounts(parameters);
+                        break;
+                    case "auto_convert_rotated_viewport_patterns":
+                        result = AutoConvertRotatedViewportPatterns();
+                        break;
+                    case "batch_create_rc_filled_region":
+                        result = BatchCreateRCFilledRegions(parameters);
+                        break;
+                    case "convert_drafting_to_model_pattern":
+                        result = ConvertDraftingToModelPattern();
+                        break;
+                    case "create_rc_filled_region":
+                        result = CreateRCFilledRegion(parameters);
+                        break;
+                    case "sync_ifc_structural_to_native":
+                        result = SyncIfcStructuralToNative(parameters);
+                        break;
+
+                    // === 帷幕立面 (PR #85, 作者 林孟毅 916kevin-gif) ===
+                    case "create_curtain_wall_elevations":
+                        result = CreateCurtainWallElevations(parameters);
+                        break;
+                    case "diagnose_curtain_wall_elevation_direction":
+                        result = DiagnoseCurtainWallElevationDirection(parameters);
+                        break;
+                    case "diagnose_curtain_wall_elevation_directions":
+                        result = DiagnoseCurtainWallElevationDirections(parameters);
                         break;
 
                     default:
@@ -1551,7 +1717,8 @@ namespace RevitMCP.Core
 
             var roomData = new List<object>();
             SpatialElementBoundaryOptions options = new SpatialElementBoundaryOptions();
-            var globalProcessedIds = new HashSet<IdType>();
+            // 記錄「開口 → 已歸屬房間」，同一開口只歸一個主房間（ToRoom 優先），避免先到先搶
+            var openingRoomMap = new Dictionary<IdType, IdType>();
 
             foreach (Room room in rooms)
             {
@@ -1570,7 +1737,8 @@ namespace RevitMCP.Core
                                 IList<ElementId> insertIds = wall.FindInserts(true, true, false, false);
                                 foreach (ElementId insertId in insertIds)
                                 {
-                                    if (globalProcessedIds.Contains(insertId.GetIdValue())) continue;
+                                    // 同一開口只歸一個主房間，已歸屬則跳過
+                                    if (openingRoomMap.ContainsKey(insertId.GetIdValue())) continue;
 
                                     Element insert = doc.GetElement(insertId);
                                     if (insert is FamilyInstance fi &&
@@ -1579,9 +1747,25 @@ namespace RevitMCP.Core
                                     {
                                         bool belongsToRoom = false;
 
-                                        // Geometric check: is the window within this boundary segment's range?
-                                        if (wall.Location is LocationCurve wallLocCurve && insert.Location is LocationPoint insertLoc)
+                                        // 對應邏輯：優先用 FamilyInstance 的 Room API 判定主房間（ToRoom 優先，其次 FromRoom），
+                                        // 只有當前房間 == 主房間才歸屬，避免走廊先迭代時用幾何投影把鄰房開口搶走。
+                                        // ToRoom/FromRoom 使用無參數版（預設 phase），與 get_room_window_counts 行為一致。
+                                        Room toRoom = TryGetToRoom(fi);
+                                        Room fromRoom = TryGetFromRoom(fi);
+
+                                        if (toRoom != null)
                                         {
+                                            // 主房間 = ToRoom
+                                            belongsToRoom = (toRoom.Id == room.Id);
+                                        }
+                                        else if (fromRoom != null)
+                                        {
+                                            // ToRoom 為 null → 主房間 = FromRoom
+                                            belongsToRoom = (fromRoom.Id == room.Id);
+                                        }
+                                        else if (wall.Location is LocationCurve wallLocCurve && insert.Location is LocationPoint insertLoc)
+                                        {
+                                            // ToRoom / FromRoom 皆 null → 退回既有幾何投影 fallback
                                             Curve wallCurve = wallLocCurve.Curve;
                                             Curve segmentCurve = segment.GetCurve();
 
@@ -1605,24 +1789,30 @@ namespace RevitMCP.Core
                                                     }
                                                 }
                                             }
-                                            else
-                                            {
-                                                // Fallback: projection failed, use Room API
-                                                if (fi.FromRoom != null && fi.FromRoom.Id == room.Id) belongsToRoom = true;
-                                                else if (fi.ToRoom != null && fi.ToRoom.Id == room.Id) belongsToRoom = true;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            // Non-curve wall fallback
-                                            if (fi.FromRoom != null && fi.FromRoom.Id == room.Id) belongsToRoom = true;
-                                            else if (fi.ToRoom != null && fi.ToRoom.Id == room.Id) belongsToRoom = true;
                                         }
 
                                         if (!belongsToRoom) continue;
-                                        globalProcessedIds.Add(insertId.GetIdValue());
+                                        openingRoomMap[insertId.GetIdValue()] = room.Id.GetIdValue();
 
-                                        bool isExterior = wall.WallType.Function == WallFunction.Exterior;
+                                        // IsExterior 判定：WallType 為 Exterior，或開口另一側無房間（FromRoom/ToRoom 恰好一側為 null）
+                                        // 視為臨外氣；IsExteriorSource 記錄判定依據供審計端使用。
+                                        bool isExterior;
+                                        string isExteriorSource;
+                                        if (wall.WallType.Function == WallFunction.Exterior)
+                                        {
+                                            isExterior = true;
+                                            isExteriorSource = "WallFunction";
+                                        }
+                                        else if ((toRoom == null) != (fromRoom == null))
+                                        {
+                                            isExterior = true;
+                                            isExteriorSource = "NoRoomOtherSide";
+                                        }
+                                        else
+                                        {
+                                            isExterior = false;
+                                            isExteriorSource = "None";
+                                        }
 
                                         const double FEET_TO_MM = 304.8;
                                         Element symbol = fi.Symbol;
@@ -1672,6 +1862,7 @@ namespace RevitMCP.Core
                                             SillHeight = Math.Round(sillHeight, 2),
                                             HeadHeight = Math.Round(headHeight, 2),
                                             IsExterior = isExterior,
+                                            IsExteriorSource = isExteriorSource,
                                             HostWallId = wall.Id.GetIdValue()
                                         });
                                     }
@@ -1755,6 +1946,25 @@ namespace RevitMCP.Core
             }
             
             return null;
+        }
+
+        /// <summary>
+        /// 安全讀取 FamilyInstance.ToRoom（無參數版 / 預設 phase）。
+        /// FromRoom/ToRoom 於某些相位或未放置時會擲例外，以 try/catch 保護。
+        /// </summary>
+        private static Room TryGetToRoom(FamilyInstance fi)
+        {
+            try { return fi.ToRoom; }
+            catch { return null; }
+        }
+
+        /// <summary>
+        /// 安全讀取 FamilyInstance.FromRoom（無參數版 / 預設 phase）。
+        /// </summary>
+        private static Room TryGetFromRoom(FamilyInstance fi)
+        {
+            try { return fi.FromRoom; }
+            catch { return null; }
         }
 
         /// <summary>
@@ -2482,7 +2692,14 @@ namespace RevitMCP.Core
 
                 if (level != null)
                 {
-                    wallCollector = wallCollector.Where(w => w.LevelId == level.Id);
+                    // 牆的 LevelId 在部分情況為 Invalid，改用 WALL_BASE_CONSTRAINT 為主、LevelId 為輔
+                    wallCollector = wallCollector.Where(w =>
+                    {
+                        ElementId baseLevelId = w.get_Parameter(BuiltInParameter.WALL_BASE_CONSTRAINT)?.AsElementId();
+                        if (baseLevelId != null && baseLevelId != ElementId.InvalidElementId)
+                            return baseLevelId == level.Id;
+                        return w.LevelId == level.Id;
+                    });
                 }
             }
 
@@ -2496,21 +2713,27 @@ namespace RevitMCP.Core
                 Curve curve = locCurve.Curve;
                 XYZ startPoint = curve.GetEndPoint(0);
                 XYZ endPoint = curve.GetEndPoint(1);
-                
-                // 計算點到線段的最近距離
-                XYZ wallDir = (endPoint - startPoint).Normalize();
-                XYZ toCenter = center - startPoint;
+
+                // 距離計算全部壓平 XY：牆位置線端點 z = 樓層標高，若不歸零，
+                // center.DistanceTo(closestPoint) 會變成 3D 距離，樓上/樓下的牆永遠超出半徑
+                // （搜尋中心 center 的 z 已為 0）
+                XYZ startFlat = new XYZ(startPoint.X, startPoint.Y, 0);
+                XYZ endFlat = new XYZ(endPoint.X, endPoint.Y, 0);
+
+                // 計算點到線段的最近距離（壓平後的點與投影參數）
+                XYZ wallDir = (endFlat - startFlat).Normalize();
+                XYZ toCenter = center - startFlat;
                 double proj = toCenter.DotProduct(wallDir);
-                double wallLength = curve.Length;
-                
+                double wallLength = startFlat.DistanceTo(endFlat);
+
                 XYZ closestPoint;
                 if (proj < 0)
-                    closestPoint = startPoint;
+                    closestPoint = startFlat;
                 else if (proj > wallLength)
-                    closestPoint = endPoint;
+                    closestPoint = endFlat;
                 else
-                    closestPoint = startPoint + wallDir * proj;
-                
+                    closestPoint = startFlat + wallDir * proj;
+
                 double distToWall = center.DistanceTo(closestPoint) * 304.8;
 
                 if (distToWall <= searchRadius)
@@ -2678,9 +2901,7 @@ namespace RevitMCP.Core
                     // 簡易版 level 過濾
                     if (match && !string.IsNullOrEmpty(levelFilter))
                     {
-                        string elemLevel = elem.get_Parameter(BuiltInParameter.LEVEL_NAME)?.AsValueString() 
-                                        ?? elem.get_Parameter(BuiltInParameter.INSTANCE_SCHEDULE_ONLY_LEVEL_PARAM)?.AsValueString()
-                                        ?? "";
+                        string elemLevel = ResolveElementLevelName(doc, elem);
                         if (!elemLevel.Contains(levelFilter))
                             match = false;
                     }
@@ -2726,6 +2947,44 @@ namespace RevitMCP.Core
             {
                 throw new Exception($"QueryElements 錯誤: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// 解析元素所屬樓層名稱。舊版僅讀 LEVEL_NAME / INSTANCE_SCHEDULE_ONLY_LEVEL_PARAM，
+        /// 這兩者對牆/多數元素為 null 導致全滅。改為：
+        /// (a) elem.LevelId 有效 → doc.GetElement(LevelId).Name；
+        /// (b) fallback 依序試常見樓層參數的 AsElementId() 轉 Level 名；
+        /// (c) 都沒有才回空字串。
+        /// </summary>
+        private string ResolveElementLevelName(Document doc, Element elem)
+        {
+            // (a) 直接的 LevelId
+            if (elem.LevelId != null && elem.LevelId != ElementId.InvalidElementId)
+            {
+                Element lvl = doc.GetElement(elem.LevelId);
+                if (lvl is Level) return lvl.Name;
+            }
+
+            // (b) 依序 fallback 常見的樓層參數
+            BuiltInParameter[] levelBips = new BuiltInParameter[]
+            {
+                BuiltInParameter.WALL_BASE_CONSTRAINT,
+                BuiltInParameter.FAMILY_LEVEL_PARAM,
+                BuiltInParameter.SCHEDULE_LEVEL_PARAM,
+                BuiltInParameter.INSTANCE_REFERENCE_LEVEL_PARAM
+            };
+            foreach (BuiltInParameter bip in levelBips)
+            {
+                Parameter p = elem.get_Parameter(bip);
+                if (p == null) continue;
+                ElementId lvlId = p.AsElementId();
+                if (lvlId == null || lvlId == ElementId.InvalidElementId) continue;
+                Element lvl = doc.GetElement(lvlId);
+                if (lvl is Level) return lvl.Name;
+            }
+
+            // (c) 找不到
+            return "";
         }
 
         private Parameter FindParameter(Element elem, string name)

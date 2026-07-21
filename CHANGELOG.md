@@ -6,6 +6,19 @@
 
 ---
 
+## [1.5.2] - 2026-07-16
+
+### 🐛 Bug 修正（PowerShell 部署腳本）
+
+- **`scripts/setup.ps1`**：修正 PowerShell 5.1 下 `$ErrorActionPreference = "Stop"` 搭配 native 指令（dotnet/npm/winget/net）`2>&1` 重導向時，會把 stderr 上的一般進度/警告行升級成終止例外的問題，導致 `dotnet build` 實際 0 錯誤卻誤報「編譯例外」。新增 `Invoke-ExternalCommand` helper，在 8 處 native 呼叫點暫時將 EAP 切回 Continue，`$LASTEXITCODE` 判斷邏輯不變。由 @ray92chiu-png 於 issue #89 精準定位並提供修法（commit `1b5a71e`，保留原作者署名）。
+- **`scripts/release-port.ps1`**：橫向掃描發現 `net stop`/`net start http` 同樣踩到這顆地雷，套用同款修法（commit `33f1a44`）。
+
+### 🙏 致謝
+
+- 感謝首次貢獻者 @ray92chiu-png（邱仁）回報 issue #89 並附完整重現步驟與 diff，詳見 `docs/BIM_MCP/reference/contributors.html`。
+
+---
+
 ## [1.5.1] - 2026-03-09
 
 ### 🐛 Bug 修正（C# — 需重新編譯）

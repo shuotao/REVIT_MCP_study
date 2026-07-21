@@ -52,6 +52,70 @@ export const curtainWallTools: Tool[] = [
         },
     },
     {
+        name: "create_curtain_wall_elevations",
+        description: "批次建立每一道帷幕牆的永久外立面視圖，建立/套用名為「帷幕立面」的視圖樣板，保留 crop box 與 far clip depth 可由各視圖自行控制，並回傳方向與 crop 診斷欄位。這個工具建立的是持久成果，不需要 cleanup；除非使用者明確要求清理，AI client 不得呼叫 delete_element 刪除這些 generated views。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                placementViewId: { type: "number", description: "放置 ElevationMarker 的 ViewPlan ElementId；優先於 placementViewName。" },
+                placementViewName: { type: "string", description: "放置 ElevationMarker 的 ViewPlan 名稱。" },
+                scale: { type: "number", description: "立面視圖比例，預設 50。", default: 50 },
+                offsetMm: { type: "number", description: "marker 放在牆外側的距離，單位 mm，預設 1500。", default: 1500 },
+                horizontalMarginMm: { type: "number", description: "crop 左右餘裕，單位 mm，預設 0；剪裁範圍依 elevation view 內目標帷幕元素的 2D 可視範圍計算。", default: 0 },
+                verticalMarginMm: { type: "number", description: "crop 上下餘裕，單位 mm，預設 0；剪裁範圍依 elevation view 內目標帷幕元素的 2D 可視範圍計算。", default: 0 },
+                depthMm: { type: "number", description: "自動深度計算失敗時的 fallback 遠剪裁深度，單位 mm，預設 1200；正常情況會剛好包住帷幕牆所有相關元素，遠端剪裁模式固定為剪裁含線。", default: 1200 },
+                viewTemplateName: { type: "string", description: "視圖樣板名稱，預設「帷幕立面」。", default: "帷幕立面" },
+                applyViewTemplate: { type: "boolean", description: "是否建立/套用視圖樣板，預設 true。", default: true },
+                nameSeparator: { type: "string", description: "樓層與標記之間的分隔字串，預設空字串。", default: "" },
+                dryRun: { type: "boolean", description: "只回報將建立的視圖，不修改模型，預設 false。", default: false },
+            },
+        },
+    },
+    {
+        name: "diagnose_curtain_wall_elevation_direction",
+        description: "非破壞診斷指定帷幕牆的立面方向判定流程；以 rollback transaction 建立暫時 ElevationMarker/ViewSection，回傳 wall.Orientation、預期 marker 位置、暫時 view 方向與 dot 檢查，不留下視圖或 marker。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                wallId: { type: "number", description: "要診斷的帷幕牆 Wall ElementId。" },
+                placementViewId: { type: "number", description: "放置暫時 ElevationMarker 的 ViewPlan ElementId；優先於 placementViewName。" },
+                placementViewName: { type: "string", description: "放置暫時 ElevationMarker 的 ViewPlan 名稱。" },
+                scale: { type: "number", description: "暫時立面視圖比例，預設 50。", default: 50 },
+                offsetMm: { type: "number", description: "暫時 marker 放在 wall.Orientation 側的距離，單位 mm，預設 1500。", default: 1500 },
+                includeCropDiagnostics: { type: "boolean", description: "Include non-mutating crop diagnostics for the temporary elevation view. Default: false", default: false },
+            },
+            required: ["wallId"],
+        },
+    },
+    {
+        name: "diagnose_curtain_wall_elevation_directions",
+        description: "Batch, non-destructive curtain wall elevation direction diagnostic. Compares wall.Orientation and -wall.Orientation candidate sides for selected or all curtain walls; temporary markers/views are created inside rollback transactions.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                wallIds: {
+                    type: "array",
+                    description: "Optional curtain wall ElementIds. When omitted, all walls with CurtainGrid != null are diagnosed.",
+                    items: { type: "number" },
+                },
+                placementViewId: { type: "number", description: "Optional ViewPlan ElementId used for temporary ElevationMarker placement." },
+                placementViewName: { type: "string", description: "Optional ViewPlan name used for temporary ElevationMarker placement." },
+                scale: { type: "number", description: "Temporary elevation scale. Default: 50", default: 50 },
+                offsetMm: { type: "number", description: "Candidate marker offset from wall centerline in millimeters. Default: 1500", default: 1500 },
+                includeTemporaryMarker: { type: "boolean", description: "Create temporary ElevationMarker/ViewSection inside rollback transactions to read ViewDirection. Default: true", default: true },
+                includeCropDiagnostics: { type: "boolean", description: "Include non-mutating crop diagnostics for the auto-resolved temporary elevation view. Requires includeTemporaryMarker. Default: false", default: false },
+                knownExteriorSideByWallId: {
+                    type: "object",
+                    description: "Optional truth labels by wall id. Value must be 'api_orientation' or 'opposite_orientation'.",
+                    additionalProperties: {
+                        type: "string",
+                        enum: ["api_orientation", "opposite_orientation"],
+                    },
+                },
+            },
+        },
+    },
+    {
         name: "create_facade_panel",
         description: "建立單片立面面板（DirectShape）。支援 5 種幾何：curved_panel、beveled_opening、angled_panel、rounded_opening、flat_panel。",
         inputSchema: {

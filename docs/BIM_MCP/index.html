@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -45,12 +45,19 @@
 <header class="bim-hero">
   <div class="bim-hero-eyebrow">BIM_MCP <span class="accent">reference / archive / latest</span></div>
   <h1 class="bim-hero-title">把 Revit MCP 的知識、SOP、Demo 流程放在同一個入口</h1>
-  <p class="bim-hero-sub">Revit MCP 的文件總覽：reference 是長期基礎，月度封存保留每月簡報與閱讀材料（最新 2026-06：Obsidian 個人 Wiki 主軸＋DWG／族群盤點 hands-on），hands-on 入口放實作流程與現場演示素材。</p>
+  <p class="bim-hero-sub">Revit MCP 的文件總覽：reference 是長期基礎，月度封存保留每月簡報與閱讀材料，hands-on 入口放實作流程與現場演示素材（最新 2026-07-09：單日五波 fork 收編，工具 103→146）。</p>
   <div style="margin-top:18px;"><a class="bim-topnav-btn bim-topnav-btn-primary" href="reference/deployment-guide.html#skill-install" title="把 hj-pr-proposal 一鍵裝進 Claude Code（跨平台、純文字、不會被防毒攔）">🧩 想一鍵裝 Skill？這裡有小白教學</a></div>
   <figure class="bim-hero-figure">
     <img src="images/index__hero__three-layer.svg" alt="BIM_MCP three layer navigation mark" width="1600" height="900">
   </figure>
 </header>
+
+<section class="bim-section">
+  <p class="bim-section-desc">一句話：BIM_MCP 讓你用講人話的方式操作 Revit——AI 讀懂需求，透過 168 個工具直接改模型、查資料、跑法規檢核。</p>
+  <p class="bim-section-desc">三層：Skill（50・何時觸發）→ Domain（72・方法與法規）→ Tool（168・實際動 Revit）。</p>
+  <p class="bim-section-desc">第一次來？先看 <a href="reference/architecture-v2.html">三層架構 V2</a>（5 分鐘懂全貌），再挑一個 <a href="reference/skills-index.html">Skill</a> 試跑。完整哲學看 <a href="reference/philosophy-22-propositions.html">22 命題</a>。</p>
+  <p class="bim-section-desc"><a href="2026-07/harvest-waves.html">收編波</a>＝把 fork 貢獻一波波手動搬進主線的流程。</p>
+</section>
 
 <section class="bim-section bim-anchor" id="paths">
   <div class="bim-section-eyebrow">SECTION 01 / ROUTES</div>
@@ -86,11 +93,12 @@
     <a class="bim-card hub-card" href="reference/three-constitutions.html"><small>guard rails</small><h4>四條憲法</h4><p>被動就緒 / 資料誠實 / Domain method / Active Re-Anchoring。2026-05-22 新增第四條。</p></a>
     <a class="bim-card hub-card" href="reference/industry-evidence.html"><small>evidence</small><h4>產業證據</h4><p>成本曲線、返工、early mover 論述。</p></a>
     <a class="bim-card hub-card" href="reference/spectrum-decision.html"><small>decision</small><h4>Spectrum Decision</h4><p>把 FAIL 從 0/1 改成可談判的 A/B/C/D。</p></a>
-    <a class="bim-card hub-card" href="reference/skills-index.html"><small>skills</small><h4>29 Skills</h4><p>AI workflow orchestration 索引。</p></a>
+    <a class="bim-card hub-card" href="reference/skills-index.html"><small>skills</small><h4>50 Skills</h4><p>AI workflow orchestration 索引。</p></a>
     <a class="bim-card hub-card" href="reference/domain-index.html"><small>domain</small><h4>Domain SOP</h4><p>由 repo 內 domain/*.md 建出的 SOP 索引。</p></a>
     <a class="bim-card hub-card" href="reference/deployment-guide.html"><small>deploy</small><h4>部署指南</h4><p>Nice3point、Release.R{YY}、setup.ps1。</p></a>
     <a class="bim-card hub-card" href="reference/troubleshooting.html"><small>debug</small><h4>Troubleshooting</h4><p>5 個經典問題與 5/18 demo 4 個修復。</p></a>
     <a class="bim-card hub-card" href="reference/contributor-template.html"><small>contribute</small><h4>Contributor Template</h4><p>新增 SOP、Skill、工具前的寫作順序。</p></a>
+    <a class="bim-card hub-card" href="reference/contributors.html"><small>credits</small><h4>建置協助人 · 致謝</h4><p>15 位貢獻者：真名 + @handle + 對應 PR／收編波次。</p></a>
     <a class="bim-card hub-card" href="reference/personal-llm-wiki.html"><small>personal wiki</small><h4>個人 LLM Wiki</h4><p>把 Domain pull 回家，用 Obsidian 長成自己的知識庫，再回饋上游。</p></a>
   </div>
 </section>
@@ -98,15 +106,21 @@
 <section class="bim-section bim-anchor" id="archive">
   <div class="bim-section-eyebrow">SECTION 03 / ARCHIVE</div>
   <h2 class="bim-section-title">月度封存</h2>
-  <div class="archive-row"><div class="archive-date">2026-04</div><div><strong>Karpathy wiki reading</strong><br><span style="color:var(--text-muted)">AI agent 與工作流材料。</span></div><a class="bim-topnav-btn" href="2026-04/karpathy-gist-zh-tw.html">Open</a></div>
+  <div class="archive-row"><div class="archive-date">2026-04</div><div><strong>Karpathy wiki reading</strong><br><span style="color:var(--text-muted)">AI agent 與工作流材料。</span></div><a class="bim-topnav-btn" href="reference/external/karpathy-wiki-reading.html">Open</a></div>
   <div class="archive-row"><div class="archive-date">2026-05</div><div><strong>五月小聚 — MCP × Revit：限制顯現器</strong><br><span style="color:var(--text-muted)">22 條命題、Live Demo、跟著做的 10 個 Prompt。</span></div><a class="bim-topnav-btn" href="../0523-monthly.html">Open</a></div>
-  <div class="archive-row"><div class="archive-date">2026-06</div><div><strong>六月小聚 — Obsidian 個人 LLM Wiki（主軸）</strong><br><span style="color:var(--text-muted)">把 56 個 Domain 變成你的個人 Wiki；DWG 自動建柱與族群盤點的實作見下方 hands-on。含抽籤與報名。</span></div><a class="bim-topnav-btn" href="../0621-presentation.html">Open</a></div>
+  <div class="archive-row"><div class="archive-date">2026-06</div><div><strong>六月小聚 — Obsidian 個人 LLM Wiki（主軸）</strong><br><span style="color:var(--text-muted)">把 Domain 全庫（當時 61 檔）變成你的個人 Wiki；DWG 自動建柱與族群盤點的實作見下方 hands-on。含抽籤與報名。</span></div><a class="bim-topnav-btn" href="../0621-presentation.html">Open</a></div>
+  <div class="archive-row"><div class="archive-date">2026-07</div><div><strong>七月工作坊 — 「AI 說的對，還是聽起來對？」</strong><br><span style="color:var(--text-muted)">建築人自主檢核循環（LOOP）：語意光譜 vs 絕對正確、檢討標準卡、FAIL 後的四種決策路徑、多 AI 複核。定案的規矩立在自己身上。</span></div><a class="bim-topnav-btn" href="https://shuotao.github.io/workshop-arch/presentation/index.html" target="_blank" rel="noopener">Open</a></div>
 </section>
 
 <section class="bim-section bim-anchor" id="latest">
   <div class="bim-section-eyebrow">SECTION 04 / LATEST · 2026-07</div>
   <h2 class="bim-section-title">Hands-on 最新入口</h2>
   <div class="bim-grid bim-grid-3">
+    <a class="bim-card bim-card-accent hub-card" href="2026-07/harvest-waves.html">
+      <small style="font-family:var(--font-tech);color:var(--text-faint);letter-spacing:2px;text-transform:uppercase">2026-07-09 · 里程碑</small>
+      <h4>五波收編：103→146 工具</h4>
+      <p>任遠、朱宣宇、劉可、鈺傑四位貢獻者的 fork 內容逐波手動移植：+43 工具、+6 domain、+17 skill，dispatcher 零移除，跨版本 build 全過。</p>
+    </a>
     <a class="bim-card bim-card-accent hub-card" href="2026-07/beam-penetration.html">
       <small style="font-family:var(--font-tech);color:var(--text-faint);letter-spacing:2px;text-transform:uppercase">本月出貨 · hands-on</small>
       <h4>穿梁套管自動檢核</h4>
@@ -130,9 +144,9 @@
     <a class="bim-footer-btn primary" href="reference/philosophy-22-propositions.html">Start reference</a>
     <a class="bim-footer-btn" href="reference/domain-index.html">Domain</a>
     <a class="bim-footer-btn" href="reference/contributor-template.html">Contribute</a>
-    <a data-meetup-link class="bim-footer-btn" title="七月小聚報名">📝 七月小聚報名</a>
+    <a data-meetup-link class="bim-footer-btn" title="本月小聚報名（表單每月更新）">📝 本月小聚報名</a>
   </div>
-  <p>BIM_MCP / hub / 2026-07-02</p>
+  <p>BIM_MCP / hub / 2026-07-09</p>
 </footer>
 <script src="shared.js"></script>
 <script>initAll({home:"index.html"});</script>
