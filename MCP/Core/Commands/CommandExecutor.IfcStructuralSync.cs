@@ -457,12 +457,7 @@ namespace RevitMCP.Core
             bool alignColumnTopsToFloorBottom,
             double maxColumnTopSearchDistanceMm)
         {
-            BuiltInCategory bic = LinkedModelHelper.ResolveBuiltInCategory(categoryName);
-            List<Element> sourceElements = new FilteredElementCollector(linkDoc)
-                .OfCategory(bic)
-                .WhereElementIsNotElementType()
-                .Take(maxCount)
-                .ToList();
+            List<Element> sourceElements = CollectIfcColumnSourceElements(linkDoc, categoryName, maxCount);
 
             List<IfcNativeColumnPlan> plans = new List<IfcNativeColumnPlan>();
             foreach (Element element in sourceElements)
@@ -542,6 +537,46 @@ namespace RevitMCP.Core
             }
 
             return plans;
+        }
+
+        private static List<Element> CollectIfcColumnSourceElements(Document linkDoc, string categoryName, int maxCount)
+        {
+            var sourceElements = new List<Element>();
+            var seen = new HashSet<IdType>();
+
+            foreach (BuiltInCategory bic in ResolveIfcColumnSourceCategories(categoryName))
+            {
+                IEnumerable<Element> candidates = new FilteredElementCollector(linkDoc)
+                    .OfCategory(bic)
+                    .WhereElementIsNotElementType()
+                    .ToElements();
+
+                foreach (Element element in candidates)
+                {
+                    if (element == null) continue;
+                    if (!seen.Add(element.Id.GetIdValue())) continue;
+                    sourceElements.Add(element);
+                    if (sourceElements.Count >= maxCount)
+                        return sourceElements;
+                }
+            }
+
+            return sourceElements;
+        }
+
+        private static List<BuiltInCategory> ResolveIfcColumnSourceCategories(string categoryName)
+        {
+            var categories = new List<BuiltInCategory>();
+            AddUniqueCategory(categories, LinkedModelHelper.ResolveBuiltInCategory(categoryName));
+            AddUniqueCategory(categories, BuiltInCategory.OST_StructuralColumns);
+            AddUniqueCategory(categories, BuiltInCategory.OST_Columns);
+            return categories;
+        }
+
+        private static void AddUniqueCategory(List<BuiltInCategory> categories, BuiltInCategory category)
+        {
+            if (!categories.Contains(category))
+                categories.Add(category);
         }
 
         private static void CollectIfcElementGeometry(
