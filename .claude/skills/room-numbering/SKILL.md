@@ -1,45 +1,75 @@
 ---
 name: room-numbering
-description: "房間重新排序編號與批次自動編號工作流。使用者提到房間編號、房間重新排序、room numbering、renumber rooms、自動編號、從 B134 開始、只排 B1F 等需求時使用。優先工具：renumber_rooms_by_level、get_active_view、get_rooms_by_level。"
+description: "依 domain 排序規則對 Revit 房間批次自動編號：以樓層前綴分組（B<F<R）、Y 座標由上至下分排（分群容差 3000mm）、排內 X 座標由左至右排序，各樓層自 X01 起編。先產出 dry-run 預覽表供使用者確認，確認後才批次寫入房間編號並抽樣驗證。當大量房間需要重新編號、編號順序混亂、或新放置的房間尚未編號時使用。觸發條件：使用者提到房間編號、自動編號、房間重編、批次編號、編號亂掉、重新排號、room numbering、renumber rooms、auto room numbering。"
 ---
 
-# 房間重新排序編號
+# 房間自動編號 (Room Numbering)
 
-使用此 Skill 時，先讀 `domain/room-numbering-workflow.md`，並遵守該 SOP 的排序、dry-run、寫入與驗證規則。
+執行前請先讀取 `domain/room-numbering-workflow.md` 了解排序規則與技術參數。
+分群容差、排序規則、起編規則以 domain 為準。
 
-## 工具優先序
+> **Guard rail 提醒**：domain 文件中的 `number_rooms.js` 外部腳本是 legacy 執行路徑。
+> 依 CLAUDE.md「Do Not Bypass MCP」規則，本 skill 以 MCP 工具實作同一套排序規則，
+> 不呼叫外部腳本、不手寫 WebSocket JSON。
 
-1. 先用 `get_active_view` 重新錨定目前 Revit 狀態，回報目前視圖與樓層，但不要只依賴目前視圖決定目標樓層。
-2. 若使用者指定樓層與起始號碼，優先使用 `renumber_rooms_by_level`。
-3. 若只是要查看目前房間狀態，使用 `get_rooms_by_level`。
-4. 不要用外部 WebSocket 腳本或逐筆 `modify_element_parameter` 來做大量房間重編號，除非批次工具不可用且使用者同意慢速 fallback。
+## Workflow
 
-## 標準流程
+### 步驟 0：前置健檢（re-anchor）
 
-1. 確認目標樓層與起始號碼來自使用者輸入或本 turn 的工具查詢。例如 `level="B1F"`、`startNumber="B134"`。
-2. 執行 dry-run：
-   - `renumber_rooms_by_level({ level, startNumber, dryRun: true })`
-   - 檢查 `Level`、`Count`、`StartNumber`、`EndNumber`、`Rooms` 的排序是否符合期待。
-3. 若 dry-run 結果合理，執行正式寫入：
-   - `renumber_rooms_by_level({ level, startNumber, dryRun: false })`
-4. 寫入後用 `get_rooms_by_level({ level })` 驗證房間編號範圍與筆數。
+1. `get_all_levels` 確認樓層命名含可識別前綴（如 `B1F`、`1F`、`R1F`）。
+   前綴無法識別時，先向使用者確認樓層對應，不要猜。
+2. `get_active_view` 錨定目前視圖（供後續抽查 zoom 使用）。
 
-## 精準性規則
+### 步驟 1：盤點房間
 
-- 預設排序為房間中心點由上到下，再由左到右；Y 軸列分組容差預設 `3000 mm`。
-- 起始號碼必須以數字結尾，例如 `B134`；工具會保留前綴並遞增數字。
-- 若樓層名稱模糊或候選號碼已存在於其他樓層，工具應停止並回報，不要猜。
-- 若使用者指定 `B1F` 而 Revit 實際樓層為 `C-B1F`，允許工具解析，但回覆時要明確說明實際套用樓層。
+1. 逐樓層 `get_rooms_by_level` 取得房間清單（名稱、現有編號）。
+2. 若回傳缺少座標，對每間房間 `get_element_info` 取 BoundingBox 中心點。
+3. 例外處理：未圍合房間（面積 0 或無幾何）列入例外清單，不參與編號。
 
-## 部署提醒
+### 步驟 2：排序與分群（依 domain 技術參數）
 
-`renumber_rooms_by_level` 需要新版 Revit add-in 與 MCP Server tool schema。若工具不存在，先確認：
+1. 樓層排序：前綴 B < F < R。
+2. 同一樓層內以 Y 座標降冪分排（由上至下），差距 3000mm 內視為同一排。
+3. 排內以 X 座標升冪（由左至右）。
+4. 每個樓層由 `X01` 起編（X = 樓層前綴）。
 
-- C# 已建置並部署對應 Revit 版本的 `RevitMCP.dll`
-- `MCP-Server` 已重新 build
-- Revit 與 MCP Server 已重啟
+### 步驟 3：Dry-run 預覽（必經，不可跳過）
+
+1. 輸出預覽表：`樓層 | 房間名稱 | 舊編號 → 新編號`。
+2. 一併列出例外清單（未圍合、取不到座標）。
+3. 停下來等使用者確認排序與前綴正確，才進入寫入階段。
+
+### 步驟 4：正式寫入
+
+1. 逐間 `modify_element_parameter` 寫入編號參數（「編號」或「Number」，先偵測實際參數名）。
+2. 若寫入時出現重複編號衝突：改用兩段式寫入——先全部寫入 `TMP-` 前綴暫時編號，
+   再第二輪寫入正式編號，避免交換編號時互撞。
+3. 寫入過程逐筆記錄成功／失敗，失敗清單保留到報告。
+
+### 步驟 5：驗證與回饋
+
+1. 隨機抽 3–5 間 `get_room_info` 比對寫入結果。
+2. 重點抽查轉角處與不規則隔間的編號順序（domain 第三階段要求），
+   可用 `zoom_to_element` 定位、`override_element_graphics` 暫時上色輔助目視。
+3. 目視確認完成後 `clear_element_override` 清除暫時上色。
+4. 回報：成功筆數、例外清單、失敗清單。
+
+## 工具
+
+| 工具名稱 | 用途 |
+|---------|------|
+| `get_all_levels` | 確認樓層命名前綴 |
+| `get_active_view` | 錨定目前視圖 |
+| `get_rooms_by_level` | 逐樓層盤點房間 |
+| `get_element_info` | 補抓房間 BoundingBox 中心座標 |
+| `modify_element_parameter` | 寫入房間編號參數 |
+| `get_room_info` | 寫入後抽樣驗證 |
+| `zoom_to_element` | 抽查定位 |
+| `override_element_graphics` | 抽查時暫時上色 |
+| `clear_element_override` | 清除暫時上色 |
 
 ## Reference
 
-- `domain/room-numbering-workflow.md`
-- `domain/lessons.md`
+詳見 `domain/room-numbering-workflow.md`（分群容差 3000mm、排序規則、X01 起編皆以該檔為準）。
+
+設計模式：Sequential Workflow（盤點 → 排序 → dry-run → 寫入 → 驗證）。

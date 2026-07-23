@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using Autodesk.Revit.UI;
 
 namespace RevitMCP.Core
@@ -38,10 +39,12 @@ namespace RevitMCP.Core
 
         /// <summary>
         /// 執行命令
+        /// ExternalEvent.Raise() 會合併多次呼叫為單次 Execute，
+        /// 因此以佇列保存每個命令，避免連續命令互相覆蓋而靜默遺失。
         /// </summary>
         public void ExecuteCommand(Action<UIApplication> action)
         {
-            _eventHandler.SetAction(action);
+            _eventHandler.EnqueueAction(action);
             _externalEvent.Raise();
         }
 
@@ -50,22 +53,29 @@ namespace RevitMCP.Core
         /// </summary>
         private class CommandEventHandler : IExternalEventHandler
         {
-            private Action<UIApplication> _action;
+            private readonly ConcurrentQueue<Action<UIApplication>> _actions =
+                new ConcurrentQueue<Action<UIApplication>>();
 
-            public void SetAction(Action<UIApplication> action)
+            public void EnqueueAction(Action<UIApplication> action)
             {
-                _action = action;
+                _actions.Enqueue(action);
             }
 
             public void Execute(UIApplication app)
             {
-                try
+                // 一次清空佇列；Execute 執行中若有新命令進來，
+                // 其 EnqueueAction 先於 Raise()，不是被本迴圈消化
+                // 就是觸發下一次 Execute，兩者皆不遺失。
+                while (_actions.TryDequeue(out var action))
                 {
-                    _action?.Invoke(app);
-                }
-                catch (Exception ex)
-                {
-                    TaskDialog.Show("命令執行錯誤", ex.Message);
+                    try
+                    {
+                        action?.Invoke(app);
+                    }
+                    catch (Exception ex)
+                    {
+                        TaskDialog.Show("命令執行錯誤", ex.Message);
+                    }
                 }
             }
 

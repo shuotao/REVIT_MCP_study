@@ -39,6 +39,9 @@ export class RevitSocketClient {
     private port: number = DEFAULT_PORT;
     private reconnectInterval: number = 5000; // 5 seconds
     private responseHandlers: Map<string, (response: RevitResponse) => void> = new Map();
+    private connectPromise: Promise<void> | null = null;
+    private reconnectTimer: NodeJS.Timeout | null = null;
+    private intentionalDisconnect: boolean = false;
 
     constructor(host: string = 'localhost', port?: number) {
         this.host = host;
@@ -47,20 +50,45 @@ export class RevitSocketClient {
 
     /**
      * Connect to Revit Plugin
+     * Concurrent callers share the same in-flight attempt; the Revit side
+     * only holds one MCP connection, so parallel sockets would clobber it.
      */
     async connect(): Promise<void> {
-        return new Promise((resolve, reject) => {
+        if (this.isConnected()) {
+            return;
+        }
+        if (this.connectPromise) {
+            return this.connectPromise;
+        }
+
+        this.intentionalDisconnect = false;
+
+        this.connectPromise = new Promise<void>((resolve, reject) => {
             const wsUrl = `ws://${this.host}:${this.port}`;
             console.error(`[Socket] Connecting to Revit: ${wsUrl}`);
 
-            this.ws = new WebSocket(wsUrl);
+            const ws = new WebSocket(wsUrl);
+            this.ws = ws;
 
-            this.ws.on('open', () => {
+            let settled = false;
+            const settle = (error?: Error) => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(connectionTimeout);
+                this.connectPromise = null;
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            };
+
+            ws.on('open', () => {
                 console.error('[Socket] Connected to Revit Plugin');
-                resolve();
+                settle();
             });
 
-            this.ws.on('message', (data: WebSocket.Data) => {
+            ws.on('message', (data: WebSocket.Data) => {
                 try {
                     const rawResponse = JSON.parse(data.toString());
                     // Map PascalCase from C# to camelCase for internal use
@@ -85,17 +113,25 @@ export class RevitSocketClient {
                 }
             });
 
-            this.ws.on('error', (error) => {
+            ws.on('error', (error) => {
                 console.error('[Socket] WebSocket Error:', error);
-                reject(error);
+                settle(error instanceof Error ? error : new Error(String(error)));
             });
 
-            this.ws.on('close', () => {
+            ws.on('close', () => {
                 console.error('[Socket] Connection closed');
-                this.ws = null;
+                if (this.ws === ws) {
+                    this.ws = null;
+                }
+                settle(new Error('Connection closed before it was established'));
 
-                // Reconnect logic
-                setTimeout(() => {
+                // Reconnect logic — skip after an intentional disconnect,
+                // and never stack a second timer on top of a pending one.
+                if (this.intentionalDisconnect || this.reconnectTimer) {
+                    return;
+                }
+                this.reconnectTimer = setTimeout(() => {
+                    this.reconnectTimer = null;
                     console.error('[Socket] Attempting to reconnect...');
                     this.connect().catch(err => {
                         console.error('[Socket] Reconnection failed:', err);
@@ -104,12 +140,15 @@ export class RevitSocketClient {
             });
 
             // Connection Timeout
-            setTimeout(() => {
-                if (this.ws?.readyState !== WebSocket.OPEN) {
-                    reject(new Error('Connection Timeout: Please ensure Revit Plugin is running and MCP server is enabled'));
+            const connectionTimeout = setTimeout(() => {
+                if (ws.readyState !== WebSocket.OPEN) {
+                    settle(new Error('Connection Timeout: Please ensure Revit Plugin is running and MCP server is enabled'));
+                    ws.terminate();
                 }
             }, 10000);
         });
+
+        return this.connectPromise;
     }
 
     /**
@@ -130,8 +169,17 @@ export class RevitSocketClient {
         console.error(`[Socket] Sending command: ${commandName}`, parameters);
 
         return new Promise((resolve, reject) => {
+            // Request Timeout
+            const requestTimeout = setTimeout(() => {
+                if (this.responseHandlers.has(requestId)) {
+                    this.responseHandlers.delete(requestId);
+                    reject(new Error('Command timed out'));
+                }
+            }, timeoutMs); // default 30 seconds; cross-document commands pass a longer value
+
             // Register response handler
             this.responseHandlers.set(requestId, (response: RevitResponse) => {
+                clearTimeout(requestTimeout);
                 if (response.success) {
                     resolve(response);
                 } else {
@@ -141,14 +189,6 @@ export class RevitSocketClient {
 
             // Send command
             this.ws?.send(JSON.stringify(command));
-
-            // Request Timeout
-            setTimeout(() => {
-                if (this.responseHandlers.has(requestId)) {
-                    this.responseHandlers.delete(requestId);
-                    reject(new Error('Command timed out'));
-                }
-            }, timeoutMs); // default 30 seconds; cross-document commands pass a longer value
         });
     }
 
@@ -160,9 +200,14 @@ export class RevitSocketClient {
     }
 
     /**
-     * Disconnect
+     * Disconnect (intentional — suppresses auto-reconnect)
      */
     disconnect(): void {
+        this.intentionalDisconnect = true;
+        if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = null;
+        }
         if (this.ws) {
             this.ws.close();
             this.ws = null;
