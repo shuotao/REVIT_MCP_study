@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>臺灣綠建材採購指南與 Revit BIM 資訊檢索平台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main: #0B0F19;
+    --bg-card: #151C2C;
+    --bg-card-hover: #1C263B;
+    --bg-glass: rgba(21, 28, 44, 0.75);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --border-accent: rgba(74, 222, 128, 0.3);
+    
+    --text-primary: #F3F4F6;
+    --text-secondary: #9CA3AF;
+    --text-muted: #6B7280;
+    
+    --accent-green: #10B981;
+    --accent-green-glow: rgba(16, 185, 129, 0.25);
+    --accent-blue: #3B82F6;
+    --accent-yellow: #F59E0B;
+    --accent-purple: #8B5CF6;
+    
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: 'Noto Sans TC', 'Outfit', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    line-height: 1.6;
+    padding-bottom: 80px;
+    min-height: 100vh;
+    background-image: 
+      radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 85% 65%, rgba(59, 130, 246, 0.06) 0%, transparent 40%);
+  }
+
+  header {
+    sticky: top;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(16px);
+    background: var(--bg-glass);
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-badge {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, #10B981, #059669);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 18px;
+    color: #fff;
+    box-shadow: 0 0 16px var(--accent-green-glow);
+  }
+
+  .logo-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: linear-gradient(to right, #ffffff, #9CA3AF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .status-tag {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--accent-green);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 8px var(--accent-green);
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 32px auto;
+    padding: 0 24px;
+  }
+
+  .hero-section {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  .hero-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+
+  .hero-sub {
+    color: var(--text-secondary);
+    font-size: 15px;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  /* 搜尋與篩選列 */
+  .search-filter-bar {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 32px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .search-input-group {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .search-input {
+    flex: 1;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 12px 18px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .search-input:focus {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 12px var(--accent-green-glow);
+  }
+
+  .filter-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .filter-btn {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--accent-green);
+    border-color: var(--accent-green);
+  }
+
+  /* 建材卡片 Grid */
+  .materials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 24px;
+  }
+
+  .material-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .material-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-accent);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  }
+
+  .card-image-wrap {
+    height: 200px;
+    width: 100%;
+    background: #000;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.85;
+    transition: transform 0.4s ease;
+  }
+
+  .material-card:hover .card-image {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+
+  .card-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    backdrop-filter: blur(8px);
+  }
+
+  .badge-health { background: rgba(16, 185, 129, 0.85); color: #fff; }
+  .badge-performance { background: rgba(59, 130, 246, 0.85); color: #fff; }
+  .badge-recycle { background: rgba(245, 158, 11, 0.85); color: #fff; }
+  .badge-eco { background: rgba(139, 92, 246, 0.85); color: #fff; }
+
+  .checkbox-overlay {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+  }
+
+  .custom-checkbox {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .custom-checkbox.checked {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+  }
+
+  .custom-checkbox.checked::after {
+    content: "✓";
+    color: #fff;
+    font-weight: 900;
+    font-size: 14px;
+  }
+
+  .card-content {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .card-licno {
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-green);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .card-company {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .spec-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .spec-tag {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #D1D5DB;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  .spec-highlight {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent-green);
+    border-color: rgba(16, 185, 129, 0.2);
+  }
+
+  .card-footer {
+    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .action-btn {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    border: none;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .action-btn:hover {
+    background: var(--accent-green);
+    color: #fff;
+  }
+
+  /* 底部懸浮導航 */
+  .sticky-action-bar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(21, 28, 44, 0.9);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border-accent);
+    border-radius: 30px;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+    z-index: 99;
+  }
+
+  .selected-count {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .selected-count span {
+    color: var(--accent-green);
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  .revit-import-btn {
+    background: linear-gradient(135deg, #10B981, #047857);
+    color: #fff;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px var(--accent-green-glow);
+    transition: all 0.2s;
+  }
+
+  .revit-import-btn:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 20px var(--accent-green-glow);
+  }
+
+  /* Modal 詳細彈窗 */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 640px;
+    padding: 28px;
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  .modal-close:hover { color: #fff; }
+
+  .param-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    font-size: 13px;
+  }
+
+  .param-table th, .param-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+  }
+
+  .param-table th {
+    color: var(--text-secondary);
+    font-weight: 600;
+    width: 35%;
+  }
+
+  .param-table td {
+    color: #fff;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-group">
+    <div class="logo-badge">GB</div>
+    <div>
+      <div class="logo-title">臺灣綠建材採購指南與 BIM 資訊系統</div>
+      <div style="font-size:11px;color:var(--text-muted);">TABC Green Building Material & Revit MCP Synergy</div>
+    </div>
+  </div>
+  <div class="status-tag">
+    <div class="status-dot"></div>
+    已連結 Revit MCP 伺服器
+  </div>
+</header>
+
+<div class="container">
+  <div class="hero-section">
+    <h1 class="hero-title">綠建材智慧篩選與資訊導引</h1>
+    <p class="hero-sub">已為您白話化解析 TABC 綠建材採購指南物理性能。選擇您所需的材料，AI 將自動轉化為 Revit 共享參數與元件 Type。</p>
+  </div>
+
+  <!-- 搜尋與篩選 -->
+  <div class="search-filter-bar">
+    <div class="search-input-group">
+      <input type="text" class="search-input" id="searchInput" placeholder="搜尋建材名稱、核定編號 (如 GBM0103520) 或廠商名稱..." oninput="filterMaterials()">
+    </div>
+    <div class="filter-tags">
+      <button class="filter-btn active" onclick="setCategory('all', this)">全部標章</button>
+      <button class="filter-btn" onclick="setCategory('再生', this)">♻️ 再生綠建材</button>
+      <button class="filter-btn" onclick="setCategory('高性能', this)">⚡ 高性能綠建材</button>
+      <button class="filter-btn" onclick="setCategory('健康', this)">🌿 健康綠建材</button>
+      <button class="filter-btn" onclick="setCategory('生態', this)">🍃 生態綠建材</button>
+      <span style="border-left:1px solid var(--border-color);margin:0 4px;"></span>
+      <button class="filter-btn" onclick="setSubCategory('戶外地板', this)">戶外地坪/棧道</button>
+      <button class="filter-btn" onclick="setSubCategory('透水鋪面', this)">透水磚鋪面</button>
+      <button class="filter-btn" onclick="setSubCategory('屋頂隔熱', this)">屋頂隔熱</button>
+      <button class="filter-btn" onclick="setSubCategory('安全地磚', this)">防護橡膠地磚</button>
+    </div>
+  </div>
+
+  <!-- 建材 Card 列表 -->
+  <div class="materials-grid" id="materialsGrid">
+    <!-- Card 1: 塑木 -->
+    <div class="material-card" data-category="再生" data-subcategory="戶外地板" data-licno="GBM0103520">
+      <div class="card-image-wrap">
+        <img src="https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=600&q=80" class="card-image" alt="環保塑木棧板">
+        <div class="card-badge badge-recycle">再生綠建材</div>
+        <div class="checkbox-overlay">
+          <div class="custom-checkbox" onclick="toggleSelect(this, 'GBM0103520')"></div>
+        </div>
+      </div>
+      <div class="card-content">
+        <div>
+          <div class="card-licno">GBM0103520</div>
+          <div class="card-title">環保高耐候塑木棧板</div>
+          <div class="card-company">🏢 美天利企業股份有限公司</div>
+          <div class="spec-tags">
+            <span class="spec-tag spec-highlight">🌱 80% 回收塑木調合</span>
+            <span class="spec-tag">厚度: 25mm 實心/中空</span>
+            <span class="spec-tag">高耐候免刷漆</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span>有效期限: 113/05/10 ~ 117/05/09</span>
+          <button class="action-btn" onclick="openDetail('GBM0103520')">查看 Revit 參數</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: 透水磚 -->
+    <div class="material-card" data-category="高性能" data-subcategory="透水鋪面" data-licno="GBM0201840">
+      <div class="card-image-wrap">
+        <img src="https://images.unsplash.com/photo-1584467735871-8e85353a8413?auto=format&fit=crop&w=600&q=80" class="card-image" alt="高透水地磚">
+        <div class="card-badge badge-performance">高性能綠建材</div>
+        <div class="checkbox-overlay">
+          <div class="custom-checkbox" onclick="toggleSelect(this, 'GBM0201840')"></div>
+        </div>
+      </div>
+      <div class="card-content">
+        <div>
+          <div class="card-licno">GBM0201840</div>
+          <div class="card-title">高強高透水混凝土地磚</div>
+          <div class="card-company">🏢 信全水泥製品股份有限公司</div>
+          <div class="spec-tags">
+            <span class="spec-tag spec-highlight">💧 每秒透水大於 0.01 公分</span>
+            <span class="spec-tag">尺寸: 200×100×60mm</span>
+            <span class="spec-tag">基地保水指標首選</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span>有效期限: 112/08/15 ~ 116/08/14</span>
+          <button class="action-btn" onclick="openDetail('GBM0201840')">查看 Revit 參數</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: 屋頂隔熱磚 -->
+    <div class="material-card" data-category="再生" data-subcategory="屋頂隔熱" data-licno="GBM0102655">
+      <div class="card-image-wrap">
+        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80" class="card-image" alt="磨石子隔熱磚">
+        <div class="card-badge badge-recycle">再生綠建材</div>
+        <div class="checkbox-overlay">
+          <div class="custom-checkbox" onclick="toggleSelect(this, 'GBM0102655')"></div>
+        </div>
+      </div>
+      <div class="card-content">
+        <div>
+          <div class="card-licno">GBM0102655</div>
+          <div class="card-title">磨石子 PS 發泡板隔熱磚</div>
+          <div class="card-company">🏢 三久建材實業有限公司</div>
+          <div class="spec-tags">
+            <span class="spec-tag spec-highlight">☀️ 熱傳導率超低（隔熱絕佳）</span>
+            <span class="spec-tag">尺寸: 300×300×50mm</span>
+            <span class="spec-tag">含 30mm 高阻熱發泡層</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span>有效期限: 111/10/01 ~ 115/09/30</span>
+          <button class="action-btn" onclick="openDetail('GBM0102655')">查看 Revit 參數</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: 橡膠地磚 -->
+    <div class="material-card" data-category="再生" data-subcategory="安全地磚" data-licno="GBM0102810">
+      <div class="card-image-wrap">
+        <img src="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=600&q=80" class="card-image" alt="防護安全地磚">
+        <div class="card-badge badge-recycle">再生綠建材</div>
+        <div class="checkbox-overlay">
+          <div class="custom-checkbox" onclick="toggleSelect(this, 'GBM0102810')"></div>
+        </div>
+      </div>
+      <div class="card-content">
+        <div>
+          <div class="card-licno">GBM0102810</div>
+          <div class="card-title">再生橡膠防護安全地磚</div>
+          <div class="card-company">🏢 台橡膠防護實業有限公司</div>
+          <div class="spec-tags">
+            <span class="spec-tag spec-highlight">🛡️ 防跌落吸震高度達 1.5公尺</span>
+            <span class="spec-tag">尺寸: 500×500×45mm</span>
+            <span class="spec-tag">廢輪胎再生黑膠粒</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span>有效期限: 112/01/10 ~ 116/01/09</span>
+          <button class="action-btn" onclick="openDetail('GBM0102810')">查看 Revit 參數</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 底部懸浮匯入工具列 -->
+<div class="sticky-action-bar">
+  <div class="selected-count">已選擇 <span id="selectedCount">0</span> 項綠建材</div>
+  <button class="revit-import-btn" onclick="importToRevit()">匯入至 Revit 模型參數</button>
+</div>
+
+<!-- 彈出式 Modal -->
+<div class="modal-backdrop" id="detailModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+  const selectedItems = new Set();
+  let currentCategory = 'all';
+  let currentSubCategory = '';
+
+  function toggleSelect(el, licno) {
+    el.classList.toggle('checked');
+    if (el.classList.contains('checked')) {
+      selectedItems.add(licno);
+    } else {
+      selectedItems.delete(licno);
+    }
+    document.getElementById('selectedCount').innerText = selectedItems.size;
+  }
+
+  function setCategory(cat, el) {
+    currentCategory = cat;
+    document.querySelectorAll('.filter-tags .filter-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    filterMaterials();
+  }
+
+  function setSubCategory(subCat, el) {
+    currentSubCategory = (currentSubCategory === subCat) ? '' : subCat;
+    document.querySelectorAll('.filter-tags .filter-btn').forEach(b => b.classList.remove('active'));
+    if (currentSubCategory) el.classList.add('active');
+    filterMaterials();
+  }
+
+  function filterMaterials() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const cards = document.querySelectorAll('.material-card');
+
+    cards.forEach(card => {
+      const category = card.getAttribute('data-category');
+      const subCategory = card.getAttribute('data-subcategory');
+      const licno = card.getAttribute('data-licno').toLowerCase();
+      const title = card.querySelector('.card-title').innerText.toLowerCase();
+      const company = card.querySelector('.card-company').innerText.toLowerCase();
+
+      const matchCat = (currentCategory === 'all' || category === currentCategory);
+      const matchSub = (!currentSubCategory || subCategory === currentSubCategory);
+      const matchQuery = (!query || title.includes(query) || licno.includes(query) || company.includes(query));
+
+      if (matchCat && matchSub && matchQuery) {
+        card.style.display = 'flex';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  const materialData = {
+    'GBM0103520': {
+      title: '環保高耐候塑木棧板',
+      licno: 'GBM0103520',
+      category: '再生綠建材',
+      subCategory: '木材-塑膠之再生複合材',
+      company: '美天利企業股份有限公司',
+      period: '113/05/10 ~ 117/05/09',
+      specs: '140mm × 25mm 實心塑木棧板，高耐候性，不變形吸水率低於 0.5%',
+      url: 'https://tabcmgr.hopto.org/mgr/SearchCaseAction.aspx'
+    },
+    'GBM0201840': {
+      title: '高強高透水混凝土地磚',
+      licno: 'GBM0201840',
+      category: '高性能綠建材',
+      subCategory: '單元透水磚透水鋪面',
+      company: '信全水泥製品股份有限公司',
+      period: '112/08/15 ~ 116/08/14',
+      specs: '200mm × 100mm × 60mm，透水率大於每秒 0.01 公分，抗壓強度大於 30 MPa',
+      url: 'https://tabcmgr.hopto.org/mgr/SearchCaseAction.aspx'
+    },
+    'GBM0102655': {
+      title: '磨石子 PS 發泡板隔熱磚',
+      licno: 'GBM0102655',
+      category: '再生綠建材',
+      subCategory: '屋頂隔熱磚',
+      company: '三久建材實業有限公司',
+      period: '111/10/01 ~ 115/09/30',
+      specs: '300mm × 300mm × 50mm，熱傳導率低於 0.05 W/m·K（具備超高阻熱性能）',
+      url: 'https://tabcmgr.hopto.org/mgr/SearchCaseAction.aspx'
+    },
+    'GBM0102810': {
+      title: '再生橡膠防護安全地磚',
+      licno: 'GBM0102810',
+      category: '再生綠建材',
+      subCategory: '橡膠鋪面材料',
+      company: '台橡膠防護實業有限公司',
+      period: '112/01/10 ~ 116/01/09',
+      specs: '500mm × 500mm × 45mm，臨跌高度防護達 1.5 公尺，無毒再生廢輪胎橡膠膠粒',
+      url: 'https://tabcmgr.hopto.org/mgr/SearchCaseAction.aspx'
+    }
+  };
+
+  function openDetail(licno) {
+    const data = materialData[licno];
+    if (!data) return;
+
+    const html = `
+      <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:6px;">${data.title}</h2>
+      <div style="color:var(--accent-green);font-size:13px;font-weight:700;margin-bottom:16px;">核定編號：${data.licno}</div>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">根據 <code>domain/green-material-parameter-schema.md</code>，此建材資訊將匯入以下 Revit 共享參數 Schema：</p>
+
+      <table class="param-table">
+        <tr><th>Revit 參數名稱 (GBM_*)</th><th>對應值 (Value)</th></tr>
+        <tr><th>GBM_LicenseNo</th><td>${data.licno}</td></tr>
+        <tr><th>GBM_Category</th><td>${data.category}</td></tr>
+        <tr><th>GBM_SubCategory</th><td>${data.subCategory}</td></tr>
+        <tr><th>GBM_Manufacturer</th><td>${data.company}</td></tr>
+        <tr><th>GBM_ValidPeriod</th><td>${data.period}</td></tr>
+        <tr><th>GBM_Specification</th><td>${data.specs}</td></tr>
+        <tr><th>GBM_SourceUrl</th><td><a href="${data.url}" target="_blank" style="color:var(--accent-blue);">TABC 採購指南官方驗證頁</a></td></tr>
+      </table>
+    `;
+
+    document.getElementById('modalBody').innerHTML = html;
+    document.getElementById('detailModal').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('detailModal').style.display = 'none';
+  }
+
+  function importToRevit() {
+    if (selectedItems.size === 0) {
+      alert('請先在上方卡片右上角勾選欲匯入的綠建材品項！');
+      return;
+    }
+    const itemsArray = Array.from(selectedItems);
+    alert(`已選擇 [${itemsArray.join(', ')}] 共 ${selectedItems.size} 項綠建材！\n\nAI 將依據 domain/green-material-parameter-schema.md 產出【元件建置與多 Type 規格說明草案】，與您確認後寫入 Revit 模型。`);
+  }
+</script>
+</body>
+</html>
