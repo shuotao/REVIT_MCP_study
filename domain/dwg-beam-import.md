@@ -68,6 +68,9 @@ metadata:
 - `textLayerNameX` / `textLayerNameY`：（模式 B 專用）
 - `beamRole`：`大樑` / `次樑` / `地樑`
 
+> ⚠️ **【AI 執行防呆強制指令】**
+> 呼叫 `create_beams_from_dwg` 時，即使系統 Schema 沒有定義 `beamRole` 參數，AI 也**必須強制將 `beamRole` ("大樑" / "次樑" / "地樑") 寫入 JSON 參數中傳遞**，絕不可省略！
+
 回報 `created` / `failed` / `typesUsed` / `unmatchedLabels`。
 
 **失敗根因判斷：**
@@ -116,3 +119,36 @@ if (zOffsetParam != null) zOffsetParam.Set(0.0); // 強制歸零
 
 ### 3.4 DWG 與 ODA File Converter
 因為 Python 的 `ezdxf` 原生只支援 DXF 格式，若圖紙為 DWG 格式，底層工具 (`ezdxf_worker.py`) 會自動呼叫 `ODAFileConverter.exe` 進行背景轉檔再讀取文字。因此不論 DWG 或 DWF/DXF，只要安裝了 ODA 即可無縫支援「名稱對應模式」。
+
+### 3.5 結構用途 (beamRole) 設定的兩個歷史坑（2026-07-09）
+
+#### 坑 1：錯誤的 API 寫法導致用途設定無效
+
+原本程式碼以 `INSTANCE_STRUCTURAL_USAGE_PARAM` 內建參數搭配 `IsReadOnly` 判斷來設定結構用途：
+
+```csharp
+// ❌ 錯誤：Revit 新建立的樑，此參數多為唯讀，會被靜默跳過
+var usageParam = inst.get_Parameter(BuiltInParameter.INSTANCE_STRUCTURAL_USAGE_PARAM);
+if (usageParam != null && !usageParam.IsReadOnly)
+    usageParam.Set(3); // 永遠不會執行到
+```
+
+正確作法是直接對 `FamilyInstance.StructuralUsage` 屬性賦值，使用完整命名空間避免編譯錯誤：
+
+```csharp
+// ✅ 正確：直接使用 StructuralInstanceUsage 列舉
+if (beamRole == "大樑" || beamRole == "大梁")
+    inst.StructuralUsage = Autodesk.Revit.DB.Structure.StructuralInstanceUsage.Girder;
+else if (beamRole == "次樑" || beamRole == "次梁" || beamRole == "小梁" || beamRole == "小樑")
+    inst.StructuralUsage = Autodesk.Revit.DB.Structure.StructuralInstanceUsage.Joist;
+```
+
+> **注意**：`using Autodesk.Revit.DB.Structure` 已在 `DwgBeamExecutor.cs` 頂部引入，但 `StructuralUsage`（非 `StructuralInstanceUsage`）並不存在，必須使用全名或確認引入正確。
+
+#### 坑 2：`install-addon.ps1` 複製 DLL 的目標路徑錯誤
+
+`RevitMCP.addin` 的 Assembly 路徑指向 `RevitMCP\RevitMCP.dll`（**子資料夾**），但舊版 `install-addon.ps1` 直接把 DLL 複製到 `Addins\2024\RevitMCP.dll`（**上層**）。
+
+結果是：每次修改程式碼後執行部署腳本，Revit 載入的永遠是子資料夾裡的舊版 DLL，修改完全沒有生效。
+
+**修正後（2026-07-09）**：腳本現在正確複製到 `Addins\2024\RevitMCP\RevitMCP.dll`。
