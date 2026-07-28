@@ -1,5 +1,24 @@
 # HANDOFF — 2026-07-28 Issue/PR 收攏（跨機接手）
 
+---
+
+## ✅ Mac session 執行結果（2026-07-28，回拋 Windows）
+
+> Mac 端（`gh` 登入 `shuotao`，具 `repo`+`workflow` write）已把 handoff 的 **GitHub 寫入部分全部完成**。Mac **無 Revit**，凡需 build/runtime 的都原樣留給 Windows。
+
+**Mac 已完成：**
+- ✅ **§2 fix PR → 已開 [PR #101](https://github.com/shuotao/REVIT_MCP_study/pull/101)**（head `fix/issues-90-93-and-87-2026-07-28` → base `main`；標題/body 照 §2）。
+- ✅ **§3 六則 issue 回覆全部照貼**：#98 / #99 / #100 / #74 / #75 / #62（維護者語氣、繁中、credit 貢獻者，逐字照 §3）。
+- ✅ **§4 #56 reclaim（部分）**：逐 chain 比對 `preview/lesley-pr30-snapshot` vs `main`，找出**唯一尚未進 main** 的工具 chain = `auto_dimension_walls`（劉可 commit `f84d3d3`，其餘 chain 先前波次已收編）。已 cherry-pick 至分支 `reclaim/pr30-lesley-auto-dimension`（**保留 Author=lesleyliuke**），開 **draft [PR #102](https://github.com/shuotao/REVIT_MCP_study/pull/102)**。Mac 端已驗：cherry-pick 零衝突、TS `npm run build` exit 0、C# 靜態檢查（大括號平衡、ID 全用 `IdType`+`.Id.GetIdValue()` 跨版本安全、helper 在 main 已存在）。
+
+**Windows 待完成（本 Mac 做不到的）：**
+- ⏳ **#56 reclaim 收尾（draft PR #102）**：`dotnet build Release.R24 + R26` 0 error → Revit runtime 實測三模式 → **工具計數 166→167 同步**（`CLAUDE.md`/`README.md`/`README.zh-TW.md`/`docs/DOCUMENT_AUDIENCE_INVENTORY.md`/`docs/BIM_MCP/**` grep `166` 逐處）→ `verify-qaqc.ps1 -SkipDeploy` 全綠 → draft 轉正、merge → 於 **#56 回覆感謝並明列 credit 劉可**（真名＝劉可，非劉啟祥）。
+- ⏳ **§5 fix PR #101 的 Revit runtime 實測**（#87 柱偵測 0→>0、柱頂對齊、幾何射線；#90 樑 StructuralUsage、零長 PolyLine 不 crash）→ red→green 後 merge PR #101。
+
+> 下方為原始 handoff 全文（供對照，Windows 照做即可）。
+
+---
+
 > 目的：本機 session 已完成**程式碼側 + PR#95 合併**，但 **GitHub 寫入受限**（github MCP 的 PAT 唯讀，`merge`/`create PR`/`comment` 全 403；瀏覽器自動化貼文遇 React 受控 textarea + 擴充無回應）。此文件讓**另一台有 GitHub write 權限的機器**（`gh` 已登入、或 PAT 具 repo write、或直接用 GitHub UI）完成剩餘工作。所有全文、分支、SHA、指令都在此，**可直接照做**。
 
 接手方式：
