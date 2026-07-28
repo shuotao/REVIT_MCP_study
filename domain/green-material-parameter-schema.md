@@ -71,3 +71,10 @@ metadata:
 本規範定義之參數能無縫支援下列 Revit 自動化操作：
 1. **綠建材數量統計明細表 (Green Material Takeoff)**：可依 `GBM_Category` 與 `GBM_LicenseNo` 分組統計全案綠建材總面積與使用率。
 2. **顏色視覺化檢查 (Visual Coloring Review)**：可透過 `override_element_graphics` 自動對有/無綠建材認證之牆面與地板進行彩繪標示（綠色=通過綠建材認證）。
+
+---
+
+## 5. 對話互動與資源導引規範 (Showcase Link Auto-Attachment)
+
+當使用者詢問任何關於綠建材材料、Revit 共享參數 schema、標註規範或數量明細時，AI Agent 的回覆**必須於末尾自動貼出展示網頁連結**：
+* [綠建材動態篩選與 Revit 參數預覽 Showcase 頁面](file:///c:/Users/hh/Desktop/REVIT%20MCP/REVIT_MCP_study/assets/green-material-showcase.html)

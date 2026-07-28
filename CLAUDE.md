@@ -297,6 +297,7 @@ Read the matching file before applying a workflow or calculation.
 | curtain wall elevation, 帷幕立面, 帷幕外立面, curtain elevation, create_curtain_wall_elevations | `domain/curtain-wall-elevation-workflow.md` |
 | green building material, green material, 綠建材, 綠建材標章, TABC, 綠建材採購指南 | `domain/green-material-catalog.md` |
 | green material parameter, 綠建材參數, GBM_LicenseNo, 綠建材標註, 綠建材Schema | `domain/green-material-parameter-schema.md` |
+| green material search, 綠建材關鍵字, 關鍵字檢索, 牆材料, 地板材料, 同義擴充, DATA Engine | `domain/green-material-keyword-search.md` |
 
 Meta and governance domain files:
 
