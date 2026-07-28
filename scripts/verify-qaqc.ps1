@@ -852,6 +852,39 @@ Write-Check "All real skills appear in BIM_MCP skills-index" ($skillNotInIndex.C
     $(if ($skillNotInIndex.Count -gt 0) { "Missing card(s): $($skillNotInIndex -join ', ')" } else { "" })
 if ($skillNotInIndex.Count -gt 0) { $skillNotInIndex | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkYellow } }
 
+# 7-11. MCP Registry publish consistency (hard gate).
+# server.json <-> MCP-Server/package.json <-> schema must agree (3-place version
+# parity + namespace + encoding). Delegates to the same validator the publish
+# workflow uses. If drift is found, run the mcp-registry-sync (Sonnet) agent to fix
+# (see CLAUDE.md -> MCP Registry Publish Consistency).
+Write-Host ""
+Write-Host "  7-11. MCP Registry publish consistency:" -ForegroundColor Cyan
+$pyCmd = $null
+foreach ($c in @('python3', 'python', 'py')) {
+    $cmd = Get-Command $c -ErrorAction SilentlyContinue
+    if (-not $cmd) { continue }
+    # Windows: `python3` 常是 Microsoft Store 的 App Execution Alias stub（%LOCALAPPDATA%\Microsoft\WindowsApps\），
+    # 執行只回 exit 9009 而不跑 Python，會讓本閘門誤判 FAIL。跳過 WindowsApps stub，並實測候選能真的執行。
+    if ($cmd.Source -and $cmd.Source -like '*\WindowsApps\*') { continue }
+    & $c -c "import sys" *> $null
+    if ($LASTEXITCODE -eq 0) { $pyCmd = $c; break }
+}
+$validatorPath = "$projectRoot\scripts\validate_publish_consistency.py"
+if (-not $pyCmd) {
+    Write-Skip "MCP Registry publish consistency (server.json <-> package.json <-> schema)" "no python found"
+}
+elseif (-not (Test-Path $validatorPath)) {
+    Write-Skip "MCP Registry publish consistency (server.json <-> package.json <-> schema)" "validator script missing"
+}
+else {
+    Push-Location $projectRoot
+    & $pyCmd $validatorPath *> $null
+    $registryOk = ($LASTEXITCODE -eq 0)
+    Pop-Location
+    Write-Check "MCP Registry publish consistency (server.json <-> package.json <-> schema)" $registryOk `
+        "Run 'python scripts/validate_publish_consistency.py'; use the mcp-registry-sync (Sonnet) agent to fix drift"
+}
+
 # ─────────────────────────────────────────────
 # Phase 8: Document Audience and Encoding Hygiene
 # ─────────────────────────────────────────────
