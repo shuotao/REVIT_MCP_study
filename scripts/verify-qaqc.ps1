@@ -860,8 +860,14 @@ if ($skillNotInIndex.Count -gt 0) { $skillNotInIndex | ForEach-Object { Write-Ho
 Write-Host ""
 Write-Host "  7-11. MCP Registry publish consistency:" -ForegroundColor Cyan
 $pyCmd = $null
-foreach ($c in @('python3', 'python')) {
-    if (Get-Command $c -ErrorAction SilentlyContinue) { $pyCmd = $c; break }
+foreach ($c in @('python3', 'python', 'py')) {
+    $cmd = Get-Command $c -ErrorAction SilentlyContinue
+    if (-not $cmd) { continue }
+    # Windows: `python3` 常是 Microsoft Store 的 App Execution Alias stub（%LOCALAPPDATA%\Microsoft\WindowsApps\），
+    # 執行只回 exit 9009 而不跑 Python，會讓本閘門誤判 FAIL。跳過 WindowsApps stub，並實測候選能真的執行。
+    if ($cmd.Source -and $cmd.Source -like '*\WindowsApps\*') { continue }
+    & $c -c "import sys" *> $null
+    if ($LASTEXITCODE -eq 0) { $pyCmd = $c; break }
 }
 $validatorPath = "$projectRoot\scripts\validate_publish_consistency.py"
 if (-not $pyCmd) {

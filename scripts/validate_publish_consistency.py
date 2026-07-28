@@ -26,6 +26,15 @@ import sys
 import unicodedata
 from pathlib import Path
 
+# Windows 主控台預設 cp950 無法輸出 ✅/❌ 等 emoji，會 UnicodeEncodeError 直接 crash（Mac/Linux UTF-8 則正常），
+# 導致 verify-qaqc gate 7-11 在 Windows 誤判 FAIL。強制 stdout/stderr 走 UTF-8；串流不可 reconfigure（被重導等）
+# 時靜默略過。（2026-07-28 Windows 端修正，資料本身無漂移）
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SERVER_JSON = REPO_ROOT / "server.json"
 PACKAGE_JSON = REPO_ROOT / "MCP-Server" / "package.json"
