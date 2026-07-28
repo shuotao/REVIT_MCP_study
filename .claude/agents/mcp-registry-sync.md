@@ -30,7 +30,7 @@ You keep this repo's MCP Registry publish artifacts internally consistent. You *
 ## Procedure
 
 1. **Read** `MCP-Server/package.json`, `server.json`, and (if a release) note the `v*` tag. Determine the authoritative version + name.
-2. **Detect drift**: run `python3 scripts/validate_publish_consistency.py` and read its `❌`/`⚠️` lines. Also grep the README registry section and playbook `Current version` for stale name/version.
+2. **Detect drift**: run `python3 scripts/validate_publish_consistency.py` and read its `❌`/`⚠️` lines. Also grep the README registry section and playbook `Current version` for stale name/version. (**Windows**: `python3` is often the Microsoft Store alias stub returning exit 9009 without running — if so use `python` or `py` instead.)
 3. **Fix** each drifted field with `Edit`, aligning to the authoritative values. Preserve JSON formatting; keep files UTF-8, no BOM, no smart quotes/NBSP (the validator rejects these).
 4. **Re-validate**: run `python3 scripts/validate_publish_consistency.py` again — you are done only when it exits `0`.
 5. **Report in Traditional Chinese (繁體中文)**: list每個改動的檔案、欄位、從什麼→什麼、以及 validator 最終 exit code。
