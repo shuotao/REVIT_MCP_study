@@ -4,8 +4,15 @@ import os
 
 try:
     import ezdxf
-except ImportError:
-    print(json.dumps({"error": "缺少 ezdxf 套件，請在系統 Python 環境中安裝 (pip install ezdxf)"}))
+except Exception as e:
+    # #93 放寬捕捉範圍並附上實際 Python 路徑與版本，方便在多版本環境診斷 Revit 呼叫的是哪個 Python
+    print(json.dumps({
+        "error": (
+            "缺少 ezdxf 套件或匯入失敗，請在系統 Python 環境中安裝 (pip install ezdxf)。"
+            f" [{type(e).__name__}: {e}]"
+            f" 目前 Python: {sys.executable} (版本 {sys.version.split()[0]})"
+        )
+    }))
     sys.exit(1)
 
 # 常見 ODA File Converter 安裝路徑，依版本由新到舊排列
