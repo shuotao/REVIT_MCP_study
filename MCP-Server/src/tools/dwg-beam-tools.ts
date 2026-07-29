@@ -74,7 +74,9 @@ export const dwgBeamTools: Tool[] = [
                 },
                 beamRole: {
                     type: "string",
-                    description: "（選填）標示此批次處理的樑角色，例如「大樑」、「次樑」、「地樑」。用於回報顯示。",
+                    description:
+                        "（選填）標示此批次處理的樑角色，例如「大樑」、「次樑」、「地樑」。" +
+                        "除回報顯示外，也用於設定樑的結構用途：大樑／地樑→大樑(Girder)、次樑→格柵樑(Joist)。",
                 },
             },
             required: ["layerName", "familyName"],

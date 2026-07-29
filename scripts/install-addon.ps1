@@ -341,9 +341,13 @@ if (-not (Test-Path $addonPath)) {
 }
 
 # 複製 DLL
+# #91 RevitMCP.addin 指定 <Assembly>RevitMCP\RevitMCP.dll</Assembly>（子資料夾），
+# DLL 與其相依套件必須落在 Addins\<year>\RevitMCP\，否則 Revit 依 manifest 找子夾而載入舊版/載入失敗。
+$dllDestDir = Join-Path $addonPath "RevitMCP"
+if (-not (Test-Path $dllDestDir)) { New-Item -ItemType Directory -Path $dllDestDir -Force | Out-Null }
 try {
-    Copy-Item -Path $sourceDll -Destination (Join-Path $addonPath "RevitMCP.dll") -Force -ErrorAction Stop
-    Write-Host "✓ 已複製 RevitMCP.dll" -ForegroundColor Green
+    Copy-Item -Path $sourceDll -Destination (Join-Path $dllDestDir "RevitMCP.dll") -Force -ErrorAction Stop
+    Write-Host "✓ 已複製 RevitMCP.dll → RevitMCP\" -ForegroundColor Green
 }
 catch {
     Write-Host "❌ 錯誤：無法複製 RevitMCP.dll" -ForegroundColor Red
@@ -372,8 +376,8 @@ catch {
 $sourceJson = Join-Path $projectRoot "MCP\bin\$buildConfig\Newtonsoft.Json.dll"
 if (Test-Path $sourceJson) {
     try {
-        Copy-Item -Path $sourceJson -Destination (Join-Path $addonPath "Newtonsoft.Json.dll") -Force -ErrorAction Stop
-        Write-Host "✓ 已複製 Newtonsoft.Json.dll" -ForegroundColor Green
+        Copy-Item -Path $sourceJson -Destination (Join-Path $dllDestDir "Newtonsoft.Json.dll") -Force -ErrorAction Stop
+        Write-Host "✓ 已複製 Newtonsoft.Json.dll → RevitMCP\" -ForegroundColor Green
     }
     catch {
         Write-Host "⚠️  警告：無法複製 Newtonsoft.Json.dll（非關鍵檔案）" -ForegroundColor Yellow
