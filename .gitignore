@@ -6,6 +6,14 @@ MCP-Server/node_modules/
 MCP.Contracts/
 MCP.CoreRuntime/
 
+# Secrets / credentials — NEVER commit tokens or API keys
+.env
+.env.*
+!.env.example
+*.pat
+*.token
+github_pat_*
+
 # IDE and Editor files
 .vs/
 .vscode/*
