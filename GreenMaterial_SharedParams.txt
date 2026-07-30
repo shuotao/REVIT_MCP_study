@@ -1,0 +1,30 @@
+# This is a Revit shared parameter file.
+# Do not edit manually unless you know what you are doing.
+*META	VERSION	MINVERSION
+META	2	1
+*GROUP	ID	NAME
+GROUP	1	綠建材認證標章 (Green Material Certificate)
+GROUP	2	綠建材物理與化學性能 (Green Material Properties)
+GROUP	3	綠建材評定與面積算量 (Green Material Evaluation)
+GROUP	4	國家標準與試驗驗證 (CNS Standard & Testing Verification)
+GROUP	5	非幾何與附屬材料 (Auxiliary & Non-Model Materials)
+*PARAM	GUID	NAME	DATATYPE	DATACATEGORY	GROUP	VISIBLE	DESCRIPTION	USERMODIFIABLE	HIDEWHENNOVALUE
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111101	GreenMaterial_Certified	YESNO		1	1	是否通過台灣 TABC 綠建材標章評定	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111102	GreenMaterial_CertNo	TEXT		1	1	台灣 TABC 綠建材標章證書字號 (如: GBM0104204)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111103	GreenMaterial_Category	TEXT		1	1	綠建材分類 (健康綠建材/生態綠建材/高性能吸音/高性能防音/高性能遮陽/再生綠建材)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111104	GreenMaterial_SubCategory	TEXT		1	1	綠建材次分類 (如: 塗料類、地板類、牆壁類、天花板類、綜合建材類)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111105	GreenMaterial_Applicant	TEXT		1	1	綠建材標章申請或製造廠商公司名稱	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111106	GreenMaterial_ValidUntil	TEXT		1	1	綠建材標章有效期限 (格式: YYYY/MM/DD)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111107	GreenMaterial_TVOC	NUMBER		2	1	總揮發性有機化合物逸散率 TVOC (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111108	GreenMaterial_Formaldehyde	NUMBER		2	1	甲醛逸散率 Formaldehyde (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111109	GreenMaterial_RecycledRatio	NUMBER		2	1	再生材料回收摻配率 (%)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111110	GreenMaterial_AcousticNRC	NUMBER		2	1	高性能吸音建材吸音係數 (NRC / SAA)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111111	GreenMaterial_DecorArea	AREA		3	1	該建材或裝修面之總計算面積 (m2)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111112	GreenMaterial_QualifyArea	AREA		3	1	符合綠建材標準之有效綠建材面積 (m2)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111113	GreenMaterial_RatioContribution	NUMBER		3	1	該材料對整體綠建材率 (45%/75%) 之貢獻度百分比 (%)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111114	GreenMaterial_CNSSpec	TEXT		4	1	依據 CNS 國家標準與試驗規範 (如: 依據 CNS 16082 / CNS 15200 試驗)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111115	GreenMaterial_TestItems	TEXT		4	1	試驗項目與檢測範疇 (如: TVOC逸散率、甲醛釋出量、重金屬鉛/鎘/汞及苯類)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111116	GreenMaterial_QualifiedItems	TEXT		4	1	合格項目與評定結果 (如: 健康綠建材評定合格、無重金屬與毒性化學物質檢出)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111117	GreenMaterial_Adhesive	TEXT		5	1	綠建材接著劑與泥狀膠產品名稱與證號 (如: GBM0104192)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111118	GreenMaterial_Sealant	TEXT		5	1	綠建材填縫材與矽利康產品名稱與證號	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111119	GreenMaterial_Waterproofing	TEXT		5	1	綠建材防水膜與防水塗層產品名稱與證號	1	0

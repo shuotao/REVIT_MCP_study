@@ -1,9 +1,9 @@
 ---
 name: green-material-keyword-search
-description: "建築 Agents 綠建材關鍵字擴充檢索與 DATA Engine 規範。定義關鍵字包含檢索 (Substring Match)、同義與部位相關材料擴充 (Synonym Expansion)，以及 TABC 官方線上全量資料 Mapping 規則。"
+description: "建築 Agents 綠建材關鍵字擴充檢索、網頁自動跳出機制與 DATA Engine 規範。定義當有人提及『綠建材』相關提示詞時自動跳出 green-material-showcase.html 網頁、關鍵字包含檢索 (Substring Match)、同義與部位相關材料擴充 (Synonym Expansion)，以及 TABC 官方線上全量資料 Mapping 規則。"
 metadata:
-  version: "1.1"
-  updated: "2026-07-28"
+  version: "1.2"
+  updated: "2026-07-29"
   created: "2026-07-28"
   references:
     - "https://tabcmgr.hopto.org/mgr/SearchCaseAction.aspx"
@@ -12,12 +12,22 @@ metadata:
     - green-material-catalog.md
     - green-material-parameter-schema.md
   referenced_by: []
-  tags: [綠建材, 關鍵字檢索, 建築Agents, 語意擴充, SubstringMatch, DATAEngine, TABC, RevitBIM]
+  tags: [綠建材, 關鍵字檢索, 建築Agents, 語意擴充, 自動跳出網頁, Showcase, SubstringMatch, DATAEngine, TABC, RevitBIM]
 ---
 
-# 綠建材關鍵字擴充檢索與 DATA Engine 規範 (`green-material-keyword-search`)
+# 綠建材關鍵字擴充檢索、自動跳出網頁與 DATA Engine 規範 (`green-material-keyword-search`)
 
-本文件為全域「建築 Agents」處理使用者綠建築 (EEWH/LEED) 與 BIM 裝修需求時之**關鍵字擴充檢索權威規範與全量 DATA Engine 準則**。
+本文件為全域「建築 Agents」處理使用者綠建築 (EEWH/LEED) 與 BIM 裝修需求時之**關鍵字擴充檢索權威規範、自動跳出綠建材展示網頁機制與全量 DATA Engine 準則**。
+
+---
+
+## 0. 關鍵字自動觸發與 `green-material-showcase.html` 網頁自動跳出機制
+
+1. **自動觸發條件 (Auto-Trigger Conditions)**：
+   * 當使用者於對話中提及包含 **「綠建材」** 或相關提示詞（如：`綠建材`、`綠建材標章`、`牆體綠建材`、`地坪綠建材`、`TABC綠建材`、`健康綠建材`、`高性能綠建材`、`再生綠建材`、`生態綠建材`、`綠建材採購`、`綠建材網頁`、`綠建材展示` 等）。
+2. **AI Agent 行為準則 (Agent Action Rules)**：
+   * **自動彈出網頁連結**：回應中**必須優先顯示並跳出** [臺灣 TABC 全量綠建材採購指南與 Revit BIM 材料 Set 管理平台](file:///c:/Users/hh/Desktop/REVIT%20MCP/REVIT_MCP_study/assets/green-material-showcase.html) 的實體檔案連結與線上預覽入口。
+   * **提供互動與導引**：引導使用者開啟該網頁進行全量 1000+ 筆 TABC 綠建材搜尋、四大標章過濾、關鍵字高亮顯示以及 Revit 共享參數 (Shared Parameters) 的一鍵導出。
 
 ---
 
@@ -39,8 +49,10 @@ metadata:
 
 ## 2. DATA Engine 檢索呈現邏輯
 
-1. 當使用者在對話或動態網頁中輸入任意關鍵字（如「牆」）時，DATA Engine 自動執行：
-   * **包含比對 (Substring match)**：名稱/細項包含「牆」字的所有真實合格案件全數列出。
-   * **同義與部位擴充 (Expansion match)**：自動將石膏磚、牆面裝飾塗材、外牆水泥漆、牆體綠混凝土、重組竹壁板、矽酸鈣板、纖維水泥板全數精準列出。
+1. 當使用者在對話或動態網頁中輸入任意包含「綠建材」相關關鍵字時，DATA Engine 自動執行：
+   * **自動彈出與附帶 Showcase 網頁**：於回答最顯眼處提供 [green-material-showcase.html](file:///c:/Users/hh/Desktop/REVIT%20MCP/REVIT_MCP_study/assets/green-material-showcase.html) 展示介面。
+   * **包含比對 (Substring match)**：名稱/細項包含查詢字的所有真實合格案件全數列出。
+   * **同義與部位擴充 (Expansion match)**：自動擴充同義詞與相關工法材料。
 2. 網頁頂部標示檢索統計 Banner：
    * `✅ 建築 Agent 關鍵字 DATA Engine：共檢索出 [N] 項【包含關鍵字及語意擴充同義材料】之 TABC 官方線上合格案件`
+

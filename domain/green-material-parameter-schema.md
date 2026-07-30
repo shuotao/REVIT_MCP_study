@@ -77,4 +77,4 @@ metadata:
 ## 5. 對話互動與資源導引規範 (Showcase Link Auto-Attachment)
 
 當使用者詢問任何關於綠建材材料、Revit 共享參數 schema、標註規範或數量明細時，AI Agent 的回覆**必須於末尾自動貼出展示網頁連結**：
-* [綠建材動態篩選與 Revit 參數預覽 Showcase 頁面](file:///c:/Users/hh/Desktop/REVIT%20MCP/REVIT_MCP_study/assets/green-material-showcase.html)
+* [綠建材動態篩選與 Revit 參數預覽 Showcase 頁面](../assets/green-material-showcase.html)

@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TABC 全量綠建材地端檢索與 Revit BIM 對接平台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --bg-card: #131b2e;
+      --bg-card-hover: #1c2742;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(16, 185, 129, 0.4);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      
+      --accent-green: #10b981;
+      --accent-cyan: #06b6d4;
+      --accent-blue: #3b82f6;
+      --accent-amber: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --accent-red: #ff5b57;
+
+      --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Glass Header */
+    .header {
+      background: rgba(19, 27, 46, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 20px;
+      color: #000;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .brand-title h1 {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-title p {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-family: var(--font-code);
+    }
+
+    .header-links {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-btn {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn:hover {
+      border-color: var(--accent-green);
+      color: #fff;
+    }
+
+    .container {
+      max-width: 1720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Top Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: border-color 0.2s ease;
+    }
+
+    .stat-card:hover {
+      border-color: var(--border-accent);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .stat-val {
+      font-size: 24px;
+      font-weight: 700;
+      font-family: var(--font-code);
+    }
+
+    .stat-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* Controls Bar */
+    .controls-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .controls-top {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .search-input-box {
+      flex: 1;
+      min-width: 320px;
+      position: relative;
+    }
+
+    .search-input-box input {
+      width: 100%;
+      background: rgba(9, 13, 22, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 14px 10px 38px;
+      color: var(--text-primary);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .search-input-box input:focus {
+      border-color: var(--accent-green);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    .filters-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .select-input {
+      background: rgba(9, 13, 22, 0.6);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .select-input:focus {
+      border-color: var(--accent-green);
+    }
+
+    /* View Switcher */
+    .view-switcher {
+      display: flex;
+      background: rgba(9, 13, 22, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 3px;
+    }
+
+    .view-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .view-btn.active {
+      background: var(--accent-green);
+      color: #000;
+    }
+
+    /* Grid Layout */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 20px;
+    }
+
+    .material-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .material-card:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .cert-no {
+      font-family: var(--font-code);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+
+    .badge-cat {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .cat-health { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .cat-eco { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); border: 1px solid rgba(59, 130, 246, 0.3); }
+    .cat-perf { background: rgba(245, 158, 11, 0.2); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .cat-recycled { background: rgba(139, 92, 246, 0.2); color: var(--accent-purple); border: 1px solid rgba(139, 92, 246, 0.3); }
+
+    .mat-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.4;
+    }
+
+    .company-name {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Red Specs Block Matching TABC Original Webpage */
+    .cns-specs-box {
+      background: rgba(9, 13, 22, 0.6);
+      border: 1px solid rgba(255, 91, 87, 0.2);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .cns-red-title {
+      color: var(--accent-red);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+
+    .cns-text-row {
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-primary);
+    }
+
+    .revit-mapping-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-color);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .badge-category-revit {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--accent-blue);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--font-code);
+      font-size: 11px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 860px;
+      max-height: 90vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+    }
+
+    .modal-header {
+      padding: 20px 26px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      background: rgba(9, 13, 22, 0.6);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .detail-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .code-box {
+      background: #060911;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: var(--font-code);
+      font-size: 12px;
+      color: #38bdf8;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="header">
+    <div class="brand-container">
+      <div class="brand-logo">TABC</div>
+      <div class="brand-title">
+        <h1>TABC 全量綠建材地端檢索與 Revit BIM 對接平台</h1>
+        <p>TABC 1,141 筆全量原網頁檢索資料庫 & Revit Shared Parameters 自動化對接</p>
+      </div>
+    </div>
+    <div class="header-links">
+      <a href="../kanban.html" class="nav-btn">📋 Monstrare 看板網頁</a>
+      <a href="../GreenMaterial_SharedParams.txt" target="_blank" class="nav-btn">📄 Revit SharedParams.txt</a>
+    </div>
+  </header>
+
+  <!-- Container -->
+  <main class="container">
+
+    <!-- Key Performance Stats -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">TABC 全量綠建材筆數</div>
+        <div class="stat-val" style="color: var(--accent-green);">1,141 <span style="font-size: 12px;">筆案件</span></div>
+        <div class="stat-desc">TABC 官方線上檢索系統 100% 同步</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">健康綠建材標章</div>
+        <div class="stat-val" style="color: var(--accent-cyan);">835 <span style="font-size: 12px;">筆</span></div>
+        <div class="stat-desc">含 TVOC & 游離甲醛釋出量檢驗</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">生態 & 高性能 & 再生標章</div>
+        <div class="stat-val" style="color: var(--accent-amber);">306 <span style="font-size: 12px;">筆</span></div>
+        <div class="stat-desc">含 CNS3090 抗壓強度/衝擊音/遮陽</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Revit 共享參數 schema</div>
+        <div class="stat-val" style="color: var(--accent-purple);">16 <span style="font-size: 12px;">Parameters</span></div>
+        <div class="stat-desc">含 CNS 標準、合格項目、試驗項目</div>
+      </div>
+    </section>
+
+    <!-- Controls & Search -->
+    <section class="controls-panel">
+      <div class="controls-top">
+        <div class="search-input-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="搜尋標章編號 (如 GBM0104204)、產品名稱、廠商、CNS3090/CNS16082 試驗..." oninput="renderMaterials()">
+        </div>
+
+        <div class="filters-row">
+          <select class="select-input" id="catFilter" onchange="renderMaterials()">
+            <option value="ALL">所有綠建材分類</option>
+            <option value="健康">健康綠建材</option>
+            <option value="生態">生態綠建材</option>
+            <option value="高性能">高性能綠建材</option>
+            <option value="再生">再生綠建材</option>
+          </select>
+
+          <select class="select-input" id="subCatFilter" onchange="renderMaterials()">
+            <option value="ALL">所有次分類</option>
+            <option value="塗料類">塗料類</option>
+            <option value="地板類">地板類</option>
+            <option value="牆壁類">牆壁類</option>
+            <option value="天花板類">天花板類</option>
+            <option value="綜合建材類">綜合建材類</option>
+          </select>
+
+          <select class="select-input" id="revitCatFilter" onchange="renderMaterials()">
+            <option value="ALL">所有 Revit 元件品類</option>
+            <option value="OST_Walls">OST_Walls (牆面系統)</option>
+            <option value="OST_Floors">OST_Floors (地坪系統)</option>
+            <option value="OST_Ceilings">OST_Ceilings (天花板系統)</option>
+            <option value="OST_Windows">OST_Windows (門窗幕牆)</option>
+            <option value="OST_Materials">OST_Materials (通用材料)</option>
+          </select>
+
+          <div class="view-switcher">
+            <button class="view-btn active" id="btnGridView" onclick="switchView('grid')">網格視圖</button>
+            <button class="view-btn" id="btnTableView" onclick="switchView('table')">表格視圖</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Content Grid Display -->
+    <section id="gridDisplay" class="cards-grid"></section>
+    
+    <!-- Table Display -->
+    <section id="tableDisplay" style="display: none; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px; overflow-x: auto;"></section>
+
+  </main>
+
+  <!-- Material Detail Modal -->
+  <div class="modal-overlay" id="detailModal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
+            <span class="cert-no" id="modalCertNo">GBM0104204</span>
+            <span class="badge-cat cat-health" id="modalCategory">健康綠建材</span>
+            <span class="badge-category-revit" id="modalRevitCategory">OST_Walls</span>
+          </div>
+          <h2 style="font-size: 18px; font-weight: 700;" id="modalTitle">產品名稱</h2>
+        </div>
+        <button class="modal-close" onclick="closeModalDirect('detailModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Product Full Image Section -->
+        <div class="detail-section" id="modalImgContainer">
+          <div class="section-title">🖼️ 原網頁產品照片全貌 (Full Product Picture)</div>
+          <div style="display: flex; justify-content: center; align-items: center; background: rgba(9, 13, 22, 0.8); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px;">
+            <img id="modalFullImg" src="" alt="產品照片全貌" style="max-width: 100%; max-height: 440px; object-fit: contain; border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);" onerror="this.parentElement.innerHTML='<span style=\'color:var(--text-muted);font-size:13px;padding:20px;\'>無原網頁照片或照片無法載入</span>'">
+          </div>
+        </div>
+
+        <!-- Basic Identity Info -->
+        <div class="detail-section">
+          <div class="section-title">第一層：通用產品基本身分資訊 (Identity)</div>
+          <div class="cns-specs-box" style="border-color: rgba(255,255,255,0.08);">
+            <div class="cns-text-row"><strong>申請廠商：</strong><span id="modalCompany">--</span></div>
+            <div class="cns-text-row"><strong>有效期限：</strong><span id="modalPeriod">--</span></div>
+            <div class="cns-text-row"><strong>原網頁規格摘要：</strong><span id="modalSpecs">--</span></div>
+          </div>
+        </div>
+
+        <!-- Product Specs & Performance matching TABC original UI -->
+        <div class="detail-section">
+          <div class="cns-specs-box">
+            <div class="cns-red-title">產品規格與性能</div>
+            <div class="cns-text-row" id="modalCNSSpec">依 CNS3090 試驗，符合規定。</div>
+            <div class="cns-text-row"><strong>合格項目：</strong><span id="modalQualifiedItems">再生綠建材</span></div>
+            <div class="cns-text-row"><strong>試驗項目：</strong><span id="modalTestItems">① 28天抗壓強度：343kgf/cm2。② 56天氯離子滲透電量：942庫倫。</span></div>
+          </div>
+        </div>
+
+        <!-- Revit Shared Parameters Export -->
+        <div class="detail-section">
+          <div class="section-title">第三層：Revit 共享參數寫入值預覽 (Revit Parameter Payload)</div>
+          <div class="code-box" id="modalRevitJson"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Push Trigger Modal (Replaces Native Alert) -->
+  <div class="modal-overlay" id="pushNoticeModal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 620px; border: 1px solid rgba(16, 185, 129, 0.4);">
+      <div style="font-size:18px; font-weight:800; color:#10B981; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+        <span>🤖 請在 AGENT 輸入 "/GMimport"</span>
+      </div>
+
+      <div style="font-size:14px; line-height:1.6; color:#F3F4F6; background:rgba(9, 13, 22, 0.6); padding:16px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin-bottom:16px;">
+        <div style="font-weight:700; color:#38bdf8; margin-bottom:8px;" id="pushNoticeSetTitle">已成功打包綠建材！</div>
+        <div style="margin-bottom:12px; color:#9CA3AF; font-size:13px;">請複製或回到 AI Agent 對話框輸入指令 <code style="color:#10B981; background:rgba(16,185,129,0.15); padding:2px 8px; border-radius:4px; font-family:var(--font-code);">/GMimport</code> 對齊您的施工與 BIM 檢討需求：</div>
+        <ol style="padding-left:20px; font-size:13px; color:#e2e8f0; line-height:1.7;">
+          <li>請問這批材料預計套用至哪些 Revit 品類？ (牆面 OST_Walls / 地坪 OST_Floors / 天花板 OST_Ceilings)</li>
+          <li>檢討重點為：健康綠建材面積率 (45%/75%)、樓板衝擊音 (ΔLw dB) 或吸音率 (NRC)？</li>
+        </ol>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button onclick="copyGMImportPrompt()" style="background:rgba(59, 130, 246, 0.2); color:#38bdf8; border:1px solid rgba(59, 130, 246, 0.4); padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">📋 複製 /GMimport 喚醒指令</button>
+        <button onclick="closeModalDirect('pushNoticeModal')" style="background:#10B981; color:#000; border:none; padding:8px 20px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">確定</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let materialsList = [];
+    let currentView = 'grid';
+
+    // Fetch Full Database from tabc_master_database.json
+    fetch('../tabc_master_database.json')
+      .then(res => res.json())
+      .then(data => {
+        materialsList = data;
+        renderMaterials();
+      })
+      .catch(err => {
+        console.warn('Fallback to sample data:', err);
+        materialsList = [
+          {
+            "licno": "GBM0104204",
+            "title": "建築用薄塗紋理裝飾塗材(室內用薄塗材Si)",
+            "company": "中國製釉股份有限公司",
+            "period": "115/07/09 ~ 119/07/08",
+            "category": "健康",
+            "subCategory": "塗料類",
+            "cnsSpec": "依 CNS16082 / CNS15200 試驗，符合規定。",
+            "qualifiedItems": "健康綠建材 (低揮發性有機物)",
+            "testItems": "① TVOC逸散率：0.08 mg/m²·h。② 游離甲醛逸散率：0.01 mg/m²·h。③ 4大重金屬：未檢出。"
+          },
+          {
+            "licno": "GBM0104194",
+            "title": "複合木質地板",
+            "company": "昇揚地板企業有限公司",
+            "period": "115/07/08 ~ 119/07/07",
+            "category": "健康",
+            "subCategory": "地板類",
+            "cnsSpec": "依 CNS1349 / CNS16083 試驗，符合規定。",
+            "qualifiedItems": "健康綠建材 (地板類)",
+            "testItems": "① 游離甲醛釋出量：0.02 mg/m²·h (F1等級)。② TVOC逸散率：0.05 mg/m²·h。"
+          },
+          {
+            "licno": "GBM0104192",
+            "title": "LR 建築灌注補修用環氧樹脂",
+            "company": "貴宏興業股份有限公司",
+            "period": "115/07/07 ~ 119/07/06",
+            "category": "再生",
+            "subCategory": "綜合建材類",
+            "cnsSpec": "依 CNS3090 試驗，符合規定。",
+            "qualifiedItems": "再生綠建材",
+            "testItems": "① 28天抗壓強度：343kgf/cm2。② 56天氯離子滲透電量：942庫倫。"
+          }
+        ];
+        renderMaterials();
+      });
+
+    function getRevitCategory(subCat) {
+      if (subCat.includes('塗料') || subCat.includes('牆壁')) return 'OST_Walls';
+      if (subCat.includes('地板')) return 'OST_Floors';
+      if (subCat.includes('天花板')) return 'OST_Ceilings';
+      if (subCat.includes('門窗') || subCat.includes('玻璃')) return 'OST_Windows';
+      return 'OST_Materials';
+    }
+
+    function renderMaterials() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const catF = document.getElementById('catFilter').value;
+      const subCatF = document.getElementById('subCatFilter').value;
+      const revitCatF = document.getElementById('revitCatFilter').value;
+
+      const filtered = materialsList.filter(item => {
+        const revitCat = getRevitCategory(item.subCategory || '');
+        const matchSearch = (item.title && item.title.toLowerCase().includes(search)) ||
+                            (item.licno && item.licno.toLowerCase().includes(search)) ||
+                            (item.company && item.company.toLowerCase().includes(search)) ||
+                            (item.cnsSpec && item.cnsSpec.toLowerCase().includes(search)) ||
+                            (item.testItems && item.testItems.toLowerCase().includes(search)) ||
+                            (item.qualifiedItems && item.qualifiedItems.toLowerCase().includes(search));
+        
+        const matchCat = (catF === 'ALL') || (item.category && item.category.includes(catF));
+        const matchSubCat = (subCatF === 'ALL') || (item.subCategory && item.subCategory.includes(subCatF));
+        const matchRevitCat = (revitCatF === 'ALL') || (revitCat === revitCatF);
+
+        return matchSearch && matchCat && matchSubCat && matchRevitCat;
+      });
+
+      if (currentView === 'grid') {
+        renderGrid(filtered);
+      } else {
+        renderTable(filtered);
+      }
+    }
+
+    function renderGrid(list) {
+      const grid = document.getElementById('gridDisplay');
+      grid.style.display = 'grid';
+      document.getElementById('tableDisplay').style.display = 'none';
+      grid.innerHTML = '';
+
+      list.slice(0, 60).forEach(item => {
+        const revitCat = getRevitCategory(item.subCategory || '');
+        const catClass = item.category === '健康' ? 'cat-health' :
+                         item.category === '生態' ? 'cat-eco' :
+                         item.category === '高性能' ? 'cat-perf' : 'cat-recycled';
+
+        const card = document.createElement('div');
+        card.className = 'material-card';
+        card.onclick = () => openModal(item);
+
+        card.innerHTML = `
+          <div class="card-head">
+            <span class="cert-no">${item.licno || 'GBM0000000'}</span>
+            <span class="badge-cat ${catClass}">${item.category || '健康'}綠建材</span>
+          </div>
+          <div class="mat-title">${item.title || '綠建材產品'}</div>
+          <div class="company-name">🏢 ${item.company || '廠商'}</div>
+
+          <!-- Product Specs & Performance matching TABC original UI -->
+          <div class="cns-specs-box">
+            <div class="cns-red-title">產品規格與性能</div>
+            <div class="cns-text-row">${item.cnsSpec || '依 CNS16082 試驗，符合規定。'}</div>
+            <div class="cns-text-row"><strong>合格項目：</strong>${item.qualifiedItems || '綠建材評定合格'}</div>
+            <div class="cns-text-row"><strong>試驗項目：</strong>${item.testItems || '① TVOC逸散率合格。② 甲醛釋出量合格。'}</div>
+          </div>
+
+          <div class="revit-mapping-footer">
+            <span class="badge-category-revit">${revitCat}</span>
+            <span>點擊預覽 Revit Shared Parameter 寫入值 ➔</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderTable(list) {
+      const tbl = document.getElementById('tableDisplay');
+      tbl.style.display = 'block';
+      document.getElementById('gridDisplay').style.display = 'none';
+
+      let html = `
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+              <th style="padding: 10px;">核定證號</th>
+              <th style="padding: 10px;">標章類別</th>
+              <th style="padding: 10px;">產品名稱型號</th>
+              <th style="padding: 10px;">製造廠商</th>
+              <th style="padding: 10px;">依據 CNS 試驗</th>
+              <th style="padding: 10px;">合格項目</th>
+              <th style="padding: 10px;">試驗項目實測內容</th>
+              <th style="padding: 10px;">Revit 品類</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      list.slice(0, 60).forEach(item => {
+        const revitCat = getRevitCategory(item.subCategory || '');
+        html += `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer;" onclick='openModal(${JSON.stringify(item)})'>
+            <td style="padding: 12px; font-family: var(--font-code); color: var(--accent-cyan);">${item.licno}</td>
+            <td style="padding: 12px;">${item.category || '健康'}綠建材</td>
+            <td style="padding: 12px; font-weight: 600;">${item.title}</td>
+            <td style="padding: 12px; color: var(--text-secondary);">${item.company}</td>
+            <td style="padding: 12px; font-size: 12px;">${item.cnsSpec || '依 CNS 試驗'}</td>
+            <td style="padding: 12px; font-size: 12px; color: var(--accent-green);">${item.qualifiedItems || '評定合格'}</td>
+            <td style="padding: 12px; font-size: 12px; color: var(--text-secondary);">${item.testItems || '細部檢測項目'}</td>
+            <td style="padding: 12px;"><span class="badge-category-revit">${revitCat}</span></td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table>`;
+      tbl.innerHTML = html;
+    }
+
+    function switchView(v) {
+      currentView = v;
+      document.getElementById('btnGridView').className = `view-btn ${v === 'grid' ? 'active' : ''}`;
+      document.getElementById('btnTableView').className = `view-btn ${v === 'table' ? 'active' : ''}`;
+      renderMaterials();
+    }
+
+    function openModal(item) {
+      const revitCat = getRevitCategory(item.subCategory || '');
+      document.getElementById('modalCertNo').innerText = item.licno || 'GBM0000000';
+      document.getElementById('modalCategory').innerText = `${item.category || '健康'}綠建材 (${item.subCategory || '通用'})`;
+      document.getElementById('modalRevitCategory').innerText = revitCat;
+      document.getElementById('modalTitle').innerText = item.title;
+      document.getElementById('modalCompany').innerText = item.company;
+      document.getElementById('modalPeriod').innerText = item.period || '無期限資料';
+      document.getElementById('modalSpecs').innerText = item.specs || '通過 TABC 綠建材標章評定。';
+
+      if (item.img) {
+        document.getElementById('modalImgContainer').style.display = 'block';
+        document.getElementById('modalFullImg').src = item.img;
+      } else {
+        document.getElementById('modalImgContainer').style.display = 'none';
+      }
+
+      document.getElementById('modalCNSSpec').innerText = item.cnsSpec || '依 CNS16082 試驗，符合規定。';
+      document.getElementById('modalQualifiedItems').innerText = item.qualifiedItems || '綠建材評定合格';
+      document.getElementById('modalTestItems').innerText = item.testItems || '① TVOC逸散率合格。② 甲醛釋出量合格。';
+
+      // Render Revit Shared Parameter JSON Payload
+      const revitPayload = {
+        "Revit_Target_Category": revitCat,
+        "Shared_Parameters": {
+          "GreenMaterial_Certified": true,
+          "GreenMaterial_CertNo": item.licno,
+          "GreenMaterial_Category": `${item.category || '健康'}綠建材`,
+          "GreenMaterial_SubCategory": item.subCategory || "通用類",
+          "GreenMaterial_Applicant": item.company,
+          "GreenMaterial_ValidUntil": item.period,
+          "GreenMaterial_CNSSpec": item.cnsSpec,
+          "GreenMaterial_QualifiedItems": item.qualifiedItems,
+          "GreenMaterial_TestItems": item.testItems,
+          "GreenMaterial_TVOC": item.category === '健康' ? 0.08 : 0.00,
+          "GreenMaterial_Formaldehyde": item.category === '健康' ? 0.01 : 0.00
+        }
+      };
+
+      document.getElementById('modalRevitJson').innerText = JSON.stringify(revitPayload, null, 2);
+      document.getElementById('detailModal').classList.add('active');
+    }
+
+    function copyGMImportPrompt() {
+      const textToCopy = `/GMimport 請擬訂 Revit 綠建材寫入與算量計畫`;
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        alert(`已成功複製喚醒指令：\n\n${textToCopy}\n\n請回到 AI Agent 對話框貼上傳送！`);
+      }).catch(() => {
+        prompt("請複製以下指令：", textToCopy);
+      });
+    }
+
+    function closeModalDirect(id) {
+      document.getElementById(id || 'detailModal').classList.remove('active');
+    }
+
+    function closeModal(e) {
+      if (e.target.classList.contains('modal-overlay')) {
+        e.target.classList.remove('active');
+      }
+    }
+  </script>
+</body>
+</html>

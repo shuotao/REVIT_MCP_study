@@ -130,3 +130,5 @@ docs/fork-audit/
 # Personal knowledge vault (see templates/personal-vault/ and docs/BIM_MCP/reference/personal-llm-wiki.html)
 /vault/
 /.obsidian/
+
+__pycache__/

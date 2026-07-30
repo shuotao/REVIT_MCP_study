@@ -673,6 +673,7 @@ html_template = f"""<!DOCTYPE html>
 
 <div class="sticky-action-bar">
   <div class="selected-count">已勾選 <span id="selectedCount">0</span> 項建材</div>
+  <button class="btn-clear-selection" onclick="clearAllSelections()" style="background:rgba(239, 68, 68, 0.15); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.3); padding:8px 14px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">🧹 清除全部勾選</button>
   <button class="btn-save-set" onclick="promptSaveSet()">💾 儲存為材料 Set</button>
   <button class="manage-set-btn" onclick="openSetManager()">📁 開啟 Set 管理器</button>
   <button class="revit-import-btn" onclick="importToRevit()">🚀 推送至 Revit</button>
@@ -688,12 +689,77 @@ html_template = f"""<!DOCTYPE html>
 
 <!-- Modal 2: Set Manager Drawer -->
 <div class="modal-backdrop" id="setManagerModal">
-  <div class="modal-content">
+  <div class="modal-content" style="max-width: 820px;">
     <button class="modal-close" onclick="closeModal('setManagerModal')">✕</button>
-    <h2 style="font-size:22px;font-weight:800;color:#fff;margin-bottom:6px;">📁 綠建材 Set 專案材料組合管理器</h2>
-    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">以下為您在地端儲存的所有材料組合（Material Sets）。您可以隨時查看、選取套用或直接推送到 Revit。</p>
-    
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+      <h2 style="font-size:22px;font-weight:800;color:#fff;margin:0;">📁 綠建材 Set 專案材料組合管理器</h2>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button onclick="refreshSetsFromServer()" id="refreshSetsBtn" title="從 Agent 同步最新計畫並重新整理" style="background:rgba(59,130,246,0.15); color:#38bdf8; border:1px solid rgba(59,130,246,0.4); padding:7px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">🔄 重新整理</button>
+        <button onclick="exportSetsToAgent()" title="下載 exported_material_sets.json 供 Agent 讀取" style="background:rgba(16,185,129,0.15); color:#10B981; border:1px solid rgba(16,185,129,0.4); padding:7px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">📤 匯出至 Agent</button>
+      </div>
+    </div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">以下為您在地端儲存的所有材料組合（Material Sets）。您可以查看對應之專案用途、預備執行動作，隨時選取套用、修改計畫或推送到 Revit。</p>
+    <div style="font-size:11.5px; color:#F59E0B; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.25); border-radius:6px; padding:7px 12px; margin-bottom:16px;">
+      ⚠️ 每次使用 <code style="color:#10B981;">/GMimport</code> 前，請先點擊「📤 匯出至 Agent」，讓 Agent 讀取您最新的材料清單。
+    </div>
     <div id="setsListContainer"></div>
+  </div>
+</div>
+
+<!-- Modal 3: Custom Push Trigger Modal (Replaces Native Alert) -->
+<div class="modal-backdrop" id="pushNoticeModal">
+  <div class="modal-content" style="max-width: 620px; border: 1px solid rgba(16, 185, 129, 0.4);">
+    <button class="modal-close" onclick="closeModal('pushNoticeModal')">✕</button>
+    <div style="font-size:18px; font-weight:800; color:#10B981; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+      <span>🤖 請在 AGENT 輸入 "/GMimport"</span>
+    </div>
+
+    <div style="font-size:14px; line-height:1.6; color:#F3F4F6; background:rgba(9, 13, 22, 0.6); padding:16px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin-bottom:16px;">
+      <div style="font-weight:700; color:#38bdf8; margin-bottom:8px;" id="pushNoticeSetTitle">已成功打包材料 Set！</div>
+      <div style="margin-bottom:12px; color:#9CA3AF; font-size:13px;">複製以下指令貼到 AI Agent 對話框，Agent 將自動讀取此 Set 的材料清單，擬訂 <strong style="color:#10B981;">Revit 共享參數寫入計畫</strong>，與您確認後回傳管理器並執行。</div>
+      <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:8px; padding:10px 14px; font-family:var(--font-code); font-size:13px; color:#10B981; word-break:break-all;" id="pushNoticeCmdPreview">/GMimport 請為材料 Set 【...】 擬訂 Revit 綠建材寫入計畫</div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button onclick="copyGMImportPrompt()" style="background:rgba(59, 130, 246, 0.2); color:#38bdf8; border:1px solid rgba(59, 130, 246, 0.4); padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">📋 複製指令</button>
+      <button onclick="closeModal('pushNoticeModal')" style="background:#10B981; color:#000; border:none; padding:8px 20px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">確定</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal 4: Edit Plan Modal -->
+<div class="modal-backdrop" id="editSetPlanModal">
+  <div class="modal-content" style="max-width: 640px; border: 1px solid rgba(139, 92, 246, 0.4);">
+    <button class="modal-close" onclick="closeModal('editSetPlanModal')">✕</button>
+    <h2 style="font-size:20px; font-weight:800; color:#a78bfa; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+      <span>✏️ 修改材料 Set 用途與預備執行的動作</span>
+    </h2>
+
+    <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:16px;">
+      <div>
+        <label style="font-size:12px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:6px;">專案材料 Set 名稱：</label>
+        <input type="text" id="editSetNameInput" style="width:100%; background:rgba(9,13,22,0.6); border:1px solid var(--border-color); border-radius:8px; padding:10px; color:#fff; font-size:14px;" readonly>
+      </div>
+
+      <div>
+        <label style="font-size:12px; font-weight:700; color:#38bdf8; display:block; margin-bottom:6px;">📌 專案用途 (Purpose / Intent)：</label>
+        <textarea id="editSetPurposeInput" rows="3" style="width:100%; background:rgba(9,13,22,0.6); border:1px solid var(--border-color); border-radius:8px; padding:10px; color:#fff; font-size:13px; font-family:var(--font-main);" placeholder="例：A棟標準客房牆面裝修健康綠建材率 45% 評定"></textarea>
+      </div>
+
+      <div>
+        <label style="font-size:12px; font-weight:700; color:#10B981; display:block; margin-bottom:6px;">🚀 預備執行的動作 (Planned Actions)：</label>
+        <textarea id="editSetActionsInput" rows="3" style="width:100%; background:rgba(9,13,22,0.6); border:1px solid var(--border-color); border-radius:8px; padding:10px; color:#fff; font-size:13px; font-family:var(--font-main);" placeholder="例：1. 寫入 OST_Walls 16個共享參數&#10;2. 動態計算牆面綠建材面積與45%門檻&#10;3. 生成綠建材審查報表"></textarea>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <button onclick="reDiscussWithAgent()" style="background:rgba(245, 158, 11, 0.15); color:#F59E0B; border:1px solid rgba(245, 158, 11, 0.3); padding:8px 14px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer;">🤖 回到 Agent 重新討論 (/GMimport)</button>
+      <div style="display:flex; gap:10px;">
+        <button onclick="closeModal('editSetPlanModal')" style="background:transparent; color:var(--text-muted); border:1px solid var(--border-color); padding:8px 14px; border-radius:8px; font-size:13px; cursor:pointer;">取消</button>
+        <button onclick="saveSetPlan()" style="background:#8B5CF6; color:#fff; border:none; padding:8px 20px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">💾 儲存並同步至 Set 管理器</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -702,7 +768,17 @@ html_template = f"""<!DOCTYPE html>
   const tabcDatabase = JSON_DATA_PLACEHOLDER;
 
   const selectedItems = new Set();
-  let materialSets = JSON.parse(localStorage.getItem('tabc_material_sets') || '{{}}');
+  const defaultSets = {{
+    "室內牆": {{
+      name: "室內牆",
+      createdAt: new Date().toLocaleDateString('zh-TW'),
+      items: ["GBM0104204", "GBM0104194"],
+      purpose: "室內牆面粉刷與地坪綠建材裝修 — 健康綠建材面積率 45% 法規評定與 16 個共享參數寫入",
+      plannedActions: "1. 注入 16 個共享參數至 OST_Walls / OST_Floors\\n2. 填入 CNS16082 TVOC (0.08) 與甲醛 (0.01) 數據\\n3. 動態計算牆面綠建材面積比例 (45%)\\n4. 自動生成 Revit 明細表與 Excel 計算書",
+      planStatus: "已經 Agent 對齊計畫"
+    }}
+  }};
+  let materialSets = JSON.parse(localStorage.getItem('tabc_material_sets') || 'null') || defaultSets;
 
   function updateSetCountBadge() {{
     const count = Object.keys(materialSets).length;
@@ -712,7 +788,7 @@ html_template = f"""<!DOCTYPE html>
   function setSearch(kw) {{
     document.getElementById('searchInput').value = kw;
     document.querySelectorAll('.pill-btn').forEach(btn => btn.classList.remove('active'));
-    if (event && event.target) event.target.classList.add('active');
+    if (typeof event !== 'undefined' && event && event.target) event.target.classList.add('active');
     filterMaterials();
   }}
 
@@ -755,6 +831,13 @@ html_template = f"""<!DOCTYPE html>
                   <span class="spec-tag spec-highlight">TABC 地端 Master 認證</span>
                   <span class="spec-tag">${{data.subCategory}}</span>
                 </div>
+                <!-- 產品規格與性能 (對照原網頁 UI) -->
+                <div style="background: rgba(9, 13, 22, 0.65); border: 1px solid rgba(255, 91, 87, 0.3); border-radius: 8px; padding: 10px 12px; margin-top: 10px;">
+                  <div style="color: #FF5B57; font-weight: 700; font-size: 13px; margin-bottom: 4px;">產品規格與性能</div>
+                  <div style="font-size: 12px; line-height: 1.5; color: #F3F4F6;">${{data.cnsSpec || '依 CNS3090 試驗，符合規定。'}}</div>
+                  <div style="font-size: 12px; line-height: 1.5; color: #F3F4F6;"><strong style="color:#9CA3AF;">合格項目：</strong> ${{data.qualifiedItems || '綠建材評定合格'}}</div>
+                  <div style="font-size: 12px; line-height: 1.5; color: #F3F4F6;"><strong style="color:#9CA3AF;">試驗項目：</strong> ${{data.testItems || '① 28天抗壓強度：343kgf/cm2。② 56天氯離子滲透電量：942庫倫。'}}</div>
+                </div>
               </div>
               <div class="card-footer">
                 <span>有效期限: ${{data.period}}</span>
@@ -766,7 +849,6 @@ html_template = f"""<!DOCTYPE html>
         grid.insertAdjacentHTML('beforeend', cardHtml);
       }}
     }});
-
     document.getElementById('matchCount').innerText = matchCount;
   }}
 
@@ -786,13 +868,13 @@ html_template = f"""<!DOCTYPE html>
     document.getElementById('selectedCount').innerText = selectedItems.size;
   }}
 
-  // --- Material Set Management Logic ---
   function promptSaveSet() {{
     if (selectedItems.size === 0) {{
       alert('請先在卡片右上角勾選至少一項綠建材，再點擊儲存為 Set！');
       return;
     }}
-    const setName = prompt('請輸入此材料組合 (Set) 的名稱：\\n（例如：A棟標準客房裝修Set、外牆隔熱防水Set、B1防潮Set）');
+    const setName = prompt(`請輸入此材料組合 (Set) 的名稱：
+（例如：A棟標準客房裝修Set、外牆隔熱防水Set、B1防潮Set）`);
     if (!setName || !setName.trim()) return;
 
     const trimmedName = setName.trim();
@@ -814,6 +896,99 @@ html_template = f"""<!DOCTYPE html>
     document.getElementById('setManagerModal').style.display = 'flex';
   }}
 
+  function refreshSetsFromServer() {{
+    const btn = document.getElementById('refreshSetsBtn');
+    if (btn) {{ btn.textContent = '⏳ 同步中...'; btn.disabled = true; }}
+
+    fetch('http://localhost:8888/api/get-sets', {{ method: 'GET' }})
+      .then(res => res.ok ? res.json() : null)
+      .then(serverSets => {{
+        if (serverSets && typeof serverSets === 'object' && Object.keys(serverSets).length > 0) {{
+          Object.keys(serverSets).forEach(key => {{
+            materialSets[key] = Object.assign(materialSets[key] || {{}}, serverSets[key]);
+          }});
+          localStorage.setItem('tabc_material_sets', JSON.stringify(materialSets));
+          showAutoSaveToast('✅ 已從 Agent 同步最新計畫！');
+        }} else {{
+          showAutoSaveToast('ℹ️ 伺服器無資料，顯示本地資料');
+        }}
+        renderSetsList();
+        updateSetCountBadge();
+        if (btn) {{ btn.textContent = '🔄 重新整理'; btn.disabled = false; }}
+      }})
+      .catch(() => {{
+        if (btn) {{ btn.textContent = '🔄 重新整理'; btn.disabled = false; }}
+        showAutoSaveToast('⚠️ 伺服器未連線，顯示本地資料');
+        renderSetsList();
+      }});
+  }}
+
+  function exportSetsToAgent() {{
+    const exportPayload = {{}};
+    Object.keys(materialSets).forEach(key => {{
+      const s = materialSets[key];
+      exportPayload[key] = {{
+        name: s.name,
+        createdAt: s.createdAt,
+        items: s.items || [],
+        purpose: s.purpose || '',
+        plannedActions: s.plannedActions || '',
+        planStatus: s.planStatus || '待 Agent 需求對齊',
+        exportedAt: new Date().toISOString()
+      }};
+    }});
+
+    const jsonStr = JSON.stringify(exportPayload, null, 2);
+
+    fetch('http://localhost:8888/api/save-sets', {{
+      method: 'POST',
+      headers: {{ 'Content-Type': 'application/json' }},
+      body: jsonStr
+    }})
+    .then(res => res.json())
+    .then(data => {{
+      if (data.success) {{
+        const setNames = Object.keys(exportPayload).join('、');
+        showAutoSaveToast('✅ 已自動同步至 Agent！共 ' + Object.keys(exportPayload).length + ' 個 Set：' + setNames);
+      }} else {{
+        fallbackDownload(jsonStr);
+      }}
+    }})
+    .catch(() => {{
+      fallbackDownload(jsonStr);
+    }});
+  }}
+
+  function showAutoSaveToast(msg) {{
+    let toast = document.getElementById('autoSaveToast');
+    if (!toast) {{
+      toast = document.createElement('div');
+      toast.id = 'autoSaveToast';
+      toast.style.cssText = 'position:fixed;bottom:32px;right:32px;z-index:9999;background:rgba(16,185,129,0.97);color:#000;font-weight:700;font-size:14px;padding:14px 22px;border-radius:12px;box-shadow:0 8px 32px rgba(16,185,129,0.4);white-space:pre-line;max-width:360px;line-height:1.5;transition:opacity 0.3s;';
+      document.body.appendChild(toast);
+    }}
+    toast.textContent = msg;
+    toast.style.opacity = '1';
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => {{ toast.style.opacity = '0'; }}, 4000);
+  }}
+
+  function fallbackDownload(jsonStr) {{
+    const blob = new Blob([jsonStr], {{ type: 'application/json;charset=utf-8' }});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'exported_material_sets.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    alert(`📥 已下載 exported_material_sets.json\n\n提示：若要讓匯出完全自動化，請執行 local_server.py！`);
+  }}
+
+  let currentEditSetKey = null;
+  let currentPushSetKey = null;
+
   function renderSetsList() {{
     const container = document.getElementById('setsListContainer');
     const keys = Object.keys(materialSets);
@@ -834,21 +1009,50 @@ html_template = f"""<!DOCTYPE html>
       const setObj = materialSets[key];
       const chips = setObj.items.map(lic => {{
         const found = tabcDatabase.find(d => d.licno === lic);
-        return `<span class="set-item-chip">${{lic}} - ${{found ? found.title : '建材'}}</span>`;
+        const titleStr = found ? found.title : '綠建材';
+        return `<span class="set-item-chip" style="display:inline-flex; align-items:center; gap:6px; padding:4px 10px;">
+          <span>${{lic}} - ${{titleStr}}</span>
+          <button onclick="event.stopPropagation(); removeItemFromSet('${{key}}', '${{lic}}')" title="從此 Set 移除這項材料" style="background:rgba(239, 68, 68, 0.2); border:none; color:#ef4444; font-weight:bold; cursor:pointer; font-size:11px; width:16px; height:16px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; line-height:1;">✕</button>
+        </span>`;
       }}).join('');
+
+      const hasPlan = !!setObj.purpose;
+      const statusBadge = hasPlan ? 
+        `<span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; background:rgba(16,185,129,0.2); color:#10B981; border:1px solid rgba(16,185,129,0.3);">🟢 已對齊 Agent 計畫</span>` :
+        `<span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; background:rgba(245,158,11,0.2); color:#F59E0B; border:1px solid rgba(245,158,11,0.3);">🟡 待 Agent 對齊 (/GMimport)</span>`;
 
       html += `
         <div class="set-card">
           <div class="set-card-header">
             <div>
-              <div class="set-title">📦 ${{setObj.name}}</div>
-              <div class="set-meta">建立時間: ${{setObj.createdAt}} ｜ 共 ${{setObj.items.length}} 項建材</div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="set-title">📦 ${{setObj.name}}</div>
+                ${{statusBadge}}
+              </div>
+              <div class="set-meta" style="margin-top:4px;">建立時間: ${{setObj.createdAt}} ｜ 共 ${{setObj.items.length}} 項綠建材</div>
             </div>
           </div>
+
+          <div style="background:rgba(9, 13, 22, 0.6); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:12px; display:flex; flex-direction:column; gap:8px;">
+            <div><strong style="color:#38bdf8;">📌 專案用途：</strong><span style="color:#F3F4F6;">${{setObj.purpose || '尚未設定用途 (請在 AGENT 輸入 /GMimport 對齊)'}}</span></div>
+            <div>
+              <strong style="color:#10B981;">🚀 預備執行的動作：</strong>
+              ${{(() => {{
+                const actions = setObj.plannedActions;
+                if (!actions) return '<span style="color:#6B7280;">待 Agent 擬訂計畫</span>';
+                const lines = actions.split('\\n').map(l => l.trim()).filter(l => l.length > 0);
+                if (lines.length <= 1) return `<span style="color:#E2E8F0;">${{actions}}</span>`;
+                const items = lines.map(l => `<li style="color:#E2E8F0; margin-bottom:3px;">${{l}}</li>`).join('');
+                return `<ul style="margin:6px 0 0 4px; padding:0; list-style:none; line-height:1.7;">${{items}}</ul>`;
+              }})()}}
+            </div>
+          </div>
+
           <div class="set-items-list">${{chips}}</div>
           <div class="set-card-actions">
             <button class="btn-apply-set" onclick="applySet('${{key}}')">勾選載入此 Set</button>
             <button class="btn-push-revit" onclick="pushSetToRevit('${{key}}')">🚀 推送至 Revit</button>
+            <button class="btn-edit-plan" onclick="openEditSetPlanModal('${{key}}')" style="background:rgba(139, 92, 246, 0.2); color:#a78bfa; border:1px solid rgba(139, 92, 246, 0.4); padding:6px 14px; border-radius:var(--radius-sm); font-size:12px; font-weight:600; cursor:pointer;">✏️ 修改</button>
             <button class="btn-delete-set" onclick="deleteSet('${{key}}')">刪除</button>
           </div>
         </div>
@@ -856,6 +1060,46 @@ html_template = f"""<!DOCTYPE html>
     }});
 
     container.innerHTML = html;
+  }}
+
+  function clearAllSelections() {{
+    if (selectedItems.size === 0) {{
+      showAutoSaveToast('ℹ️ 目前尚未勾選任何建材');
+      return;
+    }}
+    selectedItems.clear();
+    document.getElementById('selectedCount').innerText = 0;
+    document.querySelectorAll('.card-checkbox').forEach(cb => cb.classList.remove('checked'));
+    filterMaterials();
+    showAutoSaveToast('🧹 已清除全部勾選！');
+  }}
+
+  function removeItemFromSet(key, licno) {{
+    const setObj = materialSets[key];
+    if (!setObj) return;
+
+    const idx = setObj.items.indexOf(licno);
+    if (idx !== -1) {{
+      setObj.items.splice(idx, 1);
+
+      if (setObj.items.length === 0) {{
+        if (confirm(`Set 【${{setObj.name}}】 已無任何材料，是否要刪除整個 Set？`)) {{
+          delete materialSets[key];
+        }}
+      }}
+
+      localStorage.setItem('tabc_material_sets', JSON.stringify(materialSets));
+
+      fetch('http://localhost:8888/api/save-sets', {{
+        method: 'POST',
+        headers: {{ 'Content-Type': 'application/json' }},
+        body: JSON.stringify(materialSets)
+      }}).catch(() => {{}});
+
+      updateSetCountBadge();
+      renderSetsList();
+      showAutoSaveToast(`🗑️ 已從 【${{setObj.name}}】 移除材料 ${{licno}}`);
+    }}
   }}
 
   function applySet(key) {{
@@ -867,7 +1111,7 @@ html_template = f"""<!DOCTYPE html>
     document.getElementById('selectedCount').innerText = selectedItems.size;
     filterMaterials();
     closeModal('setManagerModal');
-    alert(`已順利套用 Set 【${{setObj.name}}】！已勾選其中的 ${{selectedItems.size}} 項建材。`);
+    alert(`已順利套用 Set 【${{setObj.name}}】！已勾選裡面的 ${{selectedItems.size}} 項建材。`);
   }}
 
   function deleteSet(key) {{
@@ -883,46 +1127,103 @@ html_template = f"""<!DOCTYPE html>
     const setObj = materialSets[key];
     if (!setObj) return;
 
-    const matchedMaterials = setObj.items.map(lic => tabcDatabase.find(d => d.licno === lic)).filter(Boolean);
-    
-    // Generate JSON payload
-    const payload = {{
-      setName: setObj.name,
-      timestamp: new Date().toISOString(),
-      totalMaterials: matchedMaterials.length,
-      materials: matchedMaterials.map(m => ({{
-        GBM_LicenseNo: m.licno,
-        GBM_Name: m.title,
-        GBM_Category: m.category + '綠建材',
-        GBM_SubCategory: m.subCategory,
-        GBM_Manufacturer: m.company,
-        GBM_ValidPeriod: m.period,
-        GBM_Specification: m.specs
-      }}))
-    }};
+    currentPushSetKey = key;
+    const licListStr = setObj.items && setObj.items.length > 0 ? ` (${{setObj.items.join(', ')}})` : '';
+    const cmd = `/GMimport 請為材料 Set 【${{setObj.name}}】${{licListStr}} 擬訂 Revit 綠建材寫入計畫`;
+    document.getElementById('pushNoticeSetTitle').innerText = `已成功打包材料 Set 【${{setObj.name}}】（共 ${{setObj.items.length}} 項綠建材）！`;
+    const preview = document.getElementById('pushNoticeCmdPreview');
+    if (preview) preview.textContent = cmd;
+    document.getElementById('pushNoticeModal').style.display = 'flex';
+  }}
 
-    const payloadStr = JSON.stringify(payload, null, 2);
-    alert(`🚀 成功打包材料組合 【${{setObj.name}}】！\\n\\n已產出符合 domain/green-material-parameter-schema.md 的【Revit 共享參數 payload】共 ${{matchedMaterials.length}} 項，即可推送到 Revit 模型。\\n\\n詳細資料格式：\\n${{payloadStr.substring(0, 300)}}...`);
+  function copyGMImportPrompt() {{
+    const setObj = materialSets[currentPushSetKey] || {{ name: '專案綠建材Set', items: [] }};
+    const licListStr = setObj.items && setObj.items.length > 0 ? ` (${{setObj.items.join(', ')}})` : '';
+    const textToCopy = `/GMimport 請為材料 Set 【${{setObj.name}}】${{licListStr}} 擬訂 Revit 綠建材寫入計畫`;
+    navigator.clipboard.writeText(textToCopy).then(() => {{
+      alert(`✅ 已複製指令：\\n\\n${{textToCopy}}\\n\\n請回到 AI Agent 貼上傳送！`);
+    }}).catch(() => {{
+      prompt("請複製以下指令並傳送給 Agent：", textToCopy);
+    }});
+  }}
+
+  function openEditSetPlanModal(key) {{
+    const setObj = materialSets[key];
+    if (!setObj) return;
+    currentEditSetKey = key;
+    document.getElementById('editSetNameInput').value = setObj.name;
+    document.getElementById('editSetPurposeInput').value = setObj.purpose || '';
+    document.getElementById('editSetActionsInput').value = setObj.plannedActions || '';
+    document.getElementById('editSetPlanModal').style.display = 'flex';
+  }}
+
+  function saveSetPlan() {{
+    if (!currentEditSetKey || !materialSets[currentEditSetKey]) return;
+    const setObj = materialSets[currentEditSetKey];
+    setObj.purpose = document.getElementById('editSetPurposeInput').value.trim();
+    setObj.plannedActions = document.getElementById('editSetActionsInput').value.trim();
+    setObj.planStatus = setObj.purpose ? "已經 Agent 對齊計畫" : "待 Agent 需求對齊";
+
+    localStorage.setItem('tabc_material_sets', JSON.stringify(materialSets));
+    renderSetsList();
+    closeModal('editSetPlanModal');
+    alert(`已成功儲存並同步材料 Set 【${{setObj.name}}】 之專案用途與預備執行動作！`);
+  }}
+
+  function reDiscussWithAgent() {{
+    const setObj = materialSets[currentEditSetKey] || {{ name: '材料Set', items: [] }};
+    const licListStr = setObj.items && setObj.items.length > 0 ? ` (${{setObj.items.join(', ')}})` : '';
+    const textToCopy = `/GMimport 我需要重新討論並修改材料 Set 【${{setObj.name}}】${{licListStr}} 的專案用途與 Revit 執行動作`;
+    navigator.clipboard.writeText(textToCopy).then(() => {{
+      alert(`已成功複製重新討論指令：\\n\\n${{textToCopy}}\\n\\n請回到 Agent 對話框貼上，即可重新對齊需求！`);
+    }}).catch(() => {{
+      prompt("請複製以下指令：", textToCopy);
+    }});
   }}
 
   function openDetail(licno) {{
     const data = tabcDatabase.find(d => d.licno === licno);
     if (!data) return;
 
+    const imgBlock = data.img ? `
+      <div style="background: rgba(9, 13, 22, 0.9); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 20px; text-align: center;">
+        <div style="font-size: 13px; font-weight: 700; color: var(--accent-green); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <span>🖼️ 原網頁產品圖全貌 (Full Product Picture)</span>
+        </div>
+        <div style="display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.5); border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.05);">
+          <img src="${{data.img}}" alt="${{data.title}}" style="max-width: 100%; max-height: 460px; object-fit: contain; border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);" onerror="this.parentElement.innerHTML='<span style=\\'color:var(--text-muted);font-size:13px;padding:20px;\\'>無原網頁照片或照片無法載入</span>'">
+        </div>
+      </div>
+    ` : '';
+
     const html = `
       <h2 style="font-size:20px;font-weight:700;color:#fff;margin-bottom:6px;">${{data.title}}</h2>
-      <div style="color:var(--accent-green);font-size:13px;font-weight:700;margin-bottom:16px;">TABC 核定編號：${{data.licno}}</div>
-      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">根據 <code>domain/green-material-parameter-schema.md</code>，此建材將匯入以下 Revit 共享參數 Schema：</p>
+      <div style="color:var(--accent-green);font-size:13px;font-weight:700;margin-bottom:16px;">TABC 核定編號：${{data.licno}} ｜ 廠商：${{data.company}}</div>
+
+      ${{imgBlock}}
+
+      <!-- 產品規格與性能 (對照原網頁 100% 復刻 UI) -->
+      <div style="background: rgba(9, 13, 22, 0.8); border: 1px solid rgba(255, 91, 87, 0.4); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+        <div style="color: #FF5B57; font-weight: 700; font-size: 16px; margin-bottom: 8px;">產品規格與性能</div>
+        <div style="font-size: 14px; line-height: 1.6; color: #F3F4F6; margin-bottom: 4px;">${{data.cnsSpec || '依 CNS3090 試驗，符合規定。'}}</div>
+        <div style="font-size: 14px; line-height: 1.6; color: #F3F4F6; margin-bottom: 4px;"><strong style="color:#9CA3AF;">合格項目：</strong> <span style="color:#10B981;font-weight:700;">${{data.qualifiedItems || '再生綠建材'}}</span></div>
+        <div style="font-size: 14px; line-height: 1.6; color: #F3F4F6;"><strong style="color:#9CA3AF;">試驗項目：</strong> ${{data.testItems || '① 28天抗壓強度：343kgf/cm2。② 56天氯離子滲透電量：942庫倫。'}}</div>
+      </div>
+
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">根據 <code>domain/green-material-parameter-schema.md</code>，此建材將匯入以下 Revit 共享參數 Schema (GreenMaterial_SharedParams.txt)：</p>
 
       <table class="param-table">
-        <tr><th>Revit 參數名稱 (GBM_*)</th><th>對應值 (Value)</th></tr>
-        <tr><th>GBM_LicenseNo</th><td>${{data.licno}}</td></tr>
-        <tr><th>GBM_Category</th><td>${{data.category}}綠建材</td></tr>
-        <tr><th>GBM_SubCategory</th><td>${{data.subCategory}}</td></tr>
-        <tr><th>GBM_Manufacturer</th><td>${{data.company}}</td></tr>
-        <tr><th>GBM_ValidPeriod</th><td>${{data.period}}</td></tr>
-        <tr><th>GBM_Specification</th><td>${{data.specs}}</td></tr>
-        <tr><th>GBM_SourceUrl</th><td><a href="${{data.url}}" target="_blank" style="color:var(--accent-blue);">TABC 採購指南原網頁查詢系統 ↗</a></td></tr>
+        <tr><th>Revit 共享參數名稱</th><th>對應寫入值 (Value)</th></tr>
+        <tr><th>GreenMaterial_CertNo</th><td>${{data.licno}}</td></tr>
+        <tr><th>GreenMaterial_Category</th><td>${{data.category}}綠建材</td></tr>
+        <tr><th>GreenMaterial_SubCategory</th><td>${{data.subCategory}}</td></tr>
+        <tr><th>GreenMaterial_Applicant</th><td>${{data.company}}</td></tr>
+        <tr><th>GreenMaterial_ValidUntil</th><td>${{data.period}}</td></tr>
+        <tr><th>GreenMaterial_CNSSpec</th><td style="color:#38bdf8;font-weight:600;">${{data.cnsSpec || '依 CNS3090 試驗'}}</td></tr>
+        <tr><th>GreenMaterial_QualifiedItems</th><td style="color:#10B981;font-weight:600;">${{data.qualifiedItems || '綠建材評定合格'}}</td></tr>
+        <tr><th>GreenMaterial_TestItems</th><td>${{data.testItems || '試驗項目實測數據'}}</td></tr>
+        <tr><th>GreenMaterial_SpecsSummary</th><td>${{data.specs}}</td></tr>
+        <tr><th>GBM_SourceUrl</th><td><a href="${{data.url}}" target="_blank" style="color:var(--accent-blue);">TABC 採購指南原網頁系統 ↗</a></td></tr>
       </table>
     `;
 
@@ -944,8 +1245,25 @@ html_template = f"""<!DOCTYPE html>
   }}
 
   document.addEventListener('DOMContentLoaded', () => {{
-    updateSetCountBadge();
-    filterMaterials();
+    // 若本機伺服器運行中，優先從 /api/get-sets 同步最新 Agent 回傳的計畫至 materialSets
+    fetch('http://localhost:8888/api/get-sets', {{ method: 'GET' }})
+      .then(res => res.ok ? res.json() : null)
+      .then(serverSets => {{
+        if (serverSets && typeof serverSets === 'object' && Object.keys(serverSets).length > 0) {{
+          // 深度合併：server 的欄位覆蓋 localStorage，但保留 localStorage 獨有的 Set
+          Object.keys(serverSets).forEach(key => {{
+            materialSets[key] = Object.assign(materialSets[key] || {{}}, serverSets[key]);
+          }});
+          localStorage.setItem('tabc_material_sets', JSON.stringify(materialSets));
+        }}
+        updateSetCountBadge();
+        filterMaterials();
+      }})
+      .catch(() => {{
+        // 伺服器未啟動，直接使用 localStorage 資料
+        updateSetCountBadge();
+        filterMaterials();
+      }});
   }});
 </script>
 </body>

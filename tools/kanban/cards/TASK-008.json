@@ -1,0 +1,35 @@
+{
+  "id": "TASK-008",
+  "title": "執行 Monstrare DOD 驗證合約與綠建材 Skill 端到端整合測試",
+  "content": "### 任務說明\\n進行 Monstrare 驗證門檻 (DOR/DOD) 檢查，跑通綠建材 Skill 的端到端流程 (TABC 資料檢索 -> Agent 需求對齊與計畫確認 -> Revit 參數匹配 -> 寫入驗證 -> 驗證門檻點收)，確保整體交付符合要求。\\n\\n### Readiness (DOR)\\n- [x] problem_clear: TASK-001 ~ TASK-007 均完成並準備點收\\n- [x] scope_defined: 包含端到端全流程驗證測試與驗證報告產出\\n\\n### Sign-off Gates (DOD)\\n- [ ] architecture: 架構審查符合 AI Agent/MCP 規範\\n- [ ] test_passed: 端到端自動化測試無報錯\\n- [ ] code_review: Monstrare DoD gate 簽核完畢並移至 Done 階段",
+  "stage": "backlog",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "antigravity",
+  "approvalRequired": true,
+  "createdAt": "2026-07-30",
+  "epic": "Epic-4: HJPLUS 知識庫 PR 與 Monstrare 驗證合約",
+  "userStory": "US-8: 端到端整合測試與驗證點收",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-007"
+  ],
+  "order": 8,
+  "readiness": {
+    "problem_clear": false,
+    "non_goals_clear": false,
+    "acceptance_testable": false,
+    "files_known": false,
+    "scope_defined": false,
+    "verification_contract": false,
+    "human_approval_recorded": false
+  },
+  "gates": {
+    "product": false,
+    "ui": false,
+    "architecture": false,
+    "security": false,
+    "test": false,
+    "code_review": false
+  }
+}

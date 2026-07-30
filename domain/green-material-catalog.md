@@ -141,21 +141,23 @@ AI Agent 於進行 BIM 元件建模、材料資產掛載與共享參數匯入時
 
 ---
 
-## 5. 綠建材動態檢索展示網頁 (Interactive Web Showcase)
+## 5. 綠建材動態檢索展示網頁與關鍵字自動跳出規範 (Interactive Web Showcase & Auto-Trigger Rule)
 
-當使用者完成品類過濾或要求檢索呈報時，AI Agent 應自動整合查詢結果，產出包含**產品圖片、核定編號、廠商、有效期限、白話規格與勾選匯入按鈕**之現代化綠建材展示網頁，供使用者於瀏覽器中直接點選與預覽。
+當使用者提及「綠建材」相關提示詞（如：`綠建材`、`綠建材標章`、`牆體綠建材`、`地坪綠建材`、`TABC綠建材`、`健康綠建材`、`高性能綠建材`、`再生綠建材`、`生態綠建材`、`綠建材採購`、`綠建材網頁` 等）時，AI Agent 的回應**必須自動跳出與附帶展示網頁連結**：
+* [臺灣 TABC 全量綠建材採購指南與 Revit BIM 材料 Set 管理平台](file:///c:/Users/hh/Desktop/REVIT%20MCP/REVIT_MCP_study/assets/green-material-showcase.html)
 
 ### 5.1 需求導向 3 步驟動態抓取與 Showcase 實時更新規範 (3-Step On-Demand Fetch & Dynamic Update Rule)
 * **核心作業流程 (Mandatory 3-Step Workflow)**：
-  1. **步驟 1 (接收材料需求)**：接收使用者告知的當前材料需求（如「塗料/油漆」、「木地板」、「隔音樓板」、「矽酸鈣板」等）。
+  1. **步驟 1 (接收材料需求與關鍵字觸發)**：接收使用者告知的當前材料需求（如「牆體綠建材」、「塗料/油漆」、「木地板」、「隔音樓板」、「矽酸鈣板」等），自動觸發綠建材 Showcase 跳出機制。
   2. **步驟 2 (從原網頁精準抓取相關材料)**：專門從 TABC 綠建材採購指南原網頁真實資料中，擷取屬於該材料類別的真實認證品項物件（包含真實標章核定編號、申請公司、有效期限、白話規格、官方圖片 URI 與驗證頁 URI）。
-  3. **步驟 3 (實時更新至 Showcase 網頁並開啟)**：AI Agent 自動將步驟 2 擷取出來的專屬真實材料物件 JSON 寫入/更新至 `assets/green-material-showcase.html` 的動態展示庫中，並調用系統指令（如 `Start-Process`）為使用者在預設瀏覽器中開啟更新後的展示網頁，確保畫面僅精準呈現該次需求的原網頁真實物件。
+  3. **步驟 3 (實時更新至 Showcase 網頁並自動呈現)**：AI Agent 自動將步驟 2 擷取出來的專屬真實材料物件 JSON 寫入/更新至 `assets/green-material-showcase.html` 的動態展示庫中，並在回答中自動跳出與開啟更新後的展示網頁，確保畫面僅精準呈現該次需求的原網頁真實物件。
 
 ---
 
 ## 6. 互動對話與分析呈現流程 (Standard Execution Steps)
 
-1. **需求對照與確認**：接收使用者材料需求，對照四大標章與細項品類。
+1. **需求對照與自動跳出網頁**：接收使用者綠建材需求，自動觸發並於回答頂部跳出 [green-material-showcase.html](file:///c:/Users/hh/Desktop/REVIT%20MCP/REVIT_MCP_study/assets/green-material-showcase.html) 網頁連結。
 2. **原網頁真實物件擷取**：撈取/精選該品類下於 TABC 原網頁真實取得 GBM 認證之廠商、建材與圖片。
-3. **實時寫入網頁與瀏覽器展示**：將精準擷取的建材資料庫寫入 `assets/green-material-showcase.html` 並調用 `Start-Process` 為使用者打開呈現。
+3. **實時寫入網頁與瀏覽器展示**：將精準擷取的建材資料庫寫入 `assets/green-material-showcase.html` 並提供使用者打開呈現。
 4. **Revit 共享參數導引**：於展示網頁中提供單鍵「查看 Revit 參數」與批次匯入 Revit 共享參數選項。
+
