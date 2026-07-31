@@ -54,6 +54,16 @@ MCP 官方協定公告了 2026-07-28 版的變更。本專案採取「雙時代�
 - 此限制由 CI（`check-pr.yml`）強制：偵測到 PR 來自 fork（`head.repo.fork == true`）時，只允許改動 `domain/`、`GEMINI.md` 等白名單路徑，其餘一律判定失敗。
 - 維護者的同倉庫（same-repo）PR 不受此限制，可修改 `MCP-Server/`、`MCP/`、`scripts/`、`docs/`、`.github/`。
 
+### 6️⃣ MCP Apps 互動式 UI（clash viewer）+ SDK 升級至 1.30.0
+
+本增量加入第一個 **MCP Apps**（extension `io.modelcontextprotocol/ui`）互動式工具 UI，並連帶升級 SDK：
+
+- **SDK 1.22.0 → 1.30.0**：`@modelcontextprotocol/ext-apps` 的 peer 需求為 `sdk ^1.29.0`。1.30.0 的協定為 `2025-11-25`，**仍保留 `2025-06-18`**，故舊 client 照常協商 → **dual-era 相容不變**。這**不是** 2026-07-28（該版 SDK 尚未釋出，wire-level 特性仍延後）。
+- **clash viewer**：`detect_clashes` 現在帶 `_meta.ui.resourceUri = "ui://clash-viewer/index.html"`。支援此 extension 的宿主（host）會在對話中內嵌一個互動式表格：顯示碰撞摘要與清單，提供「在 Revit 上色」（回呼 `colorize_clashes`）與逐列「定位」（回呼 `zoom_to_element`）。
+- **實作**：server 端手動接線（`resources` capability + `resources/list` / `resources/read` 服務 `ui://` HTML，MIME `text/html;profile=mcp-app`）；UI 為單一自我包含 HTML（esbuild 打包，無外部連線，CSP 安全）。
+- **相容性**：純加法。不支援 `io.modelcontextprotocol/ui` 的宿主會忽略 `_meta.ui` 與該資源，`detect_clashes` 仍回傳一般文字結果，其餘 166 工具不受影響。
+- **限制**：端到端 render 需宿主支援該 extension；server 端與 bundle 已規格相符並通過結構驗證（QAQC Phase 9-2），但未在此環境做 render 實測。
+
 #### ❓ 常見問題
 
 **Q: 我是現有使用者，需要重新安裝或重新設定嗎？**
