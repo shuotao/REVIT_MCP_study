@@ -183,18 +183,30 @@ export function deriveTitle(tool: Tool): string {
  * 不覆寫既有 annotations）。不修改 tool 的行為或 inputSchema。
  */
 export function withAnnotations(tool: Tool): Tool {
-    const title = tool.title ?? deriveTitle(tool);
     const { readOnlyHint, destructiveHint } = classify(tool.name);
 
+    // 空字串 / 全空白的 title 視為「缺少」，避免傳遞空標題（會使 QAQC Phase 9-1 失敗）。
+    const hasTitle = typeof tool.title === "string" && tool.title.trim().length > 0;
+    const title = hasTitle ? tool.title!.trim() : deriveTitle(tool);
+
+    const existing: ToolAnnotations = tool.annotations ?? {};
+    const existingTitle =
+        typeof existing.title === "string" && existing.title.trim().length > 0
+            ? existing.title
+            : title;
+
     const result: Tool = { ...tool };
+    result.title = hasTitle ? tool.title : title;
 
-    if (!result.title) {
-        result.title = title;
-    }
-
-    if (!result.annotations) {
-        result.annotations = { title, readOnlyHint, destructiveHint };
-    }
+    // 補齊缺漏的 annotation 欄位，但不覆寫既有的合法布林值 / 其他 key。
+    result.annotations = {
+        ...existing,
+        title: existingTitle,
+        readOnlyHint:
+            typeof existing.readOnlyHint === "boolean" ? existing.readOnlyHint : readOnlyHint,
+        destructiveHint:
+            typeof existing.destructiveHint === "boolean" ? existing.destructiveHint : destructiveHint,
+    };
 
     return result;
 }

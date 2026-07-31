@@ -1004,9 +1004,13 @@ function Get-AppResourceReport {
 
 Write-Host ""
 Write-Host "  9-1. Tool annotation coverage (title / readOnlyHint / destructiveHint allow-list):" -ForegroundColor Cyan
-$annotationReport = Get-ToolAnnotationReport
-if (-not $annotationReport) {
-    Write-Skip "Tool annotation coverage (build/tools/index.js)" "Runtime tool registry unavailable - run npm run build in MCP-Server first"
+$builtRegistry = Join-Path $projectRoot "MCP-Server\build\tools\index.js"
+if (-not (Test-Path $builtRegistry)) {
+    Write-Skip "Tool annotation coverage (build/tools/index.js)" "Built registry missing - run npm run build in MCP-Server first"
+}
+elseif (-not ($annotationReport = Get-ToolAnnotationReport)) {
+    # 已 build 但無法評估 registerRevitTools() → 視為 FAIL（不可靜默略過，以免回歸漏檢）。
+    Write-Check "Tool annotation coverage: built registry evaluates" $false "build/tools/index.js exists but registerRevitTools() failed to evaluate - run: node --input-type=module -e ""import('./MCP-Server/build/tools/index.js').then(m=>m.registerRevitTools())"""
 }
 else {
     $destructiveAllowList = @('delete_element', 'dedup_detail_elements_in_view')

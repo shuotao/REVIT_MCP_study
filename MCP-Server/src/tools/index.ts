@@ -74,13 +74,13 @@ export function registerRevitTools(): Tool[] {
         return PROFILE_MODULES.full.flat()
             .map(withAnnotations)
             .map(withAppUi)
-            .sort((a, b) => a.name.localeCompare(b.name));
+            .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
     }
 
     const tools = modules.flat()
         .map(withAnnotations)
         .map(withAppUi)
-        .sort((a, b) => a.name.localeCompare(b.name));
+        .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
     console.error(`[Tools] Profile="${profile}", loaded ${tools.length} tools`);
     return tools;
 }
