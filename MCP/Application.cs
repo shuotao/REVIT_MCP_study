@@ -56,6 +56,15 @@ namespace RevitMCP
                 settingsButtonData.ToolTip = "開啟 MCP 設定視窗";
                 panel.AddItem(settingsButtonData);
 
+                // 4. 切換/釋放連線按鈕
+                PushButtonData switchButtonData = new PushButtonData(
+                    "MCPSwitch",
+                    "切換/\n釋放連線",
+                    assemblyPath,
+                    "RevitMCP.Commands.SwitchConnectionCommand");
+                switchButtonData.ToolTip = "關閉目前連線，讓下一個重新連線的 MCP 客戶端取得連線（無法指定特定客戶端）";
+                panel.AddItem(switchButtonData);
+
                 // 初始化 ExternalEventManager (必須在 UI 執行緒建立)
                 _ = ExternalEventManager.Instance;
 
