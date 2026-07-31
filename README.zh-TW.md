@@ -218,11 +218,12 @@ VS Code 設定在 `.vscode/mcp.json`：
 
 ### AI Client 切換與並用限制
 
-Revit 端的 WebSocket 服務一次只接受一條 MCP 連線：後連上的 MCP Server 會取代先前的連線。因此多個 AI Client 是「切換使用」而不是「同時並用」：
+Revit 端的 WebSocket 服務採「獨占鎖」機制：同一時間只有一個 AI Client 能保持連線。第二個嘗試連線的 Client 會被直接拒絕（HTTP 409），而不是取代掉原本的連線——第一個連線因此維持穩定。因此多個 AI Client 是「切換使用」而不是「同時並用」：
 
-1. 關閉目前使用的 AI Client（或停用其 MCP server）。
-2. 啟動另一個 AI Client，它的 MCP Server 連上 `localhost:8964` 後即接手。
-3. 若連線狀態異常，於 Revit ribbon 重啟 MCP 服務即可重置。
+1. 在 Revit ribbon 點擊 **「切換/釋放連線」** 按鈕，釋放目前的連線。
+2. 啟動或重新連線另一個 AI Client，它的 MCP Server 連上 `localhost:8964` 後即取得連線。
+3. **「MCP 設定」** 對話框會顯示目前是哪個 Client 持有連線（例如 `claude-code`、`claude-ai`）。
+4. 若連線狀態異常，可使用同一個 ribbon 按鈕，或於 Revit ribbon 重啟 MCP 服務即可重置。
 
 ## 啟動流程
 

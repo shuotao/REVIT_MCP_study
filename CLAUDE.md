@@ -68,11 +68,14 @@ If the Revit MCP tools are unavailable, state that limitation and provide generi
 
 ## Single-Connection Limitation
 
-The Revit-side WebSocket service (`MCP/Core/SocketService.cs`) holds one MCP connection at a time. A newly connected MCP server replaces the previous connection. Consequences:
+The Revit-side WebSocket service (`MCP/Core/SocketService.cs`) holds an exclusive lock: while one MCP client is connected, additional incoming connections are rejected with HTTP 409 before the WebSocket upgrade (no more clobbering the active connection). Consequences:
 
-- Multiple AI clients are used by switching, never concurrently.
+- Multiple AI clients are used by switching, never concurrently — a second client is cleanly refused, not swapped in.
 - Do not advise users to run two MCP-connected AI clients against the same Revit session.
-- If a connection misbehaves, the reset path is: restart the MCP service from the Revit ribbon.
+- To hand the connection to another client, use the "切換/釋放連線" (Switch/Release Connection) ribbon button — it releases the current connection so the next reconnecting client can take the lock. Because WebSocket connections are anonymous at the transport level, the switch accepts whoever reconnects first, not a guaranteed named target.
+- The "MCP 設定" dialog shows which client currently holds the lock (e.g. `claude-code`, `claude-ai`), sourced from the MCP `clientInfo.name` the Node server forwards as a `?client=` query parameter; older or anonymous clients fall back to endpoint or "unknown".
+- `ServiceSettings.ExclusiveLock` (default `true`) is the escape hatch that reverts to the legacy clobber behavior if disabled.
+- If a connection misbehaves, the reset path is: use the ribbon's switch/release button, or restart the MCP service from the Revit ribbon.
 
 ## Personal Vault Protection
 

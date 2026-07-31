@@ -49,6 +49,12 @@ namespace RevitMCP.Configuration
         public int CommandTimeout { get; set; } = 30000;
 
         /// <summary>
+        /// 是否啟用連線獨佔鎖：已鎖定時拒絕新連線 (409)，避免多個 client 互相搶走連線。
+        /// 逃生旗標，關閉後回退成舊行為 (新連線直接覆蓋)。
+        /// </summary>
+        public bool ExclusiveLock { get; set; } = true;
+
+        /// <summary>
         /// 驗證並修正設定值。回傳 true 表示有修正（需存檔）。
         /// </summary>
         public bool ValidateAndFix()
