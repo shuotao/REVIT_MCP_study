@@ -34,7 +34,7 @@ These counts must be derived from source, not copied by memory.
 | Item | Current Count | Source of Truth |
 |---|---:|---|
 | Runtime MCP tools | 167 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 74 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
+| Domain SOP files | 75 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
 | Claude skills | 50 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, `README.zh-TW.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
@@ -291,6 +291,7 @@ Read the matching file before applying a workflow or calculation.
 | local update, 本機更新, pull 後部署, 重新編譯部署, 環境專屬部署 | `domain/local-update-workflow.md` |
 | wall orientation, wall check | `domain/wall-check.md` |
 | finish schedule, 粉刷明細, material code governance, 材料代碼 | `domain/finish-schedule-governance.md` |
+| room finish parameter, 房間粉刷參數, shared parameters, 共用參數綁定, room finish schedule, 房間粉刷明細表, BatchAddRoomParams, CreateJJPRoomSchedule | `domain/room-finish-parameter-schedule.md` |
 | beam top alignment, 樑頂貼齊, slab soffit, 樓板底 | `domain/beam-slab-alignment.md` |
 | IFC structural native, IFC 原生結構, beam column sync, 梁柱同步 | `domain/ifc-structural-native-sync.md` |
 | quantity takeoff excel, 數量計算, excel export, 數量表 | `domain/quantity-takeoff-excel.md` |
