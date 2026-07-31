@@ -10,6 +10,7 @@
 #   6. Domain Metadata and Shared SOP Quality
 #   7. Cross-Document Alignment (CLAUDE.md / BIM_MCP web / scripts must report same Skill/Domain/Tool counts)
 #   8. Document Audience and Encoding Hygiene
+#   9. MCP 2026 Compliance (tool annotation coverage: title / readOnlyHint / destructiveHint allow-list)
 
 param(
     [switch]$SkipBuild,
@@ -951,6 +952,56 @@ if ($skillMojibake.Count -gt 0) {
 }
 else {
     Write-Check "Skill docs pass mojibake warning scan" $true
+}
+
+# ─────────────────────────────────────────────
+# Phase 9: MCP 2026 Compliance
+# ─────────────────────────────────────────────
+Write-Host ""
+Write-Host "[Phase 9] MCP 2026 Compliance" -ForegroundColor Yellow
+Write-Host "─────────────────────────────────────────────" -ForegroundColor DarkGray
+
+# Invokes the built registry the same way Phase 7's Get-ToolCount does (node --input-type=module
+# -e against build/tools/index.js). Does not rebuild — honors -SkipBuild by using whatever build/
+# already exists. Returns $null if the built registry is unavailable so the caller can Skip
+# instead of failing the whole phase.
+function Get-ToolAnnotationReport {
+    $nodeScript = "import('./MCP-Server/build/tools/index.js').then(m=>{const tools=m.registerRevitTools();const allow=new Set(['delete_element','dedup_detail_elements_in_view']);const missingTitle=[];const missingReadOnlyHint=[];const badDestructive=[];for(const t of tools){const title=t.title;if(typeof title!=='string'||title.trim().length===0)missingTitle.push(t.name);const ro=t.annotations?t.annotations.readOnlyHint:undefined;if(typeof ro!=='boolean')missingReadOnlyHint.push(t.name);const destructive=t.annotations?t.annotations.destructiveHint:undefined;if(destructive===true&&!allow.has(t.name))badDestructive.push(t.name);}console.log(JSON.stringify({total:tools.length,missingTitle:missingTitle,missingReadOnlyHint:missingReadOnlyHint,badDestructive:badDestructive}));}).catch(()=>process.exit(2))"
+    Push-Location $projectRoot
+    $result = & node --input-type=module -e $nodeScript 2>$null
+    $exit = $LASTEXITCODE
+    Pop-Location
+    if ($exit -eq 0 -and $result) {
+        try {
+            return ($result | ConvertFrom-Json)
+        }
+        catch {
+            return $null
+        }
+    }
+    return $null
+}
+
+Write-Host ""
+Write-Host "  9-1. Tool annotation coverage (title / readOnlyHint / destructiveHint allow-list):" -ForegroundColor Cyan
+$annotationReport = Get-ToolAnnotationReport
+if (-not $annotationReport) {
+    Write-Skip "Tool annotation coverage (build/tools/index.js)" "Runtime tool registry unavailable - run npm run build in MCP-Server first"
+}
+else {
+    $destructiveAllowList = @('delete_element', 'dedup_detail_elements_in_view')
+    $missingTitle = @($annotationReport.missingTitle)
+    $missingReadOnlyHint = @($annotationReport.missingReadOnlyHint)
+    $badDestructive = @($annotationReport.badDestructive)
+
+    Write-Check "All $($annotationReport.total) tools declare a non-empty title" ($missingTitle.Count -eq 0) `
+        $(if ($missingTitle.Count -gt 0) { "Missing/empty title: $($missingTitle -join ', ')" } else { "" })
+
+    Write-Check "All $($annotationReport.total) tools declare boolean annotations.readOnlyHint" ($missingReadOnlyHint.Count -eq 0) `
+        $(if ($missingReadOnlyHint.Count -gt 0) { "Missing/non-boolean readOnlyHint: $($missingReadOnlyHint -join ', ')" } else { "" })
+
+    Write-Check "destructiveHint=true confined to allow-list ($($destructiveAllowList -join ', '))" ($badDestructive.Count -eq 0) `
+        $(if ($badDestructive.Count -gt 0) { "Unexpected destructiveHint=true on: $($badDestructive -join ', ')" } else { "" })
 }
 
 # ─────────────────────────────────────────────
