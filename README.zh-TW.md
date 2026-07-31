@@ -47,6 +47,7 @@ Revit MCP 透過 Model Context Protocol (MCP) 讓 AI Client 呼叫 Revit 工具�
 
 `detect_clashes` 現在可以透過 [MCP Apps](https://modelcontextprotocol.io/) extension（`io.modelcontextprotocol/ui`）在對話中直接顯示互動式碰撞檢視 UI，需要 AI Client（host）支援此 extension 才會顯示。這是純加法式功能：
 
+- 互動介面只會出現在**支援 MCP Apps 的圖形介面 host**（Claude Desktop、claude.ai 網頁版、VS Code GitHub Copilot）；**終端機 CLI（如 Claude Code）無法顯示面板，一律是純文字結果 —— 這是正常的，不是故障**。
 - 不支援 MCP Apps 的 Client 仍會拿到 `detect_clashes` 原本的純文字結果，不受任何影響。
 - stdio 連線方式與既有 Revit add-in 完全不受影響，不需要重新安裝或重新設定。
 

@@ -60,6 +60,7 @@ MCP 官方協定公告了 2026-07-28 版的變更。本專案採取「雙時代�
 
 - **SDK 1.22.0 → 1.30.0**：`@modelcontextprotocol/ext-apps` 的 peer 需求為 `sdk ^1.29.0`。1.30.0 的協定為 `2025-11-25`，**仍保留 `2025-06-18`**，故舊 client 照常協商 → **dual-era 相容不變**。這**不是** 2026-07-28（該版 SDK 尚未釋出，wire-level 特性仍延後）。
 - **clash viewer**：`detect_clashes` 現在帶 `_meta.ui.resourceUri = "ui://clash-viewer/index.html"`。支援此 extension 的宿主（host）會在對話中內嵌一個互動式表格：顯示碰撞摘要與清單，提供「在 Revit 上色」（回呼 `colorize_clashes`）與逐列「定位」（回呼 `zoom_to_element`）。
+- **哪些宿主看得到（host support）**：MCP Apps（`io.modelcontextprotocol/ui`，官方於 2026-01-26 上線）的互動 render 只發生在**支援該 extension 的圖形介面宿主**——已知包含 Claude Desktop、claude.ai 網頁版、VS Code GitHub Copilot、Microsoft 365 Copilot、Goose、Postman、MCPJam、Archestra.AI 等。**終端機 CLI（如 Claude Code）本質上沒有圖形層，無法 render `ui://` 面板**：`_meta.ui` 被忽略、`detect_clashes` 回退純文字結果（功能與正確性不變）。由於目前多數使用情境為 CLI，互動表格主要會在 Claude Desktop／claude.ai 網頁版／VS Code Copilot 這類 GUI host 才出現。
 - **實作**：server 端手動接線（`resources` capability + `resources/list` / `resources/read` 服務 `ui://` HTML，MIME `text/html;profile=mcp-app`）；UI 為單一自我包含 HTML（esbuild 打包，無外部連線，CSP 安全）。
 - **相容性**：純加法。不支援 `io.modelcontextprotocol/ui` 的宿主會忽略 `_meta.ui` 與該資源，`detect_clashes` 仍回傳一般文字結果，其餘 166 工具不受影響。
 - **限制**：端到端 render 需宿主支援該 extension；server 端與 bundle 已規格相符並通過結構驗證（QAQC Phase 9-2），但未在此環境做 render 實測。

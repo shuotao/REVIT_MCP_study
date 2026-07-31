@@ -47,6 +47,7 @@ When these numbers change, update `CLAUDE.md`, `README.zh-TW.md`, this file, `do
 
 `detect_clashes` can now render an interactive clash-review UI inline in the conversation, via the [MCP Apps](https://modelcontextprotocol.io/) extension (`io.modelcontextprotocol/ui`). This requires an MCP host that supports the extension. It is purely additive:
 
+- Interactive rendering only happens in **GUI hosts** that support MCP Apps (Claude Desktop, the claude.ai web app, VS Code GitHub Copilot). A terminal CLI like **Claude Code can't render the panel and always shows the text result — this is expected, not a fault**.
 - Hosts without MCP Apps support keep getting `detect_clashes`'s normal text result — nothing changes for them.
 - The stdio connection and the existing Revit add-in are unaffected; no reinstall or reconfiguration is needed.
 
