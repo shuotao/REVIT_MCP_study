@@ -982,6 +982,26 @@ function Get-ToolAnnotationReport {
     return $null
 }
 
+# MCP Apps (io.modelcontextprotocol/ui): for every tool that declares _meta.ui.resourceUri, confirm
+# the ui:// resource resolves via readAppResource with the exact Apps MIME, non-empty HTML, and no
+# external src/href/url() references (self-contained / CSP-safe). Returns $null if build/ is absent.
+function Get-AppResourceReport {
+    $nodeScript = "Promise.all([import('./MCP-Server/build/tools/index.js'),import('./MCP-Server/build/apps/register-apps.js')]).then(([tm,am])=>{const tools=tm.registerRevitTools();const ui=tools.filter(t=>t._meta&&t._meta.ui&&t._meta.ui.resourceUri);const out=[];const rx=/(?:src|href)\s*=\s*['\x22]?https?:|url\(\s*['\x22]?https?:/gi;for(const t of ui){const uri=t._meta.ui.resourceUri;let ok=false,mime='',bytes=0,ext=0;try{const r=am.readAppResource(uri);const c=r&&r.contents&&r.contents[0];if(c){mime=c.mimeType;const html=c.text||'';bytes=html.length;const scan=html.replace(/<script[\s\S]*?<\/script>/gi,'');ext=(scan.match(rx)||[]).length;ok=mime==='text/html;profile=mcp-app'&&bytes>0&&/^\s*<!doctype/i.test(html)&&ext===0;}}catch(e){mime='ERR:'+e.message;}out.push({name:t.name,uri,ok,mime,bytes,ext});}console.log(JSON.stringify({uiToolCount:ui.length,resources:out}));}).catch(()=>process.exit(2))"
+    Push-Location $projectRoot
+    $result = & node --input-type=module -e $nodeScript 2>$null
+    $exit = $LASTEXITCODE
+    Pop-Location
+    if ($exit -eq 0 -and $result) {
+        try {
+            return ($result | ConvertFrom-Json)
+        }
+        catch {
+            return $null
+        }
+    }
+    return $null
+}
+
 Write-Host ""
 Write-Host "  9-1. Tool annotation coverage (title / readOnlyHint / destructiveHint allow-list):" -ForegroundColor Cyan
 $builtRegistry = Join-Path $projectRoot "MCP-Server\build\tools\index.js"
@@ -1006,6 +1026,22 @@ else {
 
     Write-Check "destructiveHint=true confined to allow-list ($($destructiveAllowList -join ', '))" ($badDestructive.Count -eq 0) `
         $(if ($badDestructive.Count -gt 0) { "Unexpected destructiveHint=true on: $($badDestructive -join ', ')" } else { "" })
+}
+
+Write-Host ""
+Write-Host "  9-2. MCP Apps UI resource integrity (ui:// resolves / MIME / self-contained):" -ForegroundColor Cyan
+$appReport = Get-AppResourceReport
+if (-not $appReport) {
+    Write-Skip "MCP Apps UI resource integrity" "Runtime registry / app bundle unavailable - run npm run build in MCP-Server first"
+}
+elseif ([int]$appReport.uiToolCount -eq 0) {
+    Write-Skip "MCP Apps UI resource integrity" "No tools declare _meta.ui.resourceUri"
+}
+else {
+    foreach ($res in $appReport.resources) {
+        $detail = if (-not $res.ok) { "mime=$($res.mime) bytes=$($res.bytes) externalRefs=$($res.ext)" } else { "" }
+        Write-Check "App '$($res.name)' -> $($res.uri) self-contained $($res.mime)" ([bool]$res.ok) $detail
+    }
 }
 
 # ─────────────────────────────────────────────

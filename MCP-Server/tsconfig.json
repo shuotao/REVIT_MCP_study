@@ -22,6 +22,7 @@
     ],
     "exclude": [
         "node_modules",
-        "build"
+        "build",
+        "src/apps/*/app.ts"
     ]
 }
