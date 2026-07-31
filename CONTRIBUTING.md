@@ -63,6 +63,8 @@ git push origin add/我的新workflow
 3. **測試過才提交**：確保您的工作流程實際可用
 4. **避免重複**：先查看現有的 domain 檔案
 
+> 備註：以上「只提交知識內容」的限制僅適用於外部 fork PR；維護者的同倉庫（same-repo）PR 可修改程式碼（`MCP-Server/`、`MCP/`、`scripts/`、`docs/`、`.github/`），fork PR 仍維持僅限知識貢獻（`domain/` + skills）。
+
 ## 📬 聯絡維護者
 
 如果您有程式碼相關的建議，請開 Issue 討論，不要直接提交程式碼 PR。

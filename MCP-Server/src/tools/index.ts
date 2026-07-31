@@ -8,6 +8,7 @@
  */
 
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
+import { withAnnotations } from "./annotations.js";
 import { baseTools } from "./base-tools.js";
 import { wallTools } from "./wall-tools.js";
 import { roomTools } from "./room-tools.js";
@@ -69,10 +70,14 @@ export function registerRevitTools(): Tool[] {
 
     if (!modules) {
         console.error(`[Tools] Unknown MCP_PROFILE="${profile}", falling back to "full"`);
-        return PROFILE_MODULES.full.flat();
+        return PROFILE_MODULES.full.flat()
+            .map(withAnnotations)
+            .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
     }
 
-    const tools = modules.flat();
+    const tools = modules.flat()
+        .map(withAnnotations)
+        .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
     console.error(`[Tools] Profile="${profile}", loaded ${tools.length} tools`);
     return tools;
 }
