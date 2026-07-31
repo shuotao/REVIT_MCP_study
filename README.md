@@ -218,11 +218,12 @@ Replace `<YOUR_PROJECT_PATH>` in the templates with the actual project path on y
 
 ### Switching Between AI Clients
 
-The Revit-side WebSocket service accepts only one MCP connection at a time: a newly connected MCP server replaces the previous connection. Multiple AI clients are therefore used by switching, not concurrently:
+The Revit-side WebSocket service holds an exclusive lock: only one AI client can be connected at a time. A second client that tries to connect is cleanly rejected (HTTP 409), not swapped in — the first connection stays stable. Multiple AI clients are therefore used by switching, not concurrently:
 
-1. Close the current AI client (or disable its MCP server).
-2. Start the other AI client; once its MCP server connects to `localhost:8964`, it takes over.
-3. If the connection misbehaves, restart the MCP service from the Revit ribbon to reset it.
+1. In the Revit ribbon, click the **"切換/釋放連線" (Switch/Release Connection)** button to release the current connection.
+2. Start or reconnect the other AI client; once its MCP server connects to `localhost:8964`, it takes the lock.
+3. The **"MCP 設定"** dialog shows which client currently holds the connection (e.g. `claude-code`, `claude-ai`).
+4. If the connection misbehaves, use the same ribbon button, or restart the MCP service from the Revit ribbon to reset it.
 
 ## Startup Flow
 

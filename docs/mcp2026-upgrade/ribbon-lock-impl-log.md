@@ -34,3 +34,23 @@ Confirmed no remaining references to the old `_webSocket` field (only one commen
 ### Round 1 — OPS verdict
 
 pass=true, R24=true, R26=true, issues=[]
+
+## Doc-align round 1 — Sonnet
+
+### Files Changed
+
+- `CLAUDE.md`
+- `README.md`
+- `README.zh-TW.md`
+
+### Summary
+
+Rewrote exclusive-lock documentation across three core files to reflect Design B (HTTP 409 rejection + manual switch button). Counts unchanged (167/75/50), Traditional Chinese text renders correctly with no mojibake. All three files updated, no code touched, no git commands run.
+
+**`CLAUDE.md`** — rewrote the `## Single-Connection Limitation` section (lines ~69-76): replaced "holds one MCP connection... newly connected replaces the previous" with the exclusive-lock/HTTP-409-reject model, added bullets for the "切換/釋放連線" ribbon button (release + let next client take the lock, anonymous-transport caveat), the "MCP 設定" dialog showing the connected client name (via `?client=` from MCP `clientInfo.name`), and `ServiceSettings.ExclusiveLock` (default `true`) as the escape hatch. Reset guidance now mentions the switch button alongside ribbon restart.
+
+**`README.md`** — rewrote the `### Switching Between AI Clients` section (lines ~219-225): describes the exclusive lock / clean HTTP 409 rejection (vs. the old "replaces" language), and rewrote the 3-step procedure to use the "切換/釋放連線" (Switch/Release Connection) ribbon button plus the "MCP 設定" dialog showing the connected client name.
+
+**`README.zh-TW.md`** — parallel edit to `### AI Client 切換與並用限制` (lines ~219-226) in Traditional Chinese, mirroring the same content: 獨占鎖 / HTTP 409 拒絕、切換/釋放連線 按鈕、MCP 設定 對話框顯示連線中的 Client。Verified UTF-8 renders cleanly, no mojibake.
+
+Count numbers (167 tools / 75 domain files / 50 skills) were left untouched in all three files — verified via grep. No code files or git commands were touched.
