@@ -14,7 +14,7 @@ Revit MCP 透過 Model Context Protocol (MCP) 讓 AI Client 呼叫 Revit 工具�
 
 ## 這是什麼？
 
-用講人話的方式操作 Revit。跟你的 AI Client 說「幫這個視圖的牆全部標尺寸」或「檢查帷幕牆立面」，Revit 就會做——背後是 **166 個 MCP 工具**，由 **74 份專業 BIM SOP**（建築法規、數量計算、法規檢核）支撐。
+用講人話的方式操作 Revit。跟你的 AI Client 說「幫這個視圖的牆全部標尺寸」或「檢查帷幕牆立面」，Revit 就會做——背後是 **167 個 MCP 工具**，由 **74 份專業 BIM SOP**（建築法規、數量計算、法規檢核）支撐。
 
 **給誰用：** 使用 Revit、想要 AI 輔助且符合規範的 BIM 工程師與建築師。你需要 Windows 上的 Revit（2022–2026），並願意安裝一個 add-in。
 
@@ -42,6 +42,15 @@ Revit MCP 透過 Model Context Protocol (MCP) 讓 AI Client 呼叫 Revit 工具�
 ```powershell
 .\scripts\verify-qaqc.ps1 -SkipBuild -SkipDeploy
 ```
+
+## 新功能：互動式碰撞檢視器（MCP Apps）
+
+`detect_clashes` 現在可以透過 [MCP Apps](https://modelcontextprotocol.io/) extension（`io.modelcontextprotocol/ui`）在對話中直接顯示互動式碰撞檢視 UI，需要 AI Client（host）支援此 extension 才會顯示。這是純加法式功能：
+
+- 不支援 MCP Apps 的 Client 仍會拿到 `detect_clashes` 原本的純文字結果，不受任何影響。
+- stdio 連線方式與既有 Revit add-in 完全不受影響，不需要重新安裝或重新設定。
+
+完整的 MCP 2026-07-28 升級說明見 `docs/MIGRATION_GUIDE.md`。
 
 ## 架構
 

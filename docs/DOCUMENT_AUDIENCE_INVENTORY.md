@@ -34,6 +34,8 @@ These should be English-first.
 | `.mcp.json` | machine config | Project-level MCP server config |
 | `.vscode/mcp.json` | machine config | VS Code MCP server config |
 | `templates/personal-vault/VAULT-CLAUDE.md` | local-only template | Personal vault schema; Fixed Core copied verbatim by users' agents, never loaded by this repo's agents |
+| `docs/mcp2026-upgrade/impl-log.md` | implementation audit log | English, append-only `[step ...]` entries recording the MCP 2026-07-28 upgrade's build/verify results; audit trail for AI agents and maintainers, not onboarding content |
+| `docs/mcp2026-upgrade/doc-alignment-log.md` | implementation audit log | English, append-only log of the documentation-alignment pass that synced `CLAUDE.md` / README / audience inventory to the MCP 2026-07-28 upgrade |
 
 ## Shared Human + AI Documents
 
@@ -62,6 +64,7 @@ These must remain understandable by both sides.
 | `docs/slides.md` | presenters | Slide index |
 | `Antigravity_MCP_Complete_Guide.md` | Antigravity users | Manual MCP setup for Antigravity client |
 | `docs/UPDATE-PULL-GUIDE.md`, `docs/branch-index.md` | users and maintainers | Update flow and branch overview |
+| `docs/MIGRATION_GUIDE.md` | users and fork contributors | Traditional Chinese; append-only, newest-first record of upgrades that affect existing users or fork contributors (e.g. the MCP 2026-07-28 dual-era upgrade) |
 | `docs/claude-code-cheatsheet.html`, `docs/karpathy-gist-zh-tw.html` | readers | Reference pages |
 | other `docs/*.md` topic guides | mixed | Per-topic guides (agent handoff, guard rails, architecture, slope analysis, docs structure); classify individually if promoted to canonical |
 | root-level Chinese notes (`HJPLUS *.md`, `[好學生筆記]*.md`) | community readers | Event notes and adoption guides |

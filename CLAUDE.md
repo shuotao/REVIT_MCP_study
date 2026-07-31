@@ -88,6 +88,8 @@ Build via the `/build-revit` skill. Full commands (MCP Server npm build; `dotnet
 
 Expected output path stays `MCP/bin/Release.R{YY}/RevitMCP.dll`. Do not rely on old `bin/Release/RevitMCP.dll` instructions.
 
+`MCP-Server`'s `npm run build` now runs `tsc && node scripts/build-apps.mjs`: `tsc` compiles the server as before, then `scripts/build-apps.mjs` (esbuild) bundles each MCP App under `MCP-Server/src/apps/*/app.ts` into a single self-contained `MCP-Server/build/apps/*/index.html` (e.g. `build/apps/clash-viewer/index.html`). Both steps must succeed for the server to advertise working `ui://` resources.
+
 Deploy with `scripts/install-addon.ps1` or the `/deploy-addon` skill.
 
 ### Build artifacts are never tracked (2026-07-17)
@@ -112,6 +114,10 @@ If pulling the 2026-07-17 cleanup commit fails with "local changes would be over
 | `MCP-Server/src/socket.ts` | WebSocket client to Revit |
 | `MCP-Server/src/tools/index.ts` | Tool module registry and `MCP_PROFILE` filtering |
 | `MCP-Server/src/tools/revit-tools.ts` | Execution bridge from tool name to Revit command |
+| `MCP-Server/src/tools/annotations.ts` | Central `title` + `readOnlyHint`/`destructiveHint` injection for every registered tool (MCP 2026-07-28 metadata layer) |
+| `MCP-Server/src/apps/register-apps.ts` | MCP Apps (`io.modelcontextprotocol/ui`) resource wiring: `listAppResources` / `readAppResource` / `withAppUi` |
+| `MCP-Server/src/apps/clash-viewer/` | The first MCP App: `app.ts` (ext-apps client) + `template.html`, bundled by `scripts/build-apps.mjs` into a self-contained `ui://clash-viewer/index.html` served for `detect_clashes` |
+| `MCP-Server/scripts/build-apps.mjs` | esbuild single-file bundler that produces `MCP-Server/build/apps/*/index.html` for each MCP App |
 | `bridge/python/skills/ezdxf_worker.py` | Optional Python subprocess (spawned by `DwgColumnExecutor`) that reads DXF/DWG text for column-number mapping (`dwg-column-import` mode C). Needs system Python + `ezdxf`; DWG additionally needs ODA File Converter. Deployed to `%APPDATA%\RevitMCP` by `install-addon.ps1`. |
 | `scripts/verify-qaqc.ps1` | Repository QA/QC gate |
 | `docs/DOCUMENT_AUDIENCE_INVENTORY.md` | Canonical AI/human/shared document classification |
@@ -335,6 +341,21 @@ Shareable skills are packaged as installable plugins via `.claude-plugin/marketp
 
 Use `full` unless a constrained client context explicitly needs a smaller tool surface.
 
+## MCP Protocol Posture (2026-07-28 Dual-Era)
+
+The MCP protocol announced a 2026-07-28 revision. This project takes a **dual-era, additive-only** posture: adopt metadata-layer changes that are backward-compatible on their own, and defer anything that changes the wire protocol until an official SDK ships support for it.
+
+Adopted (additive, safe for old clients):
+
+- Every tool registered via `registerRevitTools()` carries a `title` plus boolean `readOnlyHint` / `destructiveHint` annotations, injected centrally by `MCP-Server/src/tools/annotations.ts`. Old clients ignore unknown fields.
+- `tools/list` is deterministically sorted by tool name (codepoint order) before it is returned.
+- MCP Apps (extension `io.modelcontextprotocol/ui`): the server advertises a `resources` capability and serves `ui://` HTML via `ListResources` / `ReadResource` (`MCP-Server/src/apps/register-apps.ts`). `detect_clashes` carries `_meta.ui.resourceUri = "ui://clash-viewer/index.html"`, pointing at the first interactive App — a clash viewer (`MCP-Server/src/apps/clash-viewer/`) bundled by `scripts/build-apps.mjs`. Hosts that don't support the extension simply ignore `_meta.ui`; `detect_clashes` still returns its normal text result.
+- SDK `@modelcontextprotocol/sdk` bumped 1.22 -> 1.30 (protocol `2025-11-25`) to satisfy the `@modelcontextprotocol/ext-apps` peer dependency. 1.30 still negotiates `2025-06-18`, so this is **not** the 2026-07-28 protocol itself and stays dual-era compatible.
+
+Deferred (wire-level, requires an official SDK for protocol 2026-07-28 before implementing): stateless connection mode, `server/discover`, `resultType`, Tasks core, HTTP/OAuth transport and authorization.
+
+Full rationale, FAQ, and fork-contributor notes: `docs/MIGRATION_GUIDE.md`.
+
 ## AI Client Configuration
 
 See README.md / README.zh-TW.md "AI Client Configuration" for the full per-client setup. Config templates live in `MCP-Server/*_config.json`.
@@ -374,6 +395,7 @@ QA/QC must cover:
 - client config template portability (no hardcoded user paths; `<YOUR_PROJECT_PATH>` placeholder required)
 - snapshot banner (`data-snapshot="YYYY-MM-DD"`) on date-prefixed `docs/MMDD-*.html`
 - MCP Registry publish consistency (`server.json` ↔ `MCP-Server/package.json` ↔ schema; 3-place version parity) — Phase 7 check `7-11`, see below
+- MCP 2026 compliance (Phase 9): 9-1 every tool declares a non-empty `title` and boolean `readOnlyHint`, with `destructiveHint=true` confined to the allow-list (`delete_element`, `dedup_detail_elements_in_view`); 9-2 every MCP Apps `ui://` resource resolves with the correct MIME (`text/html;profile=mcp-app`) and is self-contained (no external `src`/`href`/`url()` references)
 
 ## MCP Registry Publish Consistency
 

@@ -14,7 +14,7 @@ Revit MCP lets AI clients call Autodesk Revit tools through the Model Context Pr
 
 ## What is this?
 
-Talk to Revit in plain language. Ask your AI client to *"dimension every wall on this view"* or *"check the curtain-wall elevations"*, and Revit does it — through **166 MCP tools** backed by **74 professional BIM SOPs** (building code, quantity take-off, compliance checks).
+Talk to Revit in plain language. Ask your AI client to *"dimension every wall on this view"* or *"check the curtain-wall elevations"*, and Revit does it — through **167 MCP tools** backed by **74 professional BIM SOPs** (building code, quantity take-off, compliance checks).
 
 **Who it's for:** BIM engineers and architects who use Revit and want AI-assisted, standards-based workflows. You'll need Revit (2022–2026) on Windows and to be comfortable installing an add-in.
 
@@ -42,6 +42,15 @@ When these numbers change, update `CLAUDE.md`, `README.zh-TW.md`, this file, `do
 ```powershell
 .\scripts\verify-qaqc.ps1 -SkipBuild -SkipDeploy
 ```
+
+## New: Interactive Clash Viewer (MCP Apps)
+
+`detect_clashes` can now render an interactive clash-review UI inline in the conversation, via the [MCP Apps](https://modelcontextprotocol.io/) extension (`io.modelcontextprotocol/ui`). This requires an MCP host that supports the extension. It is purely additive:
+
+- Hosts without MCP Apps support keep getting `detect_clashes`'s normal text result — nothing changes for them.
+- The stdio connection and the existing Revit add-in are unaffected; no reinstall or reconfiguration is needed.
+
+See `docs/MIGRATION_GUIDE.md` for the full MCP 2026-07-28 upgrade notes.
 
 ## Architecture
 
