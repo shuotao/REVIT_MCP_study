@@ -40,6 +40,13 @@ export class RevitSocketClient {
     private reconnectInterval: number = 5000; // 5 seconds
     private responseHandlers: Map<string, (response: RevitResponse) => void> = new Map();
 
+    /**
+     * 連線時回報給 Revit add-in 的客戶端名稱（來自 MCP initialize 的 clientInfo.name，
+     * 例如 claude-code / claude-ai / Visual Studio Code）。由 index.ts 在連線前設定。
+     * add-in 會以此顯示「目前佔用連線的工具」。
+     */
+    public clientName: string = "unknown";
+
     constructor(host: string = 'localhost', port?: number) {
         this.host = host;
         this.port = port ?? getConfiguredPort();
@@ -50,7 +57,7 @@ export class RevitSocketClient {
      */
     async connect(): Promise<void> {
         return new Promise((resolve, reject) => {
-            const wsUrl = `ws://${this.host}:${this.port}`;
+            const wsUrl = `ws://${this.host}:${this.port}/?client=${encodeURIComponent(this.clientName)}`;
             console.error(`[Socket] Connecting to Revit: ${wsUrl}`);
 
             this.ws = new WebSocket(wsUrl);

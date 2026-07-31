@@ -73,7 +73,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     // Check Revit Connection
     if (!revitClient.isConnected()) {
-      console.error("[MCP Server] Revit not connected, attempting to connect...");
+      // 取得目前 AI 客戶端名稱（MCP initialize 的 clientInfo.name），連線時一併回報給 Revit add-in
+      const clientInfo = server.getClientVersion();
+      revitClient.clientName = clientInfo?.name || "unknown";
+      console.error(`[MCP Server] Revit not connected, connecting as client="${revitClient.clientName}"...`);
       await revitClient.connect();
     }
 

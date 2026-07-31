@@ -29,6 +29,7 @@ namespace RevitMCP.Core
         private readonly object _connectionLock = new object();
         private WebSocket _activeSocket;
         private string _activeRemoteEndpoint;
+        private string _activeClientName;   // 來自 ws 連線 query string ?client= (MCP clientInfo.name)
         private DateTime? _connectedAtUtc;
         private DateTime _lastRejectLogUtc = DateTime.MinValue;
 
@@ -169,14 +170,19 @@ namespace RevitMCP.Core
 
                         var wsContext = await context.AcceptWebSocketAsync(null);
 
+                        string logClient, logRemote;
                         lock (_connectionLock)
                         {
                             _activeSocket = wsContext.WebSocket;
                             _activeRemoteEndpoint = context.Request.RemoteEndPoint?.ToString();
+                            // 客戶端名稱由 node MCP server 以 ?client=<clientInfo.name> 帶入 (匿名時為 unknown)
+                            _activeClientName = context.Request.QueryString["client"];
                             _connectedAtUtc = DateTime.UtcNow;
+                            logClient = _activeClientName;
+                            logRemote = _activeRemoteEndpoint;
                         }
 
-                        Logger.Info("[Socket] MCP Server 已連線 (locked) - " + _activeRemoteEndpoint);
+                        Logger.Info("[Socket] MCP Server 已連線 (locked) - client=" + (logClient ?? "unknown") + " " + logRemote);
 
                         // 在獨立任務中處理訊息，不要阻塞接受連線的迴圈
                         _ = Task.Run(async () => await ReceiveMessagesAsync(wsContext.WebSocket, cancellationToken));
@@ -221,9 +227,10 @@ namespace RevitMCP.Core
             lock (_connectionLock)
             {
                 toClose = _activeSocket;
-                prev = _activeRemoteEndpoint;
+                prev = (string.IsNullOrEmpty(_activeClientName) ? "unknown" : _activeClientName) + " (" + (_activeRemoteEndpoint ?? "?") + ")";
                 _activeSocket = null;
                 _activeRemoteEndpoint = null;
+                _activeClientName = null;
                 _connectedAtUtc = null;
             }
 
@@ -250,11 +257,11 @@ namespace RevitMCP.Core
         /// <summary>
         /// 取得目前連線鎖定狀態快照，供 UI (設定視窗) 顯示使用。
         /// </summary>
-        public (bool locked, string remote, DateTime? sinceUtc) GetStatusSnapshot()
+        public (bool locked, string clientName, string remote, DateTime? sinceUtc) GetStatusSnapshot()
         {
             lock (_connectionLock)
             {
-                return (_activeSocket != null && _activeSocket.State == WebSocketState.Open, _activeRemoteEndpoint, _connectedAtUtc);
+                return (_activeSocket != null && _activeSocket.State == WebSocketState.Open, _activeClientName, _activeRemoteEndpoint, _connectedAtUtc);
             }
         }
 
@@ -318,6 +325,7 @@ namespace RevitMCP.Core
                     {
                         _activeSocket = null;
                         _activeRemoteEndpoint = null;
+                        _activeClientName = null;
                         _connectedAtUtc = null;
                     }
                 }
@@ -405,6 +413,7 @@ namespace RevitMCP.Core
                     ws = _activeSocket;
                     _activeSocket = null;
                     _activeRemoteEndpoint = null;
+                    _activeClientName = null;
                     _connectedAtUtc = null;
                 }
 

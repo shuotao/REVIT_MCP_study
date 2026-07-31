@@ -19,21 +19,26 @@ namespace RevitMCP.Commands
         {
             try
             {
-                // 檢查目前狀態
-                bool isConnected = Application.SocketService != null && Application.SocketService.IsConnected;
+                // 以 IsRunning 判斷開/關 (而非 IsConnected)：服務已啟動但尚無 client 連入時 IsConnected=false，
+                // 若用 IsConnected 判斷，再按一下會誤判為「啟動」而非「停止」。
+                bool running = Application.SocketService != null && Application.SocketService.IsRunning;
 
-                if (isConnected)
+                if (running)
                 {
-                    // 如果已連線，則停止
+                    // 已在執行 → 停止
                     Application.StopMCPService();
                     Logger.Info("使用者手動停止 MCP 服務");
-                    TaskDialog.Show("MCP 服務", "🔴 服務已停止");
+                    TaskDialog.Show("MCP 服務", "🔴 MCP 服務已關閉。");
                 }
                 else
                 {
-                    // 如果未連線，則啟動
+                    // 未執行 → 啟動
                     Logger.Info("使用者手動啟動 MCP 服務");
                     Application.StartMCPService(commandData.Application);
+                    TaskDialog.Show("MCP 服務",
+                        "🟢 MCP 服務已啟動。\n\n" +
+                        "正在 localhost:8964 監聽，等待 AI 客戶端連入。\n" +
+                        "（連上後可在「MCP 設定」查看目前佔用連線的客戶端）");
                 }
 
                 return Result.Succeeded;
@@ -71,11 +76,14 @@ namespace RevitMCP.Commands
 
                 if (Application.SocketService?.IsRunning == true)
                 {
-                    var (locked, remote, sinceUtc) = Application.SocketService.GetStatusSnapshot();
+                    var (locked, clientName, remote, sinceUtc) = Application.SocketService.GetStatusSnapshot();
+                    string clientDisplay = string.IsNullOrEmpty(clientName)
+                        ? (remote ?? "—")
+                        : (clientName + " (" + (remote ?? "?") + ")");
                     info += "\n\n" +
-                        "連線狀態: " + (locked ? "已鎖定" : "閒置(等待連入)") +
-                        ", 目前客戶端: " + (remote ?? "—") +
-                        ", 連線時間: " + (sinceUtc.HasValue ? sinceUtc.Value.ToLocalTime().ToString() : "—");
+                        "連線狀態: " + (locked ? "已鎖定" : "閒置(等待連入)") + "\n" +
+                        "目前客戶端: " + clientDisplay + "\n" +
+                        "連線時間: " + (sinceUtc.HasValue ? sinceUtc.Value.ToLocalTime().ToString() : "—");
                 }
 
                 TaskDialog.Show("MCP 設定", info);
