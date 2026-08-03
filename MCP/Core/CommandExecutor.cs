@@ -77,7 +77,11 @@ namespace RevitMCP.Core
                         result = GetProjectInfo();
                         break;
 
-                    
+                    case "set_project_units":
+                        result = SetProjectUnits(parameters);
+                        break;
+
+
                     case "create_floor":
                         result = CreateFloor(parameters);
                         break;
