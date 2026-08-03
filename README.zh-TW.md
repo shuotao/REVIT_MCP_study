@@ -228,6 +228,8 @@ Revit 端的 WebSocket 服務一次只接受一條 MCP 連線：後連上的 MCP
 
 ## 專案結構
 
+綠建材導入 Revit 的正式程式、歷史腳本、資料與文件，請由[綠建材開發歸檔索引](./tools/green-material/README.md)及[綠建材文件索引](./docs/green-material/README.md)進入。
+
 ```text
 REVIT_MCP/
   MCP/                         Revit Add-in (C#)

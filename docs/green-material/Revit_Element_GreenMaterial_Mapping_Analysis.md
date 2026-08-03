@@ -64,7 +64,7 @@ $$\text{MaterialName} = \text{GBM標章編號} + \text{"\_"} + \text{材料名�
 ---
 
 ## 6. 檔案與工具鏈對接
-- **Domain 規範檔**：[.agents/skills/combined-wall-set-import/domain.md](file:///c:/Users/User/Desktop/REVIT_MCP_study/.agents/skills/combined-wall-set-import/domain.md)
-- **Revit 共享參數檔**：[GreenMaterial_SharedParams.txt](file:///c:/Users/User/Desktop/REVIT_MCP_study/GreenMaterial_SharedParams.txt)
-- **計畫擬訂引擎**：[generate_revit_injection_plan.py](file:///c:/Users/User/Desktop/REVIT_MCP_study/generate_revit_injection_plan.py)
-- **Showcase 展示網頁**：[assets/green-material-showcase.html](file:///c:/Users/User/Desktop/REVIT_MCP_study/assets/green-material-showcase.html)
+- **Domain 規範檔**：[combined-wall-set-import](../../.agents/skills/combined-wall-set-import/SKILL.md)
+- **Revit 共享參數檔**：[GreenMaterial_SharedParams.txt](../../GreenMaterial_SharedParams.txt)
+- **計畫擬訂引擎**：[generate_revit_injection_plan.py](../../generate_revit_injection_plan.py)
+- **Showcase 展示網頁**：[assets/green-material-showcase.html](../../assets/green-material-showcase.html)

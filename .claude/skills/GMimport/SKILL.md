@@ -34,7 +34,7 @@ The argument is free text like:
    ```
    Substitute the parsed values directly (Python string literals — escape embedded quotes). This:
    - Matches each licno against `tabc_master_database.json` (exact match first, then suffix-tolerant fallback for `(續)`/`(增)` certificates — see `_normalize_licno`). **Never truncate a matched licno's suffix in what you report** — always use the full licno exactly as it appears in the database record.
-   - Writes `Revit_Injection_Plan.json` and `docs/Revit_Injection_Plan_Report.md`.
+   - Writes `Revit_Injection_Plan.json` and `docs/green-material/Revit_Injection_Plan_Report.md`.
    - Updates the Set's entry in `exported_material_sets.json` (`planStatus: "已對齊 Agent 計畫"`, `planId`, `plannedActions`).
 
 3. **Report a concise summary to the user** (do not paste the full plan JSON):

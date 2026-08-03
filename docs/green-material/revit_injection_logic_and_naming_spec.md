@@ -57,10 +57,10 @@
 
 | 腳本 / 模組名稱 | 檔案路徑 / 模組位置 | 對應 Task | 開發狀態 | 功能說明 |
 | :--- | :--- | :---: | :---: | :--- |
-| **共享參數檔載入與驗證模組** | [`validate_shared_params.py`](file:///c:/Users/User/Desktop/REVIT_MCP_study/validate_shared_params.py) | Task 003 / 005.1 | **已完成** | 驗證並批次一鍵載入 `GreenMaterial_SharedParams.txt` (31 個參數) 至 Revit 核心品類 |
-| **推送計畫擬訂引擎 v3** | [`generate_revit_injection_plan.py`](file:///c:/Users/User/Desktop/REVIT_MCP_study/generate_revit_injection_plan.py) | Task 004 | **已完成** | 讀取網頁 Set 需求對齊問答 (Q1/Q2/Q3)，動態推判 Revit 品類、構造層與厚度 |
-| **標準材料層注入引擎 (機制 A)** | [`apply_revit_injection_plan.py`](file:///c:/Users/User/Desktop/REVIT_MCP_study/apply_revit_injection_plan.py) | Task 005.2 / 005.3 | **已完成** | 執行牆面/地坪/天花板之組合式與分立式 Element Type 複製、寫入與舊材料衝突偵測 |
-| **元件履歷摘要表格產出腳本** | [`apply_revit_injection_plan.py`](file:///c:/Users/User/Desktop/REVIT_MCP_study/apply_revit_injection_plan.py) | Task 005.4 | **已完成** | 自動匯出 [`revit_generated_elements_summary.md`](file:///c:/Users/User/Desktop/REVIT_MCP_study/revit_generated_elements_summary.md) 異動履歷表 |
+| **共享參數檔載入與驗證模組** | [`validate_shared_params.py`](../../validate_shared_params.py) | Task 003 / 005.1 | **已完成** | 驗證並批次一鍵載入 `GreenMaterial_SharedParams.txt` (31 個參數) 至 Revit 核心品類 |
+| **推送計畫擬訂引擎 v3** | [`generate_revit_injection_plan.py`](../../generate_revit_injection_plan.py) | Task 004 | **已完成** | 讀取網頁 Set 需求對齊問答 (Q1/Q2/Q3)，動態推判 Revit 品類、構造層與厚度 |
+| **標準材料層注入引擎 (機制 A)** | [`apply_revit_injection_plan.py`](../../apply_revit_injection_plan.py) | Task 005.2 / 005.3 | **已完成** | 執行牆面/地坪/天花板之組合式與分立式 Element Type 複製、寫入與舊材料衝突偵測 |
+| **元件履歷摘要表格產出腳本** | [`apply_revit_injection_plan.py`](../../apply_revit_injection_plan.py) | Task 005.4 | **已完成** | 歷史異動履歷已歸檔至 [`revit_generated_elements_summary.md`](../../tools/green-material/archive/reports/revit_generated_elements_summary.md) |
 | **非幾何輔助材料注入腳本** | `scripts/inject_auxiliary_materials.py` | Task 005 (機制 B) | ⏳ **未開始** | 負責將接著劑、填縫劑、防水膜專屬寫入 Construction 屬性群組 |
 | **載入式家族 RFA 注入腳本** | `scripts/inject_loadable_family.py` | Task 005 (機制 C) | ⏳ **未開始** | 負責門、窗、幕牆玻璃 `.rfa` 家族備份另存與 Type 屬性批次寫入 |
 | **pyRevit 工具面板 UI 橋接腳本** | `pyRevit_Tools/RevitGreen.extension/` | Task 005 (pyRevit) | ⏳ **未開始** | 在 Revit 工具列面板建立 pyRevit IronPython / C# 一鍵注入面板按鈕 |

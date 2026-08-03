@@ -248,8 +248,11 @@ REVIT_MCP/
   .claude/                     AI commands and skills
   docs/                        Human-facing docs and public knowledge site
   scripts/                     Setup, deployment, QA/QC scripts
+  tools/green-material/        Green-material development archive and index
   log/                         Append-only session and commit logs
 ```
+
+Green-material contributors should start with the [development archive index](./tools/green-material/README.md) and the [documentation index](./docs/green-material/README.md).
 
 ## AI Docs and Human Docs
 

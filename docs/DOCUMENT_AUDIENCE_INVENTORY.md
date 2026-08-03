@@ -58,6 +58,7 @@ These must remain understandable by both sides.
 | `scripts/README.md` | installers and maintainers | Script usage |
 | `pyRevit_Tools/README.md` | pyRevit users | pyRevit-specific notes |
 | `docs/BIM_MCP/**` | public knowledge site | Teaching and visual explanations |
+| `docs/green-material/**` | green-material developers | Architecture, mapping, naming, and generated injection-plan documentation |
 | `docs/troubleshoot-first-install.md` | users | First-install troubleshooting |
 | `docs/slides.md` | presenters | Slide index |
 | `Antigravity_MCP_Complete_Guide.md` | Antigravity users | Manual MCP setup for Antigravity client |
@@ -71,6 +72,7 @@ These must remain understandable by both sides.
 | Path | Rule |
 |---|---|
 | `docs/_archive/**` | Preserve by default |
+| `tools/green-material/archive/**` | Green-material development snapshots and retired helper scripts; not a source of current runtime rules |
 | old event logs | Preserve by default |
 | bundled external references | Preserve source snapshot |
 | date-prefixed `docs/MMDD-*.html` (e.g. `0425-presentation.html`, `0523-monthly.html`) | Immutable event snapshots. Must carry a `data-snapshot="YYYY-MM-DD"` banner. Their counts reflect the event date and are intentionally excluded from count sync (QAQC Phase 7). |

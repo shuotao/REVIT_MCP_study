@@ -6,8 +6,15 @@ def validate_shared_param_file(filepath):
         print(f"Error: File {filepath} does not exist.")
         return False
 
-    with open(filepath, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
+    # Revit shared-parameter files in Taiwanese projects are commonly saved as
+    # either UTF-8 or Windows Traditional Chinese (CP950). Accept both without
+    # rewriting the source file, because Revit itself may depend on its encoding.
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+    except UnicodeDecodeError:
+        with open(filepath, 'r', encoding='cp950') as f:
+            lines = f.readlines()
 
     groups = {}
     params = []

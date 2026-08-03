@@ -1319,6 +1319,43 @@
       "test": true,
       "code_review": false
     }
+  },
+  {
+    "id": "TASK-012",
+    "title": "排查「Revit 裡看不到建立的元件」問題：根因是測試檔從未存檔，並重建 3 組 Set 後確認存檔",
+    "content": "### 任務說明\n使用者回報「我看我 Revit 裡沒有元件被建立」。排查發現 duplicate_element_type / create_single_material_type / create_multi_layer_type 等工具本身都正常運作（每次建立後都有立即用 get_element_info 驗證成功），但重新查詢 get_wall_types / get_types_by_category 卻只看到 Revit 內建原始型別，先前建立的 TABC_牆壁與塗料、4 個地板材料 Type、TABC_塑膠地板set 全部消失。\n\n根因：測試用的 `Project1` 檔案從頭到尾沒有被存檔過，每次使用者關閉 Revit 再重開，都是開啟未存檔的空白狀態，先前建立的所有 Type/Material 自然就不見了——不是工具或 MCP 橋接的 bug，是操作流程缺了存檔這一步。\n\n已重新執行一次完整重建（TASK-009/010/011 的三個情境各一次），並在使用者確認 Ctrl+S 存檔後，同步更新 `exported_material_sets.json` 內對應的新 Element ID（重建後 ID 與前一輪不同）。\n\n### Readiness (DOR)\n- [x] problem_clear: 確認是「檔案未存檔」而非工具/MCP 橋接錯誤\n- [x] scope_defined: 三個情境（Wall 單一組合／Floor 各別建立／Floor 多層組合）各重建一次並驗證\n\n### Sign-off Gates (DOD)\n- [x] architecture: 無程式修改，純操作流程問題（未來 Skill 文件可考慮補充「操作完成後提醒存檔」的步驟）\n- [x] test_passed: 2026-08-04 重建 TABC_牆壁與塗料(253551)、4 個地板材料 Type(253567/253586/253605/253624)、TABC_塑膠地板set(253643，含 core boundary 修正)，共享參數全數補寫，使用者確認已 Ctrl+S 存檔\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "verify",
+    "risk": "low",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-04",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-009",
+      "TASK-010",
+      "TASK-011"
+    ],
+    "order": 12,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": false
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": false
+    }
   }
 ];
 

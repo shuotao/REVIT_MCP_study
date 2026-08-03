@@ -1,12 +1,12 @@
 {
-  "planId": "PLAN-20260804011650",
+  "planId": "PLAN-20260804025953",
   "setName": "塑膠地板set",
-  "generatedAt": "2026-08-04 01:16:50",
+  "generatedAt": "2026-08-04 02:59:53",
   "agentName": "antigravity (建築 Agent)",
   "userIntent": "",
   "targetRevitCategories": [
-    "OST_Floors",
-    "OST_Materials"
+    "OST_Materials",
+    "OST_Floors"
   ],
   "totalMaterialsCount": 3,
   "materialsMapping": [

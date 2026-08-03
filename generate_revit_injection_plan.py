@@ -21,7 +21,7 @@ WORKSPACE = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(WORKSPACE, "tabc_master_database.json")
 SETS_FILE = os.path.join(WORKSPACE, "exported_material_sets.json")
 PLAN_JSON = os.path.join(WORKSPACE, "Revit_Injection_Plan.json")
-PLAN_REPORT = os.path.join(WORKSPACE, "docs", "Revit_Injection_Plan_Report.md")
+PLAN_REPORT = os.path.join(WORKSPACE, "docs", "green-material", "Revit_Injection_Plan_Report.md")
 
 
 def load_database():
