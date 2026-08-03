@@ -1,7 +1,7 @@
 {
   "id": "TASK-006",
   "title": "撰寫 green-material-takeoff SKILL.md (領域知識與 AI 觸發條件)",
-  "content": "### 任務說明\\n撰寫 `.agents/skills/green-material-takeoff/SKILL.md`，定義 AI 助手在遇到使用者詢問「檢討綠建材率」、「匯出綠建材計算書」、「標註模型綠建材」時的觸發語條件、工作流程、領域知識說明與腳本呼叫規範。\\n\\n### Readiness (DOR)\\n- [x] problem_clear: 確定 Skill YAML frontmatter 與 markdown 規範\\n- [x] scope_defined: 包含綠建材算量、評定計算、報表產出之完整步驟\\n\\n### Sign-off Gates (DOD)\\n- [ ] architecture: 完成 SKILL.md 寫作與規範審查\\n- [ ] test_passed: 於 Antigravity / Agent 環境下測試觸發率\\n- [ ] code_review: 審查自然語言觸發與指令精確度",
+  "content": "### 任務說明\n撰寫 `.agents/skills/green-material-takeoff/SKILL.md`，定義 AI 助手在遇到使用者詢問「檢討綠建材率」、「匯出綠建材計算書」、「標註模型綠建材」時的觸發語條件、工作流程、領域知識說明與腳本呼叫規範。\n\n### Readiness (DOR)\n- [x] problem_clear: 確定 Skill YAML frontmatter 與 markdown 規範\n- [x] scope_defined: 包含綠建材算量、評定計算、報表產出之完整步驟\n\n### Sign-off Gates (DOD)\n- [ ] architecture: 完成 SKILL.md 寫作與規範審查\n- [ ] test_passed: 於 Antigravity / Agent 環境下測試觸發率\n- [ ] code_review: 審查自然語言觸發與指令精確度",
   "stage": "ready",
   "risk": "medium",
   "owner": "shuotao",

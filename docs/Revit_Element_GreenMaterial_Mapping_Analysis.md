@@ -35,8 +35,6 @@
 
 ## 4. 主 Agent 綜合全情境對映 Master 表格 (TASK-003 最新規範)
 
-本表格整合上層履歷、下層元件、輔助材料與門窗元件之完整對映邏輯，作為 TASK-003 之最終修訂規範：
-
 | Revit 元件品類 (Category) | 綠建材種類/情境 | 建議構造層 (Layer) | 上層/材質寫入 (`OST_Materials`) | 下層/元件屬性寫入 (`Identity Data` / `Construction`) | 預設厚度推判 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **`OST_Walls` (牆面)** | 塗料、壁紙、漆面 (情境 1) | `Finish 1 [4]` / `Finish 2 [5]` | 全量 16 個共享參數 (`GBM0104204`) | `GreenMaterial_Summary`, `Wall_GreenPaint_TVOC` | $2\,\text{mm}$ (塗料) |
@@ -49,7 +47,24 @@
 
 ---
 
-## 5. 檔案與工具鏈對接
-- **Revit 共享參數檔**：[GreenMaterial_SharedParams.txt](file:///c:/Users/hh/Desktop/REVIT%20MCP/REVIT_MCP_study/GreenMaterial_SharedParams.txt)
-- **計畫擬訂引擎**：[generate_revit_injection_plan.py](file:///c:/Users/hh/Desktop/REVIT%20MCP/REVIT_MCP_study/generate_revit_injection_plan.py)
-- **Showcase 展示網頁**：[assets/green-material-showcase.html](file:///c:/Users/hh/Desktop/REVIT%20MCP/REVIT_MCP_study/assets/green-material-showcase.html)
+## 5. 📘 Material 獨立命名與生成 Domain 規範 (Material Creation Domain Rules)
+
+所有導入 Revit 材質庫 (`OST_Materials`) 的綠建材獨立材質，必須嚴格遵循以下語法公式：
+
+$$\text{MaterialName} = \text{GBM標章編號} + \text{"\_"} + \text{材料名稱/簡稱}$$
+
+### 🟢 命名標準對照
+- **板材獨立材質**: **`GBM0103810_NICHIAS矽酸鈣板材`**
+- **塗料獨立材質**: **`GBM0104106_水性漆Finish`**
+
+### ⛔ 嚴格防呆門檻
+1. 嚴禁包含 `預設牆_` 或 `TABC_` 前綴。
+2. 嚴禁將塗料與板材標章串接在同一個 Material 名稱。
+
+---
+
+## 6. 檔案與工具鏈對接
+- **Domain 規範檔**：[.agents/skills/combined-wall-set-import/domain.md](file:///c:/Users/User/Desktop/REVIT_MCP_study/.agents/skills/combined-wall-set-import/domain.md)
+- **Revit 共享參數檔**：[GreenMaterial_SharedParams.txt](file:///c:/Users/User/Desktop/REVIT_MCP_study/GreenMaterial_SharedParams.txt)
+- **計畫擬訂引擎**：[generate_revit_injection_plan.py](file:///c:/Users/User/Desktop/REVIT_MCP_study/generate_revit_injection_plan.py)
+- **Showcase 展示網頁**：[assets/green-material-showcase.html](file:///c:/Users/User/Desktop/REVIT_MCP_study/assets/green-material-showcase.html)

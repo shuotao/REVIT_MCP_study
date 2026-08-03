@@ -16,6 +16,87 @@ namespace RevitMCP.Core
 {
     public partial class CommandExecutor
     {
+
+        /// <summary>
+        /// 獨立 MCP 命令：在 Revit 專案資料庫 (OST_Materials) 中
+        /// 實體發動 Transaction 建立獨立 Material (如 "test材質")，並關聯 AppearanceAssetElement！
+        /// </summary>
+        private object CreateCustomMaterial(JObject parameters)
+        {
+            string matName = parameters["materialName"]?.Value<string>() ?? "test材質";
+            Document doc = _uiApp.ActiveUIDocument.Document;
+
+            using (Transaction trans = new Transaction(doc, $"獨立建立材質: {matName}"))
+            {
+                trans.Start();
+
+                // 檢查是否已存在
+                FilteredElementCollector collector = new FilteredElementCollector(doc).OfClass(typeof(Material));
+                foreach (Material m in collector)
+                {
+                    if (m.Name.Equals(matName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        trans.Commit();
+                        return new
+                        {
+                            Success = true,
+                            MaterialId = m.Id.GetIdValue(),
+                            MaterialName = m.Name,
+                            Message = $"材質 '{m.Name}' 已存在於 Revit 專案資料庫中 (ID: {m.Id})！"
+                        };
+                    }
+                }
+
+                // 優先使用既有材質進行 Duplicate 複製
+                Material baseMat = collector.Cast<Material>().FirstOrDefault(m => m.Name.Contains("預設") || m.Name.Contains("Default")) ?? collector.Cast<Material>().FirstOrDefault();
+                Material newMat = null;
+
+                if (baseMat != null)
+                {
+                    newMat = baseMat.Duplicate(matName);
+                }
+                else
+                {
+                    try
+                    {
+                        ElementId matId = Material.Create(doc, matName);
+                        newMat = doc.GetElement(matId) as Material;
+                    }
+                    catch { }
+                }
+
+                if (newMat == null)
+                    throw new Exception($"無法建立或複製材質 '{matName}'");
+
+                newMat.Color = new Color(200, 220, 240);
+                newMat.MaterialClass = "測試類";
+
+                // 複製關聯獨立外觀資產 (安全防重名)
+                FilteredElementCollector assetColl = new FilteredElementCollector(doc).OfClass(typeof(AppearanceAssetElement));
+                AppearanceAssetElement sampleAsset = assetColl.Cast<AppearanceAssetElement>().FirstOrDefault();
+                if (sampleAsset != null)
+                {
+                    try
+                    {
+                        string uniqueAssetName = GenerateUniqueAssetName(doc, matName + "_Asset");
+                        AppearanceAssetElement newAsset = sampleAsset.Duplicate(uniqueAssetName);
+                        newMat.AppearanceAssetId = newAsset.Id;
+                    }
+                    catch { }
+                }
+
+                trans.Commit();
+
+                return new
+                {
+                    Success = true,
+                    MaterialId = newMat.Id.GetIdValue(),
+                    MaterialName = newMat.Name,
+                    Message = $"成功在 Revit 材質瀏覽器中 100% 實體建立 Material: '{newMat.Name}' (ID: {newMat.Id})！"
+                };
+            }
+        }
+
         #region 材質批次修改
 
         /// <summary>

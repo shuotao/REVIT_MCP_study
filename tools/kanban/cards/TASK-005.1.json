@@ -1,0 +1,35 @@
+{
+  "id": "TASK-005.1",
+  "title": "SharedParams 共享參數檔載入與 31 個綠建材欄位品類綁定模組",
+  "content": "### 任務說明\n開發 load_shared_parameters 自動化模組，將 GreenMaterial_SharedParams.txt 包含 31 個綠建材共享參數一鍵載入至 Revit 專案，並綁定至 Walls / Floors / Ceilings / Materials 品類。\n\n### Readiness (DOR)\n- [x] problem_clear: 確立 31 個共享參數 GUID 與 Datatype 定義\n- [x] scope_defined: 支援一鍵綁定至 Revit 各大核心品類\n\n### Sign-off Gates (DOD)\n- [x] architecture: 呼叫 Revit API BindingMap 完成綁定\n- [x] test_passed: 於測試模型完成 31 參數載入與綁定驗證\n- [ ] code_review: 人工測試點收確認",
+  "stage": "verify",
+  "risk": "medium",
+  "owner": "shuotao",
+  "agent": "antigravity",
+  "approvalRequired": false,
+  "createdAt": "2026-07-30",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-004"
+  ],
+  "order": 5.1,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": false
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": false
+  }
+}

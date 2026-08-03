@@ -82,6 +82,7 @@
     letter-spacing: 0.5px;
     background: linear-gradient(to right, #ffffff, #9CA3AF);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
@@ -567,6 +568,19 @@
     background: rgba(16, 185, 129, 0.12);
     color: var(--accent-green);
     border: 1px solid rgba(16, 185, 129, 0.25);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+  .set-item-chip:hover {
+    background: rgba(16, 185, 129, 0.25);
+    border-color: #10B981;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  }
+
+  #detailModal {
+    z-index: 300 !important;
   }
 
   .set-card-actions {
@@ -666,7 +680,7 @@
   <button class="btn-clear-selection" onclick="clearAllSelections()" style="background:rgba(239, 68, 68, 0.15); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.3); padding:8px 14px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">🧹 清除全部勾選</button>
   <button class="btn-save-set" onclick="promptSaveSet()">💾 儲存為材料 Set</button>
   <button class="manage-set-btn" onclick="openSetManager()">📁 開啟 Set 管理器</button>
-  <button class="revit-import-btn" onclick="importToRevit()">🚀 推送至 Revit</button>
+  <button class="btn-send-agent" onclick="sendSelectedToAgent()" style="background:rgba(16, 185, 129, 0.2); color:#10B981; border:1px solid rgba(16, 185, 129, 0.5); padding:8px 20px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(16,185,129,0.2);">🤖 回傳至 AGENT</button>
 </div>
 
 <!-- Modal 1: Detail View -->
@@ -697,21 +711,166 @@
 </div>
 
 <!-- Modal 3: Custom Push Trigger Modal (Replaces Native Alert) -->
+
+<!-- Modal: Set 需求對齊問答 (Task 004) -->
+
+<!-- Modal: 刪除確認 Modal -->
+
+<!-- Modal: 儲存材料 Set Modal (Task 004 & Custom Modal) -->
+<div class="modal-backdrop" id="saveSetModal" style="display: none;">
+  <div class="modal-content" style="max-width: 620px; border: 1px solid rgba(59, 130, 246, 0.4); background: #0F172A;">
+    <button class="modal-close" onclick="closeModal('saveSetModal')">✕</button>
+    <div style="font-size:18px; font-weight:800; color:#38bdf8; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+      <span>💾 建立新材料 Set 組合</span>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="font-size:13px; font-weight:700; color:#F1F5F9; display:block; margin-bottom:6px;">材料 Set 名稱：</label>
+      <input type="text" id="saveSetNameInput" placeholder="例：A棟標準牆面Set、外牆隔熱防水Set、B1防潮Set..." style="width:100%; background:#1E293B; border:1px solid rgba(59,130,246,0.4); color:#F1F5F9; padding:10px 14px; border-radius:8px; font-size:14px; font-weight:600;">
+    </div>
+
+    <div style="margin-bottom:18px; background:rgba(30, 41, 59, 0.6); padding:10px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.05);">
+      <div style="font-size:12px; color:#94A3B8; margin-bottom:6px;" id="saveSetSelectedSummary">已選擇 0 項綠建材</div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; max-height:80px; overflow-y:auto;" id="saveSetSelectedChips"></div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button onclick="closeModal('saveSetModal')" style="background:rgba(148,163,184,0.15); color:#94A3B8; border:1px solid rgba(148,163,184,0.3); padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">取消</button>
+      <button onclick="executeSaveSet()" style="background:#38bdf8; color:#000; border:none; padding:8px 22px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(56,189,248,0.3);">💾 確定建立 Set</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="deleteSetConfirmModal" style="display: none;">
+  <div class="modal-content" style="max-width: 480px; border: 1px solid rgba(239, 68, 68, 0.4); background: #0F172A;">
+    <button class="modal-close" onclick="closeModal('deleteSetConfirmModal')">✕</button>
+    <div style="font-size:18px; font-weight:800; color:#EF4444; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+      <span>🗑️ 刪除材料 Set 確認</span>
+    </div>
+    <div style="font-size:14px; color:#F1F5F9; margin-bottom:16px; line-height:1.6;" id="deleteSetConfirmMsg">
+      確定要刪除此材料 Set 嗎？此操作將同時更新地端 exported_material_sets.json 檔案。
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button onclick="closeModal('deleteSetConfirmModal')" style="background:rgba(148,163,184,0.15); color:#94A3B8; border:1px solid rgba(148,163,184,0.3); padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">取消</button>
+      <button onclick="confirmDeleteSetExecute()" style="background:#EF4444; color:#FFF; border:none; padding:8px 20px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(239,68,68,0.3);">確定刪除</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="setQuestionnaireModal" style="display: none;">
+  <div class="modal-content" style="max-width: 680px; border: 1px solid rgba(56, 189, 248, 0.4); background: #0F172A;">
+    <button class="modal-close" onclick="closeModal('setQuestionnaireModal')">✕</button>
+    <div style="font-size:18px; font-weight:800; color:#38bdf8; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+      <span>📝 Revit 材料 Set 需求對齊問答 (Task 004)</span>
+    </div>
+    <div style="font-size:13px; color:#94A3B8; margin-bottom:18px; line-height:1.5;">
+      導入至 AI Agent 之前，請完成以下 3 個專案對齊問題，幫助 Agent 精確匹配 Revit 共享參數與元件建構邏輯：
+    </div>
+
+    <!-- Question 1 -->
+    <div style="background:rgba(30, 41, 59, 0.7); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:14px; margin-bottom:14px;">
+      <div style="font-weight:700; color:#F1F5F9; font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+        <span style="background:rgba(56,189,248,0.2); color:#38bdf8; padding:2px 8px; border-radius:4px; font-size:12px;">Q1</span>
+        <span>此 Set 是否需要做組合元件？</span>
+      </div>
+      <div style="display:flex; gap:16px; flex-wrap:wrap;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#CBD5E1;">
+          <input type="radio" name="q1_composite" value="單一組合" checked style="accent-color:#38bdf8;">
+          <span><strong>單一組合</strong> (組合式 Mode: 如 [TABC] 複合牆/樓板)</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#CBD5E1;">
+          <input type="radio" name="q1_composite" value="各別建立" style="accent-color:#38bdf8;">
+          <span><strong>各別建立</strong> (分立式 Mode: 各材料獨立對接材料庫)</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Question 2 -->
+    <div style="background:rgba(30, 41, 59, 0.7); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:14px; margin-bottom:14px;">
+      <div style="font-weight:700; color:#F1F5F9; font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+        <span style="background:rgba(16,185,129,0.2); color:#10B981; padding:2px 8px; border-radius:4px; font-size:12px;">Q2</span>
+        <span>此 Set 為哪種類型 (Revit 品類 Category)？</span>
+      </div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:10px;">
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:#CBD5E1; background:rgba(15,23,42,0.6); padding:8px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+          <input type="radio" name="q2_category" value="Wall" checked style="accent-color:#10B981;">
+          <span>Wall (牆面)</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:#CBD5E1; background:rgba(15,23,42,0.6); padding:8px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+          <input type="radio" name="q2_category" value="Floor" style="accent-color:#10B981;">
+          <span>Floor (地坪)</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:#CBD5E1; background:rgba(15,23,42,0.6); padding:8px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+          <input type="radio" name="q2_category" value="Ceiling" style="accent-color:#10B981;">
+          <span>Ceiling (天花)</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:#CBD5E1; background:rgba(15,23,42,0.6); padding:8px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+          <input type="radio" name="q2_category" value="Door" style="accent-color:#10B981;">
+          <span>Door (門)</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:#CBD5E1; background:rgba(15,23,42,0.6); padding:8px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+          <input type="radio" name="q2_category" value="Window" style="accent-color:#10B981;">
+          <span>Window (窗)</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:#CBD5E1; background:rgba(15,23,42,0.6); padding:8px 12px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+          <input type="radio" name="q2_category" value="Material" style="accent-color:#10B981;">
+          <span>Material (純材料)</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Question 3 -->
+    <div style="background:rgba(30, 41, 59, 0.7); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:14px; margin-bottom:20px;">
+      <div style="font-weight:700; color:#F1F5F9; font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+        <span style="background:rgba(245,158,11,0.2); color:#F59E0B; padding:2px 8px; border-radius:4px; font-size:12px;">Q3</span>
+        <span>是否補充條件？</span>
+      </div>
+      <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:10px;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#CBD5E1;">
+          <input type="radio" name="q3_supplement" value="無" checked onchange="toggleQ3Input(false)" style="accent-color:#F59E0B;">
+          <span><strong>無</strong> (套用標準預設規範)</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#CBD5E1;">
+          <input type="radio" name="q3_supplement" value="其他" onchange="toggleQ3Input(true)" style="accent-color:#F59E0B;">
+          <span><strong>其他</strong> (填寫自訂補充說明)</span>
+        </label>
+      </div>
+      <div id="q3CustomInputContainer" style="display:none; margin-top:8px;">
+        <input type="text" id="q3CustomText" placeholder="例：需含 15mm 底層保護層、填縫劑寫入 Construction 屬性..." style="width:100%; background:#0F172A; border:1px solid rgba(245,158,11,0.4); color:#F1F5F9; padding:8px 12px; border-radius:6px; font-size:13px;">
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button onclick="closeModal('setQuestionnaireModal')" style="background:rgba(148,163,184,0.15); color:#94A3B8; border:1px solid rgba(148,163,184,0.3); padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">取消</button>
+      <button onclick="submitSetQuestionnaire()" style="background:#10B981; color:#000; border:none; padding:8px 22px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(16,185,129,0.3);">✅ 完成問答並匯出給 AGENT</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="pushNoticeModal">
-  <div class="modal-content" style="max-width: 620px; border: 1px solid rgba(16, 185, 129, 0.4);">
+  <div class="modal-content" style="max-width: 660px; border: 1px solid rgba(16, 185, 129, 0.4);">
     <button class="modal-close" onclick="closeModal('pushNoticeModal')">✕</button>
     <div style="font-size:18px; font-weight:800; color:#10B981; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
-      <span>🤖 請在 AGENT 輸入 "/GMimport"</span>
+      <span>🤝 對齊需求與擬訂計畫 (/GMimport)</span>
     </div>
 
     <div style="font-size:14px; line-height:1.6; color:#F3F4F6; background:rgba(9, 13, 22, 0.6); padding:16px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); margin-bottom:16px;">
-      <div style="font-weight:700; color:#38bdf8; margin-bottom:8px;" id="pushNoticeSetTitle">已成功打包材料 Set！</div>
-      <div style="margin-bottom:12px; color:#9CA3AF; font-size:13px;">複製以下指令貼到 AI Agent 對話框，Agent 將自動讀取此 Set 的材料清單，擬訂 <strong style="color:#10B981;">Revit 共享參數寫入計畫</strong>，與您確認後回傳管理器並執行。</div>
-      <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:8px; padding:10px 14px; font-family:var(--font-code); font-size:13px; color:#10B981; word-break:break-all;" id="pushNoticeCmdPreview">/GMimport 請為材料 Set 【...】 擬訂 Revit 綠建材寫入計畫</div>
+      <div style="font-weight:700; color:#38bdf8; margin-bottom:8px;" id="pushNoticeSetTitle">已成功回傳材料 Set 至 Agent！</div>
+      <div style="margin-bottom:12px; color:#9CA3AF; font-size:13px;">複製以下指令貼到 AI Agent 對話框，Agent 將自動讀取此 Set 的材料清單與您對齊需求：</div>
+      <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:8px; padding:10px 14px; font-family:var(--font-code); font-size:13px; color:#10B981; word-break:break-all; margin-bottom:12px;" id="pushNoticeCmdPreview">/GMimport 請為材料 Set 【...】 擬訂 Revit 綠建材寫入計畫</div>
+      
+      <div style="font-size:12px; color:#38bdf8; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.25); border-radius:6px; padding:10px 12px; line-height:1.6;">
+        <strong>💡 Revit 相關指令說明：</strong><br>
+        1. <strong>/GMimport</strong>：用於與 AI Agent 擬訂計畫與對齊專案用途需求。<br>
+        2. <strong>/import revit</strong>：當對齊完成後，在 Agent 輸入此指令即可將 Set 實體導入至 Revit 模型中！
+      </div>
     </div>
 
-    <div style="display:flex; justify-content:flex-end; gap:10px;">
-      <button onclick="copyGMImportPrompt()" style="background:rgba(59, 130, 246, 0.2); color:#38bdf8; border:1px solid rgba(59, 130, 246, 0.4); padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">📋 複製指令</button>
+    <div style="display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap;">
+      <button onclick="copyGMImportPrompt(this)" style="background:rgba(59, 130, 246, 0.2); color:#38bdf8; border:1px solid rgba(59, 130, 246, 0.4); padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">📋 複製對齊指令 (/GMimport)</button>
+      <button onclick="copyRevitImportPromptFromModal(this)" style="background:rgba(16, 185, 129, 0.2); color:#10B981; border:1px solid rgba(16, 185, 129, 0.4); padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">⚡ 複製導入指令 (/import revit)</button>
       <button onclick="closeModal('pushNoticeModal')" style="background:#10B981; color:#000; border:none; padding:8px 20px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer;">確定</button>
     </div>
   </div>
@@ -35089,28 +35248,57 @@
     document.getElementById('selectedCount').innerText = selectedItems.size;
   }
 
+  
   function promptSaveSet() {
     if (selectedItems.size === 0) {
-      alert('請先在卡片右上角勾選至少一項綠建材，再點擊儲存為 Set！');
+      showAutoSaveToast('⚠️ 請先在卡片右上角勾選至少一項綠建材！');
       return;
     }
-    const setName = prompt(`請輸入此材料組合 (Set) 的名稱：
-（例如：A棟標準客房裝修Set、外牆隔熱防水Set、B1防潮Set）`);
-    if (!setName || !setName.trim()) return;
 
-    const trimmedName = setName.trim();
+    const itemsArray = Array.from(selectedItems);
+    const now = new Date();
+    document.getElementById('saveSetNameInput').value = `材料Set_${now.getMonth()+1}${now.getDate()}_${itemsArray.length}項`;
+    document.getElementById('saveSetSelectedSummary').innerText = `已選擇 ${itemsArray.length} 項綠建材：`;
+
+    const chipsContainer = document.getElementById('saveSetSelectedChips');
+    if (chipsContainer) {
+      chipsContainer.innerHTML = itemsArray.map(lic => 
+        `<span style="background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3); padding:2px 8px; border-radius:4px; font-size:11px; font-family:var(--font-code);">${lic}</span>`
+      ).join('');
+    }
+
+    document.getElementById('saveSetModal').style.display = 'flex';
+  }
+
+  function executeSaveSet() {
+    const nameInput = document.getElementById('saveSetNameInput').value;
+    if (!nameInput || !nameInput.trim()) {
+      showAutoSaveToast('⚠️ 請輸入材料 Set 名稱！');
+      return;
+    }
+
+    const trimmedName = nameInput.trim();
     const itemsArray = Array.from(selectedItems);
 
     materialSets[trimmedName] = {
       name: trimmedName,
       createdAt: new Date().toLocaleString('zh-TW'),
-      items: itemsArray
+      items: itemsArray,
+      purpose: '待 Agent 需求對齊',
+      planStatus: '待 Agent 需求對齊'
     };
 
     localStorage.setItem('tabc_material_sets', JSON.stringify(materialSets));
+    exportSetsToAgent();
     updateSetCountBadge();
-    alert(`🎉 成功建立材料組合 【${trimmedName}】！包含 ${itemsArray.length} 項綠建材。`);
+    closeModal('saveSetModal');
+
+    showAutoSaveToast(`🎉 成功建立材料組合 【${trimmedName}】！`);
+
+    // 自動開啟需求對齊問答
+    openSetQuestionnaireModal(trimmedName);
   }
+
 
   function openSetManager() {
     renderSetsList();
@@ -35233,8 +35421,8 @@
       const chips = setObj.items.map(lic => {
         const found = tabcDatabase.find(d => d.licno === lic);
         const titleStr = found ? found.title : '綠建材';
-        return `<span class="set-item-chip" style="display:inline-flex; align-items:center; gap:6px; padding:4px 10px;">
-          <span>${lic} - ${titleStr}</span>
+        return `<span class="set-item-chip" onclick="openDetail('${lic}')" title="點擊查看 ${lic} 詳細綠建材資訊與 Revit 共享參數" style="display:inline-flex; align-items:center; gap:6px; padding:5px 12px; cursor:pointer;">
+          <span style="display:inline-flex; align-items:center; gap:4px;"><span style="font-size:11px;">🔍</span> <strong>${lic}</strong> - ${titleStr}</span>
           <button onclick="event.stopPropagation(); removeItemFromSet('${key}', '${lic}')" title="從此 Set 移除這項材料" style="background:rgba(239, 68, 68, 0.2); border:none; color:#ef4444; font-weight:bold; cursor:pointer; font-size:11px; width:16px; height:16px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; line-height:1;">✕</button>
         </span>`;
       }).join('');
@@ -35274,7 +35462,7 @@
           <div class="set-items-list">${chips}</div>
           <div class="set-card-actions">
             <button class="btn-apply-set" onclick="applySet('${key}')">勾選載入此 Set</button>
-            <button class="btn-push-revit" onclick="pushSetToRevit('${key}')">🚀 推送至 Revit</button>
+            <button class="btn-push-agent" onclick="pushSetToAgent('${key}')" style="background:rgba(16,185,129,0.15); color:#10B981; border:1px solid rgba(16,185,129,0.4); padding:6px 14px; border-radius:var(--radius-sm); font-size:12px; font-weight:600; cursor:pointer;">🤖 回傳至 AGENT</button>
             <button class="btn-edit-plan" onclick="openEditSetPlanModal('${key}')" style="background:rgba(139, 92, 246, 0.2); color:#a78bfa; border:1px solid rgba(139, 92, 246, 0.4); padding:6px 14px; border-radius:var(--radius-sm); font-size:12px; font-weight:600; cursor:pointer;">✏️ 修改</button>
             <button class="btn-delete-set" onclick="deleteSet('${key}')">刪除</button>
           </div>
@@ -35337,37 +35525,199 @@
     alert(`已順利套用 Set 【${setObj.name}】！已勾選裡面的 ${selectedItems.size} 項建材。`);
   }
 
+  
+  let pendingDeleteSetKey = null;
+
   function deleteSet(key) {
-    if (confirm(`確定要刪除材料組合 【${key}】 嗎？`)) {
-      delete materialSets[key];
-      localStorage.setItem('tabc_material_sets', JSON.stringify(materialSets));
-      updateSetCountBadge();
-      renderSetsList();
+    const setObj = materialSets[key];
+    const setName = setObj ? setObj.name : key;
+    pendingDeleteSetKey = key;
+
+    const msgEl = document.getElementById('deleteSetConfirmMsg');
+    if (msgEl) {
+      msgEl.innerHTML = `確定要刪除材料 Set <strong style="color:#38bdf8;">【${setName}】</strong> 嗎？<br><span style="font-size:12px; color:#94A3B8; margin-top:6px; display:block;">此操作將同時從本機與 exported_material_sets.json 檔案中永久刪除。</span>`;
     }
+    document.getElementById('deleteSetConfirmModal').style.display = 'flex';
   }
 
-  function pushSetToRevit(key) {
-    const setObj = materialSets[key];
-    if (!setObj) return;
+  function confirmDeleteSetExecute() {
+    if (!pendingDeleteSetKey) return;
+    const key = pendingDeleteSetKey;
+    const setName = materialSets[key] ? materialSets[key].name : key;
 
+    delete materialSets[key];
+    localStorage.setItem('tabc_material_sets', JSON.stringify(materialSets));
+
+    // 同步寫入 exported_material_sets.json
+    exportSetsToAgent();
+
+    // 重新渲染畫面
+    updateSetCountBadge();
+    renderSetsList();
+
+    closeModal('deleteSetConfirmModal');
+    showAutoSaveToast(`🗑️ 已成功刪除材料 Set 【${setName}】！`);
+    pendingDeleteSetKey = null;
+  }
+
+
+  let currentRevitImportSetKey = null;
+
+  
+  function openSetQuestionnaireModal(key) {
     currentPushSetKey = key;
-    const licListStr = setObj.items && setObj.items.length > 0 ? ` (${setObj.items.join(', ')})` : '';
-    const cmd = `/GMimport 請為材料 Set 【${setObj.name}】${licListStr} 擬訂 Revit 綠建材寫入計畫`;
-    document.getElementById('pushNoticeSetTitle').innerText = `已成功打包材料 Set 【${setObj.name}】（共 ${setObj.items.length} 項綠建材）！`;
+    document.getElementById('setQuestionnaireModal').style.display = 'flex';
+  }
+
+  function toggleQ3Input(show) {
+    document.getElementById('q3CustomInputContainer').style.display = show ? 'block' : 'none';
+  }
+
+  function submitSetQuestionnaire() {
+    let setObj = null;
+    if (currentPushSetKey && materialSets[currentPushSetKey]) {
+      setObj = materialSets[currentPushSetKey];
+    } else {
+      // 若為批次或新建立，取得第一個 set 或預設
+      const keys = Object.keys(materialSets);
+      if (keys.length > 0) setObj = materialSets[keys[0]];
+    }
+
+    const q1Val = document.querySelector('input[name="q1_composite"]:checked').value;
+    const q2Val = document.querySelector('input[name="q2_category"]:checked').value;
+    const q3Radio = document.querySelector('input[name="q3_supplement"]:checked').value;
+    let q3Text = "無";
+    if (q3Radio === "其他") {
+      q3Text = document.getElementById('q3CustomText').value.trim() || "其他特質";
+    }
+
+    const purposeStr = `組合方式: ${q1Val} | 品類: ${q2Val} | 補充條件: ${q3Text}`;
+
+    if (setObj) {
+      setObj.purpose = purposeStr;
+      setObj.planStatus = "已經 Agent 對齊計畫";
+      setObj.alignmentAnswers = {
+        q1_composite: q1Val,
+        q2_category: q2Val,
+        q3_supplement: q3Text
+      };
+    }
+
+    localStorage.setItem('tabc_material_sets', JSON.stringify(materialSets));
+    exportSetsToAgent();
+    renderSetsList();
+
+    closeModal('setQuestionnaireModal');
+
+    const setLabel = setObj ? setObj.name : "已勾選項目";
+    const licListStr = setObj && setObj.items && setObj.items.length > 0 ? ` (${setObj.items.join(', ')})` : '';
+    const cmd = `/GMimport 請為材料 Set 【${setLabel}】${licListStr} 擬訂 Revit 綠建材寫入計畫。 [需求對齊：${purposeStr}]`;
+    document.getElementById('pushNoticeSetTitle').innerText = `已成功回傳材料 Set 【${setLabel}】至 Agent！`;
     const preview = document.getElementById('pushNoticeCmdPreview');
     if (preview) preview.textContent = cmd;
     document.getElementById('pushNoticeModal').style.display = 'flex';
   }
 
-  function copyGMImportPrompt() {
-    const setObj = materialSets[currentPushSetKey] || { name: '專案綠建材Set', items: [] };
+  function pushSetToAgent(key) {
+    openSetQuestionnaireModal(key);
+    return;
+    // original code:
+    const setObj = materialSets[key];
+    if (!setObj) return;
+
+    currentPushSetKey = key;
+    exportSetsToAgent(); // 自動連線伺服器，同步將 exported_material_sets.json 傳至地端與 Agent
+
     const licListStr = setObj.items && setObj.items.length > 0 ? ` (${setObj.items.join(', ')})` : '';
-    const textToCopy = `/GMimport 請為材料 Set 【${setObj.name}】${licListStr} 擬訂 Revit 綠建材寫入計畫`;
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      alert(`✅ 已複製指令：\n\n${textToCopy}\n\n請回到 AI Agent 貼上傳送！`);
-    }).catch(() => {
-      prompt("請複製以下指令並傳送給 Agent：", textToCopy);
-    });
+    const cmd = `/GMimport 請為材料 Set 【${setObj.name}】${licListStr} 擬訂 Revit 綠建材寫入計畫`;
+    document.getElementById('pushNoticeSetTitle').innerText = `已成功回傳材料 Set 【${setObj.name}】（共 ${setObj.items.length} 項綠建材）至 Agent！`;
+    const preview = document.getElementById('pushNoticeCmdPreview');
+    if (preview) preview.textContent = cmd;
+    document.getElementById('pushNoticeModal').style.display = 'flex';
+  }
+
+  function pushSetToRevit(key) {
+    pushSetToAgent(key);
+  }
+
+  function copyTextToClipboard(textToCopy, btnEl, successMsg) {
+    if (!textToCopy) return;
+
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        onCopySuccess(btnEl, successMsg);
+      }).catch(() => {
+        fallbackCopyText(textToCopy, btnEl, successMsg);
+      });
+    } else {
+      fallbackCopyText(textToCopy, btnEl, successMsg);
+    }
+  }
+
+  function fallbackCopyText(textToCopy, btnEl, successMsg) {
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = textToCopy;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      textarea.style.top = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      if (successful) {
+        onCopySuccess(btnEl, successMsg);
+        return;
+      }
+    } catch (err) {}
+
+    onCopySuccess(btnEl, successMsg);
+  }
+
+  function onCopySuccess(btnEl, successMsg) {
+    showAutoSaveToast(successMsg || '📋 指令已成功複製至剪貼簿！');
+    if (btnEl) {
+      const originalText = btnEl.innerHTML;
+      btnEl.innerHTML = '✅ 已成功複製！';
+      btnEl.style.background = 'rgba(16, 185, 129, 0.4)';
+      btnEl.style.borderColor = '#10B981';
+      setTimeout(() => {
+        btnEl.innerHTML = originalText;
+        btnEl.style.background = '';
+        btnEl.style.borderColor = '';
+      }, 1800);
+    }
+  }
+
+  function copyGMImportPrompt(btnEl) {
+    let textToCopy = "";
+    const previewEl = document.getElementById('pushNoticeCmdPreview');
+    if (previewEl && previewEl.textContent.trim()) {
+      textToCopy = previewEl.textContent.trim();
+    } else if (currentPushSetKey && materialSets[currentPushSetKey]) {
+      const setObj = materialSets[currentPushSetKey];
+      const licListStr = setObj.items && setObj.items.length > 0 ? ` (${setObj.items.join(', ')})` : '';
+      const purposeStr = setObj.purpose ? ` [需求對齊：${setObj.purpose}]` : '';
+      textToCopy = `/GMimport 請為材料 Set 【${setObj.name}】${licListStr} 擬訂 Revit 綠建材寫入計畫。${purposeStr}`;
+    } else {
+      textToCopy = `/GMimport 請擬訂 Revit 綠建材寫入計畫`;
+    }
+
+    copyTextToClipboard(textToCopy, btnEl, '📋 /GMimport 對齊指令已複製！');
+  }
+
+  function copyRevitImportPromptFromModal(btnEl) {
+    let textToCopy = "";
+    if (currentPushSetKey && materialSets[currentPushSetKey]) {
+      const setObj = materialSets[currentPushSetKey];
+      const licListStr = setObj.items && setObj.items.length > 0 ? ` (${setObj.items.join(', ')})` : '';
+      textToCopy = `/import revit 請將材料 Set 【${setObj.name}】${licListStr} 導入至 Revit 模型`;
+    } else {
+      textToCopy = `/import revit 請將材料 Set 導入至 Revit 模型`;
+    }
+
+    copyTextToClipboard(textToCopy, btnEl, '⚡ /import revit 導入指令已複製！');
   }
 
   function openEditSetPlanModal(key) {
@@ -35458,13 +35808,38 @@
     document.getElementById(id).style.display = 'none';
   }
 
-  function importToRevit() {
+  function sendSelectedToAgent() {
     if (selectedItems.size === 0) {
-      alert('請先在上方卡片右上角勾選欲匯入的綠建材品項！');
+      alert('請先在卡片右上角勾選欲傳送的綠建材品項！');
       return;
     }
     const itemsArray = Array.from(selectedItems);
-    alert(`已選擇 [${itemsArray.join(', ')}] 共 ${selectedItems.size} 項綠建材！\n\nAI 將依據 domain/green-material-parameter-schema.md 產出【元件建置與多 Type 規格說明草案】，寫入 Revit 模型。`);
+    exportSetsToAgent();
+    const textToCopy = `/GMimport 請為勾選的綠建材 [${itemsArray.join(', ')}] 擬訂 Revit 寫入計畫`;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      alert(`🤖 已成功回傳至 AGENT！\n\n已複製對齊指令：\n${textToCopy}\n\n請回到 Agent 對話框貼上即可！`);
+    }).catch(() => {
+      prompt("請複製以下指令傳送給 Agent：", textToCopy);
+    });
+  }
+
+  function importSelectedToRevit() {
+    if (selectedItems.size === 0) {
+      alert('請先在卡片右上角勾選欲導入 Revit 的綠建材品項！');
+      return;
+    }
+    const itemsArray = Array.from(selectedItems);
+    exportSetsToAgent();
+    const textToCopy = `/import revit 請將勾選的綠建材 [${itemsArray.join(', ')}] 導入至 Revit 模型`;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      alert(`⚡ 已準備傳送至 REVIT！\n\n已複製 Revit 導入指令：\n${textToCopy}\n\n請回到 Agent 對話框貼上即可執行寫入！`);
+    }).catch(() => {
+      prompt("請複製以下指令傳送給 Agent 執行 Revit 寫入：", textToCopy);
+    });
+  }
+
+  function importToRevit() {
+    importSelectedToRevit();
   }
 
   document.addEventListener('DOMContentLoaded', () => {

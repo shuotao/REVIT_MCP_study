@@ -1,0 +1,326 @@
+{
+  "reportType": "TASK-005 Injection Dry-Run",
+  "generatedAt": "2026-08-02T22:00:47.409443",
+  "planId": "PLAN-20260802185136",
+  "setName": "牆壁與塗料",
+  "summary": {
+    "totalMaterials": 2,
+    "mechanism_a_count": 2,
+    "mechanism_b_count": 0,
+    "mechanism_c_count": 0,
+    "target_categories": [
+      "OST_Walls"
+    ],
+    "conflictBreakdown": {
+      "create_new": 2
+    }
+  },
+  "warnings": [
+    "[WARN] 材料 GBM0104204: 參數 'GreenMaterial_DecorArea' 不在 SharedParams 規格檔中",
+    "[WARN] 材料 GBM0104204: 參數 'GreenMaterial_QualifyArea' 不在 SharedParams 規格檔中",
+    "[WARN] 材料 GBM0104204: 參數 'GreenMaterial_RatioContribution' 不在 SharedParams 規格檔中",
+    "[WARN] 材料 GBM0103960: 參數 'GreenMaterial_DecorArea' 不在 SharedParams 規格檔中",
+    "[WARN] 材料 GBM0103960: 參數 'GreenMaterial_QualifyArea' 不在 SharedParams 規格檔中",
+    "[WARN] 材料 GBM0103960: 參數 'GreenMaterial_RatioContribution' 不在 SharedParams 規格檔中"
+  ],
+  "commands": [
+    {
+      "action": "INJECT_STANDARD_MATERIAL",
+      "licno": "GBM0104204",
+      "revitMaterialName": "[TABC] 牆壁與塗料",
+      "conflictAction": "create_new",
+      "steps": [
+        {
+          "tool": "get_types_by_category",
+          "args": {
+            "categoryName": "Walls"
+          },
+          "purpose": "取得 OST_Walls 品類下的基底 Type"
+        },
+        {
+          "tool": "duplicate_element_type",
+          "args": {
+            "sourceTypeId": "{{BASE_TYPE_ID}}",
+            "newTypeName": "[TABC] 牆壁與塗料"
+          },
+          "purpose": "複製並建立全新 Revit 類型: '[TABC] 牆壁與塗料'"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_Certified",
+            "value": "True"
+          },
+          "purpose": "寫入 GreenMaterial_Certified = True"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_CertNo",
+            "value": "GBM0104204"
+          },
+          "purpose": "寫入 GreenMaterial_CertNo = GBM0104204"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_Category",
+            "value": "健康綠建材"
+          },
+          "purpose": "寫入 GreenMaterial_Category = 健康綠建材"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_SubCategory",
+            "value": "塗料類"
+          },
+          "purpose": "寫入 GreenMaterial_SubCategory = 塗料類"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_Applicant",
+            "value": "中國製釉股份有限公司"
+          },
+          "purpose": "寫入 GreenMaterial_Applicant = 中國製釉股份有限公司"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_ValidUntil",
+            "value": "115/07/09 ~ 119/07/08"
+          },
+          "purpose": "寫入 GreenMaterial_ValidUntil = 115/07/09 ~ 119/07/08"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_TVOC",
+            "value": "0.08"
+          },
+          "purpose": "寫入 GreenMaterial_TVOC = 0.08"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_Formaldehyde",
+            "value": "0.01"
+          },
+          "purpose": "寫入 GreenMaterial_Formaldehyde = 0.01"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_CNSSpec",
+            "value": "依 CNS16082 / CNS15200 試驗，符合規定。"
+          },
+          "purpose": "寫入 GreenMaterial_CNSSpec = 依 CNS16082 / CNS15200 試驗，符合規定。"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_TestItems",
+            "value": "① TVOC逸散率：0.08 mg/m²·h。② 游離甲醛逸散率：0.01 mg/m²·h。③ 4大重金屬(鉛/鎘/汞/六價鉻)：未檢出。"
+          },
+          "purpose": "寫入 GreenMaterial_TestItems = ① TVOC逸散率：0.08 mg/m²·h。② 游離甲醛逸散率：0.01 mg/m²·h。③ 4大重金屬(鉛/鎘/汞/六價鉻)：未檢出。"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_QualifiedItems",
+            "value": "健康綠建材 (低有機揮發物)"
+          },
+          "purpose": "寫入 GreenMaterial_QualifiedItems = 健康綠建材 (低有機揮發物)"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_Adhesive",
+            "value": ""
+          },
+          "purpose": "寫入 GreenMaterial_Adhesive = "
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_Sealant",
+            "value": ""
+          },
+          "purpose": "寫入 GreenMaterial_Sealant = "
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_Waterproofing",
+            "value": ""
+          },
+          "purpose": "寫入 GreenMaterial_Waterproofing = "
+        }
+      ]
+    },
+    {
+      "action": "INJECT_STANDARD_MATERIAL",
+      "licno": "GBM0103960",
+      "revitMaterialName": "[TABC] 牆壁與塗料",
+      "conflictAction": "create_new",
+      "steps": [
+        {
+          "tool": "get_types_by_category",
+          "args": {
+            "categoryName": "Walls"
+          },
+          "purpose": "取得 OST_Walls 品類下的基底 Type"
+        },
+        {
+          "tool": "duplicate_element_type",
+          "args": {
+            "sourceTypeId": "{{BASE_TYPE_ID}}",
+            "newTypeName": "[TABC] 牆壁與塗料"
+          },
+          "purpose": "複製並建立全新 Revit 類型: '[TABC] 牆壁與塗料'"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_Certified",
+            "value": "True"
+          },
+          "purpose": "寫入 GreenMaterial_Certified = True"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_CertNo",
+            "value": "GBM0103960"
+          },
+          "purpose": "寫入 GreenMaterial_CertNo = GBM0103960"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_Category",
+            "value": "健康綠建材"
+          },
+          "purpose": "寫入 GreenMaterial_Category = 健康綠建材"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_SubCategory",
+            "value": "牆壁類"
+          },
+          "purpose": "寫入 GreenMaterial_SubCategory = 牆壁類"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_Applicant",
+            "value": "一澤貿易有限公司"
+          },
+          "purpose": "寫入 GreenMaterial_Applicant = 一澤貿易有限公司"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_ValidUntil",
+            "value": "114/11/19 ~ 118/11/18"
+          },
+          "purpose": "寫入 GreenMaterial_ValidUntil = 114/11/19 ~ 118/11/18"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_TVOC",
+            "value": "0.08"
+          },
+          "purpose": "寫入 GreenMaterial_TVOC = 0.08"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_Formaldehyde",
+            "value": "0.01"
+          },
+          "purpose": "寫入 GreenMaterial_Formaldehyde = 0.01"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_CNSSpec",
+            "value": "依 CNS16082 試驗，符合規定。"
+          },
+          "purpose": "寫入 GreenMaterial_CNSSpec = 依 CNS16082 試驗，符合規定。"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_TestItems",
+            "value": "① TVOC逸散率：< 0.19 mg/m²·h。② 游離甲醛逸散率：< 0.05 mg/m²·h。③ 毒性化學物質：無。"
+          },
+          "purpose": "寫入 GreenMaterial_TestItems = ① TVOC逸散率：< 0.19 mg/m²·h。② 游離甲醛逸散率：< 0.05 mg/m²·h。③ 毒性化學物質：無。"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_QualifiedItems",
+            "value": "健康綠建材 (牆壁類)"
+          },
+          "purpose": "寫入 GreenMaterial_QualifiedItems = 健康綠建材 (牆壁類)"
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_Adhesive",
+            "value": ""
+          },
+          "purpose": "寫入 GreenMaterial_Adhesive = "
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_Sealant",
+            "value": ""
+          },
+          "purpose": "寫入 GreenMaterial_Sealant = "
+        },
+        {
+          "tool": "modify_element_parameter",
+          "args": {
+            "elementId": "{{TARGET_TYPE_ID}}",
+            "parameterName": "GreenMaterial_Waterproofing",
+            "value": ""
+          },
+          "purpose": "寫入 GreenMaterial_Waterproofing = "
+        }
+      ]
+    }
+  ]
+}

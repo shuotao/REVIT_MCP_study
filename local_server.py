@@ -157,6 +157,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
 
 def main():
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
     os.chdir(WORKSPACE)
 
     with socketserver.TCPServer(("", PORT), Handler) as httpd:

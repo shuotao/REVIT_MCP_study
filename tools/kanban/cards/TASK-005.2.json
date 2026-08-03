@@ -1,0 +1,35 @@
+{
+  "id": "TASK-005.2",
+  "title": "Revit Element Type Duplicate & Rename 專屬元件複製與命名模組",
+  "content": "### 任務說明\n開發專屬元件生成模組，支援「組合式 Mode」(如 [TABC] 牆壁與塗料) 與「分立式 Mode」(如各材料名稱命名)，透過 Duplicate 與 Rename 確保在 Revit Properties 下拉選單中產生獨立可選之 [TABC] 元件。\n\n### Readiness (DOR)\n- [x] problem_clear: 定義組合式與分立式之 Type 命名規範\n- [x] scope_defined: 複製既有 Element Type 並建立獨立新類別\n\n### Sign-off Gates (DOD)\n- [x] architecture: 實作 duplicate_element_type 邏輯\n- [x] test_passed: 於 Revit 下拉選單成功呈現產出之 [TABC] 類型\n- [ ] code_review: 人工測試點收確認",
+  "stage": "verify",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "antigravity",
+  "approvalRequired": true,
+  "createdAt": "2026-08-01",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-005.1"
+  ],
+  "order": 5.2,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": false
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": false
+  }
+}

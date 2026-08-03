@@ -1,7 +1,7 @@
 {
   "id": "TASK-001",
   "title": "整理 TABC 1041 筆綠建材標章資料庫與 Schema 規範",
-  "content": "### 任務說明\\n整理與正規化 tabc_master_database.json 內全量 1,141 筆台灣綠建材標章資料（含健康、生態、高性能、再生綠建材類別），建立標準化 JSON Schema 供 Revit 材料對接與 Skill 檢索。\\n\\n### Readiness (DOR)\\n- [x] problem_clear: 確定 TABC 全量資料結構與欄位規格\\n- [x] scope_defined: 定義標章編號、產品名稱、申請公司、有效期限、綠建材分類等欄位\\n\\n### Sign-off Gates (DOD)\\n- [x] architecture: 完成 JSON 資料庫結構正規化\\n- [x] test_passed: 建立自動化查詢驗證腳本與地端 Master 快取\\n- [x] code_review: 審查資料精確度與缺漏處理",
+  "content": "### 任務說明\n整理與正規化 tabc_master_database.json 內全量 1,141 筆台灣綠建材標章資料（含健康、生態、高性能、再生綠建材類別），建立標準化 JSON Schema 供 Revit 材料對接與 Skill 檢索。\n\n### Readiness (DOR)\n- [x] problem_clear: 確定 TABC 全量資料結構與欄位規格\n- [x] scope_defined: 定義標章編號、產品名稱、申請公司、有效期限、綠建材分類等欄位\n\n### Sign-off Gates (DOD)\n- [x] architecture: 完成 JSON 資料庫結構正規化\n- [x] test_passed: 建立自動化查詢驗證腳本與地端 Master 快取\n- [x] code_review: 審查資料精確度與缺漏處理",
   "stage": "done",
   "risk": "medium",
   "owner": "shuotao",

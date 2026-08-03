@@ -1,0 +1,35 @@
+{
+  "id": "TASK-005.4",
+  "title": "Revit 實體元件繪製與異動摘要清單 (Markdown Table Summary 產出)",
+  "content": "### 任務說明\n整合 create_wall / create_floor 工具進行實體模型繪製，並於每次注入完成後自動產出 revit_generated_elements_summary.md 元件履歷摘要表格，標明 Element ID、Type 名稱、品類與標章內容。\n\n### Readiness (DOR)\n- [x] problem_clear: 確立 Markdown Summary Table 欄位規範\n- [x] scope_defined: 提供包含 Element ID 與標章詳細數據之異動履歷\n\n### Sign-off Gates (DOD)\n- [x] architecture: 完成 generate_markdown_summary_table 模組開發\n- [x] test_passed: 成功產生包含 Element ID 與寫入履歷之摘要表格\n- [ ] code_review: 人工測試點收確認",
+  "stage": "verify",
+  "risk": "medium",
+  "owner": "shuotao",
+  "agent": "antigravity",
+  "approvalRequired": false,
+  "createdAt": "2026-08-01",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-005.3"
+  ],
+  "order": 5.4,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": false
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": false
+  }
+}

@@ -7,6 +7,52 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 
 export const visualizationTools: Tool[] = [
     {
+        name: "create_green_material",
+        description: "在 Revit 專案材質庫 (OST_Materials) 中實體發動 Duplicate/Create 獨立建立純淨綠建材或測試 Material (如 'test材質' 或 'GBM0104106_水性漆(居室外用)')。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                materialName: {
+                    type: "string",
+                    description: "材質名稱，例如 'test材質' 或 'GBM0104106_水性漆(居室外用)'",
+                },
+                r: { type: "number", default: 235 },
+                g: { type: "number", default: 245 },
+                b: { type: "number", default: 240 },
+            },
+            required: ["materialName"],
+        },
+    },
+    {
+        name: "create_material",
+        description: "在 Revit 專案資料庫 (OST_Materials) 中建立獨立 Material 並關聯獨立 AppearanceAssetElement。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                materialName: {
+                    type: "string",
+                    description: "材質名稱，例如 'test材質'",
+                },
+            },
+            required: ["materialName"],
+        },
+    },
+    {
+        name: "create_material_by_domain",
+        description: "遵循 Domain 規範建立純淨獨立的 Revit Material（不加前綴、絕不上預設牆字串）。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                materialName: {
+                    type: "string",
+                    description: "材質名稱，例如 'GBM0103810_NICHIAS矽酸鈣板材'",
+                },
+            },
+            required: ["materialName"],
+        },
+    },
+
+    {
         name: "override_element_graphics",
         description: "在指定視圖中覆寫元素的圖形顯示（填滿顏色、圖樣、線條顏色等）。",
         inputSchema: {

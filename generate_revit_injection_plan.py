@@ -293,9 +293,9 @@ def _write_markdown_report(plan: dict):
         f.write("\n".join(lines))
 
 
-def write_back_to_set_manager(set_name: str, plan: dict, planned_actions_override: str = ""):
+def write_back_to_set_manager(set_name: str, plan: dict, purpose_override: str = "", planned_actions_override: str = ""):
     """
-    將確認後的計畫回傳至 exported_material_sets.json。
+    將對齊與討論後的計畫/用途自動回傳寫入 exported_material_sets.json。
     """
     sets = load_exported_sets()
 
@@ -304,9 +304,12 @@ def write_back_to_set_manager(set_name: str, plan: dict, planned_actions_overrid
         f"{m['title']} ({m['licno']})" for m in plan["materialsMapping"]
     )
 
-    purpose = (
-        f"將 {len(plan['materialsMapping'])} 項綠建材寫入 Revit 模型 [{cats}]：{materials_summary}"
-    )
+    if purpose_override:
+        purpose = purpose_override
+    else:
+        purpose = (
+            f"將 {len(plan['materialsMapping'])} 項綠建材寫入 Revit 模型 [{cats}]：{materials_summary}"
+        )
 
     if planned_actions_override:
         planned_actions = planned_actions_override
@@ -329,7 +332,7 @@ def write_back_to_set_manager(set_name: str, plan: dict, planned_actions_overrid
 
     sets[matched_key]["purpose"] = purpose
     sets[matched_key]["plannedActions"] = planned_actions
-    sets[matched_key]["planStatus"] = "已對齊 Agent 計畫"
+    sets[matched_key]["planStatus"] = "已完成 Revit 牆體元件注入" if "Element ID" in planned_actions else "已對齊 Agent 計畫"
     sets[matched_key]["planId"] = plan["planId"]
     sets[matched_key]["updatedAt"] = datetime.datetime.now().isoformat()
 

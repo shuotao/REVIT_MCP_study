@@ -1,0 +1,35 @@
+{
+  "id": "TASK-005.3",
+  "title": "31 個共享參數 (v4 Multi-Slot 槽位) 批次寫入與衝突偵測模組",
+  "content": "### 任務說明\n實作 apply_revit_injection_plan.py 與 API 寫入引擎，將 TABC 綠建材履歷、標章號碼、CNS 試驗數據及多槽位 (Mat1_*, Mat2_*) 寫入 Element Identity Data，並完成舊材料衝突偵測。\n\n### Readiness (DOR)\n- [x] problem_clear: 支援多材料槽位 (Mat1/Mat2/Mat3) 參數寫入\n- [x] scope_defined: 完成新新建/更新/備份舊材料之衝突處理判斷\n\n### Sign-off Gates (DOD)\n- [x] architecture: 實作 modify_element_parameter 與 v4 槽位匹配\n- [x] test_passed: 成功將 31 個參數實體寫入 Revit 類型與實例\n- [ ] code_review: 人工測試點收確認",
+  "stage": "verify",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "antigravity",
+  "approvalRequired": false,
+  "createdAt": "2026-08-01",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-005.2"
+  ],
+  "order": 5.3,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": false
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": false
+  }
+}
