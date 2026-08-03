@@ -1,0 +1,18 @@
+{
+  "id": "TASK-005.10",
+  "title": "情境 10｜單一元件多重綠建材 Multi-Material 導入",
+  "content": "### 任務說明\n處理單一 Wall／Floor／Ceiling Type 同時包含多項綠建材的 Set。每一構造層引用獨立 Material，Type 使用 Mat1／Mat2／Mat3 槽位保存各材料履歷，且槽位依角色配置而非 Set 排序。\n\n### 已完成基礎\n- [x] Wall 板材＋塗料案例：Mat1 固定板材、Mat2 固定塗料\n- [x] 31 個共享參數與 MissingParameters 回報機制\n\n### Sign-off Gates (DOD)\n- [ ] 支援 Mat3 輔助材料實際案例\n- [ ] Floors／Ceilings Multi-Material 路徑完成\n- [ ] 多證號清單與各層 Material ID 可追溯\n- [ ] 使用者完成跨品類最終複審",
+  "stage": "verify",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": true,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": ["TASK-005.1", "TASK-005.3", "TASK-005.4"],
+  "order": 5.10,
+  "readiness": {"problem_clear": true, "non_goals_clear": true, "acceptance_testable": true, "files_known": true, "scope_defined": true, "verification_contract": true, "human_approval_recorded": false},
+  "gates": {"product": true, "ui": true, "architecture": true, "security": true, "test": false, "code_review": false}
+}

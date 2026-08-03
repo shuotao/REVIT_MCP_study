@@ -1,0 +1,18 @@
+{
+  "id": "TASK-005.11",
+  "title": "情境 11｜新建 Type 與覆蓋既有材質雙路徑",
+  "content": "### 任務說明\nSet 寫入前提供兩條明確策略：路徑 A 複製並建立新的 TABC Type，不影響既有模型；路徑 B 批次覆蓋既有 Material／Type 參數，適用施工階段更新。\n\n### 驗收條件\n- [ ] 預設採路徑 A，路徑 B 必須取得使用者明確確認\n- [ ] 寫入前列出受影響 Type、Material 與元件數量\n- [ ] 每次異動在單一 Transaction／TransactionGroup 中可回復\n- [ ] 產出 Element ID、Type、Material、舊值與新值摘要\n- [ ] 新建與覆蓋路徑各完成一個端到端測試",
+  "stage": "ready",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": true,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": ["TASK-005.1", "TASK-005.3", "TASK-005.10"],
+  "order": 5.11,
+  "readiness": {"problem_clear": true, "non_goals_clear": true, "acceptance_testable": true, "files_known": true, "scope_defined": true, "verification_contract": true, "human_approval_recorded": false},
+  "gates": {"product": true, "ui": false, "architecture": false, "security": true, "test": false, "code_review": false}
+}

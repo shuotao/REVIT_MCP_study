@@ -4,7 +4,15 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "./MCP-Server/build/index.js"
+        "c:/Users/User/Desktop/REVIT_MCP_study/MCP-Server/build/index.js"
+      ],
+      "env": {}
+    },
+    "monstrare": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "c:/Users/User/Desktop/REVIT_MCP_study/scripts/monstrare_mcp_server.py"
       ],
       "env": {}
     }

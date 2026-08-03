@@ -1,8 +1,8 @@
 {
   "id": "TASK-008",
   "title": "執行 Monstrare DOD 驗證合約與綠建材 Skill 端到端整合測試",
-  "content": "### 任務說明\n進行 Monstrare 驗證門檻 (DOR/DOD) 檢查，跑通綠建材 Skill 的端到端流程 (TABC 資料檢索 -> Agent 需求對齊與計畫確認 -> Revit 參數匹配 -> 寫入驗證 -> 驗證門檻點收)，確保整體交付符合要求。\n\n### Readiness (DOR)\n- [x] problem_clear: TASK-001 ~ TASK-007 均完成並準備點收\n- [x] scope_defined: 包含端到端全流程驗證測試與驗證報告產出\n\n### Sign-off Gates (DOD)\n- [ ] architecture: 架構審查符合 AI Agent/MCP 規範\n- [ ] test_passed: 端到端自動化測試無報錯\n- [ ] code_review: Monstrare DoD gate 簽核完畢並移至 Done 階段",
-  "stage": "backlog",
+  "content": "### 任務說明\n作為 TASK-005.1～TASK-005.11 的總驗證卡，逐一執行 TABC 資料檢索、需求對齊、Revit 計畫確認、模型寫入、回查與異動摘要驗證。\n\n### 目前進度\n- [x] 情境 1：Wall 板材＋塗料端到端流程已通過\n- [ ] 情境 2～9：待完成工具與 Revit 實測\n- [ ] 情境 10：Wall Multi-Material 基礎通過，跨品類與 Mat3 待測\n- [ ] 情境 11：新建 Type／覆蓋既有材質雙路徑待測\n\n### Sign-off Gates (DOD)\n- [ ] architecture: 11 情境均符合正式 MCP Tool＋C# dispatch 架構\n- [ ] test_passed: 11 張子卡皆具端到端驗證證據\n- [ ] code_review: 使用者完成最終簽核後才可移至 Done",
+  "stage": "implementing",
   "risk": "high",
   "owner": "shuotao",
   "agent": "antigravity",
@@ -16,12 +16,12 @@
   ],
   "order": 8,
   "readiness": {
-    "problem_clear": false,
+    "problem_clear": true,
     "non_goals_clear": false,
-    "acceptance_testable": false,
-    "files_known": false,
-    "scope_defined": false,
-    "verification_contract": false,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
     "human_approval_recorded": false
   },
   "gates": {

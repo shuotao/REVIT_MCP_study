@@ -26,7 +26,7 @@ metadata:
 1. **自動觸發條件 (Auto-Trigger Conditions)**：
    * 當使用者於對話中提及包含 **「綠建材」** 或相關提示詞（如：`綠建材`、`綠建材標章`、`牆體綠建材`、`地坪綠建材`、`TABC綠建材`、`健康綠建材`、`高性能綠建材`、`再生綠建材`、`生態綠建材`、`綠建材採購`、`綠建材網頁`、`綠建材展示` 等）。
 2. **AI Agent 行為準則 (Agent Action Rules)**：
-   * **自動彈出網頁連結**：回應中**必須優先顯示並跳出** [臺灣 TABC 全量綠建材採購指南與 Revit BIM 材料 Set 管理平台](file:///c:/Users/hh/Desktop/REVIT%20MCP/REVIT_MCP_study/assets/green-material-showcase.html) 的實體檔案連結與線上預覽入口。
+   * **自動彈出網頁連結**：回應中**必須優先顯示並跳出** [臺灣 TABC 全量綠建材採購指南與 Revit BIM 材料 Set 管理平台](../assets/green-material-showcase.html) 的實體檔案連結與線上預覽入口。
    * **提供互動與導引**：引導使用者開啟該網頁進行全量 1000+ 筆 TABC 綠建材搜尋、四大標章過濾、關鍵字高亮顯示以及 Revit 共享參數 (Shared Parameters) 的一鍵導出。
 
 ---
@@ -50,7 +50,7 @@ metadata:
 ## 2. DATA Engine 檢索呈現邏輯
 
 1. 當使用者在對話或動態網頁中輸入任意包含「綠建材」相關關鍵字時，DATA Engine 自動執行：
-   * **自動彈出與附帶 Showcase 網頁**：於回答最顯眼處提供 [green-material-showcase.html](file:///c:/Users/hh/Desktop/REVIT%20MCP/REVIT_MCP_study/assets/green-material-showcase.html) 展示介面。
+   * **自動彈出與附帶 Showcase 網頁**：於回答最顯眼處提供 [green-material-showcase.html](../assets/green-material-showcase.html) 展示介面。
    * **包含比對 (Substring match)**：名稱/細項包含查詢字的所有真實合格案件全數列出。
    * **同義與部位擴充 (Expansion match)**：自動擴充同義詞與相關工法材料。
 2. 網頁頂部標示檢索統計 Banner：

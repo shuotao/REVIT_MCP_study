@@ -51,7 +51,8 @@ description: 綠建材牆板與塗料組合 Set 導入 Revit 建立單一牆體 
 - **工具**: `duplicate_element_type`。
 
 ### 3. 綠建材專屬 Type 共享欄位 100% 實體寫入
-- 寫入 `GreenMaterial_Mat1_*` (塗料) 與 `GreenMaterial_Mat2_*` (板材) 的履歷、廠商、CNS 規範與試驗數據。
+- 呼叫 `set_green_material_type_parameters`，寫入 `GreenMaterial_Mat1_*` (板材/牆板) 與 `GreenMaterial_Mat2_*` (塗料/面材) 的履歷、廠商、CNS 規範與試驗數據。
+- 若目標 Type 所屬品類（如 Walls）尚未載入過共享參數，先呼叫 `load_shared_parameters`（filePath 指向 `GreenMaterial_SharedParams.txt`，categories 依 Type 品類）完成綁定，否則欄位會出現在回應的 `MissingParameters` 中而不會寫入。
 
 ### 4. Active View 實體對焦與高亮選取 (無重複繪製)
 - 呼叫 `query_elements` 取得圖面上既有牆體 `255000` (型號 `TABC_test牆`)。

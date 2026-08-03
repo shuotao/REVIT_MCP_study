@@ -72,7 +72,7 @@ export const baseTools: Tool[] = [
     },
     {
         name: "load_shared_parameters",
-        description: "載入共享參數檔 (Shared Parameter File) 並將參數綁定至指定品類的 Type 或 Instance 層級。用於在寫入自訂參數前，先確保專案已載入參數定義。例如載入 GreenMaterial_SharedParams.txt 的 19 個綠建材參數至 Walls/Floors/Ceilings。",
+        description: "載入共享參數檔 (Shared Parameter File) 並將參數綁定至指定品類的 Type 或 Instance 層級。用於在寫入自訂參數前，先確保專案已載入參數定義。例如載入 GreenMaterial_SharedParams.txt 的 31 個綠建材參數（Mat1/Mat2/Mat3 三槽位）至 Walls/Floors/Ceilings，之後用 set_green_material_type_parameters 寫值。",
         inputSchema: {
             type: "object",
             properties: {

@@ -1,0 +1,18 @@
+{
+  "id": "TASK-005.5",
+  "title": "情境 5｜單選非模型綠建材互動式套用",
+  "content": "### 任務說明\n當 Set 僅包含填縫劑、膠類或其他非模型材料時，先詢問套用位置與目標 Type，再提供新建 Type 或覆蓋既有 Type 兩種路徑。\n\n### 驗收條件\n- [ ] 無 Parent Type 時必須停止並要求使用者選擇\n- [ ] 路徑 A 複製新 Type，不影響既有元件\n- [ ] 路徑 B 覆蓋既有 Type 前必須取得明確確認\n- [ ] 材料資訊寫入 Construction 自訂欄位\n- [ ] 回報目標 Type、寫入欄位及受影響元件範圍",
+  "stage": "ready",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": true,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": ["TASK-005.4"],
+  "order": 5.5,
+  "readiness": {"problem_clear": true, "non_goals_clear": true, "acceptance_testable": true, "files_known": true, "scope_defined": true, "verification_contract": true, "human_approval_recorded": false},
+  "gates": {"product": true, "ui": false, "architecture": false, "security": true, "test": false, "code_review": false}
+}

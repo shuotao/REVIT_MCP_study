@@ -1,0 +1,18 @@
+{
+  "id": "TASK-005.9",
+  "title": "情境 9｜隔熱／防音底層 Set 導入",
+  "content": "### 任務說明\n將防音墊、XPS 保溫板、岩棉吸音毯等材料配置到 Floor／Wall 的 Substrate [2] 或 Thermal/Air Layer [3]，並寫入衝擊音、導熱與試驗資料。\n\n### 驗收條件\n- [ ] 防音底層與隔熱層能依用途正確分流\n- [ ] Floor 與 Wall Compound Structure 均可安全修改\n- [ ] GreenMaterial_TestItems 與性能資料可回查\n- [ ] 不破壞既有核心層與變厚層設定\n- [ ] 完成隔音與隔熱各一個實測案例",
+  "stage": "ready",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": true,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": ["TASK-005.2", "TASK-005.6"],
+  "order": 5.9,
+  "readiness": {"problem_clear": true, "non_goals_clear": true, "acceptance_testable": true, "files_known": true, "scope_defined": true, "verification_contract": true, "human_approval_recorded": false},
+  "gates": {"product": true, "ui": false, "architecture": false, "security": true, "test": false, "code_review": false}
+}

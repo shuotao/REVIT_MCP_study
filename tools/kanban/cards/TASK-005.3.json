@@ -1,35 +1,18 @@
 {
   "id": "TASK-005.3",
-  "title": "31 個共享參數 (v4 Multi-Slot 槽位) 批次寫入與衝突偵測模組",
-  "content": "### 任務說明\n實作 apply_revit_injection_plan.py 與 API 寫入引擎，將 TABC 綠建材履歷、標章號碼、CNS 試驗數據及多槽位 (Mat1_*, Mat2_*) 寫入 Element Identity Data，並完成舊材料衝突偵測。\n\n### Readiness (DOR)\n- [x] problem_clear: 支援多材料槽位 (Mat1/Mat2/Mat3) 參數寫入\n- [x] scope_defined: 完成新新建/更新/備份舊材料之衝突處理判斷\n\n### Sign-off Gates (DOD)\n- [x] architecture: 實作 modify_element_parameter 與 v4 槽位匹配\n- [x] test_passed: 成功將 31 個參數實體寫入 Revit 類型與實例\n- [ ] code_review: 人工測試點收確認",
-  "stage": "verify",
+  "title": "情境 3｜系統家族雙階層參數寫入（Type＋Material）",
+  "content": "### 任務說明\n建立 Walls／Floors 等系統家族的雙階層寫入規範：Material 層保存完整綠建材資料，ElementType 的 Identity Data 保存可直接檢視的摘要與多槽位資料。\n\n### 驗收條件\n- [ ] 明確區分 Material 與 Type 欄位責任，避免重複或衝突\n- [ ] Walls、Floors 至少各完成一個端到端測試\n- [ ] 缺少共享參數時回報 MissingParameters，不得靜默失敗\n- [ ] 寫入後可用 Material 與 Element Type 查詢工具交叉驗證\n- [ ] 產出雙階層欄位對照與異動摘要",
+  "stage": "ready",
   "risk": "high",
   "owner": "shuotao",
-  "agent": "antigravity",
+  "agent": "claude",
   "approvalRequired": false,
-  "createdAt": "2026-08-01",
+  "createdAt": "2026-08-03",
   "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
   "userStory": "US-5: Revit 材料自動化寫入工具",
   "track": "integration",
-  "dependsOn": [
-    "TASK-005.2"
-  ],
+  "dependsOn": ["TASK-005.1", "TASK-005.2"],
   "order": 5.3,
-  "readiness": {
-    "problem_clear": true,
-    "non_goals_clear": true,
-    "acceptance_testable": true,
-    "files_known": true,
-    "scope_defined": true,
-    "verification_contract": true,
-    "human_approval_recorded": false
-  },
-  "gates": {
-    "product": true,
-    "ui": true,
-    "architecture": true,
-    "security": true,
-    "test": true,
-    "code_review": false
-  }
+  "readiness": {"problem_clear": true, "non_goals_clear": true, "acceptance_testable": true, "files_known": true, "scope_defined": true, "verification_contract": true, "human_approval_recorded": false},
+  "gates": {"product": true, "ui": false, "architecture": false, "security": true, "test": false, "code_review": false}
 }

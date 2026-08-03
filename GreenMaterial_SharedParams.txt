@@ -1,40 +1,44 @@
-# This is a Revit shared parameter file (v4 Schema â€” Multi-Material Slot Architecture).
+# This is a Revit shared parameter file (v4 Schema ¡X Multi-Material Slot Architecture).
 # Do not edit manually unless you know what you are doing.
+# ENCODING: this file is saved as system ANSI (Big5/cp950 on zh-TW Windows), NOT UTF-8.
+# Revit's DefinitionFile parser reads shared-parameter text files using the OS ANSI codepage,
+# so re-saving this as UTF-8 will corrupt the Chinese GROUP names (mojibake) when Revit re-opens it.
+# If you must edit: edit with an editor set to Big5/cp950, or edit as UTF-8 then re-encode to cp950 before committing.
 *META	VERSION	MINVERSION
 META	2	1
 *GROUP	ID	NAME
-GROUP	1	ç¶ å»ºæèªè­‰èˆ‡ç”¢å“æ¨™ç¤º (Green Material Certificate & Identity)
-GROUP	2	ç¶ å»ºæç‰©ç†èˆ‡åŒ–å­¸æ€§èƒ½ (Green Material Properties)
-GROUP	3	åœ‹å®¶æ¨™æº–èˆ‡è©¦é©—é©—è­‰ (CNS Standard & Testing Verification)
+GROUP	1	ºñ«Ø§÷»{ÃÒ»P²£«~¼Ğ¥Ü (Green Material Certificate & Identity)
+GROUP	2	ºñ«Ø§÷ª«²z»P¤Æ¾Ç©Ê¯à (Green Material Properties)
+GROUP	3	°ê®a¼Ğ·Ç»P¸ÕÅçÅçÃÒ (CNS Standard & Testing Verification)
 *PARAM	GUID	NAME	DATATYPE	DATACATEGORY	GROUP	VISIBLE	DESCRIPTION	USERMODIFIABLE	HIDEWHENNOVALUE
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111101	GreenMaterial_Certified	YESNO		1	1	å…¨ç‰†ç¶ å»ºæè©•å®šåˆæ ¼ç‹€æ…‹	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111102	GreenMaterial_Mat1_Name	TEXT		1	1	ææ–™1 (ä¸»é«”/ç‰†æ¿) ç¶ å»ºæç”¢å“åç¨±	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111103	GreenMaterial_Mat1_CertNo	TEXT		1	1	ææ–™1 (ä¸»é«”/ç‰†æ¿) ç¶ å»ºææ¨™ç« è­‰æ›¸å­—è™Ÿ	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111104	GreenMaterial_Mat1_Category	TEXT		1	1	ææ–™1 (ä¸»é«”/ç‰†æ¿) ç¶ å»ºæåˆ†é¡	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111105	GreenMaterial_Mat1_SubCategory	TEXT		1	1	ææ–™1 (ä¸»é«”/ç‰†æ¿) ç¶ å»ºææ¬¡åˆ†é¡	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111106	GreenMaterial_Mat1_Applicant	TEXT		1	1	ææ–™1 (ä¸»é«”/ç‰†æ¿) æ¨™ç« ç”³è«‹å» å•†åç¨±	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111107	GreenMaterial_Mat1_ValidUntil	TEXT		1	1	ææ–™1 (ä¸»é«”/ç‰†æ¿) æ¨™ç« æœ‰æ•ˆæœŸé™	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111108	GreenMaterial_Mat2_Name	TEXT		1	1	ææ–™2 (é¢æ/å¡—æ–™) ç¶ å»ºæç”¢å“åç¨±	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111109	GreenMaterial_Mat2_CertNo	TEXT		1	1	ææ–™2 (é¢æ/å¡—æ–™) ç¶ å»ºææ¨™ç« è­‰æ›¸å­—è™Ÿ	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111110	GreenMaterial_Mat2_Category	TEXT		1	1	ææ–™2 (é¢æ/å¡—æ–™) ç¶ å»ºæåˆ†é¡	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111111	GreenMaterial_Mat2_SubCategory	TEXT		1	1	ææ–™2 (é¢æ/å¡—æ–™) ç¶ å»ºææ¬¡åˆ†é¡	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111112	GreenMaterial_Mat2_Applicant	TEXT		1	1	ææ–™2 (é¢æ/å¡—æ–™) æ¨™ç« ç”³è«‹å» å•†åç¨±	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111113	GreenMaterial_Mat2_ValidUntil	TEXT		1	1	ææ–™2 (é¢æ/å¡—æ–™) æ¨™ç« æœ‰æ•ˆæœŸé™	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111114	GreenMaterial_Mat3_Name	TEXT		1	1	ææ–™3 (é™„å±¬/è† æ) ç¶ å»ºæç”¢å“åç¨±	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111115	GreenMaterial_Mat3_CertNo	TEXT		1	1	ææ–™3 (é™„å±¬/è† æ) ç¶ å»ºææ¨™ç« è­‰æ›¸å­—è™Ÿ	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111116	GreenMaterial_Mat3_Category	TEXT		1	1	ææ–™3 (é™„å±¬/è† æ) ç¶ å»ºæåˆ†é¡	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111117	GreenMaterial_Mat3_SubCategory	TEXT		1	1	ææ–™3 (é™„å±¬/è† æ) ç¶ å»ºææ¬¡åˆ†é¡	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111118	GreenMaterial_Mat3_Applicant	TEXT		1	1	ææ–™3 (é™„å±¬/è† æ) æ¨™ç« ç”³è«‹å» å•†åç¨±	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111119	GreenMaterial_Mat3_ValidUntil	TEXT		1	1	ææ–™3 (é™„å±¬/è† æ) æ¨™ç« æœ‰æ•ˆæœŸé™	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111120	GreenMaterial_Mat1_TVOC	NUMBER		2	1	ææ–™1 (ä¸»é«”/ç‰†æ¿) TVOC é€¸æ•£ç‡ (mg/m2.h)	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111121	GreenMaterial_Mat1_Formaldehyde	NUMBER		2	1	ææ–™1 (ä¸»é«”/ç‰†æ¿) ç”²é†›é€¸æ•£ç‡ (mg/m2.h)	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111122	GreenMaterial_Mat2_TVOC	NUMBER		2	1	ææ–™2 (é¢æ/å¡—æ–™) TVOC é€¸æ•£ç‡ (mg/m2.h)	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111123	GreenMaterial_Mat2_Formaldehyde	NUMBER		2	1	ææ–™2 (é¢æ/å¡—æ–™) ç”²é†›é€¸æ•£ç‡ (mg/m2.h)	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111124	GreenMaterial_RecycledRatio	NUMBER		2	1	å†ç”Ÿææ–™å›æ”¶æ‘»é…ç‡ (%)	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111125	GreenMaterial_AcousticNRC	NUMBER		2	1	é«˜æ€§èƒ½å¸éŸ³å»ºæå¸éŸ³ä¿‚æ•¸ (NRC / SAA)	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111126	GreenMaterial_Mat1_CNSSpec	TEXT		3	1	ææ–™1 CNS åœ‹å®¶æ¨™æº–èˆ‡è©¦é©—è¦ç¯„	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111127	GreenMaterial_Mat1_TestItems	TEXT		3	1	ææ–™1 è©¦é©—é …ç›®èˆ‡æª¢æ¸¬æ•¸æ“šç¯„ç–‡	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111128	GreenMaterial_Mat1_QualifiedItems	TEXT		3	1	ææ–™1 åˆæ ¼é …ç›®èˆ‡è©•å®šçµæœ	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111129	GreenMaterial_Mat2_CNSSpec	TEXT		3	1	ææ–™2 CNS åœ‹å®¶æ¨™æº–èˆ‡è©¦é©—è¦ç¯„	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111130	GreenMaterial_Mat2_TestItems	TEXT		3	1	ææ–™2 è©¦é©—é …ç›®èˆ‡æª¢æ¸¬æ•¸æ“šç¯„ç–‡	1	0
-PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111131	GreenMaterial_Mat2_QualifiedItems	TEXT		3	1	ææ–™2 åˆæ ¼é …ç›®èˆ‡è©•å®šçµæœ	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111101	GreenMaterial_Certified	YESNO		1	1	¥şÀğºñ«Ø§÷µû©w¦X®æª¬ºA	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111102	GreenMaterial_Mat1_Name	TEXT		1	1	§÷®Æ1 (¥DÅé/ÀğªO) ºñ«Ø§÷²£«~¦WºÙ	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111103	GreenMaterial_Mat1_CertNo	TEXT		1	1	§÷®Æ1 (¥DÅé/ÀğªO) ºñ«Ø§÷¼Ğ³¹ÃÒ®Ñ¦r¸¹	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111104	GreenMaterial_Mat1_Category	TEXT		1	1	§÷®Æ1 (¥DÅé/ÀğªO) ºñ«Ø§÷¤ÀÃş	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111105	GreenMaterial_Mat1_SubCategory	TEXT		1	1	§÷®Æ1 (¥DÅé/ÀğªO) ºñ«Ø§÷¦¸¤ÀÃş	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111106	GreenMaterial_Mat1_Applicant	TEXT		1	1	§÷®Æ1 (¥DÅé/ÀğªO) ¼Ğ³¹¥Ó½Ğ¼t°Ó¦WºÙ	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111107	GreenMaterial_Mat1_ValidUntil	TEXT		1	1	§÷®Æ1 (¥DÅé/ÀğªO) ¼Ğ³¹¦³®Ä´Á­­	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111108	GreenMaterial_Mat2_Name	TEXT		1	1	§÷®Æ2 (­±§÷/¶î®Æ) ºñ«Ø§÷²£«~¦WºÙ	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111109	GreenMaterial_Mat2_CertNo	TEXT		1	1	§÷®Æ2 (­±§÷/¶î®Æ) ºñ«Ø§÷¼Ğ³¹ÃÒ®Ñ¦r¸¹	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111110	GreenMaterial_Mat2_Category	TEXT		1	1	§÷®Æ2 (­±§÷/¶î®Æ) ºñ«Ø§÷¤ÀÃş	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111111	GreenMaterial_Mat2_SubCategory	TEXT		1	1	§÷®Æ2 (­±§÷/¶î®Æ) ºñ«Ø§÷¦¸¤ÀÃş	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111112	GreenMaterial_Mat2_Applicant	TEXT		1	1	§÷®Æ2 (­±§÷/¶î®Æ) ¼Ğ³¹¥Ó½Ğ¼t°Ó¦WºÙ	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111113	GreenMaterial_Mat2_ValidUntil	TEXT		1	1	§÷®Æ2 (­±§÷/¶î®Æ) ¼Ğ³¹¦³®Ä´Á­­	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111114	GreenMaterial_Mat3_Name	TEXT		1	1	§÷®Æ3 (ªşÄİ/½¦§÷) ºñ«Ø§÷²£«~¦WºÙ	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111115	GreenMaterial_Mat3_CertNo	TEXT		1	1	§÷®Æ3 (ªşÄİ/½¦§÷) ºñ«Ø§÷¼Ğ³¹ÃÒ®Ñ¦r¸¹	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111116	GreenMaterial_Mat3_Category	TEXT		1	1	§÷®Æ3 (ªşÄİ/½¦§÷) ºñ«Ø§÷¤ÀÃş	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111117	GreenMaterial_Mat3_SubCategory	TEXT		1	1	§÷®Æ3 (ªşÄİ/½¦§÷) ºñ«Ø§÷¦¸¤ÀÃş	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111118	GreenMaterial_Mat3_Applicant	TEXT		1	1	§÷®Æ3 (ªşÄİ/½¦§÷) ¼Ğ³¹¥Ó½Ğ¼t°Ó¦WºÙ	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111119	GreenMaterial_Mat3_ValidUntil	TEXT		1	1	§÷®Æ3 (ªşÄİ/½¦§÷) ¼Ğ³¹¦³®Ä´Á­­	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111120	GreenMaterial_Mat1_TVOC	NUMBER		2	1	§÷®Æ1 (¥DÅé/ÀğªO) TVOC ¶h´²²v (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111121	GreenMaterial_Mat1_Formaldehyde	NUMBER		2	1	§÷®Æ1 (¥DÅé/ÀğªO) ¥ÒîÇ¶h´²²v (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111122	GreenMaterial_Mat2_TVOC	NUMBER		2	1	§÷®Æ2 (­±§÷/¶î®Æ) TVOC ¶h´²²v (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111123	GreenMaterial_Mat2_Formaldehyde	NUMBER		2	1	§÷®Æ2 (­±§÷/¶î®Æ) ¥ÒîÇ¶h´²²v (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111124	GreenMaterial_RecycledRatio	NUMBER		2	1	¦A¥Í§÷®Æ¦^¦¬ºU°t²v (%)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111125	GreenMaterial_AcousticNRC	NUMBER		2	1	°ª©Ê¯à§l­µ«Ø§÷§l­µ«Y¼Æ (NRC / SAA)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111126	GreenMaterial_Mat1_CNSSpec	TEXT		3	1	§÷®Æ1 CNS °ê®a¼Ğ·Ç»P¸ÕÅç³W½d	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111127	GreenMaterial_Mat1_TestItems	TEXT		3	1	§÷®Æ1 ¸ÕÅç¶µ¥Ø»PÀË´ú¼Æ¾Ú½dÃ¥	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111128	GreenMaterial_Mat1_QualifiedItems	TEXT		3	1	§÷®Æ1 ¦X®æ¶µ¥Ø»Pµû©wµ²ªG	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111129	GreenMaterial_Mat2_CNSSpec	TEXT		3	1	§÷®Æ2 CNS °ê®a¼Ğ·Ç»P¸ÕÅç³W½d	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111130	GreenMaterial_Mat2_TestItems	TEXT		3	1	§÷®Æ2 ¸ÕÅç¶µ¥Ø»PÀË´ú¼Æ¾Ú½dÃ¥	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111131	GreenMaterial_Mat2_QualifiedItems	TEXT		3	1	§÷®Æ2 ¦X®æ¶µ¥Ø»Pµû©wµ²ªG	1	0

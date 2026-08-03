@@ -118,6 +118,18 @@ namespace RevitMCP.Core
                     case "duplicate_element_type":
                         result = DuplicateElementType(parameters);
                         break;
+
+                    case "set_green_material_type_parameters":
+                        result = SetGreenMaterialTypeParameters(parameters);
+                        break;
+
+                    case "create_single_material_type":
+                        result = CreateSingleMaterialType(parameters);
+                        break;
+
+                    case "create_multi_layer_type":
+                        result = CreateMultiLayerType(parameters);
+                        break;
                     
                     case "create_door":
                         result = CreateDoor(parameters);

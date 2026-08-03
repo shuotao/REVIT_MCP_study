@@ -7,6 +7,32 @@
                 "${workspaceFolder}/MCP-Server/build/index.js"
             ],
             "env": {}
+        },
+        "monstrare": {
+            "type": "stdio",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/scripts/monstrare_mcp_server.py"
+            ],
+            "env": {}
+        }
+    },
+    "mcpServers": {
+        "revit-mcp": {
+            "type": "stdio",
+            "command": "node",
+            "args": [
+                "${workspaceFolder}/MCP-Server/build/index.js"
+            ],
+            "env": {}
+        },
+        "monstrare": {
+            "type": "stdio",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/scripts/monstrare_mcp_server.py"
+            ],
+            "env": {}
         }
     }
 }

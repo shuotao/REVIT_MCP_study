@@ -51,6 +51,145 @@ export const visualizationTools: Tool[] = [
             required: ["materialName"],
         },
     },
+    {
+        name: "get_all_materials",
+        description: "查詢 Project Materials（材質瀏覽器）清單中所有現存材質，用於在建立材質後主動驗收確認是否已實體存在。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                searchKeyword: {
+                    type: "string",
+                    description: "依名稱關鍵字篩選（如 'GBM'）。留空或 '*' 表示回傳全部材質。",
+                },
+            },
+        },
+    },
+    {
+        name: "duplicate_element_type",
+        description: "複製指定 ElementType 建立新類型（如綠建材 Set 專屬牆類型），並依指定的飾面/結構材質名稱實體建立 2 個獨立 Material，套入 Finish1/Structure/Finish2 三層 CompoundStructure 構造層。用於將牆板＋塗料組合 Set 導入為單一牆體 Element Type。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                sourceTypeId: { type: "number", description: "來源類型 Element ID（優先選用含粉刷層的型號）" },
+                newTypeName: { type: "string", description: "新類型名稱，例如 'TABC_test牆'（禁用中括號）" },
+                finishMaterialName: {
+                    type: "string",
+                    description: "飾面塗料材質名稱，格式須為 'GBM編號_材料名稱'，例如 'GBM0104106_水性漆(居室外用)'",
+                },
+                structureMaterialName: {
+                    type: "string",
+                    description: "結構板材材質名稱，格式須為 'GBM編號_材料名稱'，例如 'GBM0103810_無機質NICHIAS NA LUX矽酸鈣板(0.8FK)'",
+                },
+                finishThicknessMm: { type: "number", description: "飾面層厚度 (mm)", default: 20 },
+                structureThicknessMm: { type: "number", description: "結構層厚度 (mm)", default: 150 },
+            },
+            required: ["sourceTypeId", "newTypeName", "finishMaterialName", "structureMaterialName"],
+        },
+    },
+    {
+        name: "set_green_material_type_parameters",
+        description: "將綠建材 v4 共享參數 Schema（GreenMaterial_SharedParams.txt，Mat1/Mat2/Mat3 三槽位共 31 個欄位）實體寫入指定 ElementType 的 Identity Data。參數須已透過 load_shared_parameters 綁定至該 Type 所屬品類（如 Walls），否則對應欄位會列在回傳的 MissingParameters 中。Mat1=主體/牆板，Mat2=面材/塗料，Mat3=附屬/膠材（僅有基本欄位，無 TVOC/Formaldehyde/CNS）。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                typeId: { type: "number", description: "目標 ElementType Element ID（如 duplicate_element_type 建立的新型別）" },
+                certified: { type: "boolean", description: "GreenMaterial_Certified：全牆綠建材評定合格狀態" },
+                recycledRatio: { type: "number", description: "GreenMaterial_RecycledRatio：再生材料回收摻配率 (%)" },
+                acousticNRC: { type: "number", description: "GreenMaterial_AcousticNRC：吸音係數 (NRC / SAA)" },
+                mat1: {
+                    type: "object",
+                    description: "材料1（主體/牆板）",
+                    properties: {
+                        name: { type: "string" },
+                        certNo: { type: "string", description: "綠建材標章證書字號，如 'GBM0103810'" },
+                        category: { type: "string" },
+                        subCategory: { type: "string" },
+                        applicant: { type: "string" },
+                        validUntil: { type: "string" },
+                        tvoc: { type: "number", description: "TVOC 逸散率 (mg/m2.h)" },
+                        formaldehyde: { type: "number", description: "甲醛逸散率 (mg/m2.h)" },
+                        cnsSpec: { type: "string" },
+                        testItems: { type: "string" },
+                        qualifiedItems: { type: "string" },
+                    },
+                },
+                mat2: {
+                    type: "object",
+                    description: "材料2（面材/塗料）",
+                    properties: {
+                        name: { type: "string" },
+                        certNo: { type: "string" },
+                        category: { type: "string" },
+                        subCategory: { type: "string" },
+                        applicant: { type: "string" },
+                        validUntil: { type: "string" },
+                        tvoc: { type: "number" },
+                        formaldehyde: { type: "number" },
+                        cnsSpec: { type: "string" },
+                        testItems: { type: "string" },
+                        qualifiedItems: { type: "string" },
+                    },
+                },
+                mat3: {
+                    type: "object",
+                    description: "材料3（附屬/膠材，選填，僅基本欄位）",
+                    properties: {
+                        name: { type: "string" },
+                        certNo: { type: "string" },
+                        category: { type: "string" },
+                        subCategory: { type: "string" },
+                        applicant: { type: "string" },
+                        validUntil: { type: "string" },
+                    },
+                },
+            },
+            required: ["typeId"],
+        },
+    },
+    {
+        name: "create_single_material_type",
+        description: "情境 2「各別建立」：複製指定 ElementType（Wall/Floor/Ceiling Type）建立新類型，並實體建立一個純淨綠建材 Material，指派到新 Type 的全部 CompoundStructure 層。Type 名稱與 Material 名稱使用同一組字串（GBM編號_材料名稱），不套 TABC_ 前綴。用於一個 Set 裡每個材料各自獨立建 Type 的情境（例如地板材料各別建立），跟 duplicate_element_type（牆板+塗料兩材料合併一個 Type 的單一組合情境）是不同情境，不要混用。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                sourceTypeId: { type: "number", description: "來源類型 Element ID（需與目標品類相同，如同為 FloorType）" },
+                materialName: {
+                    type: "string",
+                    description: "同時作為新 Type 名稱與 Material 名稱，格式須為 'GBM編號_材料名稱'，例如 'GBM0104038_托斯卡尼 TOSCANA複合木質地板'",
+                },
+            },
+            required: ["sourceTypeId", "materialName"],
+        },
+    },
+    {
+        name: "create_multi_layer_type",
+        description: "通用多材料構造層工具：複製指定 ElementType（Wall/Floor/Ceiling 皆可），依任意數量的材料清單建立獨立綠建材 Material，依序套入 CompoundStructure 各層。跟 duplicate_element_type（寫死 2 個材料的牆體 Finish1/Structure/Finish2 三明治）不同，這裡層數、材料、層位機能完全由呼叫端指定，適用於 2 個以上材料、或非 Wall 品類的單一組合情境（例如地板：飾面地磚 Finish1 + 隔音緩衝墊 Substrate + 混凝土 Structure 三層）。layers 陣列請依實際構造由上到下（或由外到內）的順序排列。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                sourceTypeId: { type: "number", description: "來源類型 Element ID（需與目標品類相同，如同為 FloorType）" },
+                newTypeName: { type: "string", description: "新類型名稱，例如 'TABC_塑膠地板set'" },
+                layers: {
+                    type: "array",
+                    description: "依構造順序排列的層清單",
+                    items: {
+                        type: "object",
+                        properties: {
+                            materialName: { type: "string", description: "格式須為 'GBM編號_材料名稱'" },
+                            layerFunction: {
+                                type: "string",
+                                enum: ["Structure", "Substrate", "Insulation", "Finish1", "Finish2", "Membrane"],
+                                description: "對應 Revit MaterialFunctionAssignment：Structure=結構核心層，Substrate=底材/緩衝層，Finish1/Finish2=飾面層，Insulation=隔熱層，Membrane=防水膜",
+                            },
+                            thicknessMm: { type: "number", description: "該層厚度 (mm)，預設 20", default: 20 },
+                        },
+                        required: ["materialName", "layerFunction"],
+                    },
+                },
+            },
+            required: ["sourceTypeId", "newTypeName", "layers"],
+        },
+    },
 
     {
         name: "override_element_graphics",

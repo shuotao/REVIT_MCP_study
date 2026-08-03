@@ -1,0 +1,18 @@
+{
+  "id": "TASK-005.6",
+  "title": "情境 6｜牆壁／地坪預設厚度推判與覆寫",
+  "content": "### 任務說明\n依外牆、室內輕隔間、分戶牆與樓板用途推判 Structure、Finish、Substrate 的預設厚度，並在實際建立 Type 前讓使用者確認或覆寫。\n\n### 驗收條件\n- [ ] 外牆、輕隔間、分戶牆、樓板均有明確厚度矩陣\n- [ ] Master DB 規格優先於一般預設值\n- [ ] 使用者可在寫入前覆寫每一層厚度\n- [ ] 單位轉換正確且總厚度可驗證\n- [ ] 異常或缺失規格不得自行臆測後直接寫入",
+  "stage": "ready",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": true,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": ["TASK-005.1", "TASK-005.2"],
+  "order": 5.6,
+  "readiness": {"problem_clear": true, "non_goals_clear": true, "acceptance_testable": true, "files_known": true, "scope_defined": true, "verification_contract": true, "human_approval_recorded": false},
+  "gates": {"product": true, "ui": false, "architecture": false, "security": true, "test": false, "code_review": false}
+}

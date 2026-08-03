@@ -1,0 +1,18 @@
+{
+  "id": "TASK-005.7",
+  "title": "情境 7｜門窗／獨立元件 RFA 綠建材導入",
+  "content": "### 任務說明\n針對門、窗、玻璃與幕牆等載入式 Family，採用既有相似元件另存 .rfa、注入 Family Type 綠建材參數、再載回專案的標準路徑。\n\n### 驗收條件\n- [ ] 使用者選定相似基底 Family，禁止無型錄依據從零生成\n- [ ] 原始 .rfa 建立可復原備份\n- [ ] Type Identity Data、遮陽與隔音等適用欄位正確寫入\n- [ ] 載回專案時避免覆蓋非目標 Family Type\n- [ ] 完成至少一個 Window 與一個 Door 案例驗證",
+  "stage": "ready",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": true,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": ["TASK-005.3"],
+  "order": 5.7,
+  "readiness": {"problem_clear": true, "non_goals_clear": true, "acceptance_testable": true, "files_known": true, "scope_defined": true, "verification_contract": true, "human_approval_recorded": false},
+  "gates": {"product": true, "ui": false, "architecture": false, "security": true, "test": false, "code_review": false}
+}

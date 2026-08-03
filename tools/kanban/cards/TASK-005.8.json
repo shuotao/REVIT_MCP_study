@@ -1,0 +1,18 @@
+{
+  "id": "TASK-005.8",
+  "title": "情境 8｜天花板系統 Set 導入（OST_Ceilings）",
+  "content": "### 任務說明\n將吸音天花板、矽酸鈣天花板與礦纖板等 Set 導入 Ceiling Type，面層配置於 Finish 1 [4]，並同步吸音性能與綠建材履歷。\n\n### 驗收條件\n- [ ] 以 subCategory 判定天花板，避免牆板誤分類\n- [ ] 面板厚度預設範圍 9–15 mm，並允許規格覆寫\n- [ ] GreenMaterial_AcousticNRC 與試驗資料正確寫入\n- [ ] 可複製既有 Ceiling Type 並套用獨立 Material\n- [ ] 完成 Revit 查詢驗證與異動摘要",
+  "stage": "ready",
+  "risk": "medium",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": false,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": ["TASK-005.3", "TASK-005.6"],
+  "order": 5.8,
+  "readiness": {"problem_clear": true, "non_goals_clear": true, "acceptance_testable": true, "files_known": true, "scope_defined": true, "verification_contract": true, "human_approval_recorded": false},
+  "gates": {"product": true, "ui": false, "architecture": false, "security": true, "test": false, "code_review": false}
+}
