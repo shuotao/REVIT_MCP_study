@@ -677,6 +677,7 @@
 
 <div class="sticky-action-bar">
   <div class="selected-count">已勾選 <span id="selectedCount">0</span> 項建材</div>
+  <button class="btn-toggle-selected" id="toggleSelectedBtn" onclick="toggleShowOnlySelected()" style="background:rgba(56, 189, 248, 0.15); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.3); padding:8px 14px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">👁️ 只看已勾選</button>
   <button class="btn-clear-selection" onclick="clearAllSelections()" style="background:rgba(239, 68, 68, 0.15); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.3); padding:8px 14px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">🧹 清除全部勾選</button>
   <button class="btn-save-set" onclick="promptSaveSet()">💾 儲存為材料 Set</button>
   <button class="manage-set-btn" onclick="openSetManager()">📁 開啟 Set 管理器</button>
@@ -35148,6 +35149,7 @@
 ];
 
   const selectedItems = new Set();
+  let showOnlySelected = false;
   const defaultSets = {
     "室內牆": {
       name: "室內牆",
@@ -35172,6 +35174,22 @@
     filterMaterials();
   }
 
+  function toggleShowOnlySelected() {
+    showOnlySelected = !showOnlySelected;
+    const btn = document.getElementById('toggleSelectedBtn');
+    if (showOnlySelected) {
+      btn.textContent = '👁️ 顯示全部';
+      btn.style.background = 'rgba(56, 189, 248, 0.9)';
+      btn.style.color = '#0b1220';
+      if (selectedItems.size === 0) showAutoSaveToast('ℹ️ 目前尚未勾選任何建材');
+    } else {
+      btn.textContent = '👁️ 只看已勾選';
+      btn.style.background = 'rgba(56, 189, 248, 0.15)';
+      btn.style.color = '#38bdf8';
+    }
+    filterMaterials();
+  }
+
   function filterMaterials() {
     const rawQuery = document.getElementById('searchInput').value.trim().toLowerCase();
     const grid = document.getElementById('materialsGrid');
@@ -35180,6 +35198,8 @@
     let matchCount = 0;
 
     tabcDatabase.forEach(data => {
+      if (showOnlySelected && !selectedItems.has(data.licno)) return;
+
       const haystack = `${data.licno} ${data.title} ${data.company} ${data.category} ${data.subCategory} ${data.specs}`.toLowerCase();
       const kwMatch = data.keywords ? data.keywords.some(k => k.toLowerCase().includes(rawQuery) || rawQuery.includes(k.toLowerCase())) : false;
 
@@ -35229,6 +35249,15 @@
         grid.insertAdjacentHTML('beforeend', cardHtml);
       }
     });
+
+    if (matchCount === 0 && showOnlySelected) {
+      grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:60px 20px; color:#9CA3AF;">
+        <div style="font-size:40px; margin-bottom:12px;">👁️</div>
+        <div style="font-size:15px; font-weight:600;">目前尚未勾選任何建材</div>
+        <div style="font-size:13px; margin-top:6px;">請先在卡片右上角勾選，或點擊「顯示全部」返回完整列表</div>
+      </div>`;
+    }
+
     document.getElementById('matchCount').innerText = matchCount;
   }
 
@@ -35246,6 +35275,7 @@
     if (el.classList.contains('checked')) selectedItems.add(licno);
     else selectedItems.delete(licno);
     document.getElementById('selectedCount').innerText = selectedItems.size;
+    if (showOnlySelected) filterMaterials();
   }
 
   

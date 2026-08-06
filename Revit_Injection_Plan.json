@@ -1,19 +1,19 @@
 {
-  "planId": "PLAN-20260804025953",
-  "setName": "塑膠地板set",
-  "generatedAt": "2026-08-04 02:59:53",
+  "planId": "PLAN-20260804235120",
+  "setName": "走道地坪",
+  "generatedAt": "2026-08-04 23:51:20",
   "agentName": "antigravity (建築 Agent)",
   "userIntent": "",
   "targetRevitCategories": [
-    "OST_Materials",
-    "OST_Floors"
+    "OST_Floors",
+    "OST_Materials"
   ],
   "totalMaterialsCount": 3,
   "materialsMapping": [
     {
-      "licno": "GBM0104167",
-      "title": "PP塑膠地磚",
-      "company": "光仁塑膠工業有限公司",
+      "licno": "GBM0103182(續)",
+      "title": "室內地板舖設用聚胺酯",
+      "company": "慶泰樹脂化學股份有限公司",
       "category": "健康",
       "subCategory": "地板類",
       "targetRevitCategory": "OST_Floors",
@@ -29,11 +29,47 @@
       },
       "sharedParameters": {
         "GreenMaterial_Certified": true,
-        "GreenMaterial_CertNo": "GBM0104167",
+        "GreenMaterial_CertNo": "GBM0103182(續)",
         "GreenMaterial_Category": "健康綠建材",
         "GreenMaterial_SubCategory": "地板類",
-        "GreenMaterial_Applicant": "光仁塑膠工業有限公司",
-        "GreenMaterial_ValidUntil": "115/05/26 ~ 119/05/25",
+        "GreenMaterial_Applicant": "慶泰樹脂化學股份有限公司",
+        "GreenMaterial_ValidUntil": "112/10/20 ~ 116/10/19",
+        "GreenMaterial_TVOC": 0.08,
+        "GreenMaterial_Formaldehyde": 0.01,
+        "GreenMaterial_RecycledRatio": 0.0,
+        "GreenMaterial_AcousticNRC": 0.0,
+        "GreenMaterial_DecorArea": 0.0,
+        "GreenMaterial_QualifyArea": 0.0,
+        "GreenMaterial_RatioContribution": 0.0,
+        "GreenMaterial_CNSSpec": "依 CNS1349 / CNS16083 試驗，符合規定。",
+        "GreenMaterial_TestItems": "① 游離甲醛釋出量：0.02 mg/m²·h (F1等級)。② TVOC逸散率：0.05 mg/m²·h。③ 吸水厚度膨脹率：<0.5%。",
+        "GreenMaterial_QualifiedItems": "健康綠建材 (地板類)"
+      }
+    },
+    {
+      "licno": "GBM0103751(續)",
+      "title": "eFoamlay POD60多功能地板隔音緩衝材(6mm)樓板隔音系統",
+      "company": "泉碩科技股份有限公司",
+      "category": "高性能",
+      "subCategory": "地板類",
+      "targetRevitCategory": "OST_Floors",
+      "targetLayer": "Substrate [2]",
+      "defaultThickness": "10 mm (防音墊)",
+      "buiNaming": "F_INT_FloorTile",
+      "mappingDetails": {
+        "revitCategory": "OST_Floors",
+        "layer": "Substrate [2]",
+        "defaultThickness": "10 mm (防音墊)",
+        "surfacePattern": "600x600 Grid Pattern / Wood Grain",
+        "buiNaming": "F_INT_FloorTile"
+      },
+      "sharedParameters": {
+        "GreenMaterial_Certified": true,
+        "GreenMaterial_CertNo": "GBM0103751(續)",
+        "GreenMaterial_Category": "高性能綠建材",
+        "GreenMaterial_SubCategory": "地板類",
+        "GreenMaterial_Applicant": "泉碩科技股份有限公司",
+        "GreenMaterial_ValidUntil": "114/09/06 ~ 118/09/05",
         "GreenMaterial_TVOC": 0.08,
         "GreenMaterial_Formaldehyde": 0.01,
         "GreenMaterial_RecycledRatio": 0.0,
@@ -80,42 +116,6 @@
         "GreenMaterial_CNSSpec": "依 CNS3090 試驗，符合規定。",
         "GreenMaterial_TestItems": "① 28天抗壓強度：343kgf/cm2。② 56天氯離子滲透電量：942庫倫。",
         "GreenMaterial_QualifiedItems": "再生綠建材"
-      }
-    },
-    {
-      "licno": "GBM0103751(續)",
-      "title": "eFoamlay POD60多功能地板隔音緩衝材(6mm)樓板隔音系統",
-      "company": "泉碩科技股份有限公司",
-      "category": "高性能",
-      "subCategory": "地板類",
-      "targetRevitCategory": "OST_Floors",
-      "targetLayer": "Substrate [2]",
-      "defaultThickness": "10 mm (防音墊)",
-      "buiNaming": "F_INT_FloorTile",
-      "mappingDetails": {
-        "revitCategory": "OST_Floors",
-        "layer": "Substrate [2]",
-        "defaultThickness": "10 mm (防音墊)",
-        "surfacePattern": "600x600 Grid Pattern / Wood Grain",
-        "buiNaming": "F_INT_FloorTile"
-      },
-      "sharedParameters": {
-        "GreenMaterial_Certified": true,
-        "GreenMaterial_CertNo": "GBM0103751(續)",
-        "GreenMaterial_Category": "高性能綠建材",
-        "GreenMaterial_SubCategory": "地板類",
-        "GreenMaterial_Applicant": "泉碩科技股份有限公司",
-        "GreenMaterial_ValidUntil": "114/09/06 ~ 118/09/05",
-        "GreenMaterial_TVOC": 0.08,
-        "GreenMaterial_Formaldehyde": 0.01,
-        "GreenMaterial_RecycledRatio": 0.0,
-        "GreenMaterial_AcousticNRC": 0.0,
-        "GreenMaterial_DecorArea": 0.0,
-        "GreenMaterial_QualifyArea": 0.0,
-        "GreenMaterial_RatioContribution": 0.0,
-        "GreenMaterial_CNSSpec": "依 CNS1349 / CNS16083 試驗，符合規定。",
-        "GreenMaterial_TestItems": "① 游離甲醛釋出量：0.02 mg/m²·h (F1等級)。② TVOC逸散率：0.05 mg/m²·h。③ 吸水厚度膨脹率：<0.5%。",
-        "GreenMaterial_QualifiedItems": "健康綠建材 (地板類)"
       }
     }
   ],
