@@ -17,6 +17,19 @@ export const mepTools: Tool[] = [
         },
     },
     {
+        name: "get_mep_segments_and_sizes",
+        description: "一次盤點整個專案的 MEP Segment 與 Size 目錄（唯讀）。對應 Manage → MEP Settings 裡 Segments and Sizes 對話框的內容：每個管段（PipeSegment＝材質 × Schedule，如 Copper - K、PVC - Sch 40）各一份尺寸表，含 nominal / inner / outer 直徑與 Used in Size Lists、Used in Sizing 兩個勾選狀態；可一併回傳風管（Round / Rectangular / Oval）尺寸表（風管只有 nominal，Revit 的 duct inner/outer 是佔位值故不輸出）。這些資訊 Schedule 與 System Browser 都撈不到。所有尺寸以 mm 回傳，供台灣 CNS 尺寸對帳使用。全量 dump 可達數百筆，先用 summaryOnly=true 看全貌，再用 segmentName 鑽單一管段。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                summaryOnly: { type: "boolean", description: "只回傳每個管段/風管形狀的統計（尺寸筆數、勾選筆數），不逐筆列出尺寸，預設 false。全案盤點建議先用這個。" },
+                segmentName: { type: "string", description: "只回傳名稱含此字串的管段（不分大小寫），例如 'Copper'、'PVC'、'Copper - K'。給了這個參數時 includeDuct 預設變 false。" },
+                includeDuct: { type: "boolean", description: "是否一併回傳風管尺寸表（Round / Rectangular / Oval）。預設 true；但有給 segmentName 時預設 false。" },
+                usedOnly: { type: "boolean", description: "只列出有勾選 Used in Size Lists 或 Used in Sizing 的尺寸，預設 false（全列）。" },
+            },
+        },
+    },
+    {
         name: "add_pipe_cap",
         description: "在管件的未連線端安裝管帽或法蘭。自動尋找開放的接頭並連接。",
         inputSchema: {

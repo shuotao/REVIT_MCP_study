@@ -81,6 +81,10 @@ namespace RevitMCP.Core
                         result = SetProjectUnits(parameters);
                         break;
 
+                    case "get_mep_segments_and_sizes":
+                        result = GetMepSegmentsAndSizes(parameters);
+                        break;
+
 
                     case "create_floor":
                         result = CreateFloor(parameters);
