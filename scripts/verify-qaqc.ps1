@@ -1,5 +1,6 @@
-﻿# Revit MCP QA/QC Verification Script
-# Usage: .\scripts\verify-qaqc.ps1 [-SkipBuild] [-SkipDeploy] [-Version 2024]
+﻿#Requires -Version 5.1
+# Revit MCP QA/QC Verification Script
+# Usage: .\scripts\verify-qaqc.ps1 [-SkipBuild] [-SkipDeploy] [-Version 2024] [-AddinsRoot <path>]
 #
 # Phases:
 #   1. File Structure Integrity
@@ -15,7 +16,10 @@
 param(
     [switch]$SkipBuild,
     [switch]$SkipDeploy,
-    [string]$Version = ""
+    [string]$Version = "",
+    # Phase 5 專用：Addins 根目錄（預設為使用者實際部署位置）。
+    # 指向暫存 fixture 即可對 Phase 5 做負向測試，不動真實部署。
+    [string]$AddinsRoot = ""
 )
 
 $ErrorActionPreference = "Continue"
@@ -382,14 +386,28 @@ if ($SkipDeploy) {
     Write-Skip "Deployment check" "Skipped via -SkipDeploy flag"
 }
 else {
-    $appDataPath = $env:APPDATA
-    $supportedVersions = @("2022", "2023", "2024", "2025", "2026")
+    # -AddinsRoot 未指定時使用實際部署位置
+    $addinsBase = $AddinsRoot
+    if (-not $addinsBase) { $addinsBase = Join-Path $env:APPDATA "Autodesk\Revit\Addins" }
+
+    # 版本→建構組態對應。與 scripts/install-addon.ps1 的 $versionConfigMap（L233-240）
+    # 刻意重複定義——兩支都是獨立入口腳本，抽共用模組的 import 成本大於 5 行常值；
+    # 修改任一側時必須同步另一側（雙向註解互指）。
+    $versionConfigMap = @{
+        "2022" = "Release.R22"
+        "2023" = "Release.R23"
+        "2024" = "Release.R24"
+        "2025" = "Release.R25"
+        "2026" = "Release.R26"
+    }
+    # supportedVersions 由對應表導出，檔內單一事實來源（取代原硬編陣列）
+    $supportedVersions = @($versionConfigMap.Keys | Sort-Object)
 
     Write-Host ""
     Write-Host "  5-1. Installed addin locations:" -ForegroundColor Cyan
     $installedVersions = @()
     foreach ($ver in $supportedVersions) {
-        $addinsDir = Join-Path $appDataPath "Autodesk\Revit\Addins\$ver"
+        $addinsDir = Join-Path $addinsBase $ver
         if (Test-Path $addinsDir) {
             $addinFiles = Get-ChildItem -Path $addinsDir -Filter "*.addin" -Recurse -ErrorAction SilentlyContinue |
                 Where-Object { $_.Name -match "RevitMCP|revit-mcp" }
@@ -413,7 +431,7 @@ else {
     Write-Host "  5-2. Duplicate addin detection:" -ForegroundColor Cyan
     $duplicateFound = $false
     foreach ($ver in $installedVersions) {
-        $addinsDir = Join-Path $appDataPath "Autodesk\Revit\Addins\$ver"
+        $addinsDir = Join-Path $addinsBase $ver
         $addinFiles = Get-ChildItem -Path $addinsDir -Filter "*.addin" -Recurse -ErrorAction SilentlyContinue |
             Where-Object { $_.Name -match "RevitMCP|revit-mcp" }
 
@@ -438,6 +456,107 @@ else {
     }
     if (-not $duplicateFound -and $installedVersions.Count -gt 0) {
         Write-Check "No duplicate addin files" $true
+    }
+
+    # 各版本部署狀態盤點（#91 標準配置：Addins\<year>\RevitMCP.addin + Addins\<year>\RevitMCP\*.dll）
+    $deployStates = @()
+    foreach ($ver in $supportedVersions) {
+        $addinsDir = Join-Path $addinsBase $ver
+        if (-not (Test-Path -LiteralPath $addinsDir)) { continue }   # 該版本 Revit 未安裝：整組靜默略過
+        $buildConfig = $versionConfigMap[$ver]
+        $binDir = Join-Path $projectRoot "MCP\bin\$buildConfig"
+        $deployStates += @{
+            Version   = $ver
+            AddinsDir = $addinsDir
+            Config    = $buildConfig
+            BinDir    = $binDir
+            HasBuild  = [bool](Test-Path -LiteralPath (Join-Path $binDir "RevitMCP.dll"))
+            Deployed  = [bool]($installedVersions -contains $ver)     # 沿用 5-1 的偵測結果
+            DeployDir = (Join-Path $addinsDir "RevitMCP")
+        }
+    }
+
+    # 5-3: Deployed dependency completeness
+    Write-Host ""
+    Write-Host "  5-3. Deployed dependency completeness (deployed set must cover build output):" -ForegroundColor Cyan
+    foreach ($st in $deployStates) {
+        $ver = $st.Version
+        if (-not $st.Deployed) {
+            Write-Skip "Revit $ver dependency completeness" "RevitMCP not deployed for this version (user choice)"
+            continue
+        }
+        if (-not $st.HasBuild) {
+            Write-Skip "Revit $ver dependency completeness" "No build output at MCP\bin\$($st.Config) - run dotnet build -c $($st.Config) first"
+            continue
+        }
+        $expected = @(Get-ChildItem -Path $st.BinDir -Filter "*.dll" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })
+        $deployed = @(Get-ChildItem -Path $st.DeployDir -Filter "*.dll" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })
+        $missing = @($expected | Where-Object { $_ -notin $deployed })
+        Write-Check "Revit $ver dependency set complete ($($expected.Count) DLLs from $($st.Config))" ($missing.Count -eq 0) `
+            $(if ($missing.Count -gt 0) { "Missing in $($st.DeployDir): $($missing -join ', ')" } else { "" })
+    }
+
+    # 5-4: Build freshness
+    Write-Host ""
+    Write-Host "  5-4. Build freshness (deployed RevitMCP.dll SHA256 vs build output):" -ForegroundColor Cyan
+    $freshVersions = @()
+    $staleVersions = @()
+    foreach ($st in $deployStates) {
+        $ver = $st.Version
+        if (-not $st.Deployed) {
+            Write-Skip "Revit $ver build freshness" "RevitMCP not deployed for this version (user choice)"
+            continue
+        }
+        if (-not $st.HasBuild) {
+            Write-Skip "Revit $ver build freshness" "No build output at MCP\bin\$($st.Config) - run dotnet build -c $($st.Config) first"
+            continue
+        }
+        $deployedMain = Join-Path $st.DeployDir "RevitMCP.dll"
+        if (-not (Test-Path -LiteralPath $deployedMain)) {
+            Write-Skip "Revit $ver build freshness" "RevitMCP.dll not present in $($st.DeployDir) (see 5-3)"
+            continue
+        }
+        $srcHash = (Get-FileHash -LiteralPath (Join-Path $st.BinDir "RevitMCP.dll") -Algorithm SHA256).Hash
+        $dstHash = (Get-FileHash -LiteralPath $deployedMain -Algorithm SHA256).Hash
+        if ($srcHash -eq $dstHash) {
+            $freshVersions += $ver
+            Write-Check "Revit $ver RevitMCP.dll matches $($st.Config) build output" $true
+        }
+        else {
+            $staleVersions += $ver
+            Write-Warn "Revit $ver RevitMCP.dll differs from $($st.Config) build output" `
+                "deployed=$($dstHash.Substring(0,12))... build=$($srcHash.Substring(0,12))... - possibly not redeployed after rebuild; run scripts\install-addon.ps1"
+        }
+    }
+
+    # 5-5: Cross-version deployment consistency (aggregates 5-4 results, no re-hashing)
+    Write-Host ""
+    Write-Host "  5-5. Cross-version deployment consistency:" -ForegroundColor Cyan
+    if ($staleVersions.Count -gt 0) {
+        Write-Warn "Deployed versions lag current build outputs" `
+            "Stale: $($staleVersions -join ', ')$(if ($freshVersions.Count -gt 0) { "; in-sync: $($freshVersions -join ', ')" })"
+    }
+    elseif ($freshVersions.Count -gt 0) {
+        Write-Check "All comparable deployed versions match current build outputs ($($freshVersions -join ', '))" $true
+    }
+    else {
+        Write-Skip "Cross-version deployment consistency" "No version comparable (no deployments or no build outputs)"
+    }
+
+    # 5-6: Legacy root-level DLL residue (pre-#91 layout)
+    Write-Host ""
+    Write-Host "  5-6. Legacy root-level DLL residue (pre-#91 layout):" -ForegroundColor Cyan
+    $residueFound = $false
+    foreach ($st in $deployStates) {
+        $rootDll = Join-Path $st.AddinsDir "RevitMCP.dll"
+        if (Test-Path -LiteralPath $rootDll) {
+            $residueFound = $true
+            Write-Warn "Revit $($st.Version) has root-level RevitMCP.dll (pre-#91 layout)" `
+                "Delete $rootDll - the manifest loads RevitMCP\RevitMCP.dll from the subfolder; the root copy is stale residue"
+        }
+    }
+    if (-not $residueFound -and $deployStates.Count -gt 0) {
+        Write-Check "No legacy root-level RevitMCP.dll residue" $true
     }
 }
 

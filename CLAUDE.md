@@ -402,6 +402,14 @@ QA/QC must cover:
 - snapshot banner (`data-snapshot="YYYY-MM-DD"`) on date-prefixed `docs/MMDD-*.html`
 - MCP Registry publish consistency (`server.json` ↔ `MCP-Server/package.json` ↔ schema; 3-place version parity) — Phase 7 check `7-11`, see below
 - MCP 2026 compliance (Phase 9): 9-1 every tool declares a non-empty `title` and boolean `readOnlyHint`, with `destructiveHint=true` confined to the allow-list (`delete_element`, `dedup_detail_elements_in_view`, `curate_mep_sizes`); 9-2 every MCP Apps `ui://` resource resolves with the correct MIME (`text/html;profile=mcp-app`) and is self-contained (no external `src`/`href`/`url()` references)
+- deployment integrity (Phase 5, only when `-SkipDeploy` is omitted): 5-3 the deployed DLL set must cover the corresponding `MCP/bin/<config>/*.dll` build output — missing any file is a FAIL that names it; 5-4 the deployed `RevitMCP.dll` SHA256 must match that build output (WARN on mismatch — usually just not rebuilt); 5-5 cross-version consistency, WARN listing versions left behind; 5-6 WARN on a root-level `Addins\<year>\RevitMCP.dll` (pre-#91 layout residue — the manifest loads the subfolder copy)
+
+Phase 5 design constraints — do not regress these:
+
+- **Never hardcode an expected file count.** `Release.R22`/`R23`/`R24` emit **13** DLLs (.NET Framework 4.8, including 5 compat shims: `System.Buffers`, `System.IO.Packaging`, `System.Memory`, `System.Numerics.Vectors`, `System.Runtime.CompilerServices.Unsafe`); `Release.R25`/`R26` emit **8** (.NET 8 supplies those from the runtime). Both are correct — always enumerate the matching config's build output as the baseline.
+- Revit installed but RevitMCP not deployed → SKIP, not FAIL (it is the user's choice). Build output missing for a config → SKIP with a reason.
+- `-AddinsRoot <path>` overrides the addins base (default `$env:APPDATA\Autodesk\Revit\Addins`). It exists so negative tests can run against a throwaway fixture instead of the user's live deployment. Keep it.
+- `MCP/Core/RevitCompatibility.cs` switches `IdType` between `Int32` and `Int64` on `REVIT2025_OR_GREATER`, so an R24 DLL and an R26 DLL are ABI-incompatible. Cross-generation misdeployment produces no error while copying — it only fails when Revit loads or calls it. That is why 5-3/5-4 exist.
 
 ## MCP Registry Publish Consistency
 
