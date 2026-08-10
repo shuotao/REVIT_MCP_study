@@ -3,6 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.DB;
 using Newtonsoft.Json.Linq;
+using RevitMCP.Core;
+
+#if REVIT2025_OR_GREATER
+using IdType = System.Int64;
+#else
+using IdType = System.Int32;
+#endif
 
 namespace RevitMCP
 {
@@ -179,5 +186,211 @@ namespace RevitMCP
             ["y"] = Math.Round(pt.Y * FtMm, 1),
             ["z"] = Math.Round(pt.Z * FtMm, 1),
         };
+
+        /// <summary>
+        /// Transform 可信度判定（domain doc §3，2026-08-05 對齊）：
+        /// finite、可逆（det != 0）、conformal 等比例（三軸基向量長度相等，5% 容差）。
+        /// 純鏡射（det &lt; 0 但仍等比例）允許但標記警告；非等比例一律不可信。
+        /// </summary>
+        static bool CheckTransformTrust(Transform t, out bool isMirrored, out string reason)
+        {
+            isMirrored = false;
+            reason = "";
+
+            double[] components =
+            {
+                t.BasisX.X, t.BasisX.Y, t.BasisX.Z,
+                t.BasisY.X, t.BasisY.Y, t.BasisY.Z,
+                t.BasisZ.X, t.BasisZ.Y, t.BasisZ.Z,
+                t.Origin.X, t.Origin.Y, t.Origin.Z,
+            };
+            if (components.Any(v => double.IsNaN(v) || double.IsInfinity(v)))
+            {
+                reason = "transform 含 NaN/Infinity 分量";
+                return false;
+            }
+
+            double det = t.Determinant;
+            if (Math.Abs(det) < 1e-9)
+            {
+                reason = "transform 不可逆（determinant 接近 0）";
+                return false;
+            }
+
+            double lenX = t.BasisX.GetLength();
+            double lenY = t.BasisY.GetLength();
+            double lenZ = t.BasisZ.GetLength();
+            double maxLen = Math.Max(lenX, Math.Max(lenY, lenZ));
+            double minLen = Math.Min(lenX, Math.Min(lenY, lenZ));
+            bool conformal = maxLen > 1e-9 && (maxLen - minLen) / maxLen <= 0.05;
+
+            if (!conformal)
+            {
+                reason = string.Format("非等比例縮放（軸長 {0:F4}/{1:F4}/{2:F4}），無法信任", lenX, lenY, lenZ);
+                return false;
+            }
+
+            isMirrored = det < 0;
+            if (isMirrored) reason = "純鏡射，允許但已標記警告";
+            return true;
+        }
+
+        /// <summary>
+        /// discover + 座標鏈健檢 + duplicate/unsupported_family 判定，preview 與 create 共用。
+        /// 不開啟 Transaction；create 呼叫本方法取得權威結果後才寫入模型
+        /// （鐵則：create 不信任 preview 快取，以相同參數重新掃描）。
+        /// </summary>
+        static List<JObject> BuildPlacementPlan(Document doc, ViewPlan vp, JObject p, out JObject summary)
+        {
+            string importInstanceUniqueId = (string)p["importInstanceUniqueId"];
+            string blockNameFilter = (string)p["blockName"];
+            string familySymbolIdRaw = (string)p["familySymbolId"];
+            string levelIdRaw = (string)p["levelId"];
+            double offsetMm = p["offsetMm"] != null ? p["offsetMm"].Value<double>() : 0.0;
+            bool toleranceProvided = p["duplicateToleranceMm"] != null;
+            double toleranceMm = toleranceProvided
+                ? p["duplicateToleranceMm"].Value<double>()
+                : DefaultDuplicateToleranceMm;
+
+            if (string.IsNullOrEmpty(familySymbolIdRaw))
+                throw new ArgumentException("familySymbolId 為必填，本工具不自動選擇族群");
+            if (string.IsNullOrEmpty(levelIdRaw))
+                throw new ArgumentException("levelId 為必填，本工具不自動選擇樓層");
+
+            IdType familySymbolIdVal, levelIdVal;
+            if (!IdType.TryParse(familySymbolIdRaw, out familySymbolIdVal))
+                throw new ArgumentException("familySymbolId 必須是數字字串，收到：" + familySymbolIdRaw);
+            if (!IdType.TryParse(levelIdRaw, out levelIdVal))
+                throw new ArgumentException("levelId 必須是數字字串，收到：" + levelIdRaw);
+
+            var symbol = doc.GetElement(new ElementId(familySymbolIdVal)) as FamilySymbol;
+            if (symbol == null)
+                throw new ArgumentException("找不到 familySymbolId=" + familySymbolIdRaw + " 對應的 FamilySymbol");
+
+            var level = doc.GetElement(new ElementId(levelIdVal)) as Level;
+            if (level == null)
+                throw new ArgumentException("找不到 levelId=" + levelIdRaw + " 對應的 Level（v1 不自動建立樓層）");
+
+            bool familySupported = symbol.Family.FamilyPlacementType == FamilyPlacementType.OneLevelBased;
+
+            var cad = FindLinkedImportInstance(doc, vp, importInstanceUniqueId);
+            var all = CollectBlockCandidates(cad, vp);
+            if (!string.IsNullOrEmpty(blockNameFilter))
+                all = all.Where(c => c.DisplayName == blockNameFilter).ToList();
+
+            double offsetFt = offsetMm * MmFt;
+            double toleranceFt = toleranceMm * MmFt;
+
+            var existingInstances = new FilteredElementCollector(doc)
+                .OfClass(typeof(FamilyInstance))
+                .Cast<FamilyInstance>()
+                .Where(fi => fi.LevelId == level.Id)
+                .Select(fi => new { fi.Id, Point = (fi.Location as LocationPoint)?.Point })
+                .Where(x => x.Point != null)
+                .ToList();
+
+            var plan = new List<JObject>();
+            var seenInBatch = new List<KeyValuePair<string, XYZ>>();
+            int ready = 0, duplicate = 0, unsupported = 0, untrustworthy = 0;
+
+            foreach (var c in all)
+            {
+                var finalPoint = new XYZ(c.ResolvedPoint.X, c.ResolvedPoint.Y, level.Elevation + offsetFt);
+                bool mirrored;
+                string trustReason;
+                bool trustworthy = CheckTransformTrust(c.TotalTransform.Multiply(c.BlockTransform), out mirrored, out trustReason);
+
+                string status;
+                string statusReason = "";
+                ElementId duplicateOf = null;
+
+                if (!familySupported)
+                {
+                    status = "unsupported_family";
+                    statusReason = "familySymbol 的 FamilyPlacementType 為 " + symbol.Family.FamilyPlacementType
+                        + "，v1 僅支援 OneLevelBased";
+                    unsupported++;
+                }
+                else if (!trustworthy)
+                {
+                    status = "untrustworthy_transform";
+                    statusReason = trustReason;
+                    untrustworthy++;
+                }
+                else
+                {
+                    var existingDup = existingInstances.FirstOrDefault(x => x.Point.DistanceTo(finalPoint) < toleranceFt);
+                    var batchDupIdx = seenInBatch.FindIndex(x => x.Value.DistanceTo(finalPoint) < toleranceFt);
+
+                    if (existingDup != null)
+                    {
+                        status = "duplicate_existing";
+                        statusReason = "與既有 FamilyInstance ElementId=" + existingDup.Id.GetIdValue()
+                            + " 距離 <" + toleranceMm + "mm";
+                        duplicateOf = existingDup.Id;
+                        duplicate++;
+                    }
+                    else if (batchDupIdx >= 0)
+                    {
+                        status = "duplicate_in_batch";
+                        statusReason = "與本次掃描內候選 identity=" + seenInBatch[batchDupIdx].Key
+                            + " 距離 <" + toleranceMm + "mm";
+                        duplicate++;
+                    }
+                    else
+                    {
+                        status = "ready";
+                        ready++;
+                        seenInBatch.Add(new KeyValuePair<string, XYZ>(c.Identity, finalPoint));
+                    }
+                }
+
+                plan.Add(new JObject
+                {
+                    ["identity"] = c.Identity,
+                    ["blockName"] = c.DisplayName,
+                    ["status"] = status,
+                    ["statusReason"] = statusReason,
+                    ["mirrored"] = mirrored,
+                    ["duplicateOfElementId"] = duplicateOf == null ? null : (long?)duplicateOf.GetIdValue(),
+                    ["coordinateChain"] = new JObject
+                    {
+                        ["blockInsertionPointMm"] = PointToMmJson(c.InsertionPoint),
+                        ["blockTransformOriginMm"] = PointToMmJson(c.BlockTransform.Origin),
+                        ["totalTransformOriginMm"] = PointToMmJson(c.TotalTransform.Origin),
+                        ["resolvedPointMm"] = PointToMmJson(finalPoint),
+                    },
+                });
+            }
+
+            summary = new JObject
+            {
+                ["totalCandidates"] = all.Count,
+                ["ready"] = ready,
+                ["duplicate"] = duplicate,
+                ["unsupportedFamily"] = unsupported,
+                ["untrustworthyTransform"] = untrustworthy,
+                ["duplicateToleranceMm"] = toleranceMm,
+                ["duplicateToleranceSource"] = toleranceProvided ? "user-provided" : "default",
+                ["familySymbolId"] = symbol.Id.GetIdValue(),
+                ["levelId"] = level.Id.GetIdValue(),
+                ["offsetMm"] = offsetMm,
+            };
+            return plan;
+        }
+
+        public static object PreviewFamilyInstancesFromDwgBlocks(Document doc, JObject p)
+        {
+            var vp = doc.ActiveView as ViewPlan;
+            if (vp == null)
+                throw new InvalidOperationException("請先切換到平面視圖再執行本工具");
+            if (p == null)
+                throw new ArgumentException("缺少參數：familySymbolId 與 levelId 為必填");
+
+            JObject summary;
+            var plan = BuildPlacementPlan(doc, vp, p, out summary);
+            summary["candidates"] = new JArray(plan);
+            return summary;
+        }
     }
 }
