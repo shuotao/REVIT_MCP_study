@@ -10,6 +10,7 @@ metadata:
   references:
     - "Issue #100（作者 @NicheSam, SC REVIT）"
     - "Issue #100 留言 2026-08-05（id 5190268672）：四個 TODO 補值 + v1 政策裁決依據 + Revit 2024 A$C87ebd845 實測（484 筆命中／20 筆試放與獨立回查）"
+    - "Issue #113（三工具實作追蹤）"
   related:
     - dwg-column-import.md
     - dwg-beam-import.md
