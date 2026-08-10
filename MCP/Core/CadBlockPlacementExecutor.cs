@@ -392,5 +392,125 @@ namespace RevitMCP
             summary["candidates"] = new JArray(plan);
             return summary;
         }
+
+        public static object CreateFamilyInstancesFromDwgBlocks(Document doc, JObject p)
+        {
+            var vp = doc.ActiveView as ViewPlan;
+            if (vp == null)
+                throw new InvalidOperationException("請先切換到平面視圖再執行本工具");
+            if (p == null)
+                throw new ArgumentException("缺少參數：familySymbolId 與 levelId 為必填");
+
+            bool skipDuplicates = p["skipDuplicates"] != null && p["skipDuplicates"].Value<bool>();
+
+            // 鐵則：不信任呼叫端可能挾帶的舊 preview 結果，以相同參數重新掃描一次。
+            JObject summary;
+            var plan = BuildPlacementPlan(doc, vp, p, out summary);
+
+            IdType familySymbolIdVal = IdType.Parse((string)p["familySymbolId"]);
+            var symbol = (FamilySymbol)doc.GetElement(new ElementId(familySymbolIdVal));
+            IdType levelIdVal = IdType.Parse((string)p["levelId"]);
+            var level = (Level)doc.GetElement(new ElementId(levelIdVal));
+
+            var perItemResults = new JArray();
+            int created = 0, failed = 0, skipped = 0;
+
+            using (var tx = TransactionHelper.Begin(doc, "從 CAD 圖塊建立點位族群"))
+            {
+                tx.Start();
+
+                if (!symbol.IsActive)
+                {
+                    symbol.Activate();
+                    doc.Regenerate();
+                }
+
+                foreach (var candidate in plan)
+                {
+                    string status = (string)candidate["status"];
+                    string identity = (string)candidate["identity"];
+                    bool isDuplicate = status == "duplicate_existing" || status == "duplicate_in_batch";
+
+                    if (status != "ready")
+                    {
+                        // unsupported_family / untrustworthy_transform 一律不建立；
+                        // duplicate 只有在呼叫端明確傳入 skipDuplicates=true 時視為「已核准略過」，
+                        // 否則視為阻擋（domain doc §4.5：核准不得由 agent 自行推定）。
+                        skipped++;
+                        perItemResults.Add(new JObject
+                        {
+                            ["identity"] = identity,
+                            ["outcome"] = isDuplicate
+                                ? (skipDuplicates ? "skipped_duplicate_approved" : "blocked_duplicate_not_approved")
+                                : "blocked",
+                            ["status"] = status,
+                            ["statusReason"] = candidate["statusReason"],
+                        });
+                        continue;
+                    }
+
+                    using (var sub = new SubTransaction(doc))
+                    {
+                        sub.Start();
+                        try
+                        {
+                            var chain = (JObject)candidate["coordinateChain"];
+                            var resolvedMm = (JObject)chain["resolvedPointMm"];
+                            var point = new XYZ(
+                                resolvedMm.Value<double>("x") * MmFt,
+                                resolvedMm.Value<double>("y") * MmFt,
+                                resolvedMm.Value<double>("z") * MmFt);
+
+                            // KNOWN UNCERTAINTY（見 plan「Known Revit-API Uncertainties」#2）：
+                            // OneLevelBased 族群以含 offset 的 Z 傳入 NewFamilyInstance，
+                            // 依 Revit 自身的 level-instance offset 記帳；Offset 參數實際落值
+                            // 需真機放置後 read-back 驗證。
+                            var instance = doc.Create.NewFamilyInstance(
+                                point, symbol, level,
+                                Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
+
+                            sub.Commit();
+                            created++;
+                            perItemResults.Add(new JObject
+                            {
+                                ["identity"] = identity,
+                                ["outcome"] = "created",
+                                ["elementId"] = instance.Id.GetIdValue(),
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            sub.RollBack();
+                            failed++;
+                            perItemResults.Add(new JObject
+                            {
+                                ["identity"] = identity,
+                                ["outcome"] = "failed",
+                                ["error"] = ex.Message,
+                            });
+                        }
+                    }
+                }
+
+                tx.Commit();
+            }
+
+            // 建立後逐一獨立查詢驗證存在（同步、確定性，不依賴 Idling 事件輪詢）。
+            foreach (var item in perItemResults.OfType<JObject>().Where(i => (string)i["outcome"] == "created"))
+            {
+                var id = new ElementId((IdType)item["elementId"].Value<long>());
+                item["verifiedExists"] = doc.GetElement(id) != null;
+            }
+
+            return new JObject
+            {
+                ["created"] = created,
+                ["failed"] = failed,
+                ["skipped"] = skipped,
+                ["duplicateToleranceMm"] = summary["duplicateToleranceMm"],
+                ["duplicateToleranceSource"] = summary["duplicateToleranceSource"],
+                ["items"] = perItemResults,
+            };
+        }
     }
 }
