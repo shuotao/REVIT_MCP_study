@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Skills 索引（53 個）· BIM_MCP</title>
-<meta property="og:title" content="RevitMCP Skills 索引：53 個編排層工作流">
-<meta property="og:description" content="53 個 Skill × 描述 × 觸發關鍵字 × 對應 Domain 表。Skill 是編排（何時/順序），Domain 是知識（法規/SOP）。從 CLAUDE.md 抽出。">
+<title>Skills 索引（54 個）· BIM_MCP</title>
+<meta property="og:title" content="RevitMCP Skills 索引：54 個編排層工作流">
+<meta property="og:description" content="54 個 Skill × 描述 × 觸發關鍵字 × 對應 Domain 表。Skill 是編排（何時/順序），Domain 是知識（法規/SOP）。從 CLAUDE.md 抽出。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
@@ -118,7 +118,7 @@
 </nav>
 
 <header class="bim-hero">
-  <div class="bim-hero-eyebrow">SKILLS INDEX <span class="accent">53 個</span></div>
+  <div class="bim-hero-eyebrow">SKILLS INDEX <span class="accent">54 個</span></div>
   <h1 class="bim-hero-title">Skills · <span class="accent">編排層</span><br>何時觸發 / 什麼順序</h1>
   <p class="bim-hero-sub">Skills 是<strong>編排</strong>（orchestration），不是知識本身。一個 Skill 規定「<em>什麼關鍵字觸發 / 呼叫哪些工具 / 套用哪個 Domain SOP</em>」。Skill metadata 永遠常駐於 AI Client context；body 與 Domain 被引用時才載入。本頁列 50 個 Skill 的描述、觸發關鍵字與對應 Domain。</p>
 </header>
@@ -852,7 +852,7 @@
     </div>
   </div>
 
-  <div class="cat-header">F · 進階開發 / 文件作者（3 個）</div>
+  <div class="cat-header">F · 進階開發 / 文件作者（4 個）</div>
 
   <div class="skill-card">
     <div>
@@ -894,6 +894,20 @@
       </div>
     </div>
   </div>
+
+  <div class="skill-card">
+    <div>
+      <div class="skill-name">/archicad-skill-adapter</div>
+      <div class="skill-cat">F · 進階開發 / 文件作者</div>
+    </div>
+    <div>
+      <div class="skill-desc">把既有 Revit-oriented BIM Skill 的意圖與名詞轉譯為受控的 Archicad MCP workflow，同時保留原始 Domain 方法與 Revit 路徑不變。opt-in 分支，只有明確選定 Archicad 或雙 backend 情境才會進入 discovery／translate／verify 流程；目前僅 3 個 Skill 有正式 pilot 規格，尚未經 Skill 層級的 live test 驗證。</div>
+      <div class="skill-meta">
+        <span class="trigger-tag">Archicad</span><span class="trigger-tag">backend 轉譯</span><span class="trigger-tag">GUID</span><span class="trigger-tag">Zone</span><span class="trigger-tag">Tapir</span>
+        <a href="domain-index.html#tool-capability-boundary" class="domain-link">→ tool-capability-boundary（L11）</a>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- ============================================ -->
@@ -901,7 +915,7 @@
 <!-- ============================================ -->
 <section data-collapse class="bim-section bim-anchor" id="quick-table">
   <div class="bim-section-eyebrow">QUICK TABLE · 速查表</div>
-  <h2 class="bim-section-title">速查：50 Skill 一覽</h2>
+  <h2 class="bim-section-title">速查：54 Skill 一覽</h2>
   <p class="bim-section-desc">複製給合作對象 / 列印貼牆。</p>
 
   <figure class="bim-figure">
@@ -964,6 +978,7 @@
       <tr><td><code>/core-reload-dev</code></td><td>F 進階</td><td>opt-in 熱重載開發迭代</td><td>core-reload-boundary</td></tr>
       <tr><td><code>/domain-diagram</code></td><td>F 進階</td><td>domain SOP 流程圖像化</td><td>domain-flow-visualization</td></tr>
       <tr><td><code>/dll-to-mcp-tool</code></td><td>F 進階</td><td>把 DLL/.cs 封裝為 MCP 工具</td><td>—</td></tr>
+      <tr><td><code>/archicad-skill-adapter</code></td><td>F 進階</td><td>Revit Skill 轉譯為 Archicad MCP workflow</td><td>tool-capability-boundary</td></tr>
     </tbody>
   </table>
 </section>
@@ -973,7 +988,7 @@
 <!-- ============================================ -->
 <section data-collapse class="bim-section bim-anchor" id="why-not-merge">
   <div class="bim-section-eyebrow">RATIONALE · 為什麼不每個 Domain 都升級成 Skill</div>
-  <h2 class="bim-section-title">53 Skill vs 76 Domain — 為什麼數量不同？</h2>
+  <h2 class="bim-section-title">54 Skill vs 76 Domain — 為什麼數量不同？</h2>
 
   <div class="bim-grid bim-grid-2">
     <div class="bim-card bim-card-bad">
@@ -983,7 +998,7 @@
     </div>
     <div class="bim-card bim-card-ok">
       <h4 style="color:var(--ok);">✓ 本專案做法</h4>
-      <p>Skill = 編排（53 個 metadata 常駐）；Domain = 知識（76 markdown，被引用才載入）。</p>
+      <p>Skill = 編排（54 個 metadata 常駐）；Domain = 知識（76 markdown，被引用才載入）。</p>
       <p style="font-size:13px;color:var(--text-muted);">知識複用，編排薄層。一個防火 SOP 被三個 Skill 共享，原文只有一份。</p>
     </div>
   </div>

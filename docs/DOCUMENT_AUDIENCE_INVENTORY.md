@@ -17,7 +17,7 @@ This inventory defines which project documents are for AI agents, human readers,
 |---|---:|---|
 | Runtime MCP tools | 172 | `registerRevitTools()` |
 | Domain SOP files | 76 | `domain/*.md` except README, plus `domain/references/*.md` |
-| Claude skills | 53 | `.claude/skills/*/SKILL.md` |
+| Claude skills | 54 | `.claude/skills/*/SKILL.md` |
 
 ## AI-Only Documents
 
@@ -65,6 +65,7 @@ These must remain understandable by both sides.
 | `Antigravity_MCP_Complete_Guide.md` | Antigravity users | Manual MCP setup for Antigravity client |
 | `docs/UPDATE-PULL-GUIDE.md`, `docs/branch-index.md` | users and maintainers | Update flow and branch overview |
 | `docs/MIGRATION_GUIDE.md` | users and fork contributors | Traditional Chinese; append-only, newest-first record of upgrades that affect existing users or fork contributors (e.g. the MCP 2026-07-28 dual-era upgrade) |
+| `docs/integrations/*.md` | users, fork contributors, and the `archicad-skill-adapter` Skill | Traditional Chinese; opt-in Archicad MCP backend docs (setup, Revit/Archicad Skill portability matrix, Wave 2 translation proposal) salvaged from issue #98. Not yet Skill-level live-tested; carry explicit status disclaimers where claims are unverified. |
 | `docs/claude-code-cheatsheet.html`, `docs/karpathy-gist-zh-tw.html` | readers | Reference pages |
 | other `docs/*.md` topic guides | mixed | Per-topic guides (agent handoff, guard rails, architecture, slope analysis, docs structure); classify individually if promoted to canonical |
 | root-level Chinese notes (`HJPLUS *.md`, `[好學生筆記]*.md`) | community readers | Event notes and adoption guides |

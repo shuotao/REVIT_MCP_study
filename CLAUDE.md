@@ -35,7 +35,7 @@ These counts must be derived from source, not copied by memory.
 |---|---:|---|
 | Runtime MCP tools | 172 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
 | Domain SOP files | 76 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
-| Claude skills | 53 | `.claude/skills/*/SKILL.md` |
+| Claude skills | 54 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, `README.zh-TW.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
 
@@ -327,7 +327,7 @@ Meta and governance domain files:
 
 ## Skills
 
-The canonical skill catalog is the .claude/skills/ directory itself (53 skills; count table above is the gate).
+The canonical skill catalog is the .claude/skills/ directory itself (54 skills; count table above is the gate).
 
 Use the smallest relevant skill set. If a skill and a domain file conflict on the method, the domain file wins.
 

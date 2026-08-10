@@ -2,10 +2,11 @@
 name: door-window-legend-workflow
 description: 門窗圖例表 seed-based Legend Component 建立流程，主入口為 door-window-legend-tools，缺少 seed 時透過 list_seeds 取得候選並等待使用者選擇。
 metadata:
-  version: "1.5"
-  updated: "2026-06-18"
+  version: "1.6"
+  updated: "2026-08-10"
   created: "2026-05-20"
-  references: []
+  references:
+    - "Issue #74（@yunchen-kt）：門窗圖例 Key 的承載位置 A/B 架構對照與 Revit API 設計約束 — https://github.com/shuotao/REVIT_MCP_study/issues/74"
   related:
     - element-query-workflow.md
     - tool-capability-boundary.md
@@ -14,6 +15,7 @@ metadata:
     - list_seeds
   contributors:
     - "OpenAI Codex"
+    - "@yunchen-kt（issue #74：A/B 架構取捨分析與 Revit API 設計約束）"
   tags: [door, window, legend, type-mark, legend-component, seed, workflow]
 ---
 
@@ -32,6 +34,57 @@ metadata:
 - 不得自動選 seed。
 - 不得自動補排版方向或每排/欄數量。
 - 不得自動輪流測試 seed。
+
+## 架構取捨：圖例 Key 要承載在哪裡（A vs B）
+
+> 本節的分析由 [@yunchen-kt](https://github.com/yunchen-kt) 於 issue [#74](https://github.com/shuotao/REVIT_MCP_study/issues/74) 提出，
+> 經維護者確認後收錄。原始討論保留在該 issue。
+
+本 SOP 目前採 **A 方案**。B 是實務上另一種可行架構，兩者取捨不同、不必二選一，
+但選錯會在「更新期」付出代價，所以動手前要先想清楚。
+
+| | **A：Key 放在 view 內**（本 SOP 現行） | **B：Key 提升到 view 邊界** |
+|---|---|---|
+| 結構 | 一張 Legend view 承載整份門表／窗表，各 type 並排 | 一型一 Legend view，**view 名＝門窗編號＝Key** |
+| Key 載體 | view 內的 `TextNote` | view 名稱本身 |
+| 排版 | `layoutDirection` + `maxPerLine` | 由 seed 模板固定欄位位置 |
+| 更新方式 | 解析 per-note ＋ 位置配對 | 讀 view 名 → 查外部資料對應列 → 按模板位置覆寫 |
+| view 數量 | 少 | 多 |
+
+### A 的脆弱點是結構性的，不是實作沒寫好
+
+當編號活在 view 內的 text note 時：
+
+1. 編號可能被使用者手動改動而與實際 type 脫鉤。
+2. 更新流程必須逐一解析 text note、再做位置配對來決定「哪個編號對哪個 component」，一旦配對失敗就產生孤兒文字。
+
+本檔中大量的 metadata 標記、fallback 位置推斷，以及〈錯誤規則〉裡 `window_ffl_missing_same_type_still_used`
+這類 skip 規則，某種程度上都是在補這個結構性缺口 —— 它們是症狀，不是原因。
+
+### B 把字串匹配換成容器邊界匹配
+
+Revit 強制 view 名唯一、使用者改不掉；欄位位置由模板固定。於是更新退化成
+「讀 view 名 → 查資料 → 按模板位置覆寫值」，不需要解析 per-note、不需要位置配對，
+**孤兒文字問題從定義上消失**。代價是要建立較多 Legend view。
+
+這也讓 regenerate 天然冪等：Key 與欄位位置都是 deterministic 座標，重跑同一份輸入會得到同一份輸出，
+適合「里程碑整批重生」而非 live link 的使用模式。
+
+### 怎麼選
+
+- **只需要 Key 與門窗立面的對應** → A 就夠，每次刪除、完全重生即可。
+- **門窗表還要記載防火等級、表面處理、五金配件等欄位** → A 要維持這些欄位的一致性，複雜度極高；B 較穩。
+
+### 設計約束（Revit API 事實，實作前必讀）
+
+- Legend Component **無法被 tag**，附屬資料只能用 text note 或圖內 dimension 呈現。
+- API **無法從零建立 Legend view**，也無法直接建立 Legend Component（長期限制）。可靠繞路是
+  「template 預埋空白 seed → 複製 seed → 改 type／改名」—— 這也是本 SOP 依賴 seed 的原因。
+- Type Image／Image 入 schedule 是**靜態點陣**，不依比例、不隨元件更新，不能拿來當 B 的欄位載體。
+- Generic Annotation 可放入 Legend view 與 Section view，適合當「模板固定位置的欄位值」載體。
+
+> B 方案目前**只有架構分析，沒有對應的工具實作**。若要落地，需先補一份跨環境的 B 方案 SOP
+> 與相應的 tool contract；在那之前不要宣稱本專案支援 B。
 
 ## Tool Contract
 

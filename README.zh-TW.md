@@ -35,7 +35,7 @@ Revit MCP 透過 Model Context Protocol (MCP) 讓 AI Client 呼叫 Revit 工具�
 |---|---:|---|
 | Runtime MCP tools | 172 | `MCP-Server/src/tools/index.ts` 的 `registerRevitTools()` |
 | Domain SOP files | 76 | `domain/*.md` 扣除 `README.md`，加上 `domain/references/*.md` |
-| Claude skills | 53 | `.claude/skills/*/SKILL.md` |
+| Claude skills | 54 | `.claude/skills/*/SKILL.md` |
 
 如果這些數字改變，請同步更新 `CLAUDE.md`、本 README、`README.md`、`docs/DOCUMENT_AUDIENCE_INVENTORY.md`，並執行：
 

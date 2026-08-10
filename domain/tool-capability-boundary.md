@@ -2,18 +2,20 @@
 name: tool-capability-boundary
 description: "MCP 工具能力邊界定義表：定義目前 MCP 工具的不可達邊界（如連結模型元素不可查詢、Revit UI API／第三方外掛按鈕觸發不可達等），讓 AI 在收到相關請求時立即告知使用者限制而非反覆嘗試。當使用者提到連結模型、linked model、結構、能力邊界、boundary、找不到元素、0 結果、pyRevit、UI API、按鈕觸發、PostableCommandId、Reload 時觸發。"
 metadata:
-  version: "1.1"
+  version: "1.2"
   updated: "2026-08-10"
   created: "2026-03-10"
   contributors:
     - "Admin"
   references:
     - "https://github.com/shuotao/REVIT_MCP_study/issues/110"
+    - "https://github.com/shuotao/REVIT_MCP_study/issues/98"
   related:
     - mep-extension-guide.md
   referenced_by:
     - element-coloring
-  tags: [連結模型, linked model, 結構, structural, 邊界, 能力, boundary, 找不到元素, pyRevit, UI API, PostableCommandId, 按鈕觸發, Reload]
+    - archicad-skill-adapter
+  tags: [連結模型, linked model, 結構, structural, 邊界, 能力, boundary, 找不到元素, pyRevit, UI API, PostableCommandId, 按鈕觸發, Reload, Archicad, backend, namespace]
 ---
 
 # MCP 工具能力邊界定義表
@@ -133,6 +135,21 @@ metadata:
 | **未來方案** | 若 Revit API 或 MCP 官方 SDK 未來釋出穩定、跨版本相容的 UI 命令 orchestration 介面（而非反射 hack），可重新評估收編；在此之前維持不收 |
 
 **lesson 起源**：issue #110（CyberPotato0416，2026-08-01 提出）。提案人以 OSI 七層模型精確定位出 L5↔L6、L6↔L7 兩處介面斷層，根因判斷（pyRevit 按鈕動態註冊、無固定 `PostableCommandId`）正確，分析品質值得肯定。維護者裁決此為範圍外（不落地方案 A/B），但保留其技術分析價值，並在此記錄替代路徑（邏輯收編為 MCP 工具），供未來類似請求参考。
+
+### L11: 多 Backend Namespace 隔離（Revit / Archicad）
+
+| 項目 | 詳細說明 |
+|------|------|
+| **限制** | Revit MCP 與 Archicad MCP 是兩個獨立 server。Revit `ElementId`、Archicad element GUID、Archicad instance port、類別／元素型別、參數／Property、內部單位與座標系統都不是可直接互換的 namespace。 |
+| **典型場景** | 使用者希望把既有 Revit-oriented Skill 套到 Archicad，或同一個 AI Client 同時看得到 `revit-mcp` 與 `archicad-mcp`。 |
+| **辨識方式** | 執行鏈開始前先確認目標 application；Archicad 需在本 turn 取得 live instance port，Revit 需依 active-state re-anchoring 取得當前 document/view。每個 identifier 都保留來源 backend。 |
+| **AI 應對策略** | 保留 Domain 的 BIM 方法，但透過 backend adapter 重新 discovery 工具與 schema。不得把 Revit tool name 當成 Archicad command，不得把 ElementId 改名為 GUID，不得沿用另一個 Archicad port 的結果。 |
+| **單位邊界** | Revit internal feet 的換算規則不能自動套到 Archicad。Archicad arguments 與結果一律依當次 discovery 回傳的 schema／說明判讀；未標示單位時停止並要求確認。 |
+| **寫入驗證** | 兩個 backend 的 mutation 都必須以同一 backend 的 read-back 驗證。Archicad 寫入以本 turn 選定 port + GUID 回讀；Revit 仍依既有 MCP tool 與 Transaction 邊界驗證。 |
+| **能力缺口** | 若 Archicad discovery 找不到 Domain 某一步所需能力，標示該步 `unsupported` 並停止該 mutation，不得改呼叫 Revit 工具補做，也不得猜測 raw JSON API payload。 |
+| **安裝邊界** | Repository 預設 config 維持 Revit-only。只有使用者主動 opt in 才加入獨立的 `archicad-mcp` entry；停用時只移除該 entry。 |
+
+**lesson 起源**：issue #98（Archwiz-boss，fork `Archwiz-boss/BIM_MCP_study`，commit `998adce8`）。原編號在 fork 分支上是 `L10`，但該分支自 2026-07-22 起未再更新，同一時段本檔已把 `L10` 用於 issue #110（Revit UI API／第三方外掛 UI 命令觸發不可達）。維護者裁決 2026-08 全數收編 issue #98 的 Skill／Domain 內容，此節在收編時重編號為 `L11` 以避免覆蓋既有 L10，內容本身逐字保留 fork 原文。收編僅涵蓋 Domain 知識與 Skill 編排文件，不含 fork 的 `.mcp.json`／`.vscode/mcp.json`／setup 腳本；相關的可攜性狀態與零實測證據說明見 `docs/integrations/archicad-skill-portability.md`。
 
 ---
 

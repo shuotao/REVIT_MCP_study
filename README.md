@@ -35,7 +35,7 @@ Questions or want to show what you built? → **[Discussions](https://github.com
 |---|---:|---|
 | Runtime MCP tools | 172 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
 | Domain SOP files | 76 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
-| Claude skills | 53 | `.claude/skills/*/SKILL.md` |
+| Claude skills | 54 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.zh-TW.md`, this file, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and run:
 
