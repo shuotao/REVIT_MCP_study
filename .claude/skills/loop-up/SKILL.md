@@ -383,6 +383,74 @@ Stage Plan 裡的每個 Stage 是否都 `pass: true`。
 本身寫得矛盾的驗收條件，只是讓假綠燈換一種方式出現）。Phase 3 的產出應該是：這次配比要不要調整、調整哪個角色、以及一條可以餵進
 `domain/lessons.md`（用 `/lessons`）的具體教訓——讓下一次執行從 Stage Plan 階段就避開，而不是每次都重新迴圈一次才發現。
 
+## 執行紀錄與第 5 次校準輪
+
+### runs.jsonl
+
+每次 `loop-up` 執行**結束時**（不論 pass 或 BLOCKED），append 一筆到 `.claude/skills/loop-up/runs.jsonl`。
+這是配比表唯一的實證基礎——沒有這份紀錄，配比調整就只是猜。
+
+```jsonc
+{
+  "run_id": "wf_...",              // Workflow run ID
+  "date": "YYYY-MM-DD",            // 由呼叫端提供，腳本內不可取系統時間
+  "task": "一句話描述",
+  "stages": 1,
+  "attempts": 1,                   // 該 run 累計的 implement 輪數
+  "advisor_invoked": false,
+  "final_pass": true,
+  "roles": {                       // 各角色實際用量，供配比調整
+    "planner":   { "model": "fable",  "tokens": 0, "tool_uses": 0 },
+    "implementer": { "model": "sonnet", "tokens": 0, "tool_uses": 0 },
+    "observer":  { "model": "haiku",  "tokens": 0, "tool_uses": 0 },
+    "inspector": { "model": "fable",  "tokens": 0, "tool_uses": 0 }
+  },
+  "failure_class": null,           // 見下表；pass 時為 null
+  "calibration": null              // 校準輪才有值，見下
+}
+```
+
+`failure_class` 必填其一（`spec_unclear` / `tech_pitfall` / `model_capability` / `criteria_contradiction`）。
+**不記分類的紀錄對校準沒有價值**——第 5 次評估時只會看到「失敗了 N 次」而不知道該調什麼。
+
+### 為什麼需要校準輪（這是設計上的根本問題，不是可選的加值）
+
+配比表要回答的核心問題是「inspector 夠不夠好」。inspector 失效的定義是**它說 pass 但其實不 pass**。
+要偵測這件事，需要一個獨立於 inspector 的事實來源。
+
+而 human-out-of-the-loop **正好拿掉了那個來源**。跑 100 次都是「inspector 說過了」，這 100 筆資料對於
+「inspector 會不會誤判」的資訊量是零。全自動化移除了校準自動化所需要的 ground truth——這個張力必須正面處理。
+
+### 第 5 次：雙稽核，記錄「歧異」而非「通過」
+
+`runs.jsonl` 每滿 5 筆，下一次執行必須是校準輪（`.claude/hooks/detect-loopup-calibration.sh` 會提醒）。
+
+校準輪**不是多跑一次同樣的檢查**——那不產生新資訊。做法是挑至少一個 Stage，派**兩支不同模型的 inspector-ops
+各自獨立稽核**（例如 Sonnet 與 Fable），兩支都不得看到對方的結論，然後記錄：
+
+| 結果 | 意義 |
+|---|---|
+| 兩支結論一致 | 弱證據支持當前配比夠用；較弱那支或許可降級省成本 |
+| **兩支結論不同** | **這才是有價值的樣本**——記下歧異點、哪一支對、為什麼 |
+
+歧異率是在無人介入下唯一能逼近「inspector 可靠度」的訊號。長期為 0 → 可降級；上升 → 該升級。
+
+校準輪的 `calibration` 欄位記：`{ "stage_id", "inspector_a": {model, verdict}, "inspector_b": {model, verdict}, "agreed": bool, "divergence": "…" }`。
+
+成本：校準輪多一支 inspector（約 +95k tokens），每 5 次一次，攤提後約 +4%。
+
+### 統計效力的誠實邊界
+
+n=5、且各次任務性質不同，本來就不是同分布樣本。它能給的是**趨勢與異常訊號**，不是「誤判率 X%」這種數字。
+**不要用 5 筆資料生一張看起來精確的表。** 校準結論寫回上方配比表時，必須註明依據的 run_id 與樣本數。
+
+### 目前配比表的證據狀態（2026-08-10）
+
+首次實測（QAQC Phase 5 升級，4 支 agent / 379,286 tokens / 一輪通過）中，**inspector 是 Sonnet，其結論與人工獨立
+複驗完全一致**。因此「inspector 應升級到 Fable/Opus」這條建議**目前建立在後果不對稱的風險論證上，尚無實證支持**。
+保留該建議，但需在累積校準樣本後重新檢視——那次的驗收條件寫得非常具體，inspector 基本是照表操課，真正考驗判斷力的
+情境（驗收條件含糊、implementer 產出可疑）並未發生。
+
 ## 何時該用 / 何時不該用
 
 「啟動前置門檻」的四項是硬性 gate；以下是幫助判斷的具體情境例子，不是重複同一份清單：

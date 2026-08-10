@@ -58,7 +58,9 @@ jq -n \
         "你剛動到 registry 發佈的主要檔案。請依 CLAUDE.md §「MCP Registry Publish Consistency」執行同步回圈：\n\n" +
         "  1. 呼叫 mcp-registry-sync（Sonnet）→ 修正 server.json / package.json / README registry 段 / playbook 的漂移（3 處版本平價、名稱、URL）。\n" +
         "  2. 呼叫 mcp-registry-ops-inspect（Sonnet）→ 唯讀稽核並用繁體中文回報一致/漂移。\n" +
-        "  3. 跑 `python3 scripts/validate_publish_consistency.py` 作硬閘門，必須 exit 0。\n\n" +
+        "  3. 跑 `python scripts/validate_publish_consistency.py` 作硬閘門，必須 exit 0。\n" +
+        "     ⚠️ 用 `python` 不要用 `python3` —— Windows 上 `python3` 可能指向 Store 的 App Execution Alias stub，\n" +
+        "     會回 exit 49 且無任何輸出，那是假訊號，不代表 drift 也不代表通過。\n\n" +
         "鐵則：永不回退版本、永不手動 npm publish（發佈只走打 v* tag）。\n" +
         "完成後用繁體中文告訴老師這次更新了什麼。"
       )
