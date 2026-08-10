@@ -956,21 +956,47 @@ Write-Check "All real domain files appear in BIM_MCP domain-index" ($notInIndex.
     $(if ($notInIndex.Count -gt 0) { "Missing card(s): $($notInIndex -join ', ')" } else { "" })
 if ($notInIndex.Count -gt 0) { $notInIndex | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkYellow } }
 
-# 7-10: Real skills → BIM_MCP skills-index.html (forward check)
+# 7-10: Real skills <-> BIM_MCP skills-index.html (exactly-one check, both directions)
 # Same omission class as 7-9 but for skills — skills-index count can be bumped without
-# the matching skill card actually being added. Every .claude/skills/*/SKILL.md must be carded.
+# the matching skill card actually being added.
+#
+# "Present" is NOT enough. A presence-only check passes when a skill is carded TWICE,
+# which is exactly what happened on 2026-08-10: two agents each added an
+# archicad-skill-adapter card and QAQC still reported PASS. Count instead of test.
+#
+# Match with explicit terminators (</div>, </code>) so a skill name that is a prefix of
+# another (e.g. `loop` vs `loop-up`) cannot satisfy the other's requirement.
 Write-Host ""
-Write-Host "  7-10. Real skills -> BIM_MCP skills-index:" -ForegroundColor Cyan
+Write-Host "  7-10. Real skills <-> BIM_MCP skills-index (exactly one card + one row each):" -ForegroundColor Cyan
 $skillsIndexText = Read-FileText "$projectRoot\docs\BIM_MCP\reference\skills-index.html"
 $skillNames = Get-ChildItem -Path "$projectRoot\.claude\skills" -Directory -ErrorAction SilentlyContinue |
     Where-Object { Test-Path (Join-Path $_.FullName 'SKILL.md') } | ForEach-Object { $_.Name }
-$skillNotInIndex = @()
-foreach ($s in $skillNames) {
-    if (-not $skillsIndexText -or $skillsIndexText -notmatch [regex]::Escape("/$s")) { $skillNotInIndex += $s }
+
+$skillIndexProblems = @()
+if (-not $skillsIndexText) {
+    $skillIndexProblems += "skills-index.html unreadable"
 }
-Write-Check "All real skills appear in BIM_MCP skills-index" ($skillNotInIndex.Count -eq 0) `
-    $(if ($skillNotInIndex.Count -gt 0) { "Missing card(s): $($skillNotInIndex -join ', ')" } else { "" })
-if ($skillNotInIndex.Count -gt 0) { $skillNotInIndex | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkYellow } }
+else {
+    foreach ($s in $skillNames) {
+        $cardCount = ([regex]::Matches($skillsIndexText, 'class="skill-name">/' + [regex]::Escape($s) + '</div>')).Count
+        $rowCount  = ([regex]::Matches($skillsIndexText, '<code>/' + [regex]::Escape($s) + '</code>')).Count
+        if ($cardCount -eq 0) { $skillIndexProblems += "$s : missing card" }
+        elseif ($cardCount -gt 1) { $skillIndexProblems += "$s : DUPLICATE card x$cardCount" }
+        if ($rowCount -eq 0) { $skillIndexProblems += "$s : missing quick-table row" }
+        elseif ($rowCount -gt 1) { $skillIndexProblems += "$s : DUPLICATE quick-table row x$rowCount" }
+    }
+
+    # Reverse direction: a card whose skill directory no longer exists (renamed/deleted skill
+    # leaves a stale card, and the forward check above can never see it).
+    foreach ($m in [regex]::Matches($skillsIndexText, 'class="skill-name">/([a-z0-9-]+)</div>')) {
+        $carded = $m.Groups[1].Value
+        if ($skillNames -notcontains $carded) { $skillIndexProblems += "$carded : orphan card (no .claude/skills/$carded/SKILL.md)" }
+    }
+}
+
+Write-Check "Every skill has exactly one skills-index card and row" ($skillIndexProblems.Count -eq 0) `
+    $(if ($skillIndexProblems.Count -gt 0) { "$($skillIndexProblems.Count) problem(s)." } else { "" })
+if ($skillIndexProblems.Count -gt 0) { $skillIndexProblems | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkYellow } }
 
 # 7-11. MCP Registry publish consistency (hard gate).
 # server.json <-> MCP-Server/package.json <-> schema must agree (3-place version
