@@ -1,25 +1,28 @@
 ---
 name: cad-block-point-placement
-description: "CAD 圖塊（Block/INSERT）插入點批次放置 Revit 點位族群（FamilyInstance）的通用 SOP：適用灑水頭/閥件等重複設備圖塊。discover/preview/create 三工具拆分，preview 唯讀回傳可檢查的座標鏈（Block insertion point → Block transform → ImportInstance TotalTransform）+ ready/duplicate/unsupported_family 狀態；**transform 不可信時停止建立、不猜 correction**。與 dwg-column-import（矩形輪廓）、dwg-beam-import（雙線中心線）互補，非取代。觸發於 cad 圖塊放置、block 轉族群、灑水頭建模、閥件建模、point placement from CAD block、INSERT to FamilyInstance。TODO 待補：NicheSam 補齊實測細節與工具原始碼路徑。"
+description: "CAD 圖塊（Block/INSERT）插入點批次放置 Revit 點位族群（FamilyInstance）的通用 SOP：適用灑水頭/閥件等重複設備圖塊。discover/preview/create 三工具拆分，preview 唯讀回傳可檢查的座標鏈（Block insertion point → Block transform → ImportInstance TotalTransform）+ ready/duplicate/unsupported_family 狀態；**transform 不可信時停止建立、不猜 correction**。與 dwg-column-import（矩形輪廓）、dwg-beam-import（雙線中心線）互補，非取代。觸發於 cad 圖塊放置、block 轉族群、灑水頭建模、閥件建模、point placement from CAD block、INSERT to FamilyInstance。"
 metadata:
-  version: "0.1"
-  updated: "2026-07-28"
+  version: "0.2"
+  updated: "2026-08-10"
   created: "2026-07-28"
   contributors:
     - "NicheSam (SC REVIT, 待確認真名)"
   references:
     - "Issue #100（作者 @NicheSam, SC REVIT）"
+    - "Issue #113（三工具實作追蹤）"
   related:
     - dwg-column-import.md
     - dwg-beam-import.md
     - tool-capability-boundary.md
-  referenced_by: []
+  referenced_by:
+    - MCP-Server/src/tools/cad-block-placement-tools.ts
+    - MCP/Core/CadBlockPlacementExecutor.cs
   tags: [DWG, DXF, CAD, ImportInstance, Block, INSERT, FamilyInstance, 點位放置, 灑水頭, 閥件, 座標鏈, transform, Revit]
 ---
 
 # CAD 圖塊插入點放置 FamilyInstance SOP
 
-把 CAD 圖面中重複出現的設備圖塊（Block/INSERT，例如灑水頭符號、閥件符號）批次轉成 Revit 點位式 `FamilyInstance`。來源 issue #100（作者 @NicheSam, SC REVIT）。對應工具 `discover`/`preview`/`create` 三段（TODO 待補：實際工具名稱、C# 對應實作路徑）。此流程是**通用 Block→FamilyInstance 點位放置**，與 `domain/dwg-column-import.md`（矩形輪廓翻模結構柱）、`domain/dwg-beam-import.md`（雙線中心線翻模結構樑）互補，不取代任一方。
+把 CAD 圖面中重複出現的設備圖塊（Block/INSERT，例如灑水頭符號、閥件符號）批次轉成 Revit 點位式 `FamilyInstance`。來源 issue #100（作者 @NicheSam, SC REVIT）。對應工具三段：`get_dwg_block_instances`（discover）／`preview_family_instances_from_dwg_blocks`（preview）／`create_family_instances_from_dwg_blocks`（create），C# 實作於 `MCP/Core/CadBlockPlacementExecutor.cs`，TS 定義於 `MCP-Server/src/tools/cad-block-placement-tools.ts`。此流程是**通用 Block→FamilyInstance 點位放置**，與 `domain/dwg-column-import.md`（矩形輪廓翻模結構柱）、`domain/dwg-beam-import.md`（雙線中心線翻模結構樑）互補，不取代任一方。
 
 > **核心原則（與 AI 協作）**：座標鏈（Block insertion point → Block transform → ImportInstance TotalTransform）**不可信時，一律回傳明確警告並停止建立，絕不由 AI 猜測或套用 correction**。這是本工具成立的分水嶺——寧可讓使用者手動核對重連 CAD，也不允許在座標鏈不可信的情況下批次落點。
 
@@ -44,7 +47,7 @@ metadata:
 2. 目標 DWG **已匯入或連結**到該視圖，視圖內至少一個 `ImportInstance`。
 3. 目標 **FamilySymbol 已載入**到專案，且**必須是 non-hosted、level-based、point-placement**（例如 `OneLevelBased`）。hosted / face-based / work-plane-based 族群**第一版不支援**（見 §5）。
 4. 目標 **Level 已存在**（`levelId` 對應樓層）；不存在需先建（可比照 `create_level`，TODO 待補：本流程是否共用該工具）。
-5. TODO 待補：CAD 需 Import 或 Link？是否比照 dwg-column 模式 C 那樣「讀文字才需 Link」，或本流程完全不讀文字（純幾何插入點）因此 Import/Link 皆可？
+5. 本流程 v1 **只支援已載入的 Linked DWG**；Imported DWG 留待後續版本（依據 v1 policy 1，2026-08-05 對齊：Linked DWG 記錄路徑已出現失效（`NotFound`）案例需要處理，而 Imported 的 `TotalTransform` 語意與失連風險更高，v1 排除是正確收斂）。`discover` 偵測到目標是 Imported DWG 時應直接回錯誤，不嘗試掃描。
 
 ---
 
@@ -52,9 +55,9 @@ metadata:
 
 | 步驟 | 工具 | 作用 | 斷點 |
 |---|---|---|---|
-| 1 掃描 | `discover`（TODO 待補實際工具名） | 掃描指定 DWG，列出可辨識 Block 名稱、插入點、旋轉 | — |
-| 2 **座標鏈健檢**（唯讀） | `preview(familySymbolId, levelId, offset, 重複容差)` | 回傳每個插入點的**可檢查座標鏈**（Block insertion point、Block transform、ImportInstance TotalTransform）+ 狀態 `ready`/`duplicate`/`unsupported_family`；**transform 不可信時回傳明確警告並停止**（不猜 correction） | ⛔ **斷點 1**：使用者確認 Block 選擇、familySymbolId、levelId、offset，並核對座標鏈與狀態分佈（幾個 ready、幾個 duplicate、有無 unsupported_family／transform 警告） |
-| 3 建立 | `create(...)` | 以**與 preview 完全相同參數**重新掃描驗證（不可信任 preview 快取結果）；主 `Transaction` + 逐筆 `SubTransaction`（單筆失敗不回滾其他） | ⛔ **斷點 2**：使用者對 preview 結果按「確認建立」後才呼叫；回傳 created 的每個 `ElementId`，逐一獨立查詢驗證存在 |
+| 1 掃描 | `get_dwg_block_instances` | 掃描指定 DWG，列出可辨識 Block 名稱、插入點、旋轉 | — |
+| 2 **座標鏈健檢**（唯讀） | `preview_family_instances_from_dwg_blocks(familySymbolId, levelId, offsetMm, duplicateToleranceMm)` | 回傳每個插入點的**可檢查座標鏈**（Block insertion point、Block transform、ImportInstance TotalTransform）+ 狀態 `ready`/`duplicate`/`unsupported_family`；**transform 不可信時回傳明確警告並停止**（不猜 correction） | ⛔ **斷點 1**：使用者確認 Block 選擇、familySymbolId、levelId、offset，並核對座標鏈與狀態分佈（幾個 ready、幾個 duplicate、有無 unsupported_family／transform 警告） |
+| 3 建立 | `create_family_instances_from_dwg_blocks(...)` | 以**與 preview 完全相同參數**重新掃描驗證（不可信任 preview 快取結果）；主 `Transaction` + 逐筆 `SubTransaction`（單筆失敗不回滾其他） | ⛔ **斷點 2**：使用者對 preview 結果按「確認建立」後才呼叫；回傳 created 的每個 `ElementId`，逐一獨立查詢驗證存在 |
 
 **鐵則**：
 - `preview` 是唯讀操作，**不寫入模型**；只有 `create` 會寫入。
@@ -78,7 +81,7 @@ TODO 待補：待工具實作與參數定案後，用 `.claude/skills/domain-dia
 
 最終落點 = Block insertion point 依序套用「Block transform」再套用「ImportInstance TotalTransform」後，落在 Revit 模型座標系的結果。
 
-**transform 不可信的判定與處置（TODO 待補：確切的可信度判定條件，例如非正交/含異常縮放/行列式異常等）**：一旦判定不可信，`preview` 必須：
+**transform 不可信的判定條件（2026-08-05 對齊）**：Transform 必須 finite（無 NaN/Infinity 分量）、可逆（determinant ≠ 0）、conformal 等比例（三軸基向量長度相等，容許誤差內）；純鏡射（determinant < 0 但仍等比例）可繼續但需標記警告，非等比例縮放一律判定不可信。一旦判定不可信，`preview` 必須：
 - 明確標示哪些插入點受影響、原因。
 - **回傳警告並拒絕該批次建立**，不得由 AI 或工具自行套用猜測性的 correction（例如自動假設某個縮放係數、自動假設某個旋轉修正量）。
 - 交回使用者，由使用者回到連結對話框核對單位/比例/座標系後重新連結、重新 discover/preview。
@@ -90,16 +93,19 @@ TODO 待補：待工具實作與參數定案後，用 `.claude/skills/domain-dia
 ## 4. 關鍵工程確認點
 
 ### 4.1 重複容差與 duplicate 判定
-`preview` 依使用者提供的**重複容差**（TODO 待補：預設值、單位 mm 或 feet）判斷同一位置是否已存在對應的 FamilyInstance 或本次掃描內彼此重複的插入點，回傳狀態 `duplicate`。**duplicate 不自動略過或自動合併**——列在 preview 結果中交使用者裁決（比照 dwg-column「未來增強」精神，本版不做自動決策）。
+`preview` 依使用者提供的**重複容差**（**預設 10mm**，使用者可覆寫；`preview`／`create` 回應必須明示實際使用值及其來源為 `default` 或 `user-provided`，2026-08-05 對齊，NicheSam 建議值）判斷同一位置是否已存在對應的 FamilyInstance 或本次掃描內彼此重複的插入點，回傳狀態 `duplicate`。**duplicate 不自動略過或自動合併**——列在 preview 結果中交使用者裁決（比照 dwg-column「未來增強」精神，本版不做自動決策）。
 
 ### 4.2 offset 與 level 換算單位
-`offset` 為相對於 `levelId` 對應樓層的垂直偏移。TODO 待補：`offset` 輸入單位（mm 或 feet）、是否比照 dwg-column 的 `modify_element_parameter` 陷阱（Revit 內部長度單位為 feet，呼叫端若直接傳 mm 數值會錯 304.8 倍）——**若比照，本工具與呼叫端都需明確標示單位，避免同一類單位陷阱重演**。
+`offset` 為相對於 `levelId` 對應樓層的垂直偏移。輸入單位為 **mm**（參數名 `offsetMm`，比照本專案 `dwg-column-import` 等既有工具的 mm-facing 慣例，內部換算為 Revit feet）；工具 schema 說明與 C# 端註解都明確標示單位，避免 dwg-column 的 `modify_element_parameter` 同類單位陷阱（Revit 內部長度單位為 feet，呼叫端若直接傳 mm 數值會錯 304.8 倍）重演。
 
 ### 4.3 unsupported_family 判定條件
-`familySymbolId` 對應的族群若不是 non-hosted / level-based / point-placement（例如是 hosted-on-face 或 work-plane-based），`preview` 應回傳狀態 `unsupported_family` 並**不得嘗試放置**。TODO 待補：判定依據（例如 `FamilySymbol.Family.FamilyPlacementType` 是否為 `OneLevelBased`／`ViewBased` 等對應到的 API 判斷式）。
+`familySymbolId` 對應的族群若不是 non-hosted / level-based / point-placement（例如是 hosted-on-face 或 work-plane-based），`preview` 應回傳狀態 `unsupported_family` 並**不得嘗試放置**。判定依據：`familySymbol.Family.FamilyPlacementType == FamilyPlacementType.OneLevelBased` 才視為支援；其餘一律回 `unsupported_family`，不嘗試放置、不做降級處理。
 
 ### 4.4 SubTransaction 單筆失敗不回滾其他
 `create` 用主 `Transaction` 包住整批，內部每個插入點各自開一個 `SubTransaction`：單筆放置失敗（例如該點 transform 邊界情況、族群放置例外）**只回滾該筆**，不影響同批其他已成功的 `SubTransaction`。回傳結果需列出每筆的成功/失敗與失敗原因，供使用者判斷是否需要針對失敗項目單獨重跑。
+
+### 4.5 duplicate 略過需明確核准
+`create` 只能在呼叫端**明確傳入核准參數**（`skipDuplicates: true`）時略過重複項目，**不得由 agent 自行推定**使用者已核准。無論是否略過，回應都要逐筆列出 `duplicate_existing`（與既有 Revit FamilyInstance 重複）或 `duplicate_in_batch`（本次掃描內部彼此重複）、對應既有 ElementId（若有）、候選 identity 與判定原因；`preview` 一律完整列出重複群組，不得自行合併或刪除（2026-08-10 對齊，維護者三條件）。
 
 ---
 
@@ -115,8 +121,10 @@ TODO 待補：待工具實作與參數定案後，用 `.claude/skills/domain-dia
 
 ## 6. 已知限制與實機驗證
 
-- TODO 待補：確認以下數字是否為 NicheSam 提供的實測結果，並補上測試日期、專案/圖面來源。
-- 已實測：14 種 Block／693 個插入點掃描；放置 5 個 `OneLevelBased` 灑水頭族群實例。
+- 實測記錄（皆為 @NicheSam 於 issue #100 提供，Revit 2024，來源圖面 `B1F消防撒水.dwg`）：
+  - 第一輪（2026-07 前）：14 種 Block／693 個插入點掃描；放置 5 個 `OneLevelBased` 灑水頭族群實例（`bt11_10` → `噴頭 - 直立型 : 25mm`，B1FL，offset 0）。
+  - 第二輪（2026-08-05）：改用畫面反白的 `A$C87ebd845`（Revit 完整 identity `B1F消防撒水.dwg.A$C87ebd845`），精確命中 484 筆；三點 anchor 驗證（門檻 1mm）最大/平均殘差 0mm；試放 `DB-001`–`DB-020` 共 20 筆並獨立唯讀回查全數通過（位置/旋轉最大差約 1.09×10⁻¹¹ mm／3.41×10⁻¹³°）。
+  - **殘差 0mm 的誠實限制**：只證明 Revit API 兩條 transform 路徑計算一致，不代表原始 DWG 外部真值正確，也不代表 CAD insertion point 的工程用途正確；`A$C87ebd845` 對應噴頭族群亦未經工程語意驗證。
 - 驗證方式：`create` 回傳的每個 `ElementId` **逐一獨立查詢**（非批次假設全部成功），確認元素存在且參數正確。
 - TODO 待補：是否有 duplicate／unsupported_family／transform 不可信案例的實測紀錄？若有，補上具體案例（比照 `dwg-column-import.md` §6 的案例格式）。
 
@@ -139,4 +147,4 @@ TODO 待補：待工具實作與參數定案後，用 `.claude/skills/domain-dia
 
 - 相關 domain：`domain/dwg-column-import.md`（矩形輪廓翻模結構柱，互補而非取代）、`domain/dwg-beam-import.md`（雙線中心線翻模結構樑，互補而非取代）、`domain/tool-capability-boundary.md`（工具能力邊界原則）
 - 相關既有工具（非本流程專屬，但同屬 CAD/ImportInstance 情境，供對照）：`link_cad_to_view`、`link_cads_by_floor`（`MCP-Server/src/tools/cad-link-tools.ts`）——負責把 DWG/DXF 連結到視圖，是本流程 §1 前置條件「CAD 已匯入或連結」的上游步驟，但**不做**本文件描述的 Block 插入點掃描／放置。
-- TODO 待補：本流程 discover/preview/create 對應的實際工具檔名（預期新增於 `MCP-Server/src/tools/`）與 C# 端 executor 路徑，待 @NicheSam 實作 PR 提供後補齊本節與 frontmatter 的 `referenced_by`。
+- 本流程三工具：TS 定義 `MCP-Server/src/tools/cad-block-placement-tools.ts`（`get_dwg_block_instances`／`preview_family_instances_from_dwg_blocks`／`create_family_instances_from_dwg_blocks`），C# executor `MCP/Core/CadBlockPlacementExecutor.cs`，dispatcher cases 於 `MCP/Core/CommandExecutor.cs`。
