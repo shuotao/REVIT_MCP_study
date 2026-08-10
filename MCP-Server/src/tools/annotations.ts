@@ -71,6 +71,9 @@ export const WRITE_PREFIXES: string[] = [
 export const DESTRUCTIVE_NAMES: Set<string> = new Set([
     "delete_element",
     "dedup_detail_elements_in_view",
+    // 會從 MEP 尺寸目錄移除項目。雖然預設 dryRun、會擋下模型仍在使用的尺寸、
+    // 且偵測到誤刪會自動復原，但「移除」本身仍應對 host 誠實標示，讓它有機會加確認關卡。
+    "curate_mep_sizes",
 ]);
 
 type ClassificationHints = Pick<ToolAnnotations, "readOnlyHint" | "destructiveHint"> & {

@@ -14,7 +14,7 @@ Revit MCP lets AI clients call Autodesk Revit tools through the Model Context Pr
 
 ## What is this?
 
-Talk to Revit in plain language. Ask your AI client to *"dimension every wall on this view"* or *"check the curtain-wall elevations"*, and Revit does it — through **169 MCP tools** backed by **75 professional BIM SOPs** (building code, quantity take-off, compliance checks).
+Talk to Revit in plain language. Ask your AI client to *"dimension every wall on this view"* or *"check the curtain-wall elevations"*, and Revit does it — through **172 MCP tools** backed by **76 professional BIM SOPs** (building code, quantity take-off, compliance checks).
 
 **Who it's for:** BIM engineers and architects who use Revit and want AI-assisted, standards-based workflows. You'll need Revit (2022–2026) on Windows and to be comfortable installing an add-in.
 
@@ -33,9 +33,9 @@ Questions or want to show what you built? → **[Discussions](https://github.com
 
 | Item | Count | Source |
 |---|---:|---|
-| Runtime MCP tools | 169 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 75 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
-| Claude skills | 51 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 172 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 76 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
+| Claude skills | 52 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.zh-TW.md`, this file, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and run:
 

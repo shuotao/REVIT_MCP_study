@@ -33,9 +33,9 @@ These counts must be derived from source, not copied by memory.
 
 | Item | Current Count | Source of Truth |
 |---|---:|---|
-| Runtime MCP tools | 169 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 75 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
-| Claude skills | 51 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 172 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 76 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
+| Claude skills | 52 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, `README.zh-TW.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
 
@@ -273,6 +273,7 @@ Read the matching file before applying a workflow or calculation.
 | mechanical part, assembly, BIP, mechanical documentation | `domain/mechanical-part-doc.md` |
 | MEP clash, CSA clash, penetration, beam penetration | `domain/mep-csa-clash-detection.md` |
 | MEP extension, pyRevit MEP guide | `domain/mep-extension-guide.md` |
+| mechanical settings, MEP settings, segments and sizes, duct size, pipe segment, 管徑目錄, 風管尺寸表, fitting angle, pipe slope, 尺寸增減, curate size, CNS 對帳 | `domain/mep-mechanical-settings.md` |
 | parking numbering, auto parking numbering | `domain/parking-auto-numbering.md` |
 | parking clearance, vehicle clearance, 210cm | `domain/parking-clearance-check.md` |
 | parking count, parking space review | `domain/parking-space-review.md` |
@@ -325,7 +326,7 @@ Meta and governance domain files:
 
 ## Skills
 
-The canonical skill catalog is the .claude/skills/ directory itself (51 skills; count table above is the gate).
+The canonical skill catalog is the .claude/skills/ directory itself (52 skills; count table above is the gate).
 
 Use the smallest relevant skill set. If a skill and a domain file conflict on the method, the domain file wins.
 
@@ -399,7 +400,7 @@ QA/QC must cover:
 - client config template portability (no hardcoded user paths; `<YOUR_PROJECT_PATH>` placeholder required)
 - snapshot banner (`data-snapshot="YYYY-MM-DD"`) on date-prefixed `docs/MMDD-*.html`
 - MCP Registry publish consistency (`server.json` ↔ `MCP-Server/package.json` ↔ schema; 3-place version parity) — Phase 7 check `7-11`, see below
-- MCP 2026 compliance (Phase 9): 9-1 every tool declares a non-empty `title` and boolean `readOnlyHint`, with `destructiveHint=true` confined to the allow-list (`delete_element`, `dedup_detail_elements_in_view`); 9-2 every MCP Apps `ui://` resource resolves with the correct MIME (`text/html;profile=mcp-app`) and is self-contained (no external `src`/`href`/`url()` references)
+- MCP 2026 compliance (Phase 9): 9-1 every tool declares a non-empty `title` and boolean `readOnlyHint`, with `destructiveHint=true` confined to the allow-list (`delete_element`, `dedup_detail_elements_in_view`, `curate_mep_sizes`); 9-2 every MCP Apps `ui://` resource resolves with the correct MIME (`text/html;profile=mcp-app`) and is self-contained (no external `src`/`href`/`url()` references)
 
 ## MCP Registry Publish Consistency
 

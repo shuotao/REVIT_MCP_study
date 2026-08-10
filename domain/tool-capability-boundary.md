@@ -1,17 +1,19 @@
 ---
 name: tool-capability-boundary
-description: "MCP 工具能力邊界定義表：定義目前 MCP 工具的不可達邊界（如連結模型元素不可查詢等），讓 AI 在收到相關請求時立即告知使用者限制而非反覆嘗試。當使用者提到連結模型、linked model、結構、能力邊界、boundary、找不到元素、0 結果時觸發。"
+description: "MCP 工具能力邊界定義表：定義目前 MCP 工具的不可達邊界（如連結模型元素不可查詢、Revit UI API／第三方外掛按鈕觸發不可達等），讓 AI 在收到相關請求時立即告知使用者限制而非反覆嘗試。當使用者提到連結模型、linked model、結構、能力邊界、boundary、找不到元素、0 結果、pyRevit、UI API、按鈕觸發、PostableCommandId、Reload 時觸發。"
 metadata:
-  version: "1.0"
-  updated: "2026-03-10"
+  version: "1.1"
+  updated: "2026-08-10"
   created: "2026-03-10"
   contributors:
     - "Admin"
-  references: []  # TODO: 月小聚補法規條號或外部依據
-  related: []  # TODO: 月小聚補相關 domain（檔名）
+  references:
+    - "https://github.com/shuotao/REVIT_MCP_study/issues/110"
+  related:
+    - mep-extension-guide.md
   referenced_by:
     - element-coloring
-  tags: [連結模型, linked model, 結構, structural, 邊界, 能力, boundary, 找不到元素]
+  tags: [連結模型, linked model, 結構, structural, 邊界, 能力, boundary, 找不到元素, pyRevit, UI API, PostableCommandId, 按鈕觸發, Reload]
 ---
 
 # MCP 工具能力邊界定義表
@@ -117,6 +119,20 @@ metadata:
 | **未來方案** | (i) MCP-Server 端加 health-check / heartbeat；(ii) Tool timeout 後自動嘗試 RestartServer；(iii) RevitMCP 面板顯示連線狀態 LED + 最後一次成功 ping 時間戳 |
 
 **lesson 起源**：5/22 dry-run 中段，連續 2 次 `get_active_view` timeout。AI 拒絕假裝知道視圖狀態繼續執行 override（Branch C 啟動），等使用者修復連線後 re-anchor。修復方式是使用者在 Revit 點一下視圖（隱式 active focus 重建）。
+
+### L10: Revit UI API／第三方外掛 UI 命令觸發不可達（2026-08-10 新增，源自 issue #110）
+
+| 項目 | 詳細說明 |
+|------|------|
+| **限制** | 本專案的 bridge 走 `MCP/Core/ExternalEventManager.cs` + Revit **DB API**（Element / Parameter / View / Transaction 等模型資料操作）。**不提供** Ribbon 按鈕觸發、`UIApplication.PostCommand()` 這類 UI API 呼叫、也不代理第三方外掛（如 pyRevit）動態註冊的 UI 命令 |
+| **典型場景** | 使用者想讓 AI「觸發 pyRevit 按鈕」「呼叫 pyRevit → Reload」「透過 MCP 驗證某個 pyRevit `.py` 腳本改完有沒有生效」，省去手動點 Revit 介面的步驟 |
+| **技術事實（issue #110 的 OSI 分析判斷正確，予以承認）** | (a) **L5↔L6 斷層**：Ribbon 按鈕觸發必須發生在 Revit UI Thread；MCP 目前透過 `ExternalEventManager` 只進到 L5（Session）進入點，沒有建立 L6/L7（Presentation/Application）介面，因此無法呼叫 `PostCommand()`。(b) **L6↔L7 斷層**：pyRevit 的按鈕是**動態載入並註冊**的 `IExternalCommand`，不像 Revit 原生命令有固定 `PostableCommandId` 可供外部 API 呼叫——這是 pyRevit 自身的動態註冊機制所致，**不是本專案 bridge 的缺陷，本專案也修不了** |
+| **為什麼不收（維護者裁決，2026-08）** | 提案方案 A（MCP 直接調用 pyRevit 的 IronPython/CPython 執行引擎）會把第三方外掛的執行引擎接進核心 bridge——提案人自己也指出這牽涉 pyRevit 開源／授權問題，風險認定正確。方案 B（C# 端反射取得 pyRevit 註冊的 `RevitCommandId` 再 `PostCommand()`）對 **pyRevit 版本與 Revit 版本雙重脆弱**：任一邊升級都可能讓反射目標消失或改名。本專案要同時維護 R22–R26 五個 build config（見 CLAUDE.md「Build Commands」），把這種雙重版本脆弱的相容性負擔接進核心，成本與工具價值不成比例 |
+| **AI 應對策略** | 收到「觸發 pyRevit 按鈕」「MCP 幫我按 Reload」「用 MCP 呼叫某個外掛命令」類請求時，**立即說明這是 UI API 範圍外**，不要嘗試繞道（例如自行組 WebSocket payload 呼叫 `UIApplication`，這違反 CLAUDE.md「Do Not Bypass MCP」guard rail），也不要反覆嘗試不同工具名稱去猜 |
+| **替代路徑（正解）** | 若目的其實是「驗證某段 pyRevit 腳本邏輯有沒有效」，**不需要隔著 UI 按鈕測**——把該段邏輯**收編成 MCP 工具**直接呼叫、直接斷言結果，跳過 UI 觸發這一層。本專案已有不少工具就是這樣從 pyRevit 生態圈收編而來（研究路徑與案例見 `domain/mep-extension-guide.md`）。具體做法：先描述「我想驗證的邏輯是 X」，再依既有工具設計流程（例如已封裝獨立 `.cs`/DLL 命令時走 `dll-to-mcp-tool` skill）把邏輯包成可從 MCP 直接呼叫、可用回傳值斷言結果的工具，而不是驅動 UI 按鈕再靠人眼確認畫面 |
+| **未來方案** | 若 Revit API 或 MCP 官方 SDK 未來釋出穩定、跨版本相容的 UI 命令 orchestration 介面（而非反射 hack），可重新評估收編；在此之前維持不收 |
+
+**lesson 起源**：issue #110（CyberPotato0416，2026-08-01 提出）。提案人以 OSI 七層模型精確定位出 L5↔L6、L6↔L7 兩處介面斷層，根因判斷（pyRevit 按鈕動態註冊、無固定 `PostableCommandId`）正確，分析品質值得肯定。維護者裁決此為範圍外（不落地方案 A/B），但保留其技術分析價值，並在此記錄替代路徑（邏輯收編為 MCP 工具），供未來類似請求参考。
 
 ---
 

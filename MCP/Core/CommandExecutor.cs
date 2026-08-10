@@ -85,6 +85,18 @@ namespace RevitMCP.Core
                         result = GetMepSegmentsAndSizes(parameters);
                         break;
 
+                    case "get_mep_settings":
+                        result = GetMepSettings(parameters);
+                        break;
+
+                    case "get_mep_size_usage":
+                        result = GetMepSizeUsage(parameters);
+                        break;
+
+                    case "curate_mep_sizes":
+                        result = CurateMepSizes(parameters);
+                        break;
+
 
                     case "create_floor":
                         result = CreateFloor(parameters);
@@ -272,6 +284,14 @@ namespace RevitMCP.Core
 
                     case "get_room_daylight_info":
                         result = GetRoomDaylightInfo(parameters);
+                        break;
+
+                    case "sync_room_ceiling_finish_from_ceilings":
+                        result = SyncRoomCeilingFinishFromCeilings(parameters);
+                        break;
+
+                    case "remap_room_finish_codes":
+                        result = RemapRoomFinishCodes(parameters);
                         break;
 
                     case "get_view_templates":

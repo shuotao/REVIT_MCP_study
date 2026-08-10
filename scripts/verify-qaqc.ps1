@@ -966,7 +966,7 @@ Write-Host "──────────────────────�
 # already exists. Returns $null if the built registry is unavailable so the caller can Skip
 # instead of failing the whole phase.
 function Get-ToolAnnotationReport {
-    $nodeScript = "import('./MCP-Server/build/tools/index.js').then(m=>{const tools=m.registerRevitTools();const allow=new Set(['delete_element','dedup_detail_elements_in_view']);const missingTitle=[];const missingReadOnlyHint=[];const badDestructive=[];for(const t of tools){const title=t.title;if(typeof title!=='string'||title.trim().length===0)missingTitle.push(t.name);const ro=t.annotations?t.annotations.readOnlyHint:undefined;if(typeof ro!=='boolean')missingReadOnlyHint.push(t.name);const destructive=t.annotations?t.annotations.destructiveHint:undefined;if(destructive===true&&!allow.has(t.name))badDestructive.push(t.name);}console.log(JSON.stringify({total:tools.length,missingTitle:missingTitle,missingReadOnlyHint:missingReadOnlyHint,badDestructive:badDestructive}));}).catch(()=>process.exit(2))"
+    $nodeScript = "import('./MCP-Server/build/tools/index.js').then(m=>{const tools=m.registerRevitTools();const allow=new Set(['delete_element','dedup_detail_elements_in_view','curate_mep_sizes']);const missingTitle=[];const missingReadOnlyHint=[];const badDestructive=[];for(const t of tools){const title=t.title;if(typeof title!=='string'||title.trim().length===0)missingTitle.push(t.name);const ro=t.annotations?t.annotations.readOnlyHint:undefined;if(typeof ro!=='boolean')missingReadOnlyHint.push(t.name);const destructive=t.annotations?t.annotations.destructiveHint:undefined;if(destructive===true&&!allow.has(t.name))badDestructive.push(t.name);}console.log(JSON.stringify({total:tools.length,missingTitle:missingTitle,missingReadOnlyHint:missingReadOnlyHint,badDestructive:badDestructive}));}).catch(()=>process.exit(2))"
     Push-Location $projectRoot
     $result = & node --input-type=module -e $nodeScript 2>$null
     $exit = $LASTEXITCODE
@@ -1013,7 +1013,7 @@ elseif (-not ($annotationReport = Get-ToolAnnotationReport)) {
     Write-Check "Tool annotation coverage: built registry evaluates" $false "build/tools/index.js exists but registerRevitTools() failed to evaluate - run: node --input-type=module -e ""import('./MCP-Server/build/tools/index.js').then(m=>m.registerRevitTools())"""
 }
 else {
-    $destructiveAllowList = @('delete_element', 'dedup_detail_elements_in_view')
+    $destructiveAllowList = @('delete_element', 'dedup_detail_elements_in_view', 'curate_mep_sizes')
     $missingTitle = @($annotationReport.missingTitle)
     $missingReadOnlyHint = @($annotationReport.missingReadOnlyHint)
     $badDestructive = @($annotationReport.badDestructive)
