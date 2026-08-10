@@ -13,12 +13,12 @@ Authoritative, command-first playbook to make the MCP Registry publish
 
 | Fact | Value |
 | --- | --- |
-| Repo root | `/Users/shuotaochiang/desktop/revit_mcp/REVIT_MCP_study` |
+| Repo root | `<YOUR_PROJECT_PATH>` (wherever you cloned this repo; no fixed machine path) |
 | GitHub repo | https://github.com/shuotao/REVIT_MCP_study |
 | GitHub owner | `shuotao` |
 | Registry server name | `io.github.shuotao/revit-mcp-server` |
 | npm package | `@shuotao/revit-mcp-server` (scoped, public) |
-| Current version | `1.0.2` |
+| Current version | `1.6.0` |
 | Metadata file | `server.json` (repo root) |
 | npm package dir | `MCP-Server/` (entry `build/index.js`, transport `stdio`) |
 | Auto-publish | `.github/workflows/publish-mcp.yml` (trigger: `v*` tag) |
@@ -81,7 +81,7 @@ human-gated fallback for debugging or a first dry run.
 Everything runs in CI. Prerequisite: `NPM_TOKEN` secret is set (section 2).
 
 ```bash
-cd /Users/shuotaochiang/desktop/revit_mcp/REVIT_MCP_study
+cd <YOUR_PROJECT_PATH>
 git tag v1.0.0
 git push origin v1.0.0
 ```
@@ -104,7 +104,7 @@ Run from the repo root. Requires an interactive terminal (npm login + GitHub
 OAuth). Use this to validate the pipeline once, or when CI is unavailable.
 
 ```bash
-cd /Users/shuotaochiang/desktop/revit_mcp/REVIT_MCP_study
+cd <YOUR_PROJECT_PATH>
 
 # 0. Gate first — never publish if this fails
 python3 scripts/validate_publish_consistency.py
@@ -137,7 +137,7 @@ validates that the referenced npm package/version exists.
 ```bash
 # npm artifact is live
 open https://www.npmjs.com/package/@shuotao/revit-mcp-server
-npm view @shuotao/revit-mcp-server version      # -> 1.0.2 (current)
+npm view @shuotao/revit-mcp-server version      # -> 1.6.0 (current)
 
 # Registry entry is live
 curl -s "https://registry.modelcontextprotocol.io/v0/servers?search=io.github.shuotao/revit-mcp-server" | jq .
@@ -147,7 +147,7 @@ mcp-publisher status io.github.shuotao/revit-mcp-server
 ```
 
 Expect the Registry response to contain `io.github.shuotao/revit-mcp-server`
-with the current `version` (`1.0.2`) and a `packages[]` entry pointing at
+with the current `version` (`1.6.0`) and a `packages[]` entry pointing at
 `@shuotao/revit-mcp-server` on npm.
 
 ---
