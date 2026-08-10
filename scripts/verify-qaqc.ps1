@@ -700,7 +700,7 @@ $scanPaths = @(
     "$projectRoot\docs\DOCUMENT_AUDIENCE_INVENTORY.md",
     "$projectRoot\docs\BIM_MCP\*.html",
     "$projectRoot\docs\BIM_MCP\reference\*.html",
-    "$projectRoot\docs\BIM_MCP\_shared.js"
+    "$projectRoot\docs\BIM_MCP\shared.js"
 )
 
 # Known claim-site patterns — ONLY match GRAND-TOTAL claim phrases (not "5 個 ARCHI 工具" type batch counts).

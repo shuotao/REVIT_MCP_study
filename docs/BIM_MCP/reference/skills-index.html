@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Skills 索引（52 個）· BIM_MCP</title>
-<meta property="og:title" content="RevitMCP Skills 索引：52 個編排層工作流">
-<meta property="og:description" content="52 個 Skill × 描述 × 觸發關鍵字 × 對應 Domain 表。Skill 是編排（何時/順序），Domain 是知識（法規/SOP）。從 CLAUDE.md 抽出。">
+<title>Skills 索引（53 個）· BIM_MCP</title>
+<meta property="og:title" content="RevitMCP Skills 索引：53 個編排層工作流">
+<meta property="og:description" content="53 個 Skill × 描述 × 觸發關鍵字 × 對應 Domain 表。Skill 是編排（何時/順序），Domain 是知識（法規/SOP）。從 CLAUDE.md 抽出。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
@@ -118,7 +118,7 @@
 </nav>
 
 <header class="bim-hero">
-  <div class="bim-hero-eyebrow">SKILLS INDEX <span class="accent">52 個</span></div>
+  <div class="bim-hero-eyebrow">SKILLS INDEX <span class="accent">53 個</span></div>
   <h1 class="bim-hero-title">Skills · <span class="accent">編排層</span><br>何時觸發 / 什麼順序</h1>
   <p class="bim-hero-sub">Skills 是<strong>編排</strong>（orchestration），不是知識本身。一個 Skill 規定「<em>什麼關鍵字觸發 / 呼叫哪些工具 / 套用哪個 Domain SOP</em>」。Skill metadata 永遠常駐於 AI Client context；body 與 Domain 被引用時才載入。本頁列 50 個 Skill 的描述、觸發關鍵字與對應 Domain。</p>
 </header>
@@ -812,6 +812,20 @@
 
   <div class="skill-card">
     <div>
+      <div class="skill-name">/loop-up</div>
+      <div class="skill-cat">E · 開發運維</div>
+    </div>
+    <div>
+      <div class="skill-desc">多模型分工的自動迴圈修正：Fable 規劃、Sonnet 實作、Haiku 唯讀觀察記錄、高階模型唯讀稽核驗收；失敗時從最前端的 prompt 回頭修正再重跑，同階段三次不過就升級 Fable advisor。全程 human out of the loop，但 commit／push／發佈／刪除仍須停下來問人。修改驗證工具本身時，驗收強制包含負向測試以防「永遠 PASS」的假綠燈。</div>
+      <div class="skill-meta">
+        <span class="trigger-tag">loop-up</span><span class="trigger-tag">多模型分工</span><span class="trigger-tag">自動迴圈修正</span><span class="trigger-tag">prompt-first correction</span><span class="trigger-tag">迴圈驗收</span>
+        <a href="domain-index.html#qa-checklist" class="domain-link">→ qa-checklist</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="skill-card">
+    <div>
       <div class="skill-name">/claude-md-sync</div>
       <div class="skill-cat">E · 開發運維</div>
     </div>
@@ -945,6 +959,7 @@
       <tr><td><code>/build-revit</code></td><td>E 運維</td><td>多版本 build</td><td>(deployment-guide)</td></tr>
       <tr><td><code>/deploy-addon</code></td><td>E 運維</td><td>DLL 部署</td><td>(deployment-guide)</td></tr>
       <tr><td><code>/claude-md-sync</code></td><td>E 運維</td><td>CLAUDE.md 雙向同步</td><td>path-maintenance-qa</td></tr>
+      <tr><td><code>/loop-up</code></td><td>E 運維</td><td>多模型分工自動迴圈修正</td><td>qa-checklist</td></tr>
       <tr><td><code>/hj-pr-proposal</code></td><td>E 運維</td><td>domain/skill 轉譯為 HJ PR 草案</td><td>skill-authoring-standard</td></tr>
       <tr><td><code>/core-reload-dev</code></td><td>F 進階</td><td>opt-in 熱重載開發迭代</td><td>core-reload-boundary</td></tr>
       <tr><td><code>/domain-diagram</code></td><td>F 進階</td><td>domain SOP 流程圖像化</td><td>domain-flow-visualization</td></tr>
@@ -958,7 +973,7 @@
 <!-- ============================================ -->
 <section data-collapse class="bim-section bim-anchor" id="why-not-merge">
   <div class="bim-section-eyebrow">RATIONALE · 為什麼不每個 Domain 都升級成 Skill</div>
-  <h2 class="bim-section-title">52 Skill vs 76 Domain — 為什麼數量不同？</h2>
+  <h2 class="bim-section-title">53 Skill vs 76 Domain — 為什麼數量不同？</h2>
 
   <div class="bim-grid bim-grid-2">
     <div class="bim-card bim-card-bad">
@@ -968,7 +983,7 @@
     </div>
     <div class="bim-card bim-card-ok">
       <h4 style="color:var(--ok);">✓ 本專案做法</h4>
-      <p>Skill = 編排（52 個 metadata 常駐）；Domain = 知識（76 markdown，被引用才載入）。</p>
+      <p>Skill = 編排（53 個 metadata 常駐）；Domain = 知識（76 markdown，被引用才載入）。</p>
       <p style="font-size:13px;color:var(--text-muted);">知識複用，編排薄層。一個防火 SOP 被三個 Skill 共享，原文只有一份。</p>
     </div>
   </div>
