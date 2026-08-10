@@ -582,6 +582,17 @@ namespace RevitMCP.Core
                         result = DwgColumnExecutor.CreateColumnsFromDwg(_uiApp.ActiveUIDocument.Document, parameters);
                         break;
 
+                    // === CAD 圖塊點位放置模組（Block/INSERT → FamilyInstance，issue #100/#113）===
+                    case "get_dwg_block_instances":
+                        result = CadBlockPlacementExecutor.GetDwgBlockInstances(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+                    case "preview_family_instances_from_dwg_blocks":
+                        result = CadBlockPlacementExecutor.PreviewFamilyInstancesFromDwgBlocks(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+                    case "create_family_instances_from_dwg_blocks":
+                        result = CadBlockPlacementExecutor.CreateFamilyInstancesFromDwgBlocks(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+
                     // === CAD 連結模組 ===
                     case "link_cad_to_view":
                         result = CadLinkExecutor.LinkCadToView(_uiApp.ActiveUIDocument.Document, parameters);
