@@ -33,16 +33,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if "/api/" in (args[0] if args else ""):
             print(f"  [API] {format % args}")
 
-    def send_cors_headers(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
-
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_cors_headers()
-        self.end_headers()
-
     def do_GET(self):
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/")
@@ -53,13 +43,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 with open(SETS_FILE, "r", encoding="utf-8") as f:
                     data = f.read()
                 self.send_response(200)
-                self.send_cors_headers()
                 self.send_header("Content-Type", "application/json; charset=utf-8")
                 self.end_headers()
                 self.wfile.write(data.encode("utf-8"))
             else:
                 self.send_response(404)
-                self.send_cors_headers()
                 self.send_header("Content-Type", "application/json; charset=utf-8")
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": "尚未匯出任何 Set"}).encode())
@@ -71,7 +59,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 with open(HTML_FILE, "r", encoding="utf-8") as f:
                     content = f.read()
                 self.send_response(200)
-                self.send_cors_headers()
                 self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.end_headers()
                 self.wfile.write(content.encode("utf-8"))
@@ -102,7 +89,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
             with open(file_path, mode, **({"encoding": "utf-8"} if mode == "r" else {})) as f:
                 data = f.read()
             self.send_response(200)
-            self.send_cors_headers()
             self.send_header("Content-Type", content_type)
             self.end_headers()
             if isinstance(data, str):
@@ -140,7 +126,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "sets": set_names
                 }, ensure_ascii=False)
                 self.send_response(200)
-                self.send_cors_headers()
                 self.send_header("Content-Type", "application/json; charset=utf-8")
                 self.end_headers()
                 self.wfile.write(resp.encode("utf-8"))
@@ -148,7 +133,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
             except Exception as e:
                 err = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False)
                 self.send_response(500)
-                self.send_cors_headers()
                 self.send_header("Content-Type", "application/json; charset=utf-8")
                 self.end_headers()
                 self.wfile.write(err.encode("utf-8"))
@@ -161,7 +145,7 @@ def main():
         sys.stdout.reconfigure(encoding='utf-8')
     os.chdir(WORKSPACE)
 
-    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+    with socketserver.TCPServer(("127.0.0.1", PORT), Handler) as httpd:
         httpd.allow_reuse_address = True
         url = f"http://localhost:{PORT}"
         print("=" * 60)

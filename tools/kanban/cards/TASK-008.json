@@ -1,7 +1,7 @@
 {
   "id": "TASK-008",
   "title": "執行 Monstrare DOD 驗證合約與綠建材 Skill 端到端整合測試",
-  "content": "### 任務說明\n作為 TASK-005.1～TASK-005.11 的總驗證卡，逐一執行 TABC 資料檢索、需求對齊、Revit 計畫確認、模型寫入、回查與異動摘要驗證。\n\n### 目前進度\n- [x] 情境 1：Wall 板材＋塗料端到端流程已通過\n- [ ] 情境 2～9：待完成工具與 Revit 實測\n- [ ] 情境 10：Wall Multi-Material 基礎通過，跨品類與 Mat3 待測\n- [ ] 情境 11：新建 Type／覆蓋既有材質雙路徑待測\n\n### Sign-off Gates (DOD)\n- [ ] architecture: 11 情境均符合正式 MCP Tool＋C# dispatch 架構\n- [ ] test_passed: 11 張子卡皆具端到端驗證證據\n- [ ] code_review: 使用者完成最終簽核後才可移至 Done",
+  "content": "### 任務說明\n作為 TASK-005.1～TASK-005.11 的總驗證卡（2026-08-11 移除 TASK-005.9 後實際為 10 張情境子卡），逐一執行 TABC 資料檢索、需求對齊、Revit 計畫確認、模型寫入、回查與異動摘要驗證。\n\n### 目前進度（2026-08-11 更新，反映看板重整＋TASK-005.4 端到端實測後的實際狀態）\n- [x] 情境 1（005.1）：Wall 板材＋塗料端到端流程已通過（含併入的 TASK-009）\n- [x] 情境 2（005.2）：Floor 地磚＋打底＋600×600 Surface Pattern 端到端流程 2026-08-11 已通過\n- [ ] 情境 3（005.3）：底層通用工具已具備，雙階層參數（Material＋Type）專屬驗收案例尚未實測\n- [x] 情境 4（005.4）：Floor 含填縫劑複合 Set 端到端流程 2026-08-11 已通過（含新增的 GreenMaterial_Adhesive/Sealant/Waterproofing 欄位），Wall 案例待測\n- [ ] 情境 5～8（005.5～005.8）：底層通用工具（create_multi_layer_type／create_single_material_type）已具備，但各情境專屬驗收案例（單選非模型材料、厚度矩陣、門窗 RFA、天花板）尚未逐一實測\n- [x] 情境 10（005.10）：Mat3 輔助材料槽位、Floors Multi-Material 路徑已有實測佐證（併入的 TASK-010/011，另有 005.4 端到端案例佐證 Mat 槽位含輔助材料）；Ceilings 案例與使用者最終複審待完成\n- [ ] 情境 11（005.11）：新建 Type／覆蓋既有材質雙路徑待測\n\n### Sign-off Gates (DOD)\n- [ ] architecture: 全部情境均符合正式 MCP Tool＋C# dispatch 架構\n- [ ] test_passed: 各子卡皆具端到端驗證證據（目前 3/10 完整通過，其餘部分具工具/佐證但缺專屬案例）\n- [ ] code_review: 使用者完成最終簽核後才可移至 Done",
   "stage": "implementing",
   "risk": "high",
   "owner": "shuotao",
@@ -14,7 +14,7 @@
   "dependsOn": [
     "TASK-007"
   ],
-  "order": 8,
+  "order": 12,
   "readiness": {
     "problem_clear": true,
     "non_goals_clear": false,

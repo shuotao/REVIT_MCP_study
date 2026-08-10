@@ -12,7 +12,7 @@
   "userStory": "US-5: Revit 材料自動化寫入工具",
   "track": "integration",
   "dependsOn": ["TASK-005.1", "TASK-005.2"],
-  "order": 5.6,
+  "order": 8.6,
   "readiness": {"problem_clear": true, "non_goals_clear": true, "acceptance_testable": true, "files_known": true, "scope_defined": true, "verification_contract": true, "human_approval_recorded": false},
   "gates": {"product": true, "ui": false, "architecture": false, "security": true, "test": false, "code_review": false}
 }

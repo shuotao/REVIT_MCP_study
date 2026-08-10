@@ -130,7 +130,11 @@ namespace RevitMCP.Core
                     case "create_multi_layer_type":
                         result = CreateMultiLayerType(parameters);
                         break;
-                    
+
+                    case "set_material_surface_pattern":
+                        result = SetMaterialSurfacePattern(parameters);
+                        break;
+
                     case "create_door":
                         result = CreateDoor(parameters);
                         break;

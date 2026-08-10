@@ -896,6 +896,42 @@
     }
   },
   {
+    "id": "TASK-013",
+    "title": "檢索平台新增「加入既有 Set」、「另存/開啟專案檔」與可拖曳材料層級設定三項功能，並新增 /GMweb open 指令",
+    "content": "### 任務說明\n於 green-material-showcase.html 新增三項材料 Set 管理功能：\n1. 「加入既有 Set」：儲存材料 Set 彈窗新增目標下拉選單，可選擇建立新 Set 或加入既有 Set（自動去重、略過重複項目）；Set 管理器每張卡片新增「➕ 加入目前勾選」快速按鈕。\n2. 「另存/開啟專案檔」：Set 管理器新增「💾 另存專案檔」「📂 開啟專案檔」，優先使用 File System Access API 讓使用者自選存檔位置，不支援時退回下載/選檔相容模式；開啟時可選擇取代或合併目前的 Set 清單。\n3. 「材料層級設定」：當 Set 勾選 Wall/Floor 且選擇「單一組合」時，彈出視窗讓使用者為每項材料指定 Structure/Substrate/Finish 角色，並可直接拖曳整列調整順序；Core Boundary 分界線改為可拖曳的細欄位列，預設固定放在 Structure 角色材料的正上方與正下方各一條（對應 Revit Edit Assembly 對話框的實際行為），結果存入 Set 的 `layerComposition.sequence` 欄位。\n\n同時新增 `/GMweb open` 指令（`.claude/skills/GMweb/SKILL.md`），提供比 `/GM search` 更精簡的單一動作入口直接開啟檢索平台網頁。\n\n### Readiness (DOR)\n- [x] problem_clear: 使用者需要能疊加勾選材料到既有 Set、跨專案切換不同 Set 收藏、以及明確指定複合構造材料的層級角色\n- [x] scope_defined: 三項功能皆限定在 green-material-showcase.html 前端 JS/HTML，不涉及 Revit 寫入邏輯\n\n### Sign-off Gates (DOD)\n- [x] architecture: 沿用既有 localStorage + exported_material_sets.json 儲存模式，`layerComposition` 為新增欄位、向下相容\n- [x] ui: 三項功能與既有 Set 管理器視覺風格一致（配色、modal 結構）\n- [x] test_passed: Node 語法檢查通過；`verify-qaqc.ps1 -SkipBuild -SkipDeploy` 全數 PASS（多次執行）\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "verify",
+    "risk": "low",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-06",
+    "epic": "Epic-1: TABC 綠建材資料庫與法規模組化",
+    "userStory": "US-2: 檢索平台介面與操作優化工具",
+    "track": "frontend",
+    "dependsOn": [
+      "TASK-002",
+      "TASK-004"
+    ],
+    "order": 3,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": false
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": false
+    }
+  },
+  {
     "id": "TASK-003",
     "title": "精準對映 Revit 元件類別 (Walls/Floors/Ceilings/Windows) 之綠建材共享參數規範",
     "content": "### 任務說明\n依據 Revit 建築元件類別（牆面 Walls、地坪 Floors、天花板 Ceilings、門窗與幕牆 Windows/Doors/CurtainPanels、材料 Materials、非幾何輔助材料 Adhesives/Sealants），完成全量 11 大工程情境（包含牆體塗料、地磚 Hatch、單選非模型材料、門窗 RFA 備份等）之建築 Agent 優化分析，建立 19 個共享參數檔 GreenMaterial_SharedParams.txt 與全情境對映規範 Master 文件。\n\n### Readiness (DOR)\n- [x] problem_clear: 完成 11 大 BIM 元件工程情境之 Agent 評估與優化建議\n- [x] scope_defined: 定義標章身份、物化性能、算量評定、CNS 驗證、非幾何輔助材料等 5 大群組 19 個共享參數\n\n### Sign-off Gates (DOD)\n- [x] architecture: 完成全情境（情境 1~11）建築 Agent 剖析與 Master Mapping 表格\n- [x] test_passed: 通過 19 個共享參數 GUID 與語法自動化校驗\n- [x] code_review: 完成 SharedParams 擴充與文件產出修訂",
@@ -912,7 +948,7 @@
       "TASK-001",
       "TASK-002"
     ],
-    "order": 3,
+    "order": 4,
     "readiness": {
       "problem_clear": true,
       "non_goals_clear": true,
@@ -947,7 +983,7 @@
     "dependsOn": [
       "TASK-003"
     ],
-    "order": 4,
+    "order": 5,
     "readiness": {
       "problem_clear": true,
       "non_goals_clear": true,
@@ -967,6 +1003,80 @@
     }
   },
   {
+    "id": "TASK-014",
+    "title": "計畫引擎新增 layerComposition 覆寫解析與確定性 Mat 槽位分配規則，取代 AI 臨場判斷",
+    "content": "### 任務說明\n`generate_revit_injection_plan.py` 新增兩項確定性邏輯，取代先前由 AI Agent 在對話當下臨場判斷的做法：\n\n1. **layerComposition 覆寫解析**：`/GMimport` 產出計畫時，若 Set 帶有 layerComposition.sequence（來自 TASK-013 的材料層級設定），優先採用其角色與順序覆寫關鍵字啟發式判斷（`analyze_material_mapping`）與品類覆寫（`_CATEGORY_HINT_FALLBACK`）的結果，並依此順序重排 `materialsMapping`，使其真實反映 Revit CompoundStructure 的物理層序。\n2. **Mat 槽位分配規則**（`_assign_material_slots`）：材料數超過共享參數槽位上限時，依 `Structure > Finish > Substrate > Other` 固定優先序、同優先序依構造順序決定，寫入 `plan['materialSlotAssignment']` 與每個 materialsMapping 項目的 `assignedSlot`，取代先前的臨場判斷。\n\n已用「材料Set_86_4項」/「室內防水隔音地坪」兩個實際 Set（4 種材料：綠混凝土/INOVAR木質地板/台達玻璃棉/建築防水用聚胺酯）反覆重跑驗證，結果與已寫入 Revit 的資料一致。\n\n### Readiness (DOR)\n- [x] problem_clear: 舊有的 Mat1=Structure/Mat2=Finish 固定假設與槽位選擇邏輯無法處理 3 種以上材料或使用者自訂層級的情境\n- [x] scope_defined: 純 Python 計畫引擎邏輯變更，不涉及 Revit 寫入\n\n### Sign-off Gates (DOD)\n- [x] architecture: 新增函式（`_load_layer_composition`/`_resolve_layer_composition_mapping`/`_assign_material_slots` 等）不影響既有無 layerComposition Set 的行為（回歸測試確認一致）\n- [x] test_passed: py_compile 通過；針對 4 材料與合成 7 材料情境跑過 `_assign_material_slots` 單元驗證，結果符合預期優先序\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "verify",
+    "risk": "low",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-06",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-4: 推動至 Revit 內容計畫與需求對齊",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-004",
+      "TASK-013"
+    ],
+    "order": 6,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": false
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": false
+    }
+  },
+  {
+    "id": "TASK-015",
+    "title": "共享參數 schema 擴充為 v5（Mat1~Mat6 六槽位，64 欄位），全鏈更新並修正層順序與槽位順序混用的執行錯誤",
+    "content": "### 任務說明\n因使用者要求「Set 有幾種材料，槽位數就該等於材料數」，將 GreenMaterial_SharedParams.txt 從 v4（Mat1~Mat3，31 欄位）擴充為 v5（Mat1~Mat6，64 欄位，新增 Mat4/5/6 共 33 個欄位、GUID 銜接既有編號、cp950 編碼保留），同步更新：\n- C# `CommandExecutor.GreenMaterial.cs` 的 `SetGreenMaterialTypeParameters` 支援 mat4/mat5/mat6\n- MCP tool schema（`visualization-tools.ts`/`base-tools.ts`）新增 mat4~mat6 欄位定義\n- `generate_revit_injection_plan.py` 的 `_assign_material_slots` 由 3 槽位擴充為 6 槽位（見 TASK-014）\n- `domain/green-material-parameter-schema.md`、`.claude/skills/import/SKILL.md` 同步更新為 v5/六槽位規則\n\n已重新 build（Revit 2024, 0 error）、部署 DLL、rebuild MCP-Server 並重新連線，於獨立測試檔案端到端驗證：4 種材料全數寫入 Mat1~Mat4（34 個共享參數、0 缺漏），`get_element_info` 核對正確。\n\n過程中額外修正一項執行錯誤：`/import revit` 執行時把「Mat 槽位編號順序」誤用為「CompoundStructure 實體構造層順序」（兩者互相獨立，前者是共享參數 metadata 分類，後者是實體疊層順序），導致 Core Boundary 沒有正確落在 Finish 層外側（`ExteriorShellLayers` 回傳 0）。已在 `.claude/skills/import/SKILL.md` 加入明確區分兩種順序的說明，以及建立後檢查 `ExteriorShellLayers`/`InteriorShellLayers` 是否為 0 的自我檢查步驟，並在測試檔案內建立修正版 Type 驗證正確。\n\n### Readiness (DOR)\n- [x] problem_clear: 3 槽位上限導致材料數 > 3 時，超出的材料無法有共享參數紀錄\n- [x] scope_defined: 選定「固定擴充到 6 槽位（對應 Revit CompoundStructure 6 種 Layer Function），槽位數等於材料數但不強制寫滿」的方案，而非無上限動態槽位\n\n### Sign-off Gates (DOD)\n- [x] architecture: 新增 33 個共享參數採全新 GUID，純新增不修改既有 Mat1/2/3 定義，非破壞性變更\n- [x] test_passed: `validate_shared_params.py` 確認 64 個參數無重複 GUID；Revit 2024 build 0 error；MCP-Server rebuild 確認 mat4/5/6 存在於編譯輸出；測試檔案內端到端驗證 4 材料全數寫入 Mat1~Mat4 並修正層順序錯誤\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "verify",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-06",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-009",
+      "TASK-010",
+      "TASK-011",
+      "TASK-014"
+    ],
+    "order": 7,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": false
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": false
+    }
+  },
+  {
     "id": "TASK-005.1",
     "title": "情境 1｜牆體構造與塗料 Set 導入（OST_Walls）",
     "content": "### 任務說明\n將牆板／石膏板／矽酸鈣板與塗料組成的綠建材 Set 導入 Revit，建立獨立的 TABC Wall Type。板材固定配置於 Structure [1]，塗料配置於 Finish 1 [4]／Finish 2 [5]，並將綠建材履歷寫入 Type Identity Data。\n\n### 已納入既有 TASK-005 技術模組\n- [x] load_shared_parameters：31 個共享參數綁定 Walls Type\n- [x] duplicate_element_type：複製既有含粉刷層 Wall Type，材質名稱參數化\n- [x] set_green_material_type_parameters：Mat1 板材、Mat2 塗料多槽位寫入\n- [x] get_all_materials：建立後回查 Project Materials\n\n### Sign-off Gates (DOD)\n- [x] architecture: 使用正式 MCP Tool＋C# dispatch，不使用 side-channel\n- [x] test_passed: Revit 2024 已完成牆板＋塗料端到端實測\n- [ ] code_review: 待使用者最終複審與簽核",
@@ -982,7 +1092,43 @@
     "dependsOn": [
       "TASK-004"
     ],
-    "order": 5.1,
+    "order": 8.1,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": false
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": false
+    }
+  },
+  {
+    "id": "TASK-009",
+    "title": "[已併入 TASK-005.1] 修復綠建材 Set 導入 Revit 的 MCP 工具串接缺口，並將 /GMimport /import revit 正式 Slash Command 化",
+    "content": "### ⚠️ 2026-08-11 看板重整：本卡內容已併入 TASK-005.1\n本卡與 TASK-005.1（情境1｜牆體構造與塗料 Set 導入）描述的是同一件工作——建立 duplicate_element_type / get_all_materials / set_green_material_type_parameters 等基礎工具，並用 Wall 板材＋塗料 Set 端到端實測。TASK-005.1 的內文已引用這批工具為「已納入既有 TASK-005 技術模組」。保留本卡作為歷史紀錄，後續請只在 TASK-005.1 追蹤此範疇的簽核狀態，不要在兩張卡上重複勾選。\n\n---\n\n### 任務說明\n修復綠建材 Set 導入 Revit 的 MCP 串接缺口，建立情境 1／10 所需的共同基礎：材料回查、Type 複製、材質名稱參數化、多槽位共享參數寫入，以及正式 /GMimport → /import revit 流程。\n\n### 已完成修復\n- [x] 註冊 get_all_materials、duplicate_element_type、set_green_material_type_parameters\n- [x] 修正共享參數檔編碼與 licno 後綴比對\n- [x] 依 Master DB subCategory 判斷 Structure／Finish\n- [x] 建立 /GM、/GMimport、/import revit Skill\n\n### Sign-off Gates (DOD)\n- [x] architecture: 使用正式 TS Tool＋C# dispatch，未繞過 MCP bridge\n- [x] test_passed: 情境 1 Wall 板材＋塗料端到端實測通過\n- [ ] code_review: 隨 TASK-005.1 一併複審（見該卡，尚待使用者簽核）",
+    "stage": "done",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.1",
+      "TASK-005.10"
+    ],
+    "order": 8.11,
     "readiness": {
       "problem_clear": true,
       "non_goals_clear": true,
@@ -1004,8 +1150,8 @@
   {
     "id": "TASK-005.2",
     "title": "情境 2｜地磚與表面填充 Set 導入（OST_Floors）",
-    "content": "### 任務說明\n將陶瓷地磚、木地板等 Set 導入 Floor Type。面材配置於 Finish 1 [4]，泥作打底配置於 Substrate [2]，並依產品規格建立 600×600 網格或木紋 Surface Pattern。\n\n### 驗收條件\n- [ ] 可複製既有 Floor Type 並建立 TABC 新型別\n- [ ] 地磚預設 15 mm、打底預設 20 mm，且可由計畫覆寫\n- [ ] Surface Pattern 不重複建立並能正確套入材質\n- [ ] 綠建材共享參數成功綁定 Floors Type 並可回查\n- [ ] 產出 Element ID、Type、材質與厚度異動摘要",
-    "stage": "ready",
+    "content": "### 任務說明\n將陶瓷地磚、木地板等 Set 導入 Floor Type。面材配置於 Finish 1 [4]，泥作打底配置於 Substrate [2]，並依產品規格建立 600×600 網格或木紋 Surface Pattern。\n\n### 已納入既有 TASK-005 技術模組\n- [x] create_multi_layer_type：Floor 多層構造（Finish1 地磚 + Substrate 打底），厚度可覆寫（預設 15mm/20mm 已在 generate_revit_injection_plan.py 定案）\n- [x] create_single_material_type：情境 2「各別建立」Floor 型別\n- [x] load_shared_parameters / set_green_material_type_parameters：沿用既有綁定與寫入邏輯（Floors 品類）\n- [x] set_material_surface_pattern（新增）：建立/重用 Model 目標 FillPattern（Grid 600×600 或 Wood 木紋），依名稱去重，套入材質 Surface/Cut 樣式\n- [x] `/import` skill Scenario 2/3 新增 Surface Pattern 步驟（5b / 6b）\n\n### 驗收條件\n- [x] 可複製既有 Floor Type 並建立 TABC 新型別（沿用既有多層構造工具）\n- [x] 地磚預設 15 mm、打底預設 20 mm，且可由計畫覆寫（generate_revit_injection_plan.py 既有邏輯）\n- [x] Surface Pattern 不重複建立並能正確套入材質（新增 set_material_surface_pattern，依名稱去重）\n- [x] 綠建材共享參數成功綁定 Floors Type 並可回查（沿用既有工具）\n- [x] 產出 Element ID、Type、材質與厚度異動摘要（既有工具回傳值涵蓋）\n\n### 2026-08-11 端到端實測（Set【地磚test】GBM0104033）\n部署新版 DLL（Revit 2024）並重啟後，於即時連線的 Revit 專案完整跑通：建立 `TABC_地磚test` Floor Type（Element ID 264193，來源 TypeId 339），Finish1 層 GBM0104033_透水性混凝土地磚（Material ID 264195，15mm）+ Substrate 層 1-3水泥砂漿打底（Material ID 264197，非綠建材通用材質，20mm，經使用者確認後加入）；`set_material_surface_pattern` 成功建立並套用 `TABC_Grid_600x600`（Pattern ID 264214）到地磚材質 Surface 樣式；13 個共享參數全數寫入、`get_element_info` 逐欄核對相符；`exported_material_sets.json` 狀態已更新。過程中兩度因 Revit 關閉未存檔導致重建，最終確認存檔成功。\n\n### Sign-off Gates (DOD)\n- [x] architecture: 沿用既有 MCP Tool 架構＋新增 set_material_surface_pattern（正式 C# dispatch，不使用 side-channel）\n- [x] test_passed: 2026-08-11 端到端實測通過（見上）\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "verify",
     "risk": "high",
     "owner": "shuotao",
     "agent": "claude",
@@ -1017,7 +1163,7 @@
     "dependsOn": [
       "TASK-005.1"
     ],
-    "order": 5.2,
+    "order": 8.2,
     "readiness": {
       "problem_clear": true,
       "non_goals_clear": true,
@@ -1030,9 +1176,9 @@
     "gates": {
       "product": true,
       "ui": false,
-      "architecture": false,
+      "architecture": true,
       "security": true,
-      "test": false,
+      "test": true,
       "code_review": false
     }
   },
@@ -1053,7 +1199,7 @@
       "TASK-005.1",
       "TASK-005.2"
     ],
-    "order": 5.3,
+    "order": 8.3,
     "readiness": {
       "problem_clear": true,
       "non_goals_clear": true,
@@ -1075,8 +1221,8 @@
   {
     "id": "TASK-005.4",
     "title": "情境 4｜含接著劑／填縫劑的複合 Set 導入",
-    "content": "### 任務說明\n當 Floor／Wall Set 同時包含面材與非幾何接著劑、填縫劑或防水材料時，幾何材料寫入 Compound Structure，輔助材料則寫入 Parent Type 的 Construction／Green Building 欄位。\n\n### 驗收條件\n- [ ] 自動辨識 GreenMaterial_Adhesive、GreenMaterial_Sealant、GreenMaterial_Waterproofing\n- [ ] 非幾何材料不得建立零厚度構造層\n- [ ] 輔助材料與 Parent Type 關聯可追溯\n- [ ] 支援 Wall 與 Floor 各一個組合案例\n- [ ] 完成寫入後查詢驗證與異動摘要",
-    "stage": "ready",
+    "content": "### 任務說明\n當 Floor／Wall Set 同時包含面材與非幾何接著劑、填縫劑或防水材料時，幾何材料寫入 Compound Structure，輔助材料則寫入 Parent Type 的 Construction／Green Building 欄位。\n\n### 2026-08-11 前端＋計畫引擎已完成\n觸發點：使用者回報「材料層級設定」視窗把填縫劑（GBM0104110 CG2WA泰固美特耐磁磚填縫劑）錯誤地強制塞進 Structure（結構層）下拉選單，因為視窗當時只有 Structure/Substrate/Finish 三個角色可選，沒有輔助材料的容身之處。\n\n- [x] `assets/green-material-showcase.html` 材料層級設定視窗新增獨立的「🧴 輔助材料」拖曳區（`auxCompositionList`），與原本的構造層清單（`layerCompositionList`）並列、可雙向跨區拖曳（`layerDragFrom` 追蹤來源區＋索引，`moveDraggedEntry` 處理同區重排與跨區搬移，Core Boundary 分界線禁止被拖進輔助材料區）\n- [x] 新增 `classifyAuxiliaryKeyword(title)`：依標題關鍵字（接著劑/黏著劑/填縫/矽利康/防水/環氧樹脂）自動判斷 Adhesive/Sealant/Waterproofing，規則與 `generate_revit_injection_plan.py` 的 `analyze_material_mapping()` 完全一致；`buildDefaultLayerDraft()` 開啟視窗時先用這個規則把輔助材料自動分流到 auxDraft，不會預設塞進構造層\n- [x] `layerComposition` 資料結構新增 `auxiliary: [{licno, auxType}]` 欄位（`sequence` 之外的獨立陣列），Set 卡片摘要同步顯示「🧴 輔助材料：」\n- [x] `generate_revit_injection_plan.py` 新增 `_build_layer_composition_aux_map`/`_resolve_layer_composition_auxiliary`：讀取 `layerComposition.auxiliary`（使用者在視窗明確分類）優先於關鍵字啟發式判斷，比照既有 Structure/Substrate/Finish 角色覆寫的權威順序處理\n- [x] ~~修正 `_assign_material_slots`：排除輔助材料~~ → **使用者糾正並還原**：Mat1~Mat6 的用途是記錄「這個元件用了哪些綠建材」的完整清單，不是只有物理構造層才算數，輔助材料仍應正常參與槽位競爭（歸類 'Other' 最低優先序，材料數多時最先被擠到 unassigned，跟其他判斷不出角色的材料一視同仁）。已還原 `_assign_material_slots`/Markdown 報告回原本邏輯，GBM0104110 在真實 Set【地磚與填縫】測試中正確拿到 `mat2`\n- [x] 單元測試：`classifyAuxiliaryKeyword`/`buildDefaultLayerDraft` 用 Node 驗證（含全部輔助材料的邊界案例）；`generate_injection_plan` 用 mock Set 與真實 Set【地磚與填縫】（GBM0104110 填縫劑 + GBM0102995 陶瓷面磚，即畫面截圖的真實情境）雙重驗證 `isAuxiliary`/`GreenMaterial_Sealant`/正常 Mat 槽位分配皆正確；Markdown 報告輸出人工核對正確\n- [x] `node --check` 語法檢查通過；`verify-qaqc.ps1 -SkipBuild -SkipDeploy` 全數 PASS\n\n### 2026-08-11 Revit 寫入工具已開發（尚未部署/實測）\n- [x] `GreenMaterial_SharedParams.txt` 新增 GROUP 4「非幾何輔助材料 (Construction)」與 3 個新 TEXT 參數 `GreenMaterial_Adhesive`/`Sealant`/`Waterproofing`（GUID 接續既有編號 ...165~167，cp950 編碼安全寫入，不破壞既有 64 個參數；`validate_shared_params.py` 確認 67 參數 4 群組無重複 GUID）\n- [x] C# `SetGreenMaterialTypeParameters` 新增 `adhesive`/`sealant`/`waterproofing` 三個頂層字串參數，寫入對應欄位；`set_green_material_type_parameters` TS schema 同步更新；`dotnet build -c Release.R24`（0 錯誤）、`npm run build`（MCP-Server 乾淨）皆通過\n- [x] `.claude/skills/import/SKILL.md` Scenario 3：step 3 明確排除 `isAuxiliary` 材料進入 `layers` 陣列（它們沒有物理層，但仍要在 step 9 進 matN 槽位）；step 7 註明輔助材料不會出現在 `get_all_materials`（本來就不會實體建立 Material，不算驗證失敗）；step 9 新增輔助材料同時寫 matN + 對應的 adhesive/sealant/waterproofing 頂層欄位的說明\n- [x] 部署新 DLL（Revit 2024）並重啟後，端到端實測 Set【地磚與填縫】（GBM0104110 填縫劑 + GBM0102995 陶瓷面磚）：`load_shared_parameters` 確認新的 3 個 Construction 群組欄位成功綁定至 Floors（`GreenMaterial_Adhesive`/`Sealant`/`Waterproofing` 全部 `綁定成功`）；`create_multi_layer_type` 建立 `TABC_地磚與填縫`（Element ID 264332，來源 TypeId 339，經使用者確認厚度改為 10mm 而非計畫預設的通用 150mm），輔助材料正確被排除在 CompoundStructure 之外（只有 1 層 Structure）；`set_green_material_type_parameters` 一次寫入 mat1（陶瓷面磚）+ mat2（填縫劑，作為材料清單項目）+ `sealant`（GreenMaterial_Sealant 專屬欄位）共 24 個參數、0 缺漏；`get_element_info` 逐欄核對 `GreenMaterial_Sealant = \"CG2WA泰固美特耐磁磚填縫劑 (GBM0104110)\"` 與 Mat1/Mat2 內容皆正確；`exported_material_sets.json` 已更新為完成狀態\n\n### 驗收條件\n- [x] 自動辨識 GreenMaterial_Adhesive、GreenMaterial_Sealant、GreenMaterial_Waterproofing（UI 拖曳分流 + 計畫引擎 + 端到端 Revit 寫入皆已驗證）\n- [x] 非幾何材料不得建立零厚度構造層（從一開始就不進入 `layerComposition.sequence`，`create_multi_layer_type` 回傳只有 1 層幾何構造層，確認未產生零厚度層）\n- [x] 輔助材料與 Parent Type 關聯可追溯（`GreenMaterial_Sealant` 欄位 + Mat2 槽位皆可回查，`get_element_info` 驗證通過）\n- [ ] 支援 Wall 與 Floor 各一個組合案例（Floor 已完整驗證；Wall 案例尚未實測，UI/引擎/工具邏輯品類無關，理論上可直接沿用）\n- [x] 完成寫入後查詢驗證與異動摘要（見上方端到端實測紀錄）",
+    "stage": "verify",
     "risk": "medium",
     "owner": "shuotao",
     "agent": "claude",
@@ -1088,7 +1234,42 @@
     "dependsOn": [
       "TASK-005.3"
     ],
-    "order": 5.4,
+    "order": 8.4,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": false
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": false
+    }
+  },
+  {
+    "id": "TASK-005.5",
+    "title": "情境 5｜單選非模型綠建材互動式套用",
+    "content": "### 任務說明\n當 Set 僅包含填縫劑、膠類或其他非模型材料時，先詢問套用位置與目標 Type，再提供新建 Type 或覆蓋既有 Type 兩種路徑。\n\n### 驗收條件\n- [ ] 無 Parent Type 時必須停止並要求使用者選擇\n- [ ] 路徑 A 複製新 Type，不影響既有元件\n- [ ] 路徑 B 覆蓋既有 Type 前必須取得明確確認\n- [ ] 材料資訊寫入 Construction 自訂欄位\n- [ ] 回報目標 Type、寫入欄位及受影響元件範圍",
+    "stage": "ready",
+    "risk": "high",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": true,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.4"
+    ],
+    "order": 8.5,
     "readiness": {
       "problem_clear": true,
       "non_goals_clear": true,
@@ -1108,6 +1289,295 @@
     }
   },
   {
+    "id": "TASK-005.6",
+    "title": "情境 6｜牆壁／地坪預設厚度推判與覆寫",
+    "content": "### 任務說明\n依外牆、室內輕隔間、分戶牆與樓板用途推判 Structure、Finish、Substrate 的預設厚度，並在實際建立 Type 前讓使用者確認或覆寫。\n\n### 驗收條件\n- [ ] 外牆、輕隔間、分戶牆、樓板均有明確厚度矩陣\n- [ ] Master DB 規格優先於一般預設值\n- [ ] 使用者可在寫入前覆寫每一層厚度\n- [ ] 單位轉換正確且總厚度可驗證\n- [ ] 異常或缺失規格不得自行臆測後直接寫入",
+    "stage": "ready",
+    "risk": "high",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": true,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.1",
+      "TASK-005.2"
+    ],
+    "order": 8.6,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": false
+    },
+    "gates": {
+      "product": true,
+      "ui": false,
+      "architecture": false,
+      "security": true,
+      "test": false,
+      "code_review": false
+    }
+  },
+  {
+    "id": "TASK-005.7",
+    "title": "情境 7｜門窗／獨立元件 RFA 綠建材導入",
+    "content": "### 任務說明\n針對門、窗、玻璃與幕牆等載入式 Family，採用既有相似元件另存 .rfa、注入 Family Type 綠建材參數、再載回專案的標準路徑。\n\n### 驗收條件\n- [ ] 使用者選定相似基底 Family，禁止無型錄依據從零生成\n- [ ] 原始 .rfa 建立可復原備份\n- [ ] Type Identity Data、遮陽與隔音等適用欄位正確寫入\n- [ ] 載回專案時避免覆蓋非目標 Family Type\n- [ ] 完成至少一個 Window 與一個 Door 案例驗證",
+    "stage": "ready",
+    "risk": "high",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": true,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.3"
+    ],
+    "order": 8.7,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": false
+    },
+    "gates": {
+      "product": true,
+      "ui": false,
+      "architecture": false,
+      "security": true,
+      "test": false,
+      "code_review": false
+    }
+  },
+  {
+    "id": "TASK-005.8",
+    "title": "情境 8｜天花板系統 Set 導入（OST_Ceilings）",
+    "content": "### 任務說明\n將吸音天花板、矽酸鈣天花板與礦纖板等 Set 導入 Ceiling Type，面層配置於 Finish 1 [4]，並同步吸音性能與綠建材履歷。\n\n### 驗收條件\n- [ ] 以 subCategory 判定天花板，避免牆板誤分類\n- [ ] 面板厚度預設範圍 9–15 mm，並允許規格覆寫\n- [ ] GreenMaterial_AcousticNRC 與試驗資料正確寫入\n- [ ] 可複製既有 Ceiling Type 並套用獨立 Material\n- [ ] 完成 Revit 查詢驗證與異動摘要",
+    "stage": "ready",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.3",
+      "TASK-005.6"
+    ],
+    "order": 8.8,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": false
+    },
+    "gates": {
+      "product": true,
+      "ui": false,
+      "architecture": false,
+      "security": true,
+      "test": false,
+      "code_review": false
+    }
+  },
+  {
+    "id": "TASK-011",
+    "title": "[已併入 TASK-005.10] 新增「情境三：通用多層構造」create_multi_layer_type 工具，並修正 Core Boundary／Shell Layer 判斷",
+    "content": "### ⚠️ 2026-08-11 看板重整：本卡內容已併入 TASK-005.10\n本卡建立的 create_multi_layer_type 工具與 Core Boundary 修正是跨情境共用的底層能力（Wall/Floor/Ceiling 任意品類、任意層數）。塑膠地板set 端到端實測（Finish1 塑膠地磚 + Substrate 隔音緩衝墊 + Structure 混凝土）是「情境10｜單一元件多重綠建材」的 Floors Multi-Material 路徑佐證，已在該卡引用。這個工具本身也是我之後做 TASK-005.2（地磚 Set）的基礎。\n\n（原本這裡也提到「情境9｜隔熱/防音底層」——2026-08-11 該卡已刪除：Substrate/Insulation 層的處理本來就是 create_multi_layer_type 的通用能力，跟 Structure/Finish 一樣只是 layerFunction 的一種選項，不需要為它另開一張獨立情境卡追蹤。）\n\n保留本卡作為工具開發歷史紀錄，後續請在 TASK-005.10 追蹤相關簽核狀態。\n\n---\n\n### 任務說明\n新增 create_multi_layer_type MCP 工具（C#），對應 Set 的「單一組合」但材料數超過 2 個、或非 Wall 品類的情境（例如地板：飾面塑膠地磚 + 隔音緩衝墊 + 結構混凝土三層）。跟 duplicate_element_type（情境一，寫死 2 個材料的Finish1/Structure/Finish2 牆體三明治）不同，這裡層數、材料、layerFunction 完全由呼叫端指定，任意品類（Wall/Floor/Ceiling）皆可透過同一個 sourceTypeId 複用既有的 GetCompoundStructureForElement/SetCompoundStructureForElement 通用邏輯。\n\n第一版實作只呼叫 cs.SetLayers()，沒有設定 Core Boundary（哪些層在結構核心內、哪些在核心外的 Shell 層），導致所有層預設都落在 core 裡面，Finish 層應該要在 core boundary 外側卻沒有被正確標記。修正後依 layerFunction 自動判斷：開頭連續的 Finish1/Membrane 層視為外側 Shell（ExteriorShellLayers），結尾連續的 Finish2/Membrane 層視為內側 Shell（InteriorShellLayers），中間的 Structure/Substrate/Insulation 留在核心內，呼叫 cs.SetNumberOfShellLayers() 寫入。這是通用規則，不是針對單一 Set 的特例處理。\n\n同時擴充 `.claude/skills/import/SKILL.md`，新增情境三的完整流程（layer 順序需向使用者確認，不可比照情境一假設板材=Structure/塗料=Finish；材料數超過 3 個時要明講哪些材料進不了 Mat1/Mat2/Mat3 共享參數欄位）。\n\n### Readiness (DOR)\n- [x] problem_clear: 定義情境一（固定 2 材料牆體三明治）與情境三（任意數量材料、任意品類的通用多層構造）的差異\n- [x] scope_defined: layerFunction 對應 Revit MaterialFunctionAssignment 六種值；Core Boundary 依 Finish1/Finish2/Membrane 是否在頭尾連續出現自動判斷\n\n### Sign-off Gates (DOD)\n- [x] architecture: CreateMultiLayerType 複用既有 GetCompoundStructureForElement/SetCompoundStructureForElement/GetOrCreatePureMaterial，Shell Layer 判斷抽成獨立的 IsShellFunction() 通用規則\n- [x] test_passed: 2026-08-04 端到端實測 Set【塑膠地板set】（GBM0104167 Finish1 + GBM0103751(續) Substrate + GBM0104181 Structure，1 層來源型別「通用 - 15cm」擴充為 3 層），修正前 ExteriorShellLayers 未設定，修正後回傳 ExteriorShellLayers=1／InteriorShellLayers=0 正確反映 Finish1 在核心外側；25 個共享參數（Mat1=混凝土/Mat2=塑膠地磚/Mat3=隔音緩衝墊）全數寫入、get_element_info 驗證中文內容正確\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "done",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-04",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-009",
+      "TASK-010"
+    ],
+    "order": 8.91,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": false
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": false
+    }
+  },
+  {
+    "id": "TASK-005.10",
+    "title": "情境 10｜單一元件多重綠建材 Multi-Material 導入",
+    "content": "### 任務說明\n處理單一 Wall／Floor／Ceiling Type 同時包含多項綠建材的 Set。每一構造層引用獨立 Material，Type 使用 Mat1／Mat2／Mat3 槽位保存各材料履歷，且槽位依角色配置而非 Set 排序。\n\n### 已完成基礎\n- [x] Wall 板材＋塗料案例：Mat1 固定板材、Mat2 固定塗料\n- [x] 31 個共享參數與 MissingParameters 回報機制\n\n### Floors Multi-Material 路徑（原 TASK-011，2026-08-04 併入本卡）\ncreate_multi_layer_type 工具用 Set【塑膠地板set】驗證 Floor 三材料單一 Type 案例：Mat1=混凝土(Structure)／Mat2=塑膠地磚(Finish1)／Mat3=隔音緩衝墊(Substrate)，25 個共享參數全數寫入、各層 Material ID 經 get_element_info 交叉驗證可追溯。\n\n### 「各別建立」機制（原 TASK-010，2026-08-03 併入本卡；跨情境共用工具，非本卡專屬）\ncreate_single_material_type 提供另一種落地路徑——Set 每個材料各自複製一個獨立 Type（而非本卡定義的「單一 Type 多材料」），已用 Set【地板材料set】（4 種材料）驗證：4 個獨立 FloorType、31 個共享參數綁定、各 Type 10 個 Mat1 欄位全數寫入 0 缺漏。這個機制同時也是 `/import` skill Scenario 2（各別建立）與 TASK-005.2 Floor 落地能力的共用底層，不單獨對應某一張 005.x 卡。\n\n### Sign-off Gates (DOD)\n- [x] 支援 Mat3 輔助材料實際案例（塑膠地板set 案例 Mat3=隔音緩衝墊）\n- [x] Floors／Ceilings Multi-Material 路徑完成（Floors 已驗證；Ceilings 尚未實測，見下）\n- [x] 多證號清單與各層 Material ID 可追溯（get_element_info 逐層驗證）\n- [ ] 使用者完成跨品類最終複審（Ceilings 案例＋最終簽核仍待完成）",
+    "stage": "verify",
+    "risk": "high",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": true,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.1",
+      "TASK-005.3",
+      "TASK-005.4"
+    ],
+    "order": 8.95,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": false
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": false
+    }
+  },
+  {
+    "id": "TASK-010",
+    "title": "[已併入 TASK-005.10] 新增「各別建立」情境（Scenario 2）：create_single_material_type 工具與地板材料 Set 端到端實測",
+    "content": "### ⚠️ 2026-08-11 看板重整：本卡內容已併入 TASK-005.10\n本卡建立的 create_single_material_type 是跨情境共用的底層工具（每個材料各自複製一個獨立 Type），不單獨對應某一張 005.x 情境卡，但其地板材料 Set 端到端實測是「單一元件多重綠建材」（TASK-005.10）驗收條件之一的落地路徑證據，已在該卡引用。保留本卡作為工具開發歷史紀錄，後續請在 TASK-005.10 追蹤相關簽核狀態。\n\n---\n\n### 任務說明\n新增 create_single_material_type MCP 工具（C#），對應 Set 的「各別建立」組合方式：Set 裡每個材料各自獨立複製一個 ElementType（Wall/Floor/Ceiling 皆可），並把該材料實體鋪滿新 Type 的全部 CompoundStructure 層，Type 名稱與 Material 名稱使用同一組字串（GBM編號_材料名稱，不加 TABC_ 前綴）。與情境一（duplicate_element_type，牆板+塗料兩材料合併一個 Type 的單一組合）互補、共用同一套 GetOrCreatePureMaterial/GetCompoundStructureForElement/SetCompoundStructureForElement 底層邏輯。同時擴充 .claude/skills/import/SKILL.md，新增依 Set 的「組合方式」分流至情境一或情境二的判斷流程。\n\n### Readiness (DOR)\n- [x] problem_clear: 定義「各別建立」與「單一組合」的差異（N 個材料各自建 Type vs 2 個材料合併一個 Type）\n- [x] scope_defined: 工具不限品類，Wall/Floor/Ceiling 皆可透過同一個 sourceTypeId 判斷 CompoundStructure 型態\n\n### Sign-off Gates (DOD)\n- [x] architecture: CreateSingleMaterialType 複用既有 GetCompoundStructureForElement / SetCompoundStructureForElement / GetOrCreatePureMaterial 私有方法（CommandExecutor 為 partial class），未重新實作重複邏輯\n- [x] test_passed: 2026-08-03 端到端實測 Set【地板材料set】（GBM0104038/034/006/005，品類 Floor + 各別建立），複製來源型別「通用 - 15cm」建立 4 個獨立 FloorType，材質全部指派成功，31 個共享參數綁定至 Floors 品類，每個 Type 各 10 個 Mat1 欄位全數寫入、0 缺漏，get_element_info 抽查驗證中文內容正確\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "done",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-009"
+    ],
+    "order": 8.955,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": false
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": false
+    }
+  },
+  {
+    "id": "TASK-005.11",
+    "title": "情境 11｜新建 Type 與覆蓋既有材質雙路徑",
+    "content": "### 任務說明\nSet 寫入前提供兩條明確策略：路徑 A 複製並建立新的 TABC Type，不影響既有模型；路徑 B 批次覆蓋既有 Material／Type 參數，適用施工階段更新。\n\n### 驗收條件\n- [ ] 預設採路徑 A，路徑 B 必須取得使用者明確確認\n- [ ] 寫入前列出受影響 Type、Material 與元件數量\n- [ ] 每次異動在單一 Transaction／TransactionGroup 中可回復\n- [ ] 產出 Element ID、Type、Material、舊值與新值摘要\n- [ ] 新建與覆蓋路徑各完成一個端到端測試",
+    "stage": "ready",
+    "risk": "high",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": true,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.1",
+      "TASK-005.3",
+      "TASK-005.10"
+    ],
+    "order": 8.96,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": false
+    },
+    "gates": {
+      "product": true,
+      "ui": false,
+      "architecture": false,
+      "security": true,
+      "test": false,
+      "code_review": false
+    }
+  },
+  {
+    "id": "TASK-012",
+    "title": "排查「Revit 裡看不到建立的元件」問題：根因是測試檔從未存檔，並重建 3 組 Set 後確認存檔",
+    "content": "### 2026-08-11 看板重整備註\n這是一則已解決的操作事故排查記錄，不是待辦功能任務。標記 done；同性質的排查記錄之後建議直接寫進 log/YYYY-MM.md，不用另開看板卡。\n\n---\n\n### 任務說明\n使用者回報「我看我 Revit 裡沒有元件被建立」。排查發現 duplicate_element_type / create_single_material_type / create_multi_layer_type 等工具本身都正常運作（每次建立後都有立即用 get_element_info 驗證成功），但重新查詢 get_wall_types / get_types_by_category 卻只看到 Revit 內建原始型別，先前建立的 TABC_牆壁與塗料、4 個地板材料 Type、TABC_塑膠地板set 全部消失。\n\n根因：測試用的 `Project1` 檔案從頭到尾沒有被存檔過，每次使用者關閉 Revit 再重開，都是開啟未存檔的空白狀態，先前建立的所有 Type/Material 自然就不見了——不是工具或 MCP 橋接的 bug，是操作流程缺了存檔這一步。\n\n已重新執行一次完整重建（TASK-009/010/011 的三個情境各一次），並在使用者確認 Ctrl+S 存檔後，同步更新 `exported_material_sets.json` 內對應的新 Element ID（重建後 ID 與前一輪不同）。\n\n### Readiness (DOR)\n- [x] problem_clear: 確認是「檔案未存檔」而非工具/MCP 橋接錯誤\n- [x] scope_defined: 三個情境（Wall 單一組合／Floor 各別建立／Floor 多層組合）各重建一次並驗證\n\n### Sign-off Gates (DOD)\n- [x] architecture: 無程式修改，純操作流程問題（未來 Skill 文件可考慮補充「操作完成後提醒存檔」的步驟）\n- [x] test_passed: 2026-08-04 重建 TABC_牆壁與塗料(253551)、4 個地板材料 Type(253567/253586/253605/253624)、TABC_塑膠地板set(253643，含 core boundary 修正)，共享參數全數補寫，使用者確認已 Ctrl+S 存檔\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "done",
+    "risk": "low",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-04",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-009",
+      "TASK-010",
+      "TASK-011"
+    ],
+    "order": 8.97,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": false
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": false
+    }
+  },
+  {
     "id": "TASK-006",
     "title": "撰寫 green-material-takeoff SKILL.md (領域知識與 AI 觸發條件)",
     "content": "### 任務說明\n撰寫 `.agents/skills/green-material-takeoff/SKILL.md`，定義 AI 助手在遇到使用者詢問「檢討綠建材率」、「匯出綠建材計算書」、「標註模型綠建材」時的觸發語條件、工作流程、領域知識說明與腳本呼叫規範。\n\n### Readiness (DOR)\n- [x] problem_clear: 確定 Skill YAML frontmatter 與 markdown 規範\n- [x] scope_defined: 包含綠建材算量、評定計算、報表產出之完整步驟\n\n### Sign-off Gates (DOD)\n- [ ] architecture: 完成 SKILL.md 寫作與規範審查\n- [ ] test_passed: 於 Antigravity / Agent 環境下測試觸發率\n- [ ] code_review: 審查自然語言觸發與指令精確度",
@@ -1123,7 +1593,7 @@
     "dependsOn": [
       "TASK-004"
     ],
-    "order": 6,
+    "order": 10,
     "readiness": {
       "problem_clear": true,
       "non_goals_clear": false,
@@ -1145,7 +1615,7 @@
   {
     "id": "TASK-007",
     "title": "套用 hj-pr-proposal 將綠建材 Skill 轉譯成 HJPLUS 雙層草案",
-    "content": "### 任務說明\n運用 `hj-pr-proposal` SOP，將綠建材 Skill 拆解轉譯為 HJPLUS 台灣建築師知識庫標準格式：上層中文 `domain.md`（綠建材評定法規與 BIM 實務指南）與下層英文 `SKILL.md`（AI Agent 執行 SOP），並產出完整 PR 提案草稿。\n\n### Readiness (DOR)\n- [x] problem_clear: 遵循 HJPLUS 雙層結構規格\n- [x] scope_defined: 產生可審核的 PR 說明與檔案結構\n\n### Sign-off Gates (DOD)\n- [ ] architecture: 產出正確的 `domain.md` 與 `SKILL.md` 雙層文件\n- [ ] test_passed: 經作者確認提案結構與註記正確\n- [ ] code_review: 符合 HJPLUS PR 規範與無痛導入品質",
+    "content": "### 2026-08-11 看板重整修正\n原本 dependsOn 寫著不存在的卡片 ID「TASK-005」（只有 005.1~005.11 子卡，沒有單一 TASK-005），已改為實際指向 TASK-005.1／TASK-005.2（Epic-2 目前已完成到 verify 階段的代表性情境），並移除避免與 TASK-008 互相依賴形成循環。\n\n---\n\n### 任務說明\n運用 `hj-pr-proposal` SOP，將綠建材 Skill 拆解轉譯為 HJPLUS 台灣建築師知識庫標準格式：上層中文 `domain.md`（綠建材評定法規與 BIM 實務指南）與下層英文 `SKILL.md`（AI Agent 執行 SOP），並產出完整 PR 提案草稿。\n\n### Readiness (DOR)\n- [x] problem_clear: 遵循 HJPLUS 雙層結構規格\n- [x] scope_defined: 產生可審核的 PR 說明與檔案結構\n\n### Sign-off Gates (DOD)\n- [ ] architecture: 產出正確的 `domain.md` 與 `SKILL.md` 雙層文件\n- [ ] test_passed: 經作者確認提案結構與註記正確\n- [ ] code_review: 符合 HJPLUS PR 規範與無痛導入品質",
     "stage": "backlog",
     "risk": "medium",
     "owner": "shuotao",
@@ -1156,10 +1626,11 @@
     "userStory": "US-7: HJPLUS 知識庫貢獻草案",
     "track": "integration",
     "dependsOn": [
-      "TASK-005",
+      "TASK-005.1",
+      "TASK-005.2",
       "TASK-006"
     ],
-    "order": 7,
+    "order": 11,
     "readiness": {
       "problem_clear": false,
       "non_goals_clear": false,
@@ -1181,7 +1652,7 @@
   {
     "id": "TASK-008",
     "title": "執行 Monstrare DOD 驗證合約與綠建材 Skill 端到端整合測試",
-    "content": "### 任務說明\n作為 TASK-005.1～TASK-005.11 的總驗證卡，逐一執行 TABC 資料檢索、需求對齊、Revit 計畫確認、模型寫入、回查與異動摘要驗證。\n\n### 目前進度\n- [x] 情境 1：Wall 板材＋塗料端到端流程已通過\n- [ ] 情境 2～9：待完成工具與 Revit 實測\n- [ ] 情境 10：Wall Multi-Material 基礎通過，跨品類與 Mat3 待測\n- [ ] 情境 11：新建 Type／覆蓋既有材質雙路徑待測\n\n### Sign-off Gates (DOD)\n- [ ] architecture: 11 情境均符合正式 MCP Tool＋C# dispatch 架構\n- [ ] test_passed: 11 張子卡皆具端到端驗證證據\n- [ ] code_review: 使用者完成最終簽核後才可移至 Done",
+    "content": "### 任務說明\n作為 TASK-005.1～TASK-005.11 的總驗證卡（2026-08-11 移除 TASK-005.9 後實際為 10 張情境子卡），逐一執行 TABC 資料檢索、需求對齊、Revit 計畫確認、模型寫入、回查與異動摘要驗證。\n\n### 目前進度（2026-08-11 更新，反映看板重整＋TASK-005.4 端到端實測後的實際狀態）\n- [x] 情境 1（005.1）：Wall 板材＋塗料端到端流程已通過（含併入的 TASK-009）\n- [x] 情境 2（005.2）：Floor 地磚＋打底＋600×600 Surface Pattern 端到端流程 2026-08-11 已通過\n- [ ] 情境 3（005.3）：底層通用工具已具備，雙階層參數（Material＋Type）專屬驗收案例尚未實測\n- [x] 情境 4（005.4）：Floor 含填縫劑複合 Set 端到端流程 2026-08-11 已通過（含新增的 GreenMaterial_Adhesive/Sealant/Waterproofing 欄位），Wall 案例待測\n- [ ] 情境 5～8（005.5～005.8）：底層通用工具（create_multi_layer_type／create_single_material_type）已具備，但各情境專屬驗收案例（單選非模型材料、厚度矩陣、門窗 RFA、天花板）尚未逐一實測\n- [x] 情境 10（005.10）：Mat3 輔助材料槽位、Floors Multi-Material 路徑已有實測佐證（併入的 TASK-010/011，另有 005.4 端到端案例佐證 Mat 槽位含輔助材料）；Ceilings 案例與使用者最終複審待完成\n- [ ] 情境 11（005.11）：新建 Type／覆蓋既有材質雙路徑待測\n\n### Sign-off Gates (DOD)\n- [ ] architecture: 全部情境均符合正式 MCP Tool＋C# dispatch 架構\n- [ ] test_passed: 各子卡皆具端到端驗證證據（目前 3/10 完整通過，其餘部分具工具/佐證但缺專屬案例）\n- [ ] code_review: 使用者完成最終簽核後才可移至 Done",
     "stage": "implementing",
     "risk": "high",
     "owner": "shuotao",
@@ -1194,7 +1665,7 @@
     "dependsOn": [
       "TASK-007"
     ],
-    "order": 8,
+    "order": 12,
     "readiness": {
       "problem_clear": true,
       "non_goals_clear": false,
@@ -1210,150 +1681,6 @@
       "architecture": false,
       "security": false,
       "test": false,
-      "code_review": false
-    }
-  },
-  {
-    "id": "TASK-009",
-    "title": "修復綠建材 Set 導入 Revit 的 MCP 工具串接缺口，並將 /GMimport /import revit 正式 Slash Command 化",
-    "content": "### 任務說明\n修復綠建材 Set 導入 Revit 的 MCP 串接缺口，建立情境 1／10 所需的共同基礎：材料回查、Type 複製、材質名稱參數化、多槽位共享參數寫入，以及正式 /GMimport → /import revit 流程。\n\n### 已完成修復\n- [x] 註冊 get_all_materials、duplicate_element_type、set_green_material_type_parameters\n- [x] 修正共享參數檔編碼與 licno 後綴比對\n- [x] 依 Master DB subCategory 判斷 Structure／Finish\n- [x] 建立 /GM、/GMimport、/import revit Skill\n\n### Sign-off Gates (DOD)\n- [x] architecture: 使用正式 TS Tool＋C# dispatch，未繞過 MCP bridge\n- [x] test_passed: 情境 1 Wall 板材＋塗料端到端實測通過\n- [ ] code_review: 待使用者最終複審與簽核",
-    "stage": "verify",
-    "risk": "medium",
-    "owner": "shuotao",
-    "agent": "claude",
-    "approvalRequired": false,
-    "createdAt": "2026-08-03",
-    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
-    "userStory": "US-5: Revit 材料自動化寫入工具",
-    "track": "integration",
-    "dependsOn": [
-      "TASK-005.1",
-      "TASK-005.10"
-    ],
-    "order": 9,
-    "readiness": {
-      "problem_clear": true,
-      "non_goals_clear": true,
-      "acceptance_testable": true,
-      "files_known": true,
-      "scope_defined": true,
-      "verification_contract": true,
-      "human_approval_recorded": false
-    },
-    "gates": {
-      "product": true,
-      "ui": true,
-      "architecture": true,
-      "security": true,
-      "test": true,
-      "code_review": false
-    }
-  },
-  {
-    "id": "TASK-010",
-    "title": "新增「各別建立」情境（Scenario 2）：create_single_material_type 工具與地板材料 Set 端到端實測",
-    "content": "### 任務說明\n新增 create_single_material_type MCP 工具（C#），對應 Set 的「各別建立」組合方式：Set 裡每個材料各自獨立複製一個 ElementType（Wall/Floor/Ceiling 皆可），並把該材料實體鋪滿新 Type 的全部 CompoundStructure 層，Type 名稱與 Material 名稱使用同一組字串（GBM編號_材料名稱，不加 TABC_ 前綴）。與情境一（duplicate_element_type，牆板+塗料兩材料合併一個 Type 的單一組合）互補、共用同一套 GetOrCreatePureMaterial/GetCompoundStructureForElement/SetCompoundStructureForElement 底層邏輯。同時擴充 .claude/skills/import/SKILL.md，新增依 Set 的「組合方式」分流至情境一或情境二的判斷流程。\n\n### Readiness (DOR)\n- [x] problem_clear: 定義「各別建立」與「單一組合」的差異（N 個材料各自建 Type vs 2 個材料合併一個 Type）\n- [x] scope_defined: 工具不限品類，Wall/Floor/Ceiling 皆可透過同一個 sourceTypeId 判斷 CompoundStructure 型態\n\n### Sign-off Gates (DOD)\n- [x] architecture: CreateSingleMaterialType 複用既有 GetCompoundStructureForElement / SetCompoundStructureForElement / GetOrCreatePureMaterial 私有方法（CommandExecutor 為 partial class），未重新實作重複邏輯\n- [x] test_passed: 2026-08-03 端到端實測 Set【地板材料set】（GBM0104038/034/006/005，品類 Floor + 各別建立），複製來源型別「通用 - 15cm」建立 4 個獨立 FloorType，材質全部指派成功，31 個共享參數綁定至 Floors 品類，每個 Type 各 10 個 Mat1 欄位全數寫入、0 缺漏，get_element_info 抽查驗證中文內容正確\n- [ ] code_review: 待使用者最終複審與簽核",
-    "stage": "verify",
-    "risk": "medium",
-    "owner": "shuotao",
-    "agent": "claude",
-    "approvalRequired": false,
-    "createdAt": "2026-08-03",
-    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
-    "userStory": "US-5: Revit 材料自動化寫入工具",
-    "track": "integration",
-    "dependsOn": [
-      "TASK-009"
-    ],
-    "order": 10,
-    "readiness": {
-      "problem_clear": true,
-      "non_goals_clear": true,
-      "acceptance_testable": true,
-      "files_known": true,
-      "scope_defined": true,
-      "verification_contract": true,
-      "human_approval_recorded": false
-    },
-    "gates": {
-      "product": true,
-      "ui": true,
-      "architecture": true,
-      "security": true,
-      "test": true,
-      "code_review": false
-    }
-  },
-  {
-    "id": "TASK-011",
-    "title": "新增「情境三：通用多層構造」create_multi_layer_type 工具，並修正 Core Boundary／Shell Layer 判斷",
-    "content": "### 任務說明\n新增 create_multi_layer_type MCP 工具（C#），對應 Set 的「單一組合」但材料數超過 2 個、或非 Wall 品類的情境（例如地板：飾面塑膠地磚 + 隔音緩衝墊 + 結構混凝土三層）。跟 duplicate_element_type（情境一，寫死 2 個材料的Finish1/Structure/Finish2 牆體三明治）不同，這裡層數、材料、layerFunction 完全由呼叫端指定，任意品類（Wall/Floor/Ceiling）皆可透過同一個 sourceTypeId 複用既有的 GetCompoundStructureForElement/SetCompoundStructureForElement 通用邏輯。\n\n第一版實作只呼叫 cs.SetLayers()，沒有設定 Core Boundary（哪些層在結構核心內、哪些在核心外的 Shell 層），導致所有層預設都落在 core 裡面，Finish 層應該要在 core boundary 外側卻沒有被正確標記。修正後依 layerFunction 自動判斷：開頭連續的 Finish1/Membrane 層視為外側 Shell（ExteriorShellLayers），結尾連續的 Finish2/Membrane 層視為內側 Shell（InteriorShellLayers），中間的 Structure/Substrate/Insulation 留在核心內，呼叫 cs.SetNumberOfShellLayers() 寫入。這是通用規則，不是針對單一 Set 的特例處理。\n\n同時擴充 `.claude/skills/import/SKILL.md`，新增情境三的完整流程（layer 順序需向使用者確認，不可比照情境一假設板材=Structure/塗料=Finish；材料數超過 3 個時要明講哪些材料進不了 Mat1/Mat2/Mat3 共享參數欄位）。\n\n### Readiness (DOR)\n- [x] problem_clear: 定義情境一（固定 2 材料牆體三明治）與情境三（任意數量材料、任意品類的通用多層構造）的差異\n- [x] scope_defined: layerFunction 對應 Revit MaterialFunctionAssignment 六種值；Core Boundary 依 Finish1/Finish2/Membrane 是否在頭尾連續出現自動判斷\n\n### Sign-off Gates (DOD)\n- [x] architecture: CreateMultiLayerType 複用既有 GetCompoundStructureForElement/SetCompoundStructureForElement/GetOrCreatePureMaterial，Shell Layer 判斷抽成獨立的 IsShellFunction() 通用規則\n- [x] test_passed: 2026-08-04 端到端實測 Set【塑膠地板set】（GBM0104167 Finish1 + GBM0103751(續) Substrate + GBM0104181 Structure，1 層來源型別「通用 - 15cm」擴充為 3 層），修正前 ExteriorShellLayers 未設定，修正後回傳 ExteriorShellLayers=1／InteriorShellLayers=0 正確反映 Finish1 在核心外側；25 個共享參數（Mat1=混凝土/Mat2=塑膠地磚/Mat3=隔音緩衝墊）全數寫入、get_element_info 驗證中文內容正確\n- [ ] code_review: 待使用者最終複審與簽核",
-    "stage": "verify",
-    "risk": "medium",
-    "owner": "shuotao",
-    "agent": "claude",
-    "approvalRequired": false,
-    "createdAt": "2026-08-04",
-    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
-    "userStory": "US-5: Revit 材料自動化寫入工具",
-    "track": "integration",
-    "dependsOn": [
-      "TASK-009",
-      "TASK-010"
-    ],
-    "order": 11,
-    "readiness": {
-      "problem_clear": true,
-      "non_goals_clear": true,
-      "acceptance_testable": true,
-      "files_known": true,
-      "scope_defined": true,
-      "verification_contract": true,
-      "human_approval_recorded": false
-    },
-    "gates": {
-      "product": true,
-      "ui": true,
-      "architecture": true,
-      "security": true,
-      "test": true,
-      "code_review": false
-    }
-  },
-  {
-    "id": "TASK-012",
-    "title": "排查「Revit 裡看不到建立的元件」問題：根因是測試檔從未存檔，並重建 3 組 Set 後確認存檔",
-    "content": "### 任務說明\n使用者回報「我看我 Revit 裡沒有元件被建立」。排查發現 duplicate_element_type / create_single_material_type / create_multi_layer_type 等工具本身都正常運作（每次建立後都有立即用 get_element_info 驗證成功），但重新查詢 get_wall_types / get_types_by_category 卻只看到 Revit 內建原始型別，先前建立的 TABC_牆壁與塗料、4 個地板材料 Type、TABC_塑膠地板set 全部消失。\n\n根因：測試用的 `Project1` 檔案從頭到尾沒有被存檔過，每次使用者關閉 Revit 再重開，都是開啟未存檔的空白狀態，先前建立的所有 Type/Material 自然就不見了——不是工具或 MCP 橋接的 bug，是操作流程缺了存檔這一步。\n\n已重新執行一次完整重建（TASK-009/010/011 的三個情境各一次），並在使用者確認 Ctrl+S 存檔後，同步更新 `exported_material_sets.json` 內對應的新 Element ID（重建後 ID 與前一輪不同）。\n\n### Readiness (DOR)\n- [x] problem_clear: 確認是「檔案未存檔」而非工具/MCP 橋接錯誤\n- [x] scope_defined: 三個情境（Wall 單一組合／Floor 各別建立／Floor 多層組合）各重建一次並驗證\n\n### Sign-off Gates (DOD)\n- [x] architecture: 無程式修改，純操作流程問題（未來 Skill 文件可考慮補充「操作完成後提醒存檔」的步驟）\n- [x] test_passed: 2026-08-04 重建 TABC_牆壁與塗料(253551)、4 個地板材料 Type(253567/253586/253605/253624)、TABC_塑膠地板set(253643，含 core boundary 修正)，共享參數全數補寫，使用者確認已 Ctrl+S 存檔\n- [ ] code_review: 待使用者最終複審與簽核",
-    "stage": "verify",
-    "risk": "low",
-    "owner": "shuotao",
-    "agent": "claude",
-    "approvalRequired": false,
-    "createdAt": "2026-08-04",
-    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
-    "userStory": "US-5: Revit 材料自動化寫入工具",
-    "track": "integration",
-    "dependsOn": [
-      "TASK-009",
-      "TASK-010",
-      "TASK-011"
-    ],
-    "order": 12,
-    "readiness": {
-      "problem_clear": true,
-      "non_goals_clear": true,
-      "acceptance_testable": true,
-      "files_known": true,
-      "scope_defined": true,
-      "verification_contract": true,
-      "human_approval_recorded": false
-    },
-    "gates": {
-      "product": true,
-      "ui": true,
-      "architecture": true,
-      "security": true,
-      "test": true,
       "code_review": false
     }
   }

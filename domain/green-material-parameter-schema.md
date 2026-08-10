@@ -1,14 +1,14 @@
 ---
 name: green-material-parameter-schema
-description: "綠建材資訊在 Revit BIM 模型中的參數欄位定義與綁定規範。定義 v4 Multi-Material Slot 共享參數 Schema（GreenMaterial_Mat1/2/3_* 共 31 欄位）、資料型別、Revit 參數群組，以及 Type 層級綁定與寫入工具。"
+description: "綠建材資訊在 Revit BIM 模型中的參數欄位定義與綁定規範。定義 v5 Multi-Material Slot 共享參數 Schema（GreenMaterial_Mat1~Mat6_* 共 64 欄位）、資料型別、Revit 參數群組，以及 Type 層級綁定與寫入工具。"
 metadata:
-  version: "2.0"
-  updated: "2026-08-03"
+  version: "3.0"
+  updated: "2026-08-06"
   created: "2026-07-27"
   references:
     - "Revit Shared Parameter File Specification"
     - "內政部建築研究所綠建材評定驗證標準"
-    - "GreenMaterial_SharedParams.txt (v4 Schema — Multi-Material Slot Architecture)"
+    - "GreenMaterial_SharedParams.txt (v5 Schema — 6-Slot Multi-Material Architecture)"
   related:
     - green-material-catalog.md
     - finish-schedule-governance.md
@@ -20,13 +20,15 @@ metadata:
 
 本文件定義由 TABC 綠建材採購指南擷取之建材資訊，在 Revit BIM 專案模型中掛載之標準參數名稱、資料型別、參數群組及載體綁定層級（Binding Targets）。
 
-> **v2.0 變更說明**：舊版（v1.0）定義的 `GBM_*` 7 欄位單槽位 Schema **從未被實際載入 Revit**，與現行 `GreenMaterial_SharedParams.txt`（已透過 `load_shared_parameters` 工具實際綁定）完全不同名。本版改為記錄實際生效的 v4 Multi-Material Slot Schema，避免 AI 依舊版寫入不存在的參數名稱。
+> **v2.0 變更說明**：舊版（v1.0）定義的 `GBM_*` 7 欄位單槽位 Schema **從未被實際載入 Revit**，與現行 `GreenMaterial_SharedParams.txt`（已透過 `load_shared_parameters` 工具實際綁定）完全不同名。v2.0 改為記錄實際生效的 v4 Multi-Material Slot Schema（Mat1/Mat2/Mat3 三槽位，31 欄位），避免 AI 依舊版寫入不存在的參數名稱。
+>
+> **v3.0 變更說明**：Scenario 3（`create_multi_layer_type` 通用多材料單一組合）允許一個 Set 有 4 個以上材料，但 v4 schema 只有 3 個槽位，超過的材料只能建立實體構造層、沒有共享參數紀錄。v3.0 新增 Mat4/Mat5/Mat6 三個槽位（欄位形狀與 Mat1/Mat2 相同，含 TVOC/Formaldehyde/CNS），共 64 欄位，讓槽位數等於材料數（上限 6）。既有 Mat1/Mat2/Mat3 的 GUID 與欄位定義完全未變，純新增、非破壞性變更。
 
 ---
 
-## 1. 綠建材標準共享參數 Schema (GreenMaterial Shared Parameters, v4)
+## 1. 綠建材標準共享參數 Schema (GreenMaterial Shared Parameters, v5)
 
-實際載入 Revit 的共享參數檔為 `GreenMaterial_SharedParams.txt`，採「多材料槽位」架構：一個 ElementType（如組合牆）最多可掛載 **Mat1（主體/牆板）、Mat2（面材/塗料）、Mat3（附屬/膠材）** 三個材料槽位，共 **31 個參數**，統一前綴 `GreenMaterial_`。
+實際載入 Revit 的共享參數檔為 `GreenMaterial_SharedParams.txt`，採「多材料槽位」架構：一個 ElementType（如組合牆/組合樓板）最多可掛載 **Mat1、Mat2、Mat3、Mat4、Mat5、Mat6** 六個材料槽位，共 **64 個參數**，統一前綴 `GreenMaterial_`。槽位數不等於一定要填滿 6 組——一個 Set 有幾種材料，就只填寫對應的 matN 物件（`set_green_material_type_parameters` 的 `mat1`..`mat6` 皆為選填），未使用的槽位保持空白，不強制寫入。
 
 ### 1.1 全域欄位（不分槽位，Group 1/2）
 
@@ -36,7 +38,7 @@ metadata:
 | `GreenMaterial_RecycledRatio` | NUMBER | 再生材料回收摻配率 (%) |
 | `GreenMaterial_AcousticNRC` | NUMBER | 高性能吸音建材吸音係數 (NRC / SAA) |
 
-### 1.2 Mat1（主體/牆板）與 Mat2（面材/塗料）欄位（各 11 個，共 22 個）
+### 1.2 Mat1、Mat2、Mat4、Mat5、Mat6 欄位（各 11 個，共 55 個，欄位形狀完全相同）
 
 | 欄位後綴 | 資料型別 | 說明 | Group |
 | :--- | :--- | :--- | :--- |
@@ -52,7 +54,7 @@ metadata:
 | `_TestItems` | TEXT | 試驗項目與檢測數據範疇 | 3 |
 | `_QualifiedItems` | TEXT | 合格項目與評定結果 | 3 |
 
-例：`GreenMaterial_Mat1_CertNo`、`GreenMaterial_Mat2_TVOC`。
+例：`GreenMaterial_Mat1_CertNo`、`GreenMaterial_Mat2_TVOC`、`GreenMaterial_Mat5_CNSSpec`。Mat1/Mat2 沿用 v4 既有語意（主體/牆板、面材/塗料），Mat4/Mat5/Mat6 是 v3.0 新增的「追加構造層」槽位，欄位形狀與 Mat1/Mat2 完全相同，供 Scenario 3 多材料組合中第 4 個以後的材料使用。
 
 ### 1.3 Mat3（附屬/膠材）欄位（僅 6 個基本欄位，無 TVOC/Formaldehyde/CNS）
 
@@ -60,16 +62,48 @@ metadata:
 | :--- | :--- | :--- |
 | `_Name` / `_CertNo` / `_Category` / `_SubCategory` / `_Applicant` / `_ValidUntil` | TEXT | 同 1.2，僅識別資料（Group 1），無性能與試驗欄位 |
 
-**⚠️ 槽位對應不可顛倒**：`combined-wall-set-import` 情境中，Mat1 固定對應**板材/牆板**（CompoundStructure 的 `Structure [1]` 層），Mat2 固定對應**塗料/面材**（`Finish 1 [4]` / `Finish 2 [5]` 層）。寫入前務必依此對應，不得依材料在 Set 清單中的順序隨意分配。
+Mat3 是唯一維持輕量 6 欄位形狀的槽位（沿用 v4 原始定義，未變更），語意仍是「附屬/膠材」，但在 Scenario 3 的六槽位分配規則中，第 3 順位材料一律進 Mat3，即使該材料是真實構造層而非附屬材料，也只會寫入這 6 個基本欄位（CNS/試驗數據等會遺漏）——這是唯一與其他槽位不對等的地方，見下方「六槽位分配規則」。
+
+**⚠️ Mat1/Mat2 槽位對應不可顛倒（僅限 Scenario 1 固定 2 材料情境）**：`combined-wall-set-import` 情境中，Mat1 固定對應**板材/牆板**（CompoundStructure 的 `Structure [1]` 層），Mat2 固定對應**塗料/面材**（`Finish 1 [4]` / `Finish 2 [5]` 層）。寫入前務必依此對應，不得依材料在 Set 清單中的順序隨意分配。Scenario 3（3 個以上材料）改用下方「六槽位分配規則」決定槽位，不套用這條 Mat1=Structure/Mat2=Finish 的簡單假設。
+
+**明確層級覆寫（`layerComposition`）**：當使用者在 green-material-showcase.html 的材料 Set 問答中，對 Wall 或 Floor 選擇「單一組合」，且該 Set 有 2 項以上材料時，網頁會請使用者為每項材料指定明確的複合構造角色與拖曳排序，並存入該 Set 物件的 `layerComposition` 欄位（同步匯出於 `exported_material_sets.json`）：
+
+```json
+"layerComposition": {
+  "category": "Wall",
+  "sequence": [
+    { "type": "boundary" },
+    { "type": "material", "licno": "GBM0104204", "role": "Structure" },
+    { "type": "boundary" },
+    { "type": "material", "licno": "GBM0104194", "role": "Finish" }
+  ]
+}
+```
+
+- `sequence` 是**有序陣列**，順序即為 Revit CompoundStructure 由外而內（或由上而下，依 category 而定）的實際層序，使用者可在網頁上直接拖曳整列調整。
+- 陣列項目分兩種 `type`：
+  - `material`：`role` 僅三種取值：`Structure`（結構層，對應 `Structure [1]`）、`Substrate`（底材層，對應 `Substrate [2]`）、`Finish`（面材層，對應 `Finish 1 [4]` / `Finish 2 [5]`）。
+  - `boundary`：Core Boundary 分界線（Revit 結構材料與外部材料的分界，CompoundStructure 中不填入實際材料），純位置標記、無 `licno`。網頁預設會在 `Structure` 角色材料的緊上方與緊下方各放一個 `boundary` 項目（對應 Revit Edit Assembly 對話框固定出現的兩條 Core Boundary），使用者可拖曳調整其位置。
+- **`layerComposition` 存在時，其 `sequence` 順序與角色即為權威來源，優先於上方「Mat1=Structure / Mat2=Finish」的預設順序假設**；`/GMimport` 擬訂寫入計畫與 `/import` 實際寫入時，若 Set 帶有 `layerComposition`，須依此欄位分配 Mat1~Mat6 槽位與 CompoundStructure 層順序，而非依材料在 `items` 陣列中的原始順序推測。`boundary` 項目本身不對應任何材料槽位，僅供標示 Core Boundary 在層序中的插入位置。
+- 若 Set 沒有 `layerComposition`（例如各別建立模式、或 Wall/Floor 單一組合但使用者略過此設定），沿用既有的固定順序假設。
+
+**六槽位分配規則（`materialSlotAssignment`）**：Scenario 3（`create_multi_layer_type` 的通用多材料單一組合）理論上可以有 7 個以上材料，但 Mat1~Mat6 只有 6 個槽位。槽位數原則上等於材料數（材料數 <= 6 時全部都會分到槽位）；只有超過 6 個材料時才需要判斷「哪些進槽位、哪些留空」。這個判斷**不是由執行 `/import revit` 的 AI Agent 臨場決定**，而是 `generate_revit_injection_plan.py` 的 `_assign_material_slots()` 依固定規則計算，寫入 `plan['materialSlotAssignment']`（`{ assignment: { mat1..mat6 }, unassigned: [...] }`）與每個 `materialsMapping[i].assignedSlot`：
+
+1. 優先序固定為 `Structure > Finish > Substrate > Other`（`Other` 為判斷不出角色的材料，優先序最低）。
+2. 同優先序內，依材料在 `materialsMapping`（已依 `layerComposition.sequence` 或 Master DB 原始順序排列）中的先後順序決定。
+3. 取排序後前 6 名依序進 `mat1`→`mat2`→`mat3`→`mat4`→`mat5`→`mat6`；超過 6 個才會有材料標記 `assignedSlot: null`，列在 `unassigned` 中——這些材料仍會被寫入真實的 CompoundStructure 層與獨立 Material，只是沒有 `GreenMaterial_Mat*` 共享參數紀錄。
+4. 排序後第 3 名固定進 `mat3`（輕量 6 欄位槽位），因此即使是真實構造層材料，只要排到第 3 順位，CNS/試驗數據等欄位仍會遺漏——這是槽位形狀不對等（見 1.3）在分配規則上的直接影響，非分配規則本身的例外。
+
+`/GMimport` 與 `/import revit` 一律讀取 `plan['materialSlotAssignment']` 的計算結果，不得重新自行判斷分配順序——同一個 Set 不論何時重跑，分配結果必須一致。
 
 ---
 
 ## 2. Revit 載體綁定規範 (Carrier Binding Rules)
 
-* **綁定層級**：上述 31 個參數綁定於 **`ElementType`（Type 層級）**，不綁定 Instance，也不綁定 `Material` 物件本身——`Material.Name` 直接採用 `GBM編號_TABC材料完整名稱` 命名（見 `green-material-catalog.md` 與 `.agents/skills/combined-wall-set-import/domain.md`），不另外掛參數。
+* **綁定層級**：上述 64 個參數綁定於 **`ElementType`（Type 層級）**，不綁定 Instance，也不綁定 `Material` 物件本身——`Material.Name` 直接採用 `GBM編號_TABC材料完整名稱` 命名（見 `green-material-catalog.md` 與 `.agents/skills/combined-wall-set-import/domain.md`），不另外掛參數。
 * **綁定品類**：依 Type 所屬品類決定（`WallType` → `Walls`，`FloorType` → `Floors`，`CeilingType` → `Ceilings` 等）。
 * **綁定工具**：`load_shared_parameters`（`filePath` 指向 `GreenMaterial_SharedParams.txt`，`categories` 指定目標品類，`bindToInstance: false`）。同一品類只需綁定一次；重複呼叫會被冪等跳過。
-* **寫入工具**：`set_green_material_type_parameters`（`typeId` + 選填的 `certified` / `recycledRatio` / `acousticNRC` / `mat1` / `mat2` / `mat3` 物件）。若品類尚未綁定，對應欄位會回傳於 `MissingParameters`，不會拋出例外。
+* **寫入工具**：`set_green_material_type_parameters`（`typeId` + 選填的 `certified` / `recycledRatio` / `acousticNRC` / `mat1`~`mat6` 物件）。一個 Set 有幾種材料就只傳幾個 matN 物件，不必六組全填。若品類尚未綁定，對應欄位會回傳於 `MissingParameters`，不會拋出例外。
 
 ---
 

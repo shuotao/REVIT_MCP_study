@@ -15,9 +15,9 @@ This inventory defines which project documents are for AI agents, human readers,
 
 | Item | Count | Source |
 |---|---:|---|
-| Runtime MCP tools | 175 | `registerRevitTools()` |
+| Runtime MCP tools | 176 | `registerRevitTools()` |
 | Domain SOP files | 75 | `domain/*.md` except README, plus `domain/references/*.md` |
-| Claude skills | 53 | `.claude/skills/*/SKILL.md` |
+| Claude skills | 56 | `.claude/skills/*/SKILL.md` |
 
 ## AI-Only Documents
 

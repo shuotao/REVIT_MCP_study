@@ -15,7 +15,7 @@
     "TASK-001",
     "TASK-002"
   ],
-  "order": 3,
+  "order": 4,
   "readiness": {
     "problem_clear": true,
     "non_goals_clear": true,

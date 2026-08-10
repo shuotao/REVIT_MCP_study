@@ -57,7 +57,7 @@
 
 | 腳本 / 模組名稱 | 檔案路徑 / 模組位置 | 對應 Task | 開發狀態 | 功能說明 |
 | :--- | :--- | :---: | :---: | :--- |
-| **共享參數檔載入與驗證模組** | [`validate_shared_params.py`](../../validate_shared_params.py) | Task 003 / 005.1 | **已完成** | 驗證並批次一鍵載入 `GreenMaterial_SharedParams.txt` (31 個參數) 至 Revit 核心品類 |
+| **共享參數檔載入與驗證模組** | [`validate_shared_params.py`](../../validate_shared_params.py) | Task 003 / 005.1 | **已完成** | 驗證並批次一鍵載入 `GreenMaterial_SharedParams.txt` (v5 schema，Mat1~Mat6 六槽位共 64 個參數) 至 Revit 核心品類 |
 | **推送計畫擬訂引擎 v3** | [`generate_revit_injection_plan.py`](../../generate_revit_injection_plan.py) | Task 004 | **已完成** | 讀取網頁 Set 需求對齊問答 (Q1/Q2/Q3)，動態推判 Revit 品類、構造層與厚度 |
 | **標準材料層注入引擎 (機制 A)** | [`apply_revit_injection_plan.py`](../../apply_revit_injection_plan.py) | Task 005.2 / 005.3 | **已完成** | 執行牆面/地坪/天花板之組合式與分立式 Element Type 複製、寫入與舊材料衝突偵測 |
 | **元件履歷摘要表格產出腳本** | [`apply_revit_injection_plan.py`](../../apply_revit_injection_plan.py) | Task 005.4 | **已完成** | 歷史異動履歷已歸檔至 [`revit_generated_elements_summary.md`](../../tools/green-material/archive/reports/revit_generated_elements_summary.md) |

@@ -101,6 +101,12 @@ Each material in the Set becomes its own new ElementType (Floor/Wall/Ceiling —
 
 5. **Create each Type + material**: for each material, call `create_single_material_type` with `sourceTypeId` and `materialName` (`<licno>_<title>`). This duplicates the source Type, creates the material, and assigns it to every compound-structure layer of the new Type in one step.
 
+5b. **Floor materials only — apply Surface Pattern** (TASK-005.2): if the Set's `品類` is `Floor` and the material is a finish/wear layer (tile, stone, or wood flooring — not a soundproof buffer), call `set_material_surface_pattern` with `materialId` = the material ID `create_single_material_type` just returned:
+   - Tile/stone material (title contains `磚`/`石材` etc.) → `patternType: "Grid"` (`spacingMm` defaults to 600 for a 600×600 grid; override if the product spec states a different module size).
+   - Wood flooring (title contains `木地板`/`木質地板` etc.) → `patternType: "Wood"`.
+   - Soundproof buffer / non-visible substrate materials → skip this step, no pattern needed.
+   This tool dedups by pattern name, so calling it again for another material of the same spacing reuses the existing FillPatternElement rather than creating a duplicate.
+
 6. **Verify materials exist** (mandatory): call `get_all_materials(searchKeyword: "<Set's GBM prefix>")` and confirm all N new materials appear with the IDs each `create_single_material_type` call returned.
 
 7. **Bind shared parameters if needed**: call `load_shared_parameters` with `categories` matching the Set's `品類` (e.g. `["Floors"]`), `bindToInstance: false`. Idempotent — safe to call even if already bound.
@@ -123,29 +129,37 @@ Use `create_multi_layer_type` — it takes an ordered `layers` array (`{material
 
 2. **Get the plan's materials**: re-run the match for this Set. Materials with `mappingDetails.needsManualReview` (e.g. concrete that could be Wall or Floor) must already have been resolved — either by a `resolvedBySetCategoryOverride` in the plan, or by asking the user directly which layer/role each such material plays. Never silently guess a layer assignment for an unresolved material.
 
-3. **Get the layer order and function from the user**: unlike Scenario 1 (which always assumes board=Structure/paint=Finish), Scenario 3 has no fixed convention — **ask the user** which material goes in which `layerFunction` (`Finish1`/`Finish2`/`Substrate`/`Insulation`/`Structure`/`Membrane`) and in what order (top to bottom / exterior to interior), unless they already told you in this conversation. Do not assume order from the Set's `items` list order.
+3. **Get the layer order and function**: **⚠️ Two completely independent orderings exist — do not conflate them:**
+   - **Physical CompoundStructure layer order** (what goes in the `layers` array for step 6, top-to-bottom / exterior-to-interior): if the Set has `layerComposition.sequence`, `plan['materialsMapping']` is *already reordered to match it* — just build the `layers` array by iterating `plan['materialsMapping']` in the order it comes back, using each item's `targetLayer`/`mappingDetails` for `layerFunction`. **Skip any item with `mappingDetails.isAuxiliary: true`** (adhesive/sealant/waterproofing, routed via `layerComposition.auxiliary` in the showcase page's "🧴 輔助材料" drop zone, or via keyword detection) — it has no `layerFunction`/thickness and does not belong in the `layers` array at all; it still gets a `matN` slot in step 9, just not a physical layer. **Never re-sort the remaining items by `assignedSlot`/Mat-number** — `mat1`→`mat2`→`mat3`... is a shared-parameter metadata slot number (step 9), not a construction position, and sorting the physical layers by it silently corrupts the layer order even though the shared-parameter write still looks successful.
+   - If the Set has no `layerComposition` (no sequence to inherit), Scenario 3 has no fixed convention — **ask the user** which material goes in which `layerFunction` and in what order, unless they already told you in this conversation. Do not assume order from the Set's `items` list order.
 
 4. **Pick the source Type**: call `get_types_by_category` for the Set's `品類` (Walls/Floors/Ceilings). Show candidates and confirm with the user — same as Scenario 2 step 3.
 
-5. **Confirm before writing anything**: show the full layer stack —
+5. **Confirm before writing anything**: show the full layer stack **in the physical order from step 3** —
    - Source TypeId
    - New type name (ask the user for a naming convention if the Set doesn't imply one — e.g. `TABC_<SetName>` for a genuinely combined build)
-   - Each layer: material name (`<licno>_<title>`, full licno with any suffix) → `layerFunction` → thickness
+   - Each layer, in construction order: material name (`<licno>_<title>`, full licno with any suffix) → `layerFunction` → thickness
    Do not proceed without explicit confirmation.
 
-6. **Create the type**: call `create_multi_layer_type` with `sourceTypeId`, `newTypeName`, and the confirmed `layers` array.
+6. **Create the type**: call `create_multi_layer_type` with `sourceTypeId`, `newTypeName`, and the confirmed `layers` array (same physical order as steps 3 and 5 — do not reorder by Mat-slot number). Sanity-check the response's `ExteriorShellLayers`/`InteriorShellLayers`: if the Set's `layerComposition` has Finish-role material(s) at one or both ends of the sequence and the response comes back with `0` shell layers on that side, the `layers` array order was probably wrong — stop and re-check before writing shared parameters.
 
-7. **Verify materials exist** (mandatory): call `get_all_materials(searchKeyword: "<Set's GBM prefix>")` and confirm every material in the response's `Layers` list appears.
+6b. **Floor Finish layer only — apply Surface Pattern** (TASK-005.2, e.g. a Floor combining a Finish1 tile layer over a Substrate 打底 layer): for each layer in the response's `Layers` list whose `LayerFunction` is `Finish1`/`Finish2` and whose category is Floors, call `set_material_surface_pattern` with `materialId` = that layer's `MaterialId`:
+   - Tile/stone finish (title contains `磚`/`石材` etc.) → `patternType: "Grid"` (`spacingMm` 600 default = 600×600 grid; override per product spec if stated).
+   - Wood flooring finish (title contains `木地板`/`木質地板` etc.) → `patternType: "Wood"`.
+   Skip `Structure`/`Substrate`/`Insulation` layers (e.g. the 打底/緩衝 layer) — no pattern needed there. The tool dedups patterns by name, so reuse across materials/Sets is automatic.
+
+7. **Verify materials exist** (mandatory): call `get_all_materials(searchKeyword: "<Set's GBM prefix>")` and confirm every material in the response's `Layers` list appears. Auxiliary materials (skipped from `layers` in step 3/6) will **not** appear here — by design they never get a Revit `Material` element, only a text record in the Parent Type's Identity Data (step 9) — so don't treat their absence from `get_all_materials` as a failure.
 
 8. **Bind shared parameters if needed**: call `load_shared_parameters` with `categories` matching the Set's `品類`.
 
-9. **Write shared parameters**: this scenario can have more materials than the 3 `Mat1`/`Mat2`/`Mat3` slots support (the schema only has 3 slots — see `domain/green-material-parameter-schema.md`). Map the first 3 materials in construction significance order (typically Structure, then the two most relevant Finish/Substrate layers) into `mat1`/`mat2`/`mat3`, call `set_green_material_type_parameters`, and **tell the user explicitly which materials didn't get a slot** if there are more than 3 — don't silently drop them.
+9. **Write shared parameters**: the schema has 6 slots (`Mat1`~`Mat6` — see `domain/green-material-parameter-schema.md`), so slot count normally equals material count (auxiliary materials included — see below); a Set only overflows if it has more than 6 materials total. **Do not decide the slot assignment yourself** — the plan JSON's `materialSlotAssignment` field (and each `materialsMapping[i].assignedSlot`) already contains the deterministic result, computed by `_assign_material_slots()` in `generate_revit_injection_plan.py` (priority: Structure > Finish > Substrate > Other, tie-broken by construction order — auxiliary materials fall into `Other`, same as any material whose role can't be determined). Read `plan['materialSlotAssignment']['assignment']['mat1'..'mat6']` for which material goes in each slot, build the corresponding `mat1`..`mat6` objects from each material's full record, call `set_green_material_type_parameters`, and **tell the user explicitly which materials are in `plan['materialSlotAssignment']['unassigned']`** if any — don't silently drop them. Note `Mat3` is the one slot with a lighter field shape (no TVOC/Formaldehyde/CNS — see `domain/green-material-parameter-schema.md` §1.3); whichever material lands there loses that data even though it still gets a real CompoundStructure layer.
+   - **Auxiliary materials (`mappingDetails.isAuxiliary: true`) still need a `matN` object** — Mat1~Mat6 is a manifest of every green material the component uses, not just the ones with a physical layer, so skipping them here would make the component's material inventory incomplete even though `create_multi_layer_type` correctly left them out of the CompoundStructure (step 3/6). **In addition** to their `matN` slot, pass the top-level `adhesive`/`sealant`/`waterproofing` string parameter (whichever matches `mappingDetails.auxiliaryParam`, i.e. `GreenMaterial_Adhesive`→`adhesive`, `GreenMaterial_Sealant`→`sealant`, `GreenMaterial_Waterproofing`→`waterproofing`) using the exact string already computed in `sharedParameters[mappingDetails.auxiliaryParam]` (format `"產品名稱 (標章編號)"`) — don't reformat it yourself. A Set can have more than one auxiliary material of different types (e.g. one sealant + one waterproofing); pass each as its own top-level param in the same `set_green_material_type_parameters` call.
 
 10. **Verify the written values**: call `get_element_info` on the new `typeId`.
 
 11. **Update the Set's status**: call `write_back_to_set_manager` with `planned_actions_override` containing `'Element ID <id>'` plus all material IDs.
 
-12. **Report**: the full layer stack with material IDs, the new TypeId, which shared-parameter fields were written vs missing, and which materials (if any) didn't fit the 3-slot schema.
+12. **Report**: the full layer stack with material IDs, the new TypeId, which shared-parameter fields were written vs missing, and which materials (if any) exceeded the 6-slot schema.
 
 ---
 
@@ -159,6 +173,7 @@ Use `create_multi_layer_type` — it takes an ordered `layers` array (`{material
 | Scenario 1: `get_wall_types` has no plausible "加粉刷" candidate | List all wall types and ask the user to pick a source explicitly |
 | Scenario 2: a material's `targetRevitCategory` doesn't match the Set's declared `品類` | Flag it and ask the user how to handle that one material rather than forcing it |
 | Scenario 3: user hasn't specified layer order/function for a multi-material Set | Ask directly — never assume board=Structure/paint=Finish like Scenario 1, and never assume order from the Set's `items` list |
-| Scenario 3: more than 3 materials in one Set | Warn that only 3 fit the shared-parameter schema (`Mat1`/`Mat2`/`Mat3`); tell the user which ones will be left out of the parameter write (they still get a real CompoundStructure layer, just no `GreenMaterial_Mat*` metadata) |
+| `set_material_surface_pattern` can't resolve `materialId`/`materialName` | Confirm the material was actually created in this run (check the prior step's response) before retrying — don't guess an ID |
+| Scenario 3: more than 6 materials in one Set | Warn that only 6 fit the shared-parameter schema (`Mat1`~`Mat6`); tell the user which ones (from `plan['materialSlotAssignment']['unassigned']`) will be left out of the parameter write (they still get a real CompoundStructure layer, just no `GreenMaterial_Mat*` metadata) |
 | `set_green_material_type_parameters` returns non-empty `MissingParameters` | Report it — usually means `load_shared_parameters` needs to target a different category, or the file path is wrong |
 | Revit connection unavailable | State the limitation per CLAUDE.md's MCP Connection Status section; don't fabricate results |

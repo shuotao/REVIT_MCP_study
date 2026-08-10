@@ -132,3 +132,8 @@ docs/fork-audit/
 /.obsidian/
 
 __pycache__/
+
+# TABC 綠建材資料為第三方（財團法人臺灣建築中心）著作，不隨本 MIT 授權 repo 再散布。
+# 本機執行 update_tabc_database.py（或 /GMupdate）可重新產生，見 tools/green-material/README.md。
+/tabc_master_database.json
+/assets/green-material-showcase.html

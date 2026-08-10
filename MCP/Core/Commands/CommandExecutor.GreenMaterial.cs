@@ -457,16 +457,24 @@ namespace RevitMCP.Core
         }
 
         /// <summary>
-        /// 將綠建材 v4 共享參數 Schema（GreenMaterial_SharedParams.txt，Mat1/Mat2/Mat3 三槽位共 31 個欄位）
+        /// 將綠建材 v5 共享參數 Schema（GreenMaterial_SharedParams.txt，Mat1~Mat6 六槽位共 64 個欄位）
         /// 實體寫入指定 ElementType 的 Identity Data。
         /// 參數須已透過 load_shared_parameters 綁定至該 Type 所屬品類，否則對應欄位會列在 MissingParameters。
+        /// 槽位數對應材料數：一個 Set 有幾種材料就只傳幾個 mat1..matN 物件，其餘留空即可，
+        /// 不會強制寫滿 6 組（哪個材料進哪個槽位由 generate_revit_injection_plan.py 的
+        /// _assign_material_slots() 依 Structure > Finish > Substrate > Other 的固定優先序決定）。
         /// 參數：
         ///   typeId (number): 目標 ElementType Element ID（如 duplicate_element_type 建立的新型別）
         ///   certified (bool, optional): GreenMaterial_Certified
         ///   recycledRatio (number, optional): GreenMaterial_RecycledRatio
         ///   acousticNRC (number, optional): GreenMaterial_AcousticNRC
-        ///   mat1 / mat2 (object, optional): { name, certNo, category, subCategory, applicant, validUntil, tvoc, formaldehyde, cnsSpec, testItems, qualifiedItems }
-        ///   mat3 (object, optional): { name, certNo, category, subCategory, applicant, validUntil }（無 TVOC/Formaldehyde/CNS 欄位）
+        ///   mat1 / mat2 / mat4 / mat5 / mat6 (object, optional): { name, certNo, category, subCategory, applicant, validUntil, tvoc, formaldehyde, cnsSpec, testItems, qualifiedItems }
+        ///   mat3 (object, optional): { name, certNo, category, subCategory, applicant, validUntil }（沿用既有 v4 schema，無 TVOC/Formaldehyde/CNS 欄位）
+        ///   adhesive / sealant / waterproofing (string, optional): 非幾何輔助材料（接著劑/填縫劑/防水材料）專屬 Construction 群組欄位，
+        ///     格式為 "產品名稱 (標章編號)"（與 generate_revit_injection_plan.py 的 sp[auxiliaryParam] 輸出一致）。
+        ///     這些材料仍應依 generate_revit_injection_plan.py 的 assignedSlot 一併填入對應的 matN 物件——
+        ///     Mat 槽位記錄的是「這個元件用了哪些綠建材」的完整清單，輔助材料不例外；
+        ///     adhesive/sealant/waterproofing 只是額外補記它們「附著」的施工用途，兩者並存不衝突。
         /// </summary>
         private object SetGreenMaterialTypeParameters(JObject parameters)
         {
@@ -499,6 +507,21 @@ namespace RevitMCP.Core
                 WriteGreenMaterialSlot(type, "Mat1", parameters["mat1"] as JObject, includeExtended: true, written, missing);
                 WriteGreenMaterialSlot(type, "Mat2", parameters["mat2"] as JObject, includeExtended: true, written, missing);
                 WriteGreenMaterialSlot(type, "Mat3", parameters["mat3"] as JObject, includeExtended: false, written, missing);
+                WriteGreenMaterialSlot(type, "Mat4", parameters["mat4"] as JObject, includeExtended: true, written, missing);
+                WriteGreenMaterialSlot(type, "Mat5", parameters["mat5"] as JObject, includeExtended: true, written, missing);
+                WriteGreenMaterialSlot(type, "Mat6", parameters["mat6"] as JObject, includeExtended: true, written, missing);
+
+                JToken adhesiveToken = parameters["adhesive"];
+                if (adhesiveToken != null && adhesiveToken.Type != JTokenType.Null)
+                    SetTypeParamText(type, "GreenMaterial_Adhesive", adhesiveToken.Value<string>(), written, missing);
+
+                JToken sealantToken = parameters["sealant"];
+                if (sealantToken != null && sealantToken.Type != JTokenType.Null)
+                    SetTypeParamText(type, "GreenMaterial_Sealant", sealantToken.Value<string>(), written, missing);
+
+                JToken waterproofingToken = parameters["waterproofing"];
+                if (waterproofingToken != null && waterproofingToken.Type != JTokenType.Null)
+                    SetTypeParamText(type, "GreenMaterial_Waterproofing", waterproofingToken.Value<string>(), written, missing);
 
                 trans.Commit();
             }
@@ -752,6 +775,148 @@ namespace RevitMCP.Core
                               $"（外側 shell {exteriorShellCount} 層、內側 shell {interiorShellCount} 層在 core boundary 外）"
                 };
             }
+        }
+
+        /// <summary>
+        /// TASK-005.2：為綠建材 Material 建立（或重用既有）Model 目標的 Surface Pattern，
+        /// 並套入該 Material 的表面／剖切樣式。用於地磚 600×600 網格縫線、木地板木紋等
+        /// 依產品規格需要在平面／剖面顯示紋理的飾面材料。
+        /// 依名稱查找既有 FillPatternElement 並重用，不會每次呼叫都新建一個樣式。
+        /// 參數：
+        ///   materialId (number, optional): 目標材質 Element ID
+        ///   materialName (string, optional): 目標材質名稱（materialId 與 materialName 至少需提供一個，優先用 materialId）
+        ///   patternType (string): "Grid"（網格縫線，預設 600×600mm）/ "Wood"（木紋單向紋理線）/ "None"（清除樣式）
+        ///   spacingMm (number, optional): Grid 為縫線間距，預設 600；Wood 為紋理線間距，預設 100
+        ///   target (string, optional): "Surface"（表面樣式，預設）/ "Cut"（剖切樣式）/ "Both"（兩者皆套用）
+        /// </summary>
+        private object SetMaterialSurfacePattern(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            IdType materialId = parameters["materialId"]?.Value<IdType>() ?? 0;
+            string materialName = parameters["materialName"]?.Value<string>();
+            string patternType = parameters["patternType"]?.Value<string>();
+            double? spacingToken = parameters["spacingMm"]?.Value<double?>();
+            string target = parameters["target"]?.Value<string>() ?? "Surface";
+
+            if (string.IsNullOrEmpty(patternType))
+                throw new Exception("請指定 patternType（Grid / Wood / None）");
+            if (target != "Surface" && target != "Cut" && target != "Both")
+                throw new Exception($"不支援的 target: '{target}'（支援 Surface / Cut / Both）");
+
+            Material mat = null;
+            if (materialId != 0)
+                mat = doc.GetElement(new ElementId(materialId)) as Material;
+            if (mat == null && !string.IsNullOrEmpty(materialName))
+            {
+                mat = new FilteredElementCollector(doc)
+                    .OfClass(typeof(Material)).Cast<Material>()
+                    .FirstOrDefault(m => m.Name.Equals(materialName, StringComparison.OrdinalIgnoreCase));
+            }
+            if (mat == null)
+                throw new Exception("找不到材質，請提供正確的 materialId 或 materialName");
+
+            using (Transaction trans = new Transaction(doc, $"設定材質表面樣式: {mat.Name}"))
+            {
+                trans.Start();
+
+                ElementId patternId = ElementId.InvalidElementId;
+                string patternName = null;
+
+                switch (patternType)
+                {
+                    case "Grid":
+                        {
+                            double spacing = spacingToken ?? 600.0;
+                            patternName = $"TABC_Grid_{(int)spacing}x{(int)spacing}";
+                            FillPatternElement patElem = GetOrCreateGridModelPattern(doc, patternName, spacing);
+                            patternId = patElem.Id;
+                            break;
+                        }
+                    case "Wood":
+                        {
+                            double spacing = spacingToken ?? 100.0;
+                            patternName = $"TABC_WoodGrain_{(int)spacing}";
+                            FillPatternElement patElem = GetOrCreateWoodModelPattern(doc, patternName, spacing);
+                            patternId = patElem.Id;
+                            break;
+                        }
+                    case "None":
+                        patternId = ElementId.InvalidElementId;
+                        break;
+                    default:
+                        throw new Exception($"不支援的 patternType: '{patternType}'（支援 Grid / Wood / None）");
+                }
+
+                bool applySurface = target == "Surface" || target == "Both";
+                bool applyCut = target == "Cut" || target == "Both";
+
+                if (applySurface)
+                    mat.SurfaceForegroundPatternId = patternId;
+                if (applyCut)
+                    mat.CutForegroundPatternId = patternId;
+
+                trans.Commit();
+
+                return new
+                {
+                    Success = true,
+                    MaterialId = mat.Id.GetIdValue(),
+                    MaterialName = mat.Name,
+                    PatternType = patternType,
+                    PatternId = patternId == ElementId.InvalidElementId ? (IdType?)null : patternId.GetIdValue(),
+                    PatternName = patternName,
+                    Target = target,
+                    Message = patternType == "None"
+                        ? $"已清除材質 '{mat.Name}' 的 {target} 表面樣式"
+                        : $"已將樣式 '{patternName}' (ID:{patternId.GetIdValue()}) 套入材質 '{mat.Name}' 的 {target} 表面樣式"
+                };
+            }
+        }
+
+        /// <summary>
+        /// 取得或建立 600×600（或指定間距）縫線網格 Model Pattern，依名稱去重不重複建立。
+        /// 由兩組垂直 FillGrid（0° / 90°）組成，模擬地磚縫線。
+        /// </summary>
+        private FillPatternElement GetOrCreateGridModelPattern(Document doc, string name, double spacingMm)
+        {
+            FillPatternElement existing = new FilteredElementCollector(doc)
+                .OfClass(typeof(FillPatternElement))
+                .Cast<FillPatternElement>()
+                .FirstOrDefault(x => x.Name == name);
+            if (existing != null) return existing;
+
+            double spacingFeet = spacingMm / 304.8;
+            // 0 = ToModel（沿用 CommandExecutor.FillPatterns.cs 既有轉換慣例，避開跨版本列舉命名差異）
+            FillPattern fp = new FillPattern(name, FillPatternTarget.Model, (FillPatternHostOrientation)0);
+            var grids = new List<FillGrid>
+            {
+                new FillGrid { Angle = 0, Origin = new UV(0, 0), Offset = spacingFeet, Shift = 0 },
+                new FillGrid { Angle = Math.PI / 2, Origin = new UV(0, 0), Offset = spacingFeet, Shift = 0 }
+            };
+            fp.SetFillGrids(grids);
+            return FillPatternElement.Create(doc, fp);
+        }
+
+        /// <summary>
+        /// 取得或建立木紋 Model Pattern，依名稱去重不重複建立。
+        /// 由單一方向 FillGrid 構成、每條線帶錯位 (Shift)，模擬木地板紋理線。
+        /// </summary>
+        private FillPatternElement GetOrCreateWoodModelPattern(Document doc, string name, double spacingMm)
+        {
+            FillPatternElement existing = new FilteredElementCollector(doc)
+                .OfClass(typeof(FillPatternElement))
+                .Cast<FillPatternElement>()
+                .FirstOrDefault(x => x.Name == name);
+            if (existing != null) return existing;
+
+            double spacingFeet = spacingMm / 304.8;
+            FillPattern fp = new FillPattern(name, FillPatternTarget.Model, (FillPatternHostOrientation)0);
+            var grids = new List<FillGrid>
+            {
+                new FillGrid { Angle = 0, Origin = new UV(0, 0), Offset = spacingFeet, Shift = spacingFeet / 3.0 }
+            };
+            fp.SetFillGrids(grids);
+            return FillPatternElement.Create(doc, fp);
         }
 
         private static bool IsShellFunction(MaterialFunctionAssignment function)

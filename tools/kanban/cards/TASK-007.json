@@ -1,7 +1,7 @@
 {
   "id": "TASK-007",
   "title": "套用 hj-pr-proposal 將綠建材 Skill 轉譯成 HJPLUS 雙層草案",
-  "content": "### 任務說明\n運用 `hj-pr-proposal` SOP，將綠建材 Skill 拆解轉譯為 HJPLUS 台灣建築師知識庫標準格式：上層中文 `domain.md`（綠建材評定法規與 BIM 實務指南）與下層英文 `SKILL.md`（AI Agent 執行 SOP），並產出完整 PR 提案草稿。\n\n### Readiness (DOR)\n- [x] problem_clear: 遵循 HJPLUS 雙層結構規格\n- [x] scope_defined: 產生可審核的 PR 說明與檔案結構\n\n### Sign-off Gates (DOD)\n- [ ] architecture: 產出正確的 `domain.md` 與 `SKILL.md` 雙層文件\n- [ ] test_passed: 經作者確認提案結構與註記正確\n- [ ] code_review: 符合 HJPLUS PR 規範與無痛導入品質",
+  "content": "### 2026-08-11 看板重整修正\n原本 dependsOn 寫著不存在的卡片 ID「TASK-005」（只有 005.1~005.11 子卡，沒有單一 TASK-005），已改為實際指向 TASK-005.1／TASK-005.2（Epic-2 目前已完成到 verify 階段的代表性情境），並移除避免與 TASK-008 互相依賴形成循環。\n\n---\n\n### 任務說明\n運用 `hj-pr-proposal` SOP，將綠建材 Skill 拆解轉譯為 HJPLUS 台灣建築師知識庫標準格式：上層中文 `domain.md`（綠建材評定法規與 BIM 實務指南）與下層英文 `SKILL.md`（AI Agent 執行 SOP），並產出完整 PR 提案草稿。\n\n### Readiness (DOR)\n- [x] problem_clear: 遵循 HJPLUS 雙層結構規格\n- [x] scope_defined: 產生可審核的 PR 說明與檔案結構\n\n### Sign-off Gates (DOD)\n- [ ] architecture: 產出正確的 `domain.md` 與 `SKILL.md` 雙層文件\n- [ ] test_passed: 經作者確認提案結構與註記正確\n- [ ] code_review: 符合 HJPLUS PR 規範與無痛導入品質",
   "stage": "backlog",
   "risk": "medium",
   "owner": "shuotao",
@@ -12,10 +12,11 @@
   "userStory": "US-7: HJPLUS 知識庫貢獻草案",
   "track": "integration",
   "dependsOn": [
-    "TASK-005",
+    "TASK-005.1",
+    "TASK-005.2",
     "TASK-006"
   ],
-  "order": 7,
+  "order": 11,
   "readiness": {
     "problem_clear": false,
     "non_goals_clear": false,

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Revit 綠建材推送計畫擬訂引擎 v3 (基於 TASK-003 11大工程情境與19共享參數)
+Revit 綠建材推送計畫擬訂引擎 v3 (基於 TASK-003 11大工程情境與 GreenMaterial_SharedParams.txt v5 六槽位共享參數)
 ========================================================================
 功能：
   - 依據 /GMimport 指令解析材料 Set 的真實 licno 清單
@@ -8,7 +8,7 @@ Revit 綠建材推送計畫擬訂引擎 v3 (基於 TASK-003 11大工程情境與
   - 自動判斷 Revit 品類 (Walls / Floors / Ceilings / Windows / Auxiliary)
   - 自動配置構造層 (Finish 1 / Substrate / Structure) 與預設厚度推判 (2mm / 15mm / 150mm)
   - 支援非幾何材料 (接著劑 / 填縫劑 / 防水膜) 寫入 Construction 群組
-  - 產出 19 個共享參數寫入計畫與專業 BIM 執行步驟
+  - 依 Structure > Finish > Substrate > Other 優先序，將材料分配至 Mat1~Mat6 六槽位共享參數
   - write_back_to_set_manager(): 將對齊計畫回傳至 exported_material_sets.json
 """
 
@@ -226,12 +226,236 @@ def _extract_category_hint(user_intent: str) -> str:
     return _CATEGORY_HINT_ALIASES.get(raw, raw)
 
 
+# ── layerComposition 覆寫（見 domain/green-material-parameter-schema.md 「明確層級覆寫」）──
+# 使用者在 green-material-showcase.html 對 Wall/Floor 單一組合 Set 明確拖曳指定每項材料的
+# Structure/Substrate/Finish 角色與 Core Boundary 位置時，該設定存在 exported_material_sets.json
+# 的 Set 物件 layerComposition.sequence 欄位。此欄位一旦存在，即為權威來源，優先於
+# analyze_material_mapping() 的關鍵字啟發式判斷與 _CATEGORY_HINT_FALLBACK 的品類覆寫。
+
+_LC_CATEGORY_TO_REVIT = {
+    "Wall": {"revitCategory": "OST_Walls", "prefix": "W"},
+    "Floor": {"revitCategory": "OST_Floors", "prefix": "F"},
+    "Ceiling": {"revitCategory": "OST_Ceilings", "prefix": "C"},
+}
+
+
+def _find_set_entry(set_name: str, sets: dict):
+    """比對邏輯與 write_back_to_set_manager 一致：完全相符優先，其次互為子字串。"""
+    if set_name in sets:
+        return sets[set_name]
+    for key, val in sets.items():
+        if set_name in key or key in set_name:
+            return val
+    return None
+
+
+def _load_layer_composition(set_name: str):
+    sets = load_exported_sets()
+    entry = _find_set_entry(set_name, sets)
+    if not entry:
+        return None
+    lc = entry.get("layerComposition")
+    if not lc or not isinstance(lc.get("sequence"), list):
+        return None
+    return lc
+
+
+def _build_layer_composition_role_map(layer_composition: dict) -> dict:
+    """回傳 { licno: (role, finish_index_or_None) }。finish_index 依 sequence 出現順序
+    分配 Finish 1 / Finish 2（第一個 Finish 角色的材料 = index 0 → Finish 1，以此類推）。"""
+    role_map = {}
+    finish_counter = 0
+    for entry in layer_composition["sequence"]:
+        if entry.get("type") != "material":
+            continue
+        role = entry.get("role")
+        licno = entry.get("licno")
+        if role == "Finish":
+            role_map[licno] = (role, finish_counter)
+            finish_counter += 1
+        else:
+            role_map[licno] = (role, None)
+    return role_map
+
+
+def _lookup_layer_composition_role(licno: str, role_map: dict):
+    """先精確比對 licno，找不到時用 _normalize_licno 去除 (續)/(增) 後綴回補比對。"""
+    if licno in role_map:
+        return role_map[licno]
+    norm = _normalize_licno(licno)
+    for k, v in role_map.items():
+        if _normalize_licno(k) == norm:
+            return v
+    return None
+
+
+_LC_AUX_TYPE_TO_PARAM = {
+    "Adhesive": "GreenMaterial_Adhesive",
+    "Sealant": "GreenMaterial_Sealant",
+    "Waterproofing": "GreenMaterial_Waterproofing",
+}
+
+
+def _build_layer_composition_aux_map(layer_composition: dict) -> dict:
+    """回傳 { licno: auxType }，來源為使用者在檢索平台材料層級設定視窗把材料明確拖曳到
+    「輔助材料」區的結果（見 assets/green-material-showcase.html 的 auxCompDraft）。"""
+    aux_map = {}
+    for entry in (layer_composition or {}).get("auxiliary", []) or []:
+        licno = entry.get("licno")
+        aux_type = entry.get("auxType")
+        if licno and aux_type:
+            aux_map[licno] = aux_type
+    return aux_map
+
+
+def _lookup_layer_composition_aux(licno: str, aux_map: dict):
+    """先精確比對 licno，找不到時用 _normalize_licno 去除 (續)/(增) 後綴回補比對。"""
+    if licno in aux_map:
+        return aux_map[licno]
+    norm = _normalize_licno(licno)
+    for k, v in aux_map.items():
+        if _normalize_licno(k) == norm:
+            return v
+    return None
+
+
+def _resolve_layer_composition_auxiliary(aux_type_key: str) -> dict:
+    """依使用者在材料層級設定視窗明確指定的輔助材料分類，產出與 analyze_material_mapping()
+    的非幾何輔助材料分支相容的 mapping_info——即使標題沒有命中接著劑/填縫/防水關鍵字，
+    使用者的明確分類一律優先（跟 _resolve_layer_composition_mapping 對幾何角色的處理方式一致）。"""
+    aux_param = _LC_AUX_TYPE_TO_PARAM.get(aux_type_key, "GreenMaterial_Adhesive")
+    return {
+        "revitCategory": "OST_Materials",
+        "layer": "Attached Parameter (Construction)",
+        "defaultThickness": "0 mm (非幾何屬性)",
+        "isAuxiliary": True,
+        "auxiliaryParam": aux_param,
+        "buiNaming": "AUX_Adhesive_Sealant",
+        "resolvedByLayerComposition": True,
+        "layerCompositionAuxType": aux_type_key,
+    }
+
+
+def _resolve_layer_composition_mapping(role: str, finish_index, category: str) -> dict:
+    """依 layerComposition 指定的角色，產出與 analyze_material_mapping() 相容的 mapping_info。"""
+    info = _LC_CATEGORY_TO_REVIT.get(category, {"revitCategory": "OST_Materials", "prefix": "X"})
+    prefix = info["prefix"]
+
+    if role == "Structure":
+        layer = "Structure [1]"
+        thickness = "150 mm（結構層，依材料層級設定指定，建議人工確認實際配比厚度）"
+        bui = f"{prefix}_INT_Structure"
+    elif role == "Substrate":
+        layer = "Substrate [2]"
+        thickness = "15 mm（底材層，依材料層級設定指定，建議人工確認）"
+        bui = f"{prefix}_INT_Substrate"
+    elif role == "Finish":
+        is_first = not finish_index
+        layer = "Finish 1 [4]" if is_first else "Finish 2 [5]"
+        thickness = "2 mm（面材層，依材料層級設定指定，建議人工確認）"
+        bui = f"{prefix}_INT_Finish{1 if is_first else 2}"
+    else:
+        return None
+
+    return {
+        "revitCategory": info["revitCategory"],
+        "layer": layer,
+        "defaultThickness": thickness,
+        "buiNaming": bui,
+        "resolvedByLayerComposition": True,
+        "layerCompositionRole": role,
+    }
+
+
+def _layer_composition_sequence_labels(layer_composition: dict, database) -> list:
+    """把 sequence 轉成人類可讀的順序清單，供 Markdown 報告與回報摘要使用。"""
+    title_by_licno = {item.get("licno"): item.get("title") for item in database}
+    labels = []
+    for entry in layer_composition["sequence"]:
+        if entry.get("type") == "boundary":
+            labels.append("— Core Boundary 分界線（不填入實際材料）—")
+        else:
+            licno = entry.get("licno")
+            title = title_by_licno.get(licno, "")
+            labels.append(f"{licno}｜{title}（{entry.get('role')}）")
+    return labels
+
+
+# ── Mat1~Mat6 六槽位分配（見 domain/green-material-parameter-schema.md「六槽位分配規則」）──
+# GreenMaterial_SharedParams.txt 的 v5 schema 定義了 6 個材料槽位（64 個欄位），但 Scenario 3
+# 的單一組合仍可能有 7 個以上材料，超過槽位上限。過去「材料數超過槽位數時選誰進槽位」的判斷，
+# 是由執行 /import revit 的 AI Agent 在對話當下臨場決定，同一個 Set 換一次對話可能得到不同結果。
+# 這裡把該規則寫成確定性函式：優先序固定為 Structure > Finish > Substrate > 其他，
+# 同優先序內依材料在 plan_items（已依 layerComposition 或 DB 順序排列）中的原始順序決定，
+# 任何人重跑同一個 Set 永遠得到同一個分配結果。槽位數等於材料數（最多到 6 個），
+# 不會不管材料數多寡就強制填滿或強制只填 3 個。
+
+_SLOT_ROLE_PRIORITY = {"Structure": 0, "Finish": 1, "Substrate": 2, "Other": 3}
+_SLOT_KEYS = ["mat1", "mat2", "mat3", "mat4", "mat5", "mat6"]
+
+
+def _infer_role_bucket(mapping_details: dict) -> str:
+    """從 mappingDetails 判斷材料的角色分類，優先採用 layerComposition 明確指定的角色，
+    否則退回從 layer 描述字串（如 'Structure [1]'）判斷。判斷不出來歸類為 'Other'。"""
+    role = (mapping_details or {}).get("layerCompositionRole")
+    if role in ("Structure", "Substrate", "Finish"):
+        return role
+    layer = (mapping_details or {}).get("layer") or ""
+    if "Structure" in layer:
+        return "Structure"
+    if "Substrate" in layer:
+        return "Substrate"
+    if "Finish" in layer:
+        return "Finish"
+    return "Other"
+
+
+def _assign_material_slots(plan_items: list) -> dict:
+    """依 Structure > Finish > Substrate > Other 的固定優先序，從 plan_items 挑出前
+    len(_SLOT_KEYS)（目前 6）名依序進 Mat1~Mat6 槽位，材料數 <= 6 時全部都會分到槽位；
+    超過 6 個才會有材料被標記為未分配（unassigned）。同時把 assignedSlot
+    （'mat1'~'mat6'/None）直接寫回每個 plan_items 項目，供下游（Markdown 報告、
+    /import revit）直接讀取，不需要重新判斷一次。
+
+    非幾何輔助材料（接著劑/填縫劑/防水材料）一樣參與排名、可以拿到 Mat 槽位——
+    Mat1~Mat6 的用途是記錄「這個元件用了哪些綠建材」的完整清單，不是只有物理
+    構造層才算數；輔助材料沒有 CompoundStructure 層（見 layerComposition.auxiliary
+    與 _resolve_layer_composition_auxiliary），但仍然是這個元件的一部分，一樣需要
+    被 Mat 槽位記錄下來、可回查。歸類為 'Other'（最低優先序），跟其他判斷不出角色
+    的材料一樣，材料數多時最先被擠到 unassigned。"""
+    ranked = sorted(
+        enumerate(plan_items),
+        key=lambda pair: (_SLOT_ROLE_PRIORITY.get(_infer_role_bucket(pair[1]["mappingDetails"]), 9), pair[0]),
+    )
+
+    assignment = {}
+    unassigned = []
+    for rank, (_, item) in enumerate(ranked):
+        role_bucket = _infer_role_bucket(item["mappingDetails"])
+        entry = {"licno": item["licno"], "title": item["title"], "roleBucket": role_bucket}
+        if rank < len(_SLOT_KEYS):
+            slot = _SLOT_KEYS[rank]
+            assignment[slot] = entry
+            item["assignedSlot"] = slot
+        else:
+            unassigned.append(entry)
+            item["assignedSlot"] = None
+
+    return {"assignment": assignment, "unassigned": unassigned}
+
+
 def generate_injection_plan(set_name: str, licno_list=None, user_intent: str = "") -> dict:
     """
     生成 Revit 推送計畫 (v3 精細化版)。
     """
     database = load_database()
     category_hint = _extract_category_hint(user_intent)
+
+    # layerComposition 覆寫：若此 Set 在網頁上已明確指定材料層級，取得角色對照表與順序
+    layer_composition = _load_layer_composition(set_name)
+    lc_role_map = _build_layer_composition_role_map(layer_composition) if layer_composition else {}
+    lc_aux_map = _build_layer_composition_aux_map(layer_composition) if layer_composition else {}
+    lc_category = (layer_composition or {}).get("category") or category_hint
 
     # 1. 解析 licnos
     extracted = []
@@ -274,6 +498,22 @@ def generate_injection_plan(set_name: str, licno_list=None, user_intent: str = "
                 matched.append(item)
                 already_covered.add(norm)
 
+    # 2b. 若有 layerComposition，依使用者拖曳指定的順序重排 matched（供計畫呈現真實物理層序）
+    if layer_composition:
+        seq_licnos = [e["licno"] for e in layer_composition["sequence"] if e.get("type") == "material"]
+
+        def _lc_sort_key(rec):
+            rl = rec.get("licno")
+            if rl in seq_licnos:
+                return seq_licnos.index(rl)
+            norm = _normalize_licno(rl)
+            for i, sl in enumerate(seq_licnos):
+                if _normalize_licno(sl) == norm:
+                    return i
+            return len(seq_licnos)
+
+        matched.sort(key=_lc_sort_key)
+
     # 3. 組建計畫
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     plan_id = f"PLAN-{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
@@ -290,16 +530,32 @@ def generate_injection_plan(set_name: str, licno_list=None, user_intent: str = "
         # 進行 TASK-003 11大情境深度分析
         mapping_info = analyze_material_mapping(sub_cat, title)
 
-        # 材料本身跨用途、判斷不出來時，改用 Set 宣告的品類解析（如混凝土可用於
-        # Wall/Floor/Column/Beam，材料自己的資料無法決定，這次要用在哪由 Set 情境決定）。
-        if mapping_info.get("needsManualReview") and category_hint in _CATEGORY_HINT_FALLBACK:
-            resolved = dict(_CATEGORY_HINT_FALLBACK[category_hint])
-            resolved["resolvedBySetCategoryOverride"] = True
-            resolved["originalUnclassifiedReason"] = (
-                f"材料本身 subCategory='{sub_cat}' 屬跨用途通用建材，無法單獨判斷；"
-                f"依 Set 宣告品類 '{category_hint}' 解析，非材料自身資料判斷結果"
-            )
-            mapping_info = resolved
+        # layerComposition 為權威來源：使用者已在網頁上為此材料明確指定 Structure/Substrate/
+        # Finish 角色，或明確拖曳到「輔助材料」區時，優先採用該設定，覆寫關鍵字啟發式判斷結果
+        # （見 domain/green-material-parameter-schema.md「明確層級覆寫」）。輔助材料區優先於
+        # 幾何角色檢查——兩者理論上互斥（同一 licno 不會同時出現在 sequence 與 auxiliary），
+        # 但輔助材料的使用者意圖更明確，優先權更高。
+        lc_aux_entry = _lookup_layer_composition_aux(item.get("licno"), lc_aux_map)
+        if lc_aux_entry is not None:
+            mapping_info = _resolve_layer_composition_auxiliary(lc_aux_entry)
+        else:
+            lc_entry = _lookup_layer_composition_role(item.get("licno"), lc_role_map)
+            if lc_entry is not None:
+                role, finish_index = lc_entry
+                resolved = _resolve_layer_composition_mapping(role, finish_index, lc_category)
+                if resolved:
+                    mapping_info = resolved
+
+            # 材料本身跨用途、判斷不出來，且沒有 layerComposition 可用時，改用 Set 宣告的品類解析
+            # （如混凝土可用於 Wall/Floor/Column/Beam，材料自己的資料無法決定，這次要用在哪由 Set 情境決定）。
+            elif mapping_info.get("needsManualReview") and category_hint in _CATEGORY_HINT_FALLBACK:
+                resolved = dict(_CATEGORY_HINT_FALLBACK[category_hint])
+                resolved["resolvedBySetCategoryOverride"] = True
+                resolved["originalUnclassifiedReason"] = (
+                    f"材料本身 subCategory='{sub_cat}' 屬跨用途通用建材，無法單獨判斷；"
+                    f"依 Set 宣告品類 '{category_hint}' 解析，非材料自身資料判斷結果"
+                )
+                mapping_info = resolved
         revit_cat = mapping_info["revitCategory"]
         target_categories.add(revit_cat)
 
@@ -308,7 +564,7 @@ def generate_injection_plan(set_name: str, licno_list=None, user_intent: str = "
         if mapping_info.get("isLoadableFamily"):
             has_loadable_family = True
 
-        # 組裝 19 個共享參數 schema
+        # 組裝單一材料的共享參數欄位（供計畫報告呈現，後續依 _assign_material_slots 結果轉為 Mat1~Mat6 槽位）
         sp = {
             "GreenMaterial_Certified": True,
             "GreenMaterial_CertNo": item.get("licno"),
@@ -346,11 +602,22 @@ def generate_injection_plan(set_name: str, licno_list=None, user_intent: str = "
             "sharedParameters": sp,
         })
 
+    # Mat1~Mat6 六槽位分配（確定性規則，見上方 _assign_material_slots）
+    slot_assignment = _assign_material_slots(plan_items)
+
     # 動態擬訂 4~6 個專業執行步驟
+    if layer_composition:
+        layer_step = (
+            "3. 依據使用者於檢索平台明確指定的材料層級設定 (layerComposition) 配置構造層位階，"
+            "不採用關鍵字啟發式推判"
+        )
+    else:
+        layer_step = "3. 依據 TASK-003 規範自動配置構造層位階 (Finish 1 / Substrate / Structure) 與預設厚度推判"
+
     execution_steps = [
-        "1. 載入 GreenMaterial_SharedParams.txt (包含 19 個共享參數) 至 Revit 專案",
+        "1. 載入 GreenMaterial_SharedParams.txt (包含 64 個共享參數，Mat1~Mat6 六槽位) 至 Revit 專案",
         f"2. 掃描專案模型對應品類：{', '.join(sorted(target_categories))}",
-        "3. 依據 TASK-003 規範自動配置構造層位階 (Finish 1 / Substrate / Structure) 與預設厚度推判",
+        layer_step,
     ]
 
     if has_auxiliary:
@@ -371,6 +638,11 @@ def generate_injection_plan(set_name: str, licno_list=None, user_intent: str = "
         "totalMaterialsCount": len(plan_items),
         "materialsMapping": plan_items,
         "executionSteps": execution_steps,
+        "layerComposition": layer_composition,
+        "layerCompositionSequenceLabels": (
+            _layer_composition_sequence_labels(layer_composition, database) if layer_composition else None
+        ),
+        "materialSlotAssignment": slot_assignment,
     }
 
     # 儲存 JSON
@@ -403,6 +675,17 @@ def _write_markdown_report(plan: dict):
     for cat in plan["targetRevitCategories"]:
         lines.append(f"- **`{cat}`**")
 
+    if plan.get("layerCompositionSequenceLabels"):
+        lines += [
+            "",
+            "---",
+            "",
+            "## 1b. 材料層級順序（使用者於檢索平台明確指定，權威來源）",
+            "",
+        ]
+        for label in plan["layerCompositionSequenceLabels"]:
+            lines.append(f"1. {label}")
+
     lines += ["", "---", "", "## 2. 材料與 Revit 19個共享參數對映清單", ""]
 
     for idx, m in enumerate(plan["materialsMapping"], 1):
@@ -418,9 +701,32 @@ def _write_markdown_report(plan: dict):
             f"- **合格項目**: {sp['GreenMaterial_QualifiedItems']}",
             f"- **試驗數據**: {sp['GreenMaterial_TestItems']}",
         ]
+        if m["mappingDetails"].get("resolvedByLayerComposition"):
+            lines.append("- **層級來源**: 使用者於檢索平台材料層級設定明確指定（非關鍵字啟發式判斷）")
+        elif m["mappingDetails"].get("resolvedBySetCategoryOverride"):
+            lines.append(f"- **層級來源**: {m['mappingDetails'].get('originalUnclassifiedReason', '')}")
         if m["mappingDetails"].get("isAuxiliary"):
             aux_key = m["mappingDetails"]["auxiliaryParam"]
             lines.append(f"- **非幾何欄位**: `{aux_key}` ➔ {sp.get(aux_key, '')}")
+        slot = m.get("assignedSlot")
+        lines.append(
+            f"- **GreenMaterial_Mat 槽位**: `{slot.upper()}`" if slot
+            else "- **GreenMaterial_Mat 槽位**: 未分配（超過 6 槽位上限，僅有實體構造層，無 GreenMaterial_Mat* 參數）"
+        )
+        lines.append("")
+
+    slot_assignment = plan.get("materialSlotAssignment")
+    if slot_assignment and (len(plan["materialsMapping"]) > len(_SLOT_KEYS)):
+        lines += ["---", "", "## 2b. Mat1~Mat6 六槽位分配（確定性規則：Structure > Finish > Substrate > 其他）", ""]
+        for slot_key in _SLOT_KEYS:
+            entry = slot_assignment["assignment"].get(slot_key)
+            if entry:
+                lines.append(f"- **{slot_key.upper()}**: {entry['title']} (`{entry['licno']}`)｜角色: {entry['roleBucket']}")
+        if slot_assignment["unassigned"]:
+            lines.append("")
+            lines.append("**未分配（僅建立實體構造層，無共享參數紀錄）**：")
+            for entry in slot_assignment["unassigned"]:
+                lines.append(f"- {entry['title']} (`{entry['licno']}`)｜角色: {entry['roleBucket']}")
         lines.append("")
 
     lines += [
@@ -485,6 +791,118 @@ def write_back_to_set_manager(set_name: str, plan: dict, purpose_override: str =
     print(f"     Status: Aligned with Agent Plan")
     print(f"     planId: {plan['planId']}")
     return sets[matched_key]
+
+
+# ── /GMset compare：Set 與最新 Master DB 比對（見 domain 觸發字「green material search」相關流程，
+# 由 .claude/skills/GMset/SKILL.md 驅動）──
+# Revit_Injection_Plan.json 每次 generate_injection_plan() 都會被覆寫，不保留逐 Set 歷史；
+# 唯一持久保存的歷史快照是 write_back_to_set_manager() 寫入 exported_material_sets.json 的
+# purpose 摘要文字（格式："...：title1 (licno1)、title2 (licno2)"），比對材料名稱是否變動時
+# 從這段文字還原上次擬訂計畫當下的 licno -> title 對照。
+
+def _roc_to_date(roc_str: str):
+    """將 '115/07/09' 這種民國年格式轉為 datetime.date；格式不符則回傳 None。"""
+    m = re.match(r"^\s*(\d{2,3})/(\d{1,2})/(\d{1,2})\s*$", roc_str or "")
+    if not m:
+        return None
+    roc_year, month, day = (int(x) for x in m.groups())
+    try:
+        return datetime.date(roc_year + 1911, month, day)
+    except ValueError:
+        return None
+
+
+def _period_end_expired(period: str):
+    """回傳 (is_expired, end_date_raw)。period 格式為 '115/07/09 ~ 119/07/08'；
+    解析不出結束日期時回傳 (False, None)，不把格式異常誤判為過期。"""
+    if not period or "~" not in period:
+        return False, None
+    end_raw = period.split("~")[-1].strip()
+    end_date = _roc_to_date(end_raw)
+    if end_date is None:
+        return False, None
+    return end_date < datetime.date.today(), end_raw
+
+
+_PURPOSE_TITLE_RE = re.compile(r"([^、\[\]：:]+?)\s*\((GBM\d+[^\)]*)\)")
+
+
+def _parse_purpose_title_snapshot(purpose: str) -> dict:
+    """從 purpose 摘要文字還原上次擬訂計畫當下，各 licno 對應的材料名稱快照。"""
+    if not purpose:
+        return {}
+    return {licno: title.strip() for title, licno in _PURPOSE_TITLE_RE.findall(purpose)}
+
+
+def diff_set_with_latest(set_name: str, entry: dict, database: list) -> dict:
+    """比對單一 Set 的 items（licno 清單）與目前 tabc_master_database.json 的最新資料：
+    - missing: licno 在目前資料庫已找不到（含正規化後綴比對）
+    - expired: 憑證有效期限已過今日
+    - changed: 材料名稱與上次擬訂計畫時的快照不同
+    """
+    items = entry.get("items", []) or []
+    db_by_licno = {d.get("licno"): d for d in database}
+    db_by_norm = {}
+    for d in database:
+        db_by_norm.setdefault(_normalize_licno(d.get("licno")), d)
+
+    old_titles = _parse_purpose_title_snapshot(entry.get("purpose", ""))
+
+    matched, missing, expired, changed = [], [], [], []
+    for licno in items:
+        rec = db_by_licno.get(licno) or db_by_norm.get(_normalize_licno(licno))
+        if rec is None:
+            missing.append(licno)
+            continue
+        matched.append(rec.get("licno"))
+
+        is_expired, end_date = _period_end_expired(rec.get("period", ""))
+        if is_expired:
+            expired.append({"licno": rec.get("licno"), "title": rec.get("title"), "period": rec.get("period")})
+
+        old_title = old_titles.get(licno) or old_titles.get(rec.get("licno"))
+        new_title = (rec.get("title") or "").strip()
+        if old_title and old_title != new_title:
+            changed.append({"licno": rec.get("licno"), "oldTitle": old_title, "newTitle": new_title})
+
+    return {
+        "setName": set_name,
+        "totalItems": len(items),
+        "matched": matched,
+        "missing": missing,
+        "expired": expired,
+        "changed": changed,
+        "hasDiff": bool(missing or expired or changed),
+    }
+
+
+def compare_all_sets() -> list:
+    """比對 exported_material_sets.json 內所有 Set，回傳每個 Set 的 diff 結果清單。"""
+    database = load_database()
+    sets = load_exported_sets()
+    return [diff_set_with_latest(name, entry, database) for name, entry in sets.items()]
+
+
+def compare_and_refresh_set(set_name: str) -> dict:
+    """比對單一 Set，若有差異則用目前最新資料庫重新執行 generate_injection_plan() +
+    write_back_to_set_manager()，刷新 Revit_Injection_Plan.json / 報告 / Set 的
+    plannedActions、planStatus、planId。這一步只更新計畫檔與 Set 狀態，不寫入 Revit——
+    實際 Revit 寫入仍需使用者另外執行 /import revit。"""
+    database = load_database()
+    sets = load_exported_sets()
+    entry = _find_set_entry(set_name, sets)
+    if entry is None:
+        raise KeyError(f"找不到 Set: {set_name}")
+
+    diff = diff_set_with_latest(set_name, entry, database)
+    if not diff["hasDiff"]:
+        return {"diff": diff, "refreshed": False}
+
+    items = entry.get("items", [])
+    user_intent = entry.get("purpose", "")
+    plan = generate_injection_plan(set_name, items, user_intent)
+    write_back_to_set_manager(set_name, plan)
+    return {"diff": diff, "refreshed": True, "planId": plan["planId"]}
 
 
 if __name__ == "__main__":

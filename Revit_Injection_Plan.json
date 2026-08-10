@@ -1,111 +1,40 @@
 {
-  "planId": "PLAN-20260804235120",
-  "setName": "走道地坪",
-  "generatedAt": "2026-08-04 23:51:20",
+  "planId": "PLAN-20260811021121",
+  "setName": "地磚與填縫",
+  "generatedAt": "2026-08-11 02:11:21",
   "agentName": "antigravity (建築 Agent)",
   "userIntent": "",
   "targetRevitCategories": [
     "OST_Floors",
     "OST_Materials"
   ],
-  "totalMaterialsCount": 3,
+  "totalMaterialsCount": 2,
   "materialsMapping": [
     {
-      "licno": "GBM0103182(續)",
-      "title": "室內地板舖設用聚胺酯",
-      "company": "慶泰樹脂化學股份有限公司",
-      "category": "健康",
-      "subCategory": "地板類",
-      "targetRevitCategory": "OST_Floors",
-      "targetLayer": "Finish 1 [4]",
-      "defaultThickness": "15 mm (飾面地磚) + 20mm 打底",
-      "buiNaming": "F_INT_FloorTile",
-      "mappingDetails": {
-        "revitCategory": "OST_Floors",
-        "layer": "Finish 1 [4]",
-        "defaultThickness": "15 mm (飾面地磚) + 20mm 打底",
-        "surfacePattern": "600x600 Grid Pattern / Wood Grain",
-        "buiNaming": "F_INT_FloorTile"
-      },
-      "sharedParameters": {
-        "GreenMaterial_Certified": true,
-        "GreenMaterial_CertNo": "GBM0103182(續)",
-        "GreenMaterial_Category": "健康綠建材",
-        "GreenMaterial_SubCategory": "地板類",
-        "GreenMaterial_Applicant": "慶泰樹脂化學股份有限公司",
-        "GreenMaterial_ValidUntil": "112/10/20 ~ 116/10/19",
-        "GreenMaterial_TVOC": 0.08,
-        "GreenMaterial_Formaldehyde": 0.01,
-        "GreenMaterial_RecycledRatio": 0.0,
-        "GreenMaterial_AcousticNRC": 0.0,
-        "GreenMaterial_DecorArea": 0.0,
-        "GreenMaterial_QualifyArea": 0.0,
-        "GreenMaterial_RatioContribution": 0.0,
-        "GreenMaterial_CNSSpec": "依 CNS1349 / CNS16083 試驗，符合規定。",
-        "GreenMaterial_TestItems": "① 游離甲醛釋出量：0.02 mg/m²·h (F1等級)。② TVOC逸散率：0.05 mg/m²·h。③ 吸水厚度膨脹率：<0.5%。",
-        "GreenMaterial_QualifiedItems": "健康綠建材 (地板類)"
-      }
-    },
-    {
-      "licno": "GBM0103751(續)",
-      "title": "eFoamlay POD60多功能地板隔音緩衝材(6mm)樓板隔音系統",
-      "company": "泉碩科技股份有限公司",
-      "category": "高性能",
-      "subCategory": "地板類",
-      "targetRevitCategory": "OST_Floors",
-      "targetLayer": "Substrate [2]",
-      "defaultThickness": "10 mm (防音墊)",
-      "buiNaming": "F_INT_FloorTile",
-      "mappingDetails": {
-        "revitCategory": "OST_Floors",
-        "layer": "Substrate [2]",
-        "defaultThickness": "10 mm (防音墊)",
-        "surfacePattern": "600x600 Grid Pattern / Wood Grain",
-        "buiNaming": "F_INT_FloorTile"
-      },
-      "sharedParameters": {
-        "GreenMaterial_Certified": true,
-        "GreenMaterial_CertNo": "GBM0103751(續)",
-        "GreenMaterial_Category": "高性能綠建材",
-        "GreenMaterial_SubCategory": "地板類",
-        "GreenMaterial_Applicant": "泉碩科技股份有限公司",
-        "GreenMaterial_ValidUntil": "114/09/06 ~ 118/09/05",
-        "GreenMaterial_TVOC": 0.08,
-        "GreenMaterial_Formaldehyde": 0.01,
-        "GreenMaterial_RecycledRatio": 0.0,
-        "GreenMaterial_AcousticNRC": 0.0,
-        "GreenMaterial_DecorArea": 0.0,
-        "GreenMaterial_QualifyArea": 0.0,
-        "GreenMaterial_RatioContribution": 0.0,
-        "GreenMaterial_CNSSpec": "依 CNS1349 / CNS16083 試驗，符合規定。",
-        "GreenMaterial_TestItems": "① 游離甲醛釋出量：0.02 mg/m²·h (F1等級)。② TVOC逸散率：0.05 mg/m²·h。③ 吸水厚度膨脹率：<0.5%。",
-        "GreenMaterial_QualifiedItems": "健康綠建材 (地板類)"
-      }
-    },
-    {
-      "licno": "GBM0104181",
-      "title": "綠混凝土G類",
-      "company": "慶龍預拌混凝土股份有限公司",
+      "licno": "GBM0102995",
+      "title": "陶瓷面磚(II類-內裝地磚)",
+      "company": "冠軍建材股份有限公司",
       "category": "再生",
-      "subCategory": "綜合建材類",
-      "targetRevitCategory": "OST_Materials",
-      "targetLayer": "Unclassified - Manual Review Required",
-      "defaultThickness": "N/A",
-      "buiNaming": "UNCLASSIFIED",
+      "subCategory": "地板類",
+      "targetRevitCategory": "OST_Floors",
+      "targetLayer": "Structure [1]",
+      "defaultThickness": "150 mm（結構層，依材料層級設定指定，建議人工確認實際配比厚度）",
+      "buiNaming": "F_INT_Structure",
       "mappingDetails": {
-        "revitCategory": "OST_Materials",
-        "layer": "Unclassified - Manual Review Required",
-        "defaultThickness": "N/A",
-        "buiNaming": "UNCLASSIFIED",
-        "needsManualReview": true
+        "revitCategory": "OST_Floors",
+        "layer": "Structure [1]",
+        "defaultThickness": "150 mm（結構層，依材料層級設定指定，建議人工確認實際配比厚度）",
+        "buiNaming": "F_INT_Structure",
+        "resolvedByLayerComposition": true,
+        "layerCompositionRole": "Structure"
       },
       "sharedParameters": {
         "GreenMaterial_Certified": true,
-        "GreenMaterial_CertNo": "GBM0104181",
+        "GreenMaterial_CertNo": "GBM0102995",
         "GreenMaterial_Category": "再生綠建材",
-        "GreenMaterial_SubCategory": "綜合建材類",
-        "GreenMaterial_Applicant": "慶龍預拌混凝土股份有限公司",
-        "GreenMaterial_ValidUntil": "115/06/08 ~ 119/06/07",
+        "GreenMaterial_SubCategory": "地板類",
+        "GreenMaterial_Applicant": "冠軍建材股份有限公司",
+        "GreenMaterial_ValidUntil": "112/04/11 ~ 116/04/10",
         "GreenMaterial_TVOC": 0.08,
         "GreenMaterial_Formaldehyde": 0.01,
         "GreenMaterial_RecycledRatio": 0.0,
@@ -116,14 +45,100 @@
         "GreenMaterial_CNSSpec": "依 CNS3090 試驗，符合規定。",
         "GreenMaterial_TestItems": "① 28天抗壓強度：343kgf/cm2。② 56天氯離子滲透電量：942庫倫。",
         "GreenMaterial_QualifiedItems": "再生綠建材"
-      }
+      },
+      "assignedSlot": "mat1"
+    },
+    {
+      "licno": "GBM0104110",
+      "title": "CG2WA泰固美特耐磁磚填縫劑",
+      "company": "潤泰精密材料股份有限公司",
+      "category": "健康",
+      "subCategory": "綜合建材類",
+      "targetRevitCategory": "OST_Materials",
+      "targetLayer": "Attached Parameter (Construction)",
+      "defaultThickness": "0 mm (非幾何屬性)",
+      "buiNaming": "AUX_Adhesive_Sealant",
+      "mappingDetails": {
+        "revitCategory": "OST_Materials",
+        "layer": "Attached Parameter (Construction)",
+        "defaultThickness": "0 mm (非幾何屬性)",
+        "isAuxiliary": true,
+        "auxiliaryParam": "GreenMaterial_Sealant",
+        "buiNaming": "AUX_Adhesive_Sealant",
+        "resolvedByLayerComposition": true,
+        "layerCompositionAuxType": "Sealant"
+      },
+      "sharedParameters": {
+        "GreenMaterial_Certified": true,
+        "GreenMaterial_CertNo": "GBM0104110",
+        "GreenMaterial_Category": "健康綠建材",
+        "GreenMaterial_SubCategory": "綜合建材類",
+        "GreenMaterial_Applicant": "潤泰精密材料股份有限公司",
+        "GreenMaterial_ValidUntil": "115/04/21 ~ 119/04/20",
+        "GreenMaterial_TVOC": 0.08,
+        "GreenMaterial_Formaldehyde": 0.01,
+        "GreenMaterial_RecycledRatio": 0.0,
+        "GreenMaterial_AcousticNRC": 0.0,
+        "GreenMaterial_DecorArea": 0.0,
+        "GreenMaterial_QualifyArea": 0.0,
+        "GreenMaterial_RatioContribution": 0.0,
+        "GreenMaterial_CNSSpec": "依 CNS16082 試驗，符合規定。",
+        "GreenMaterial_TestItems": "① TVOC逸散率：< 0.19 mg/m²·h。② 游離甲醛逸散率：< 0.05 mg/m²·h。③ 毒性化學物質：無。",
+        "GreenMaterial_QualifiedItems": "健康綠建材 (綜合建材類)",
+        "GreenMaterial_Sealant": "CG2WA泰固美特耐磁磚填縫劑 (GBM0104110)"
+      },
+      "assignedSlot": "mat2"
     }
   ],
   "executionSteps": [
-    "1. 載入 GreenMaterial_SharedParams.txt (包含 19 個共享參數) 至 Revit 專案",
+    "1. 載入 GreenMaterial_SharedParams.txt (包含 64 個共享參數，Mat1~Mat6 六槽位) 至 Revit 專案",
     "2. 掃描專案模型對應品類：OST_Floors, OST_Materials",
-    "3. 依據 TASK-003 規範自動配置構造層位階 (Finish 1 / Substrate / Structure) 與預設厚度推判",
-    "4. 批量將 TABC 履歷與 CNS 試驗數據寫入 OST_Materials 與 Type Identity Data",
-    "5. 自動匯出綠建材明細表 (Schedule) 至 Excel 歸檔"
-  ]
+    "3. 依據使用者於檢索平台明確指定的材料層級設定 (layerComposition) 配置構造層位階，不採用關鍵字啟發式推判",
+    "4. 偵測到非幾何輔助材料 (填縫劑/接著劑)，自動寫入 Type 的 Construction 自訂欄位",
+    "5. 批量將 TABC 履歷與 CNS 試驗數據寫入 OST_Materials 與 Type Identity Data",
+    "6. 自動匯出綠建材明細表 (Schedule) 至 Excel 歸檔"
+  ],
+  "layerComposition": {
+    "category": "Floor",
+    "sequence": [
+      {
+        "type": "boundary"
+      },
+      {
+        "type": "material",
+        "licno": "GBM0102995",
+        "role": "Structure"
+      },
+      {
+        "type": "boundary"
+      }
+    ],
+    "auxiliary": [
+      {
+        "type": "aux",
+        "licno": "GBM0104110",
+        "auxType": "Sealant"
+      }
+    ]
+  },
+  "layerCompositionSequenceLabels": [
+    "— Core Boundary 分界線（不填入實際材料）—",
+    "GBM0102995｜陶瓷面磚(II類-內裝地磚)（Structure）",
+    "— Core Boundary 分界線（不填入實際材料）—"
+  ],
+  "materialSlotAssignment": {
+    "assignment": {
+      "mat1": {
+        "licno": "GBM0102995",
+        "title": "陶瓷面磚(II類-內裝地磚)",
+        "roleBucket": "Structure"
+      },
+      "mat2": {
+        "licno": "GBM0104110",
+        "title": "CG2WA泰固美特耐磁磚填縫劑",
+        "roleBucket": "Other"
+      }
+    },
+    "unassigned": []
+  }
 }

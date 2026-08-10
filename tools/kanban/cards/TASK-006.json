@@ -14,7 +14,7 @@
   "dependsOn": [
     "TASK-004"
   ],
-  "order": 6,
+  "order": 10,
   "readiness": {
     "problem_clear": true,
     "non_goals_clear": false,
