@@ -14,8 +14,35 @@
 # ============================================================================
 
 #Requires -Version 5.1
+[CmdletBinding()]
+param(
+    # R1：明確指定目標 Revit 版本。未指定且偵測到多版本時，互動模式會詢問、
+    # 非互動模式直接失敗——絕不擅自挑一個（舊版取「最高版本」，會把建構丟到別條作業線的 Revit）。
+    [ValidateSet('2022', '2023', '2024', '2025', '2026')]
+    [string]$Version,
+
+    # R1：對所有「已安裝 Revit 且已有對應建構產物」的版本逐一部署。
+    [switch]$All,
+
+    # R5：非互動模式。不呼叫任何 Read-Host，以 exit code 表達結果（0 成功 / 非 0 失敗）。
+    [switch]$NonInteractive,
+
+    # 覆寫 Add-ins 根目錄（預設 $env:APPDATA\Autodesk\Revit\Addins）。
+    # 存在的理由與 verify-qaqc.ps1 的同名參數相同：讓測試跑在暫存 fixture 上，不動使用者的實際部署。
+    [string]$AddinsRoot = "",
+
+    # R6：備份輪替，只保留最近 N 份 .bak，其餘自動清除。
+    [int]$KeepBackups = 3
+)
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+# 非互動模式下，把所有「按 Enter 結束」收斂掉，避免在 CI／自動化流程中卡住。
+function Wait-ForExit {
+    param([int]$Code = 0)
+    if (-not $NonInteractive) { Read-Host "按 Enter 結束" | Out-Null }
+    exit $Code
+}
 
 # 設定編碼為 UTF-8 with BOM，解決中文亂碼問題
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -96,8 +123,7 @@ if ([string]::IsNullOrEmpty($scriptDir)) {
 }
 
 if (-not (Test-SafePath -Path $scriptDir -Description "Script Directory")) {
-    Read-Host "按 Enter 結束"
-    exit 1
+    Wait-ForExit 1
 }
 
 # 取得專案根目錄
@@ -105,8 +131,7 @@ $projectRoot = Split-Path -Parent -Path $scriptDir
 
 if (-not (Test-Path $projectRoot)) {
     Write-Host "❌ 錯誤：無法確定專案目錄" -ForegroundColor Red
-    Read-Host "按 Enter 結束"
-    exit 1
+    Wait-ForExit 1
 }
 
 # 轉換為絕對路徑
@@ -119,15 +144,13 @@ $mcpServerPath = Join-Path $projectRoot "MCP-Server"
 if (-not (Test-Path $mcpPath)) {
     Write-Host "❌ 錯誤：找不到 MCP 資料夾" -ForegroundColor Red
     Write-Host "請確認您在 REVIT_MCP_study 專案目錄中執行此程式" -ForegroundColor Yellow
-    Read-Host "按 Enter 結束"
-    exit 1
+    Wait-ForExit 1
 }
 
 if (-not (Test-Path $mcpServerPath)) {
     Write-Host "❌ 錯誤：找不到 MCP-Server 資料夾" -ForegroundColor Red
     Write-Host "這可能不是正確的專案目錄" -ForegroundColor Yellow
-    Read-Host "按 Enter 結束"
-    exit 1
+    Wait-ForExit 1
 }
 
 Write-Host "✓ 專案目錄驗證通過：$projectRoot" -ForegroundColor Green
@@ -142,250 +165,279 @@ $appDataPath = $env:APPDATA
 if ([string]::IsNullOrEmpty($appDataPath)) {
     Write-Host "❌ 錯誤：APPDATA 環境變數未設定" -ForegroundColor Red
     Write-Host "這可能是系統設定問題，請聯繫技術支援" -ForegroundColor Yellow
-    Read-Host "按 Enter 結束"
-    exit 1
+    Wait-ForExit 1
 }
 
 if (-not (Test-SafePath -Path $appDataPath -Description "APPDATA")) {
-    Read-Host "按 Enter 結束"
-    exit 1
+    Wait-ForExit 1
 }
 
 if (-not (Test-Path $appDataPath)) {
     Write-Host "❌ 錯誤：APPDATA 路徑不存在：$appDataPath" -ForegroundColor Red
-    Read-Host "按 Enter 結束"
-    exit 1
+    Wait-ForExit 1
 }
 
 Write-Host "✓ 環境變數驗證通過" -ForegroundColor Green
 Write-Host ""
 
 # ============================================================================
-# 偵測 Revit 版本
+# 版本 → 建構組態 / runtime 世代對應
 # ============================================================================
-
-Write-Host "正在偵測已安裝的 Revit 版本..." -ForegroundColor Yellow
-Write-Host ""
-
-$revitVersion = $null
-$addonPath = $null
-$foundVersions = @()
-
-# 只檢查支援的版本（白名單方式，更安全）
-$supportedVersions = @("2026", "2025", "2024", "2023", "2022")
-
-foreach ($version in $supportedVersions) {
-    $testPath = Join-Path $appDataPath "Autodesk\Revit\Addins\$version"
-    if (Test-Path $testPath) {
-        Write-Host "✓ 找到 Revit $version" -ForegroundColor Green
-        $foundVersions += $version
-        if ($null -eq $revitVersion) {
-            $revitVersion = $version
-            $addonPath = $testPath
-        }
-    }
-}
-
-Write-Host ""
-
-if ($null -eq $revitVersion) {
-    Write-Host "❌ 錯誤：沒有找到已安裝的 Revit" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "可能的原因：" -ForegroundColor Yellow
-    Write-Host "- 您的電腦沒有安裝 Revit" -ForegroundColor Yellow
-    Write-Host "- 支援的版本：2022、2023、2024、2025、2026" -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host "檢查的路徑：$appDataPath\Autodesk\Revit\Addins\" -ForegroundColor Yellow
-    Read-Host "按 Enter 結束"
-    exit 1
-}
-
-# 如果找到多個版本，讓使用者選擇
-if ($foundVersions.Count -gt 1) {
-    Write-Host "找到多個 Revit 版本：$($foundVersions -join ', ')" -ForegroundColor Cyan
-    Write-Host ""
-    
-    do {
-        $userVersion = $revitVersion # Default to first found version for automation
-        if ($null -eq $userVersion) {
-            $userVersion = Read-Host "Enter Revit version (e.g. 2024)"
-        }
-    } while ($null -eq $userVersion)
-    
-    $revitVersion = $userVersion
-    $addonPath = Join-Path $appDataPath "Autodesk\Revit\Addins\$revitVersion"
-}
-
-Write-Host ""
-Write-Host "✓ 將安裝到 Revit $revitVersion" -ForegroundColor Green
-Write-Host "✓ Add-in 路徑：$addonPath" -ForegroundColor Green
-Write-Host ""
-
-# ============================================================================
-# 安全檢查 3：驗證來源檔案
-# ============================================================================
-
-Write-Host "正在驗證來源檔案..." -ForegroundColor Yellow
-Write-Host ""
-
-# 版本→組態對應表（統一建構，所有版本使用同一個 csproj）
-# ⚠️ 必須在 $sourceDllRelease 之前求值，否則 Strict Mode 下 $buildConfig 未定義
-$versionConfigMap = @{
+# 統一建構：所有版本共用 MCP\RevitMCP.csproj + MCP\RevitMCP.addin。
+# ⚠️ 禁止新增 RevitMCP.2024.csproj / RevitMCP.2024.addin 等版本特定檔案。
+$versionConfigMap = [ordered]@{
     "2022" = "Release.R22"
     "2023" = "Release.R23"
     "2024" = "Release.R24"
     "2025" = "Release.R25"
     "2026" = "Release.R26"
 }
-$buildConfig = $versionConfigMap[$revitVersion]
 
-# 定義來源檔案路徑 (統一建構：Nice3point.Revit.Sdk)
-# ⚠️ 本專案只使用 RevitMCP.csproj + RevitMCP.addin（統一多版本建構）
-# ⚠️ 禁止新增 RevitMCP.2024.csproj / RevitMCP.2024.addin 等版本特定檔案
-$sourceDllRelease = Join-Path $projectRoot "MCP\bin\$buildConfig\RevitMCP.dll"
-$sourceDllDebug = Join-Path $projectRoot "MCP\bin\Debug\RevitMCP.dll"
-$sourceAddin = Join-Path $projectRoot "MCP\RevitMCP.addin"
+# R3 防呆用：兩代 runtime 的相依組成不同。
+# .NET Framework 4.8（R22-R24）需要 5 個相容 shim；.NET 8（R25-R26）由 runtime 內建，不應出現。
+# 這是判斷「建構產物是否為該世代」最直接的特徵 —— 錯代部署在複製階段完全沒有徵兆，
+# 只會在 Revit 載入或呼叫時才爆（RevitCompatibility.cs 的 IdType 在 Int32/Int64 間分歧）。
+$netFxShims = @(
+    'System.Buffers.dll',
+    'System.IO.Packaging.dll',
+    'System.Memory.dll',
+    'System.Numerics.Vectors.dll',
+    'System.Runtime.CompilerServices.Unsafe.dll'
+)
+$netFxVersions = @('2022', '2023', '2024')
 
-# 決定使用哪個 DLL
-$sourceDll = $null
-
-if (Test-Path $sourceDllRelease) {
-    $sourceDll = $sourceDllRelease
-    Write-Host "✓ 找到 RevitMCP.dll (Release 版本)" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "⚠️  重要提醒：請確認此 DLL 是為 Revit $revitVersion 建構的" -ForegroundColor Yellow
-    Write-Host "   正確的建構指令：dotnet build -c $buildConfig RevitMCP.csproj" -ForegroundColor Yellow
-    Write-Host "   如果不確定，建議重新建構後再部署" -ForegroundColor Yellow
-}
-elseif (Test-Path $sourceDllDebug) {
-    $sourceDll = $sourceDllDebug
-    Write-Host "✓ 找到 RevitMCP.dll (Debug 版本)" -ForegroundColor Yellow
-    Write-Host "  注意：建議使用 Release 版本以獲得最佳效能" -ForegroundColor Yellow
+# Add-ins 根目錄（-AddinsRoot 可覆寫，供測試用暫存 fixture）
+$addinsBase = if ([string]::IsNullOrWhiteSpace($AddinsRoot)) {
+    Join-Path $appDataPath "Autodesk\Revit\Addins"
 }
 else {
-    Write-Host "❌ 錯誤：找不到 RevitMCP.dll" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "請先建構程式（根據您的 Revit 版本）：" -ForegroundColor Yellow
-    Write-Host "  cd `"$projectRoot\MCP`"" -ForegroundColor Yellow
-    Write-Host "  dotnet build -c $buildConfig RevitMCP.csproj" -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host "支援的版本：" -ForegroundColor Yellow
-    foreach ($ver in $versionConfigMap.GetEnumerator() | Sort-Object Key) {
-        Write-Host "  Revit $($ver.Key) → dotnet build -c $($ver.Value) RevitMCP.csproj" -ForegroundColor Gray
+    $AddinsRoot
+}
+
+# ============================================================================
+# 偵測已安裝的 Revit 版本
+# ============================================================================
+
+Write-Host "正在偵測已安裝的 Revit 版本..." -ForegroundColor Yellow
+Write-Host ""
+
+$foundVersions = @()
+foreach ($v in $versionConfigMap.Keys) {
+    if (Test-Path (Join-Path $addinsBase $v)) {
+        Write-Host "  找到 Revit $v" -ForegroundColor Green
+        $foundVersions += $v
     }
-    Read-Host "按 Enter 結束"
-    exit 1
+}
+Write-Host ""
+
+if ($foundVersions.Count -eq 0) {
+    Write-Host "[錯誤] 沒有找到已安裝的 Revit" -ForegroundColor Red
+    Write-Host "   檢查的路徑：$addinsBase\<year>" -ForegroundColor Yellow
+    Write-Host "   支援的版本：2022、2023、2024、2025、2026" -ForegroundColor Yellow
+    Wait-ForExit 1
 }
 
-if (-not (Test-Path $sourceAddin)) {
-    Write-Host "❌ 錯誤：找不到 addin 檔案" -ForegroundColor Red
-    Write-Host "路徑：$sourceAddin" -ForegroundColor Yellow
-    Read-Host "按 Enter 結束"
-    exit 1
+# ============================================================================
+# R1：決定要部署到哪些版本
+# ============================================================================
+# 舊版行為是「白名單由高到低取第一個存在的目錄」，等於總是挑最高版本，
+# 而且那段 do/while 裡的 $userVersion 恆為非 null，永遠不會真的詢問使用者。
+# 後果：把建構丟到使用者沒有意圖的 Revit（例如工作預設是 2024、2026 屬另一條作業線）。
+# 現在：明確指定 > 互動詢問 > 非互動直接失敗。絕不擅自挑。
+
+$targetVersions = @()
+
+if ($All) {
+    $targetVersions = $foundVersions
+    Write-Host "模式：-All，將處理所有已安裝且有建構產物的版本" -ForegroundColor Cyan
+}
+elseif (-not [string]::IsNullOrWhiteSpace($Version)) {
+    if ($foundVersions -notcontains $Version) {
+        Write-Host "[錯誤] 指定的 Revit $Version 未安裝" -ForegroundColor Red
+        Write-Host "   已安裝：$($foundVersions -join '、')" -ForegroundColor Yellow
+        Wait-ForExit 1
+    }
+    $targetVersions = @($Version)
+}
+elseif ($foundVersions.Count -eq 1) {
+    $targetVersions = $foundVersions
+    Write-Host "只找到一個版本，將部署到 Revit $($foundVersions[0])" -ForegroundColor Cyan
+}
+else {
+    if ($NonInteractive) {
+        Write-Host "[錯誤] 偵測到多個 Revit 版本，但未指定 -Version，且處於 -NonInteractive 模式" -ForegroundColor Red
+        Write-Host "   已安裝：$($foundVersions -join '、')" -ForegroundColor Yellow
+        Write-Host "   請加上 -Version <年份> 或 -All" -ForegroundColor Yellow
+        Wait-ForExit 1
+    }
+    Write-Host "找到多個 Revit 版本：$($foundVersions -join '、')" -ForegroundColor Cyan
+    $answer = Read-Host "請輸入要部署的版本（或輸入 all 部署全部）"
+    if ($answer -eq 'all') {
+        $targetVersions = $foundVersions
+    }
+    elseif ($foundVersions -contains $answer) {
+        $targetVersions = @($answer)
+    }
+    else {
+        Write-Host "[錯誤] 無效的版本「$answer」" -ForegroundColor Red
+        Wait-ForExit 1
+    }
 }
 
-Write-Host "✓ 找到 RevitMCP.addin" -ForegroundColor Green
-Write-Host ""
-
-# 顯示檔案雜湊值（供進階使用者驗證）
-Write-Host "檔案驗證資訊 (SHA256)：" -ForegroundColor Cyan
-$dllHash = Get-FileHashInfo -FilePath $sourceDll
-$addinHash = Get-FileHashInfo -FilePath $sourceAddin
-Write-Host "  DLL:   $dllHash" -ForegroundColor Gray
-Write-Host "  ADDIN: $addinHash" -ForegroundColor Gray
 Write-Host ""
 
 # ============================================================================
-# 安全檢查 4：顯示檔案資訊供使用者確認
+# 單一版本的部署程序
 # ============================================================================
+function Install-ToVersion {
+    param(
+        [Parameter(Mandatory = $true)][string]$RevitYear,
+        [Parameter(Mandatory = $true)][string]$BuildConfig
+    )
 
-Write-Host "即將複製以下檔案：" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "來源：" -ForegroundColor Cyan
-Write-Host "  - $sourceDll" -ForegroundColor White
-Write-Host "  - $sourceAddin" -ForegroundColor White
-Write-Host ""
-Write-Host "目標：" -ForegroundColor Cyan
-Write-Host "  - $addonPath" -ForegroundColor White
-Write-Host ""
+    Write-Host "------------------------------------------------------------" -ForegroundColor DarkGray
+    Write-Host " Revit $RevitYear  <-  $BuildConfig" -ForegroundColor Cyan
+    Write-Host "------------------------------------------------------------" -ForegroundColor DarkGray
 
-$confirm = "Y" # Auto-confirm for automation
-if ($confirm -ne "Y" -and $confirm -ne "y") {
-    Write-Host "安裝已取消" -ForegroundColor Yellow
-    Read-Host "按 Enter 結束"
-    exit 0
-}
+    $srcDir      = Join-Path $projectRoot "MCP\bin\$BuildConfig"
+    $sourceAddin = Join-Path $projectRoot "MCP\RevitMCP.addin"
+    $addonPath   = Join-Path $addinsBase $RevitYear
+    $dllDestDir  = Join-Path $addonPath "RevitMCP"
 
-Write-Host ""
+    if (-not (Test-Path $srcDir)) {
+        Write-Host "  [略過] 找不到建構產物 $srcDir" -ForegroundColor Yellow
+        Write-Host "         先建構：dotnet build -c $BuildConfig MCP\RevitMCP.csproj" -ForegroundColor Gray
+        return [pscustomobject]@{ Version = $RevitYear; Status = 'SKIP'; Reason = 'no build output' }
+    }
+    $srcDlls = @(Get-ChildItem -Path $srcDir -Filter '*.dll' -File -ErrorAction SilentlyContinue)
+    if ($srcDlls.Count -eq 0) {
+        Write-Host "  [略過] $srcDir 內沒有任何 DLL" -ForegroundColor Yellow
+        return [pscustomobject]@{ Version = $RevitYear; Status = 'SKIP'; Reason = 'build output empty' }
+    }
+    if ($srcDlls.Name -notcontains 'RevitMCP.dll') {
+        Write-Host "  [失敗] $srcDir 內找不到 RevitMCP.dll" -ForegroundColor Red
+        return [pscustomobject]@{ Version = $RevitYear; Status = 'FAIL'; Reason = 'RevitMCP.dll missing' }
+    }
+    if (-not (Test-Path $sourceAddin)) {
+        Write-Host "  [失敗] 找不到 $sourceAddin" -ForegroundColor Red
+        return [pscustomobject]@{ Version = $RevitYear; Status = 'FAIL'; Reason = 'addin manifest missing' }
+    }
 
-# ============================================================================
-# 執行安裝（不需要管理員權限）
-# ============================================================================
+    # --- R3：世代防呆（擋下 ABI 不相容的錯版部署）---
+    $hasShims = @($srcDlls.Name | Where-Object { $netFxShims -contains $_ }).Count
+    $expectFx = $netFxVersions -contains $RevitYear
+    if ($expectFx -and $hasShims -eq 0) {
+        Write-Host "  [中止] Revit $RevitYear 屬 .NET Framework 4.8 世代，應含 5 個相容 shim，實際 0 個" -ForegroundColor Red
+        Write-Host "         $srcDir 看起來是 .NET 8（R25/R26）的產物；錯版部署只會在 Revit 載入時才失敗" -ForegroundColor Yellow
+        Write-Host "         請重新建構：dotnet build -c $BuildConfig MCP\RevitMCP.csproj" -ForegroundColor Yellow
+        return [pscustomobject]@{ Version = $RevitYear; Status = 'FAIL'; Reason = 'generation mismatch (expected .NET Framework, got .NET 8 layout)' }
+    }
+    if ((-not $expectFx) -and $hasShims -gt 0) {
+        Write-Host "  [中止] Revit $RevitYear 屬 .NET 8 世代，不應含相容 shim，實際 $hasShims 個" -ForegroundColor Red
+        Write-Host "         $srcDir 看起來是 .NET Framework 4.8（R22-R24）的產物" -ForegroundColor Yellow
+        return [pscustomobject]@{ Version = $RevitYear; Status = 'FAIL'; Reason = 'generation mismatch (expected .NET 8, got .NET Framework layout)' }
+    }
+    $genName = if ($expectFx) { '.NET Framework 4.8' } else { '.NET 8' }
+    Write-Host "  世代檢查通過（$genName，$($srcDlls.Count) 個 DLL）" -ForegroundColor Green
 
-Write-Host "正在複製檔案..." -ForegroundColor Yellow
-Write-Host ""
+    foreach ($d in @($addonPath, $dllDestDir)) {
+        if (-not (Test-Path $d)) {
+            try { New-Item -ItemType Directory -Path $d -Force | Out-Null }
+            catch {
+                Write-Host "  [失敗] 無法建立 $d -- $_" -ForegroundColor Red
+                return [pscustomobject]@{ Version = $RevitYear; Status = 'FAIL'; Reason = "cannot create $d" }
+            }
+        }
+    }
 
-# 檢查目標資料夾是否存在
-if (-not (Test-Path $addonPath)) {
-    Write-Host "正在建立目標資料夾..." -ForegroundColor Yellow
+    # --- R6：備份現行 DLL 並輪替 ---
+    $currentDll = Join-Path $dllDestDir 'RevitMCP.dll'
+    if (Test-Path $currentDll) {
+        $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+        try {
+            Copy-Item -Path $currentDll -Destination (Join-Path $dllDestDir "RevitMCP.dll.bak-$stamp") -Force -ErrorAction Stop
+            Write-Host "  已備份現行 DLL" -ForegroundColor Green
+        }
+        catch { Write-Host "  [警告] 備份失敗（不中止）-- $_" -ForegroundColor Yellow }
+
+        $baks = @(Get-ChildItem -Path $dllDestDir -Filter 'RevitMCP.dll.bak*' -File -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTime -Descending)
+        if ($KeepBackups -ge 0 -and $baks.Count -gt $KeepBackups) {
+            $toRemove = @($baks | Select-Object -Skip $KeepBackups)
+            foreach ($b in $toRemove) {
+                try { Remove-Item $b.FullName -Force -ErrorAction Stop } catch { }
+            }
+            Write-Host "  備份輪替：保留最近 $KeepBackups 份，清除 $($toRemove.Count) 份" -ForegroundColor Green
+        }
+    }
+
+    # --- R2：複製建構產物的全部 DLL（不維護硬編白名單）---
+    # 舊版只複製 RevitMCP.dll + Newtonsoft.Json.dll，其餘相依從不複製。
+    # 實測後果：Revit 2026 長期缺 6 個相依，Excel 類工具必然 runtime 拋 FileNotFoundException。
+    $copied = 0
+    foreach ($f in $srcDlls) {
+        try {
+            Copy-Item -Path $f.FullName -Destination (Join-Path $dllDestDir $f.Name) -Force -ErrorAction Stop
+            $copied++
+        }
+        catch {
+            Write-Host "  [失敗] 無法複製 $($f.Name) -- $_" -ForegroundColor Red
+            Write-Host "         常見原因：Revit 正在執行中（DLL 被鎖住），請關閉 Revit 後重試" -ForegroundColor Yellow
+            return [pscustomobject]@{ Version = $RevitYear; Status = 'FAIL'; Reason = "copy failed: $($f.Name)" }
+        }
+    }
     try {
-        New-Item -ItemType Directory -Path $addonPath -Force | Out-Null
+        Copy-Item -Path $sourceAddin -Destination (Join-Path $addonPath 'RevitMCP.addin') -Force -ErrorAction Stop
     }
     catch {
-        Write-Host "❌ 錯誤：無法建立目標資料夾" -ForegroundColor Red
-        Write-Host "路徑：$addonPath" -ForegroundColor Yellow
-        Write-Host "錯誤詳情：$_" -ForegroundColor Yellow
-        Read-Host "按 Enter 結束"
-        exit 1
+        Write-Host "  [失敗] 無法複製 RevitMCP.addin -- $_" -ForegroundColor Red
+        return [pscustomobject]@{ Version = $RevitYear; Status = 'FAIL'; Reason = 'addin copy failed' }
     }
+    Write-Host "  已複製 $copied 個 DLL + RevitMCP.addin" -ForegroundColor Green
+
+    # --- R4：部署後逐檔 SHA256 驗證 ---
+    $mismatch = @()
+    foreach ($f in $srcDlls) {
+        $t = Join-Path $dllDestDir $f.Name
+        if (-not (Test-Path $t)) { $mismatch += "$($f.Name)（缺漏）"; continue }
+        if ((Get-FileHash $f.FullName -Algorithm SHA256).Hash -ne (Get-FileHash $t -Algorithm SHA256).Hash) {
+            $mismatch += "$($f.Name)（雜湊不符）"
+        }
+    }
+    $addinSrcHash = (Get-FileHash $sourceAddin -Algorithm SHA256).Hash
+    $addinDstHash = (Get-FileHash (Join-Path $addonPath 'RevitMCP.addin') -Algorithm SHA256).Hash
+    if ($addinSrcHash -ne $addinDstHash) { $mismatch += 'RevitMCP.addin（雜湊不符）' }
+
+    if ($mismatch.Count -gt 0) {
+        Write-Host "  [失敗] 驗證不通過：$($mismatch.Count) 個檔案不符" -ForegroundColor Red
+        foreach ($m in $mismatch) { Write-Host "         - $m" -ForegroundColor Yellow }
+        return [pscustomobject]@{ Version = $RevitYear; Status = 'FAIL'; Reason = "verification failed ($($mismatch.Count) files)" }
+    }
+    Write-Host "  逐檔 SHA256 驗證通過（$($srcDlls.Count) DLL + manifest）" -ForegroundColor Green
+
+    # --- 舊配置殘留提醒（#91 之前的根層 DLL）---
+    $legacyRootDll = Join-Path $addonPath 'RevitMCP.dll'
+    if (Test-Path $legacyRootDll) {
+        Write-Host "  [提醒] 發現根層殘留 $legacyRootDll" -ForegroundColor Yellow
+        Write-Host "         manifest 載入的是 RevitMCP\RevitMCP.dll，此檔為 #91 之前的舊配置遺留，可安全刪除" -ForegroundColor Gray
+    }
+
+    return [pscustomobject]@{ Version = $RevitYear; Status = 'OK'; Reason = "$($srcDlls.Count) DLL" }
 }
 
-# 複製 DLL
-# #91 RevitMCP.addin 指定 <Assembly>RevitMCP\RevitMCP.dll</Assembly>（子資料夾），
-# DLL 與其相依套件必須落在 Addins\<year>\RevitMCP\，否則 Revit 依 manifest 找子夾而載入舊版/載入失敗。
-$dllDestDir = Join-Path $addonPath "RevitMCP"
-if (-not (Test-Path $dllDestDir)) { New-Item -ItemType Directory -Path $dllDestDir -Force | Out-Null }
-try {
-    Copy-Item -Path $sourceDll -Destination (Join-Path $dllDestDir "RevitMCP.dll") -Force -ErrorAction Stop
-    Write-Host "✓ 已複製 RevitMCP.dll → RevitMCP\" -ForegroundColor Green
-}
-catch {
-    Write-Host "❌ 錯誤：無法複製 RevitMCP.dll" -ForegroundColor Red
+# ============================================================================
+# 執行部署
+# ============================================================================
+$results = @()
+foreach ($v in $targetVersions) {
+    $results += Install-ToVersion -RevitYear $v -BuildConfig $versionConfigMap[$v]
     Write-Host ""
-    Write-Host "可能的原因：" -ForegroundColor Yellow
-    Write-Host "- Revit 正在執行中（請關閉 Revit 後重試）" -ForegroundColor Yellow
-    Write-Host "- 目標資料夾沒有寫入權限" -ForegroundColor Yellow
-    Write-Host "錯誤詳情：$_" -ForegroundColor Yellow
-    Read-Host "按 Enter 結束"
-    exit 1
 }
 
-# 複製 ADDIN
-try {
-    Copy-Item -Path $sourceAddin -Destination (Join-Path $addonPath "RevitMCP.addin") -Force -ErrorAction Stop
-    Write-Host "✓ 已複製 $(Split-Path $sourceAddin -Leaf)" -ForegroundColor Green
-}
-catch {
-    Write-Host "❌ 錯誤：無法複製 RevitMCP.addin" -ForegroundColor Red
-    Write-Host "錯誤詳情：$_" -ForegroundColor Yellow
-    Read-Host "按 Enter 結束"
-    exit 1
-}
-
-# 複製相依套件（如果存在）
-$sourceJson = Join-Path $projectRoot "MCP\bin\$buildConfig\Newtonsoft.Json.dll"
-if (Test-Path $sourceJson) {
-    try {
-        Copy-Item -Path $sourceJson -Destination (Join-Path $dllDestDir "Newtonsoft.Json.dll") -Force -ErrorAction Stop
-        Write-Host "✓ 已複製 Newtonsoft.Json.dll → RevitMCP\" -ForegroundColor Green
-    }
-    catch {
-        Write-Host "⚠️  警告：無法複製 Newtonsoft.Json.dll（非關鍵檔案）" -ForegroundColor Yellow
-    }
-}
-
-# 複製 Python worker（柱號對應功能 ezdxf_worker.py → %APPDATA%\RevitMCP）
-# DwgColumnExecutor.FindWorkerScript 會在 dll 同層 → 開發樹 → %APPDATA%\RevitMCP 依序尋找；
+# ============================================================================
+# 共用資源：Python worker（與 Revit 版本無關，只需部署一次）
+# ============================================================================
+# DwgColumnExecutor.FindWorkerScript 會依 dll 同層 -> 開發樹 -> %APPDATA%\RevitMCP 尋找；
 # 部署版的 dll 在 Add-ins 目錄，故 worker 須落在 %APPDATA%\RevitMCP 才找得到。
 $sourceWorker = Join-Path $projectRoot "bridge\python\skills\ezdxf_worker.py"
 if (Test-Path $sourceWorker) {
@@ -393,27 +445,40 @@ if (Test-Path $sourceWorker) {
     try {
         if (-not (Test-Path $workerDir)) { New-Item -ItemType Directory -Path $workerDir -Force | Out-Null }
         Copy-Item -Path $sourceWorker -Destination (Join-Path $workerDir "ezdxf_worker.py") -Force -ErrorAction Stop
-        Write-Host "✓ 已部署 ezdxf_worker.py 到 $workerDir" -ForegroundColor Green
+        Write-Host "已部署 ezdxf_worker.py 到 $workerDir" -ForegroundColor Green
         Write-Host "  （柱號對應 textLayerName 需系統 Python + 'pip install ezdxf'；DWG 另需 ODA File Converter）" -ForegroundColor Gray
     }
     catch {
-        Write-Host "⚠️  警告：無法部署 ezdxf_worker.py（柱號對應功能將無法使用，非關鍵）" -ForegroundColor Yellow
+        Write-Host "[警告] 無法部署 ezdxf_worker.py（柱號對應功能將無法使用，非關鍵）" -ForegroundColor Yellow
     }
+    Write-Host ""
 }
 
+# ============================================================================
+# 摘要
+# ============================================================================
+Write-Host "============================================================================" -ForegroundColor Cyan
+Write-Host "   部署摘要" -ForegroundColor Cyan
+Write-Host "============================================================================" -ForegroundColor Cyan
+foreach ($r in $results) {
+    $colour = switch ($r.Status) { 'OK' { 'Green' } 'SKIP' { 'Yellow' } default { 'Red' } }
+    Write-Host ("  Revit {0}  {1,-5} {2}" -f $r.Version, $r.Status, $r.Reason) -ForegroundColor $colour
+}
 Write-Host ""
 
-# ============================================================================
-# 安裝完成
-# ============================================================================
+$failed  = @($results | Where-Object { $_.Status -eq 'FAIL' })
+$okCount = @($results | Where-Object { $_.Status -eq 'OK' }).Count
 
-Write-Host "============================================================================" -ForegroundColor Cyan
-Write-Host "   ✓ 安裝完成！" -ForegroundColor Green
-Write-Host "============================================================================" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "安裝摘要：" -ForegroundColor Cyan
-Write-Host "  - Revit 版本：$revitVersion" -ForegroundColor White
-Write-Host "  - 安裝路徑：$addonPath" -ForegroundColor White
+if ($failed.Count -gt 0) {
+    Write-Host "[失敗] 有 $($failed.Count) 個版本部署失敗" -ForegroundColor Red
+    Wait-ForExit 1
+}
+if ($okCount -eq 0) {
+    Write-Host "[警告] 沒有任何版本被部署（全部略過）" -ForegroundColor Yellow
+    Wait-ForExit 1
+}
+
+Write-Host "完成：$okCount 個版本部署成功" -ForegroundColor Green
 Write-Host ""
 Write-Host "接下來的步驟：" -ForegroundColor Cyan
 Write-Host "  1. 完全關閉 Revit（如果正在執行）" -ForegroundColor White
@@ -424,4 +489,4 @@ Write-Host ""
 Write-Host "如有問題，請參考 README.zh-TW.md 的「常見問題」章節" -ForegroundColor Cyan
 Write-Host ""
 
-Read-Host "按 Enter 結束"
+Wait-ForExit 0

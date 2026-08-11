@@ -160,8 +160,17 @@ MCP/bin/Release.R24/RevitMCP.dll
 Recommended:
 
 ```powershell
-.\scripts\install-addon.ps1
+# Pick the Revit version explicitly. With several installed and no -Version, the script asks;
+# in -NonInteractive mode it fails rather than guessing (it never silently picks the highest).
+.\scripts\install-addon.ps1 -Version 2024
+
+# Deploy to every installed version that has a matching build
+.\scripts\install-addon.ps1 -All
 ```
+
+The script copies **every DLL in the build output** (13 for R22-R24, 8 for R25-R26 — both are correct),
+checks the build generation matches the target Revit before copying, verifies each file by SHA256
+afterwards, and rotates old backups.
 
 For manual deployment, place the `.addin` file and DLL under the matching Revit Addins directory, and keep the relative assembly path in `RevitMCP.addin`:
 

@@ -160,8 +160,15 @@ MCP/bin/Release.R24/RevitMCP.dll
 建議使用：
 
 ```powershell
-.\scripts\install-addon.ps1
+# 指定 Revit 版本（必要時；偵測到多版本而未指定會要求你選擇，非互動模式則直接失敗，不會擅自挑）
+.\scripts\install-addon.ps1 -Version 2024
+
+# 多版本環境一次部署完
+.\scripts\install-addon.ps1 -All
 ```
+
+腳本會複製**建構產物中的全部 DLL**（R22–R24 為 13 個、R25–R26 為 8 個，兩者都正確）、
+部署前檢查建構產物世代是否與目標 Revit 相符、部署後逐檔 SHA256 驗證、並輪替舊版備份。
 
 手動部署時，`.addin` 與 DLL 必須放在對應版本的 Revit Addins 位置，並維持 `RevitMCP.addin` 內的相對 assembly path：
 
