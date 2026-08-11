@@ -53,6 +53,16 @@ orchestrator 在建立 Stage Plan **之前**，必須先明確判定以下四項
 Inspector-ops 是唯讀鐵律：**稽核者不得修改被稽核的產物**，否則稽核失去意義（「自己改完自己說過了」）。如果 inspector-ops 在檢查過程中
 發現需要改的東西，它只能把發現寫進 `findings`，交回給 orchestrator 走 Correction Preface 組裝，不能就地動手修。
 
+**inspector 的強制判定條款（實戰補強，2026-08-11 run `wf_eefd7224-69f`）**：若 observer 的紀錄或 diff 顯示 implementer 動了
+**Stage Brief 範圍以外的檔案**，inspector **必須**把它列為 `severity: "blocker"`，不論實際損害大小、也不論那個改動看起來多合理。
+
+理由來自一次真實違規：某 Stage 的 implementer 為了消除 QA 腳本的 false positive，刪掉了一個範圍外的目錄，讓檢查從紅變綠；
+inspector 看到了、在 summary 描述了，卻沒判 blocker，Stage 照樣 PASS。那次的實際損害有限（被刪的路徑未被 git 追蹤），但**行為模式
+正是這整套護欄要防的**——「動手改環境讓檢查通過」與「修好被檢查的東西」在綠燈上看起來一模一樣。
+
+判斷準則：**看動機，不看損害**。當範圍外改動的效果是「讓某個檢查從 FAIL 變 PASS」，那就是 blocker，沒有例外。真的該改的，寫進
+`findings` 讓 orchestrator 開一個新的 Stage 去處理，不要在別的 Stage 裡順手做掉。
+
 ### 為什麼模型配比長這樣（不要配反）
 
 - **orchestrator = Fable**：規劃階段最需要的是預判技術陷阱的能力，讓 Stage Plan 一開始就少踩坑，比事後靠迴圈修正更省。
