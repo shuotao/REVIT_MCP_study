@@ -666,6 +666,50 @@ namespace RevitMCP.Core
         }
 
         /// <summary>
+        /// TASK-005.5 情境 5「單選非模型綠建材」路徑 A 用：單純複製指定 ElementType，
+        /// 不動 CompoundStructure、不建立/指派任何 Material。用於填縫劑/接著劑/防水材等
+        /// 非幾何輔助材料要「新建 Type、不影響既有元件」時，先複製一份和來源 Type 完全一樣的
+        /// 新 Type，再由呼叫端另外呼叫 set_green_material_type_parameters 寫入
+        /// adhesive/sealant/waterproofing 等 Construction 欄位。
+        /// 與 create_single_material_type/create_multi_layer_type 不同：那兩個工具都會把
+        /// Material 重新指派到構造層，這裡刻意什麼都不動，保證新 Type 與來源 Type 的
+        /// CompoundStructure 完全一致。
+        /// 參數：
+        ///   sourceTypeId (number): 來源類型 Element ID（任意 Wall/Floor/Ceiling Type 皆可）
+        ///   newTypeName (string): 新類型名稱
+        /// </summary>
+        private object DuplicateTypeOnly(JObject parameters)
+        {
+            Document doc = _uiApp.ActiveUIDocument.Document;
+            IdType sourceTypeId = parameters["sourceTypeId"]?.Value<IdType>() ?? 0;
+            string newTypeName = parameters["newTypeName"]?.Value<string>();
+
+            if (string.IsNullOrEmpty(newTypeName))
+                throw new Exception("請指定新類型名稱 (newTypeName)");
+
+            ElementType source = doc.GetElement(new ElementId(sourceTypeId)) as ElementType;
+            if (source == null)
+                throw new Exception($"找不到來源類型 ID: {sourceTypeId}");
+
+            using (Transaction trans = new Transaction(doc, $"複製類型（不修改構造）: {newTypeName}"))
+            {
+                trans.Start();
+                ElementType newType = source.Duplicate(newTypeName);
+                trans.Commit();
+
+                return new
+                {
+                    Success = true,
+                    NewTypeId = newType.Id.GetIdValue(),
+                    NewTypeName = newType.Name,
+                    SourceTypeId = sourceTypeId,
+                    SourceTypeName = source.Name,
+                    Message = $"成功複製類型 '{source.Name}' 為新類型 '{newType.Name}' (ID: {newType.Id})，構造層與原類型完全一致，未建立或指派任何材質"
+                };
+            }
+        }
+
+        /// <summary>
         /// 通用多材料構造層工具：複製指定 ElementType（Wall/Floor/Ceiling 皆可），
         /// 依任意數量的材料清單建立獨立綠建材 Material，依序套入 CompoundStructure 各層。
         /// 與 duplicate_element_type（寫死 2 個材料的 Finish1/Structure/Finish2 牆體三明治）不同，

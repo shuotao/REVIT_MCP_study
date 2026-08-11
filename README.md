@@ -33,7 +33,7 @@ Questions or want to show what you built? → **[Discussions](https://github.com
 
 | Item | Count | Source |
 |---|---:|---|
-| Runtime MCP tools | 176 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
+| Runtime MCP tools | 177 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
 | Domain SOP files | 75 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
 | Claude skills | 56 | `.claude/skills/*/SKILL.md` |
 

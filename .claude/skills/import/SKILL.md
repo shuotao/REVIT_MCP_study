@@ -1,6 +1,6 @@
 ---
 name: import
-description: "/import revit — actually write a previously-aligned green-material Set (from /GMimport) into the currently-open Revit project. Supports Wall / 單一組合 (combined wall+paint) and 各別建立 (each material gets its own Type) sets."
+description: "/import revit — actually write a previously-aligned green-material Set (from /GMimport) into the currently-open Revit project. Supports Wall / 單一組合 (combined wall+paint), 各別建立 (each material gets its own Type), and Material 純材料 (attaching a non-geometric material like caulk/adhesive to an existing Type, either as a new duplicate Type or by overwriting it) sets."
 user-invocable: true
 ---
 
@@ -20,7 +20,9 @@ Read the Set's `purpose` field in `exported_material_sets.json` (e.g. `"組合�
 - **`品類: Wall` + `組合方式: 單一組合`, exactly 2 materials (one board/structure + one paint/finish)** → **Scenario 1**, go to that section below.
 - **`組合方式: 各別建立`** (any `品類`: Floor/Wall/Ceiling) → **Scenario 2**, go to that section below.
 - **`組合方式: 單一組合`** with **anything else** — non-Wall category (Floor/Ceiling), or more than 2 materials, or materials that need `needsManualReview`/Set-category-override resolution → **Scenario 3** (general multi-layer), go to that section below.
-- Anything else (non-geometric adhesive/sealant, Windows/.rfa family injection, etc.) → **stop**. Tell the user this scenario has no wired Revit tool yet and that building it out is a separate task, not something to improvise on the spot.
+- **`品類: Material`** (pure/non-geometric material — caulk, adhesive, waterproofing) **and** the Set has a `pureMaterialTarget` entry in `exported_material_sets.json` → **Scenario 5** (TASK-005.5), go to that section below.
+- **`品類: Material`** but **no** `pureMaterialTarget` yet → **stop**. Tell the user to run `/GMimport` first — it will show them a numbered table of candidate Types and wait for their pick before `pureMaterialTarget` gets written.
+- Anything else (Windows/.rfa family injection, etc.) → **stop**. Tell the user this scenario has no wired Revit tool yet and that building it out is a separate task, not something to improvise on the spot.
 
 ---
 
@@ -163,6 +165,53 @@ Use `create_multi_layer_type` — it takes an ordered `layers` array (`{material
 
 ---
 
+## Scenario 5 — Material 純材料附掛既有 Type (TASK-005.5)
+
+A single non-geometric material (caulk/adhesive/waterproofing — no physical CompoundStructure layer) gets attached to an *existing* Wall/Floor/Ceiling Type the user picked during `/GMimport`, either by duplicating that Type (Path A, default, non-destructive) or by overwriting it directly (Path B, mutates every instance of that Type).
+
+1. **Re-anchor the live document**: call `get_project_info`. Retry once on failure; otherwise stop and report the limitation.
+
+2. **Get the material's classification**: re-run the match —
+   ```bash
+   python -c "
+   import generate_revit_injection_plan as g, json
+   plan = g.generate_injection_plan('<SetName>', <items_list_from_json>, '')
+   print(json.dumps(plan, ensure_ascii=False, indent=2))
+   "
+   ```
+   There should be exactly one material with `mappingDetails.isAuxiliary: true`. Its `mappingDetails.auxiliaryParam` (`GreenMaterial_Adhesive`/`Sealant`/`Waterproofing`) tells you which top-level `set_green_material_type_parameters` field to write (`adhesive`/`sealant`/`waterproofing`), and `sharedParameters[auxiliaryParam]` has the exact `"產品名稱 (標章編號)"` string already formatted — don't reformat it. If there's more than one `isAuxiliary` material or none, stop and clarify with the user — this scenario assumes exactly one.
+
+3. **Read the target Type the user already picked**: load `exported_material_sets.json`, find this Set, read `pureMaterialTarget` (`category`, `typeId`, `typeName`, `instanceCount`). If missing, this shouldn't happen given the Scope check above — stop and tell the user to run `/GMimport` again.
+
+4. **Ask the user: Path A or Path B?** Default/recommend **Path A**. Never pick Path B without an explicit, separate confirmation from the user (per CLAUDE.md's action-care guidance — Path B mutates every existing instance of that Type).
+
+   - **Path A — new Type, existing model untouched (default)**:
+     a. Propose a new type name (e.g. `<pureMaterialTarget.typeName>_TABC_<licno>`) and confirm it with the user.
+     b. Call `duplicate_type_only(sourceTypeId: <pureMaterialTarget.typeId>, newTypeName: <confirmed name>)` — this only duplicates the Type; it does not touch CompoundStructure or create any Material. Note the returned `NewTypeId`.
+     c. `load_shared_parameters` with `categories: ["<pureMaterialTarget.category>s"]` (e.g. `["Walls"]`), `bindToInstance: false` — idempotent, safe even if already bound.
+     d. `set_green_material_type_parameters(typeId: <NewTypeId>, mat1: <the material's data>, <adhesive|sealant|waterproofing>: <sharedParameters[auxiliaryParam]>)`.
+     e. Affected scope to report: **0 existing instances** — it's a brand-new Type; the original `pureMaterialTarget.typeId` is untouched.
+
+   - **Path B — overwrite the existing Type (requires explicit confirmation)**:
+     a. Show the user `pureMaterialTarget.typeName` and `pureMaterialTarget.instanceCount` — i.e. exactly how many placed instances in the model will be affected — and get an explicit go-ahead before writing anything.
+     b. `load_shared_parameters` same as Path A step c.
+     c. `set_green_material_type_parameters(typeId: <pureMaterialTarget.typeId>, mat1: <the material's data>, <adhesive|sealant|waterproofing>: <sharedParameters[auxiliaryParam]>)` — writes directly onto the existing Type.
+     d. Affected scope to report: `pureMaterialTarget.instanceCount` existing instances now carry this material's data.
+
+5. **Verify the written values**: call `get_element_info` on the written `typeId` (new or existing depending on path) and confirm the `GreenMaterial_Mat1_*` and the `GreenMaterial_Adhesive`/`Sealant`/`Waterproofing` field match what you intended to write.
+
+6. **Update the Set's status**: call
+   ```bash
+   python -c "
+   import generate_revit_injection_plan as g
+   g.write_back_to_set_manager('<SetName>', plan_dict, planned_actions_override='已建立/覆蓋 Element ID <typeId>（<Path A 新建|Path B 覆蓋>）')
+   "
+   ```
+
+7. **Report**: target TypeId + TypeName, which path was taken, which shared-parameter fields were written (including the top-level `adhesive`/`sealant`/`waterproofing` field), and the affected element scope (0 for Path A, `instanceCount` for Path B).
+
+---
+
 ## Error Handling
 
 | Error | Response |
@@ -177,3 +226,6 @@ Use `create_multi_layer_type` — it takes an ordered `layers` array (`{material
 | Scenario 3: more than 6 materials in one Set | Warn that only 6 fit the shared-parameter schema (`Mat1`~`Mat6`); tell the user which ones (from `plan['materialSlotAssignment']['unassigned']`) will be left out of the parameter write (they still get a real CompoundStructure layer, just no `GreenMaterial_Mat*` metadata) |
 | `set_green_material_type_parameters` returns non-empty `MissingParameters` | Report it — usually means `load_shared_parameters` needs to target a different category, or the file path is wrong |
 | Revit connection unavailable | State the limitation per CLAUDE.md's MCP Connection Status section; don't fabricate results |
+| Scenario 5: `pureMaterialTarget.typeId` no longer exists in the model (deleted/renamed since `/GMimport` ran) | Stop; tell the user to run `/GMimport` again to re-pick a target Type |
+| Scenario 5: plan has zero or more than one `isAuxiliary` material | Stop and clarify with the user — this scenario assumes exactly one non-geometric material per Set |
+| Scenario 5: user hasn't picked Path A or Path B yet | Ask directly; never default to Path B without an explicit separate confirmation, since it mutates every existing instance of that Type |

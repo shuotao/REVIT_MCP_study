@@ -1,10 +1,10 @@
 ---
 name: GMimport
-description: Parse a green-material Set alignment request copied from the green-material-showcase.html "對齊需求與擬訂計畫" modal, and generate a Revit injection plan (no Revit writes — planning/reporting only).
+description: Parse a green-material Set alignment request copied from the green-material-showcase.html "對齊需求與擬訂計畫" modal, and generate a Revit injection plan (planning/reporting only — for pure-material Sets it also runs a read-only Revit lookup to let the user pick a target Type; it never writes to Revit).
 user-invocable: true
 ---
 
-Parse a free-text `/GMimport` request (as pasted from the showcase page's modal) and produce a Revit green-material injection plan. This step never touches Revit — it only reads `tabc_master_database.json`, matches materials, and writes a plan report. The follow-up `/import revit` skill does the actual Revit writes.
+Parse a free-text `/GMimport` request (as pasted from the showcase page's modal) and produce a Revit green-material injection plan. This step never **writes** to Revit — it reads `tabc_master_database.json`, matches materials, and writes a plan report. For the "純材料" (Material) scenario it also does a **read-only** Revit query (never a mutation) to show the user candidate Types to attach to — see Step 4. The follow-up `/import revit` skill does the actual Revit writes.
 
 ## Input Shape
 
@@ -13,6 +13,14 @@ The argument is free text like:
 ```
 請為材料 Set 【牆壁與塗料】 (GBM0104204, GBM0103960) 擬訂 Revit 綠建材寫入計畫。[需求對齊：組合方式: 單一組合 | 品類: Wall | 補充條件: 無]
 ```
+
+For a "純材料" (pure-material) Set — TASK-005.5, e.g. a single caulk/adhesive/waterproofing material with no compound layer — the showcase page appends one more field after an extra popup:
+
+```
+請為材料 Set 【地磚填縫劑】 (GBM0104110) 擬訂 Revit 綠建材寫入計畫。[需求對齊：組合方式: 各別建立 | 品類: Material | 補充條件: 無 | 掛載類別: Wall]
+```
+
+`掛載類別` (attach category) is the existing Revit category (Wall/Floor/Ceiling) the user wants this non-geometric material attached to — see Step 4.
 
 ## Steps
 
@@ -42,6 +50,31 @@ The argument is free text like:
    - For each matched material: licno (full, with any suffix), title, target Revit category, target layer (Structure/Finish1/Finish2/etc.), suggested thickness.
    - The plan ID.
    - Tell the user: run `/import revit` next to actually write this Set into the currently-open Revit project.
+   - **Exception**: if the plan's `pureMaterialAttachCategory` is set (non-null) and at least one item in `plan['materialsMapping']` has `mappingDetails.isAuxiliary: true`, do **not** tell the user to run `/import revit` yet — go to Step 4 first.
+
+4. **Pure-material Sets only — show candidate Types and wait for the user's pick** (TASK-005.5, only when `plan['pureMaterialAttachCategory']` is set and the Set has an `isAuxiliary` material):
+   - Call `get_types_by_category(category: "<pureMaterialAttachCategory>")` — **read-only**, this does not mutate the model. Supported categories: `Wall`, `Floor`, `Ceiling` (Door/Window are a different, family-based mechanism — not covered by this scenario).
+   - Present the response's `Types` array as a numbered table in your reply: 編號 / TypeName / FamilyName / InstanceCount / 目前材質（`Materials` 陣列摘要，例如取前 1-2 個層＋`...`）.
+   - Ask the user to reply with the row number of the Type they want this material attached to. **Do not guess or auto-pick one** — stop your turn here and wait for their reply.
+   - When the user replies with a number (plain text, next turn): resolve it against the table you just showed, then persist the pick so `/import revit` can find it later without needing this conversation's full context:
+     ```bash
+     python -c "
+     import json
+     with open('exported_material_sets.json', 'r', encoding='utf-8') as f:
+         sets = json.load(f)
+     key = next((k for k in sets if '<set_name>' in k or k in '<set_name>'), '<set_name>')
+     sets[key]['pureMaterialTarget'] = {
+         'category': '<pureMaterialAttachCategory>',
+         'typeId': <chosen TypeId>,
+         'typeName': '<chosen TypeName>',
+         'instanceCount': <chosen InstanceCount>,
+     }
+     with open('exported_material_sets.json', 'w', encoding='utf-8') as f:
+         json.dump(sets, f, ensure_ascii=False, indent=2)
+     print('OK')
+     "
+     ```
+   - Confirm the write and tell the user they can now run `/import revit` to actually write the material into that Type.
 
 ## Error Handling
 
@@ -51,6 +84,8 @@ The argument is free text like:
 | No `GBM\d+` matches found | Ask the user to re-paste; the licno list must be in the parentheses after the Set name |
 | A licno matches nothing in `tabc_master_database.json` (even after suffix-tolerant fallback) | Report it as unmatched; don't silently drop it without telling the user |
 | `tabc_master_database.json` missing | Stop and tell the user the master database file is missing from the repo root |
+| Step 4: `get_types_by_category` returns zero Types for the chosen category | Tell the user there's no existing Type of that category in the current model yet — they need to create one manually first (Scenario 5's Path A still needs a source Type to duplicate from) |
+| Step 4: user's reply isn't a valid row number from the table shown | Ask them to reply with one of the listed numbers; don't guess which one they meant |
 
 ## Relationship to Other Files
 

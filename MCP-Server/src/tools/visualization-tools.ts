@@ -87,6 +87,18 @@ export const visualizationTools: Tool[] = [
         },
     },
     {
+        name: "duplicate_type_only",
+        description: "單純複製指定 ElementType（Wall/Floor/Ceiling 皆可），不修改 CompoundStructure、不建立或指派任何 Material，新類型與來源類型構造層完全一致。用於 TASK-005.5 情境 5「單選非模型綠建材」路徑 A：先複製出一個不影響既有元件的新 Type，再另外呼叫 set_green_material_type_parameters 寫入 adhesive/sealant/waterproofing 等 Construction 欄位。與 duplicate_element_type（寫死板材+塗料兩種材料）、create_single_material_type/create_multi_layer_type（會重新指派構造層材質）不同。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                sourceTypeId: { type: "number", description: "來源類型 Element ID（任意 Wall/Floor/Ceiling Type）" },
+                newTypeName: { type: "string", description: "新類型名稱" },
+            },
+            required: ["sourceTypeId", "newTypeName"],
+        },
+    },
+    {
         name: "set_green_material_type_parameters",
         description: "將綠建材共享參數 Schema（GreenMaterial_SharedParams.txt，Mat1~Mat6 六槽位 + Construction 群組共 67 個欄位）實體寫入指定 ElementType 的 Identity Data。參數須已透過 load_shared_parameters 綁定至該 Type 所屬品類（如 Walls），否則對應欄位會列在回傳的 MissingParameters 中。Mat1=主體/牆板，Mat2=面材/塗料，Mat3=附屬/膠材（僅有基本欄位，無 TVOC/Formaldehyde/CNS），Mat4/Mat5/Mat6=追加構造層（欄位與 Mat1/Mat2 同樣完整）。一個 Set 有幾種材料就只傳幾個 matN 物件，其餘留空，不必寫滿 6 組；哪個材料進哪個槽位請依 generate_revit_injection_plan.py 產出的 plan['materialSlotAssignment'] 決定，不要自行猜測順序——非幾何輔助材料（接著劑/填縫劑/防水材料）一樣要填一個 matN 物件（Mat 槽位記錄的是「這個元件用了哪些綠建材」的完整清單，不是只有物理構造層才算數），另外再用 adhesive/sealant/waterproofing 額外補記它們的施工用途，兩者並存不衝突、不是二選一。",
         inputSchema: {

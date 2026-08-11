@@ -226,6 +226,19 @@ def _extract_category_hint(user_intent: str) -> str:
     return _CATEGORY_HINT_ALIASES.get(raw, raw)
 
 
+def _extract_attach_category_hint(user_intent: str) -> str:
+    """從 /GMimport 文字裡的 [需求對齊：...掛載類別: Wall...] 擷取「純材料」Set 要依附的既有品類
+    （TASK-005.5：情境 5 單選非模型綠建材）。故意用「掛載類別」而非「依附品類」當標籤字串，
+    避免與 _extract_category_hint 的「品類[:：]」正則互相誤吃子字串。"""
+    if not user_intent:
+        return ""
+    m = re.search(r"掛載類別[:：]\s*([A-Za-z一-鿿]+)", user_intent)
+    if not m:
+        return ""
+    raw = m.group(1).strip()
+    return _CATEGORY_HINT_ALIASES.get(raw, raw)
+
+
 # ── layerComposition 覆寫（見 domain/green-material-parameter-schema.md 「明確層級覆寫」）──
 # 使用者在 green-material-showcase.html 對 Wall/Floor 單一組合 Set 明確拖曳指定每項材料的
 # Structure/Substrate/Finish 角色與 Core Boundary 位置時，該設定存在 exported_material_sets.json
@@ -450,6 +463,7 @@ def generate_injection_plan(set_name: str, licno_list=None, user_intent: str = "
     """
     database = load_database()
     category_hint = _extract_category_hint(user_intent)
+    attach_category_hint = _extract_attach_category_hint(user_intent)
 
     # layerComposition 覆寫：若此 Set 在網頁上已明確指定材料層級，取得角色對照表與順序
     layer_composition = _load_layer_composition(set_name)
@@ -643,6 +657,9 @@ def generate_injection_plan(set_name: str, licno_list=None, user_intent: str = "
             _layer_composition_sequence_labels(layer_composition, database) if layer_composition else None
         ),
         "materialSlotAssignment": slot_assignment,
+        # TASK-005.5：純材料（isAuxiliary）Set 要依附的既有品類，來自 showcase 頁面的
+        # 「純材料掛載品類」子問題（[需求對齊：...掛載類別: Wall]）。非純材料 Set 通常為 None。
+        "pureMaterialAttachCategory": attach_category_hint or None,
     }
 
     # 儲存 JSON

@@ -131,6 +131,10 @@ namespace RevitMCP.Core
                         result = CreateMultiLayerType(parameters);
                         break;
 
+                    case "duplicate_type_only":
+                        result = DuplicateTypeOnly(parameters);
+                        break;
+
                     case "set_material_surface_pattern":
                         result = SetMaterialSurfacePattern(parameters);
                         break;
