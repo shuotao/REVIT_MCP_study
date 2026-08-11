@@ -87,6 +87,9 @@ type ClassificationHints = Pick<ToolAnnotations, "readOnlyHint" | "destructiveHi
  *   - select_element, set_active_view, override_element_graphics, clear_element_override,
  *     colorize_clashes, set_category_visibility, hide_elements, unhide_elements：
  *     只異動環境／視圖狀態（選取、作用視圖、圖形覆寫、可見性），不異動 Revit 模型本身
+ *   - diagnose_curtain_wall_elevation_dimensions：名稱是 diagnose_ 前綴，但它會寫入。
+ *     `rollback` 預設 true、可設 false；設 false 時（level_offset 以外的模式）診斷尺寸會留在模型裡。
+ *     前綴規則會判它 readOnlyHint=true，那是錯的宣稱 → 明確覆寫為寫入型。
  */
 export const OVERRIDE: Record<string, ClassificationHints> = {
     export_families: { readOnlyHint: true, destructiveHint: false },
@@ -102,6 +105,8 @@ export const OVERRIDE: Record<string, ClassificationHints> = {
     set_category_visibility: { readOnlyHint: false, destructiveHint: false },
     hide_elements: { readOnlyHint: false, destructiveHint: false },
     unhide_elements: { readOnlyHint: false, destructiveHint: false },
+
+    diagnose_curtain_wall_elevation_dimensions: { readOnlyHint: false, destructiveHint: false },
 };
 
 /**
