@@ -138,3 +138,10 @@ docs/fork-audit/
 # Personal knowledge vault (see templates/personal-vault/ and docs/BIM_MCP/reference/personal-llm-wiki.html)
 /vault/
 /.obsidian/
+
+# 本機 AI client 工具產生的工作檔（非 repo 內容）
+# 已知來源：使用者端安裝的 OpenAI Codex 桌面 app 會掃描專案，
+# 自行產生 .codex/（含帶絕對路徑的 hooks.json）與 .agents/skills/ 下的 skill 鏡像。
+# .agents/skills/ 是混合命名空間：貢獻者在 commit 604cafe 提交的 8 個鏡像是 repo 內容
+# （已被追蹤，不受此規則影響），其餘由本機工具產生者一律不進版控。
+.codex/

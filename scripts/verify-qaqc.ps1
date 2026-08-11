@@ -1031,6 +1031,53 @@ else {
         "Run 'python scripts/validate_publish_consistency.py'; use the mcp-registry-sync (Sonnet) agent to fix drift"
 }
 
+# 7-12: .agents/skills mirror fidelity — GIT-TRACKED mirrors only
+#
+# `.agents/skills/<name>/SKILL.md` mirrors let non-Claude clients (Agy / Codex) discover skills.
+# The tracked ones arrived per-skill from contributors (commit 604cafe, `.agents` + `.claude` pair),
+# NOT from a generator — so there is no rule that every skill must be mirrored, and this check does
+# not require one. What it requires is that a mirror the repo ships still matches its source: a
+# silently drifting mirror is worse than no mirror, because a non-Claude client reads it as current
+# instructions and nothing anywhere reports a problem.
+#
+# ⚠️ Scope is deliberately limited to `git ls-files`. `.agents/skills/` is a MIXED namespace:
+# locally-installed tools (observed: an OpenAI Codex desktop app) scan the project and write their
+# own untracked mirrors into the same directory. Those are the user's machine state, not repo
+# content — failing QA/QC on them would turn this gate red for reasons unrelated to the repository,
+# on any machine that happens to have such a tool installed. Do not widen this to a filesystem scan.
+Write-Host ""
+Write-Host "  7-12. .agents/skills mirror fidelity (git-tracked mirrors only):" -ForegroundColor Cyan
+$mirrorProblems = @()
+$mirrorChecked = 0
+Push-Location $projectRoot
+$trackedMirrors = @(& git ls-files '.agents/skills/*/SKILL.md' 2>$null)
+Pop-Location
+if (-not $trackedMirrors -or $trackedMirrors.Count -eq 0) {
+    Write-Skip ".agents/skills mirror fidelity" "no tracked mirrors"
+}
+else {
+    function Get-NormalisedText([string]$p) {
+        if (-not (Test-Path $p)) { return $null }
+        return ((Get-Content -LiteralPath $p -Raw -Encoding UTF8) -replace "`r`n", "`n").TrimEnd()
+    }
+    foreach ($rel in $trackedMirrors) {
+        $skillName = (Split-Path (Split-Path $rel -Parent) -Leaf)
+        $mirrorPath = Join-Path $projectRoot ($rel -replace '/', '\')
+        $sourcePath = Join-Path "$projectRoot\.claude\skills\$skillName" 'SKILL.md'
+        $mirrorChecked++
+        if (-not (Test-Path $sourcePath)) {
+            $mirrorProblems += "$skillName : orphan mirror (no .claude/skills/$skillName/SKILL.md)"
+            continue
+        }
+        if ((Get-NormalisedText $sourcePath) -ne (Get-NormalisedText $mirrorPath)) {
+            $mirrorProblems += "$skillName : tracked mirror out of sync with .claude/skills/$skillName/SKILL.md"
+        }
+    }
+    Write-Check "Tracked .agents/skills mirrors match their sources ($mirrorChecked checked)" ($mirrorProblems.Count -eq 0) `
+        $(if ($mirrorProblems.Count -gt 0) { "$($mirrorProblems.Count) problem(s). Re-copy the source over the mirror, or drop the mirror from git." } else { "" })
+    if ($mirrorProblems.Count -gt 0) { $mirrorProblems | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkYellow } }
+}
+
 # ─────────────────────────────────────────────
 # Phase 8: Document Audience and Encoding Hygiene
 # ─────────────────────────────────────────────
