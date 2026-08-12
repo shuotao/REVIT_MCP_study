@@ -1,5 +1,5 @@
 ---
-name: green-material-catalog
+name: GM_catalog
 description: "臺灣建築中心（TABC）綠建材採購指南檢索與資料對照領域規範。定義健康、高性能、再生、生態四大綠建材標章分類體系、空間與部位意圖對照規則，以及品項資訊結構化 Schema。"
 metadata:
   version: "1.1"
@@ -9,12 +9,12 @@ metadata:
     - "https://tabcmgr.hopto.org/mgr/SearchCaseAction.aspx"
     - "內政部建築研究所綠建材解說與評估手冊"
   related:
-    - green-material-parameter-schema.md
+    - GM_parameter-schema.md
   referenced_by: []
   tags: [綠建材, TABC, 採購指南, 標章分類, 意圖對照, 健康綠建材, 高性能綠建材, 再生綠建材, 生態綠建材]
 ---
 
-# TABC 綠建材採購指南檢索與資料對照規範 (`green-material-catalog`)
+# TABC 綠建材採購指南檢索與資料對照規範 (`GM_catalog`)
 
 本文件定義財團法人臺灣建築中心（TABC）綠建材採購指南之檢索對照機制。本規範作為 AI Agent 接收使用者自然語言需求（例如「地板材料」、「隔音牆」、「低毒性塗料」）時，對照至綠建材四大標章與細項品類之標準依據。
 
@@ -143,20 +143,20 @@ AI Agent 於進行 BIM 元件建模、材料資產掛載與共享參數匯入時
 
 ## 5. 綠建材動態檢索展示網頁與關鍵字觸發詢問規範 (Interactive Web Showcase & Trigger Confirmation Rule)
 
-當使用者提及「綠建材」相關提示詞（如：`綠建材`、`綠建材標章`、`牆體綠建材`、`地坪綠建材`、`TABC綠建材`、`健康綠建材`、`高性能綠建材`、`再生綠建材`、`生態綠建材`、`綠建材採購`、`綠建材網頁` 等）時，AI Agent **不得自動開啟網頁**，而是要先詢問使用者是否要開啟 [臺灣 TABC 全量綠建材採購指南與 Revit BIM 材料 Set 管理平台](../assets/green-material-showcase.html)；使用者確認後，才執行 `/GMweb open`（見 `.claude/skills/GMweb/SKILL.md`）。若使用者的訊息本身已經是明確的開啟請求（例如直接輸入 `/GMweb open` 或「開啟綠建材檢索平台」），可視為已確認，直接執行，不需要再多問一次。
+當使用者提及「綠建材」相關提示詞（如：`綠建材`、`綠建材標章`、`牆體綠建材`、`地坪綠建材`、`TABC綠建材`、`健康綠建材`、`高性能綠建材`、`再生綠建材`、`生態綠建材`、`綠建材採購`、`綠建材網頁` 等）時，AI Agent **不得自動開啟網頁**，而是要先詢問使用者是否要開啟 [臺灣 TABC 全量綠建材採購指南與 Revit BIM 材料 Set 管理平台](../assets/green-material-showcase.html)；使用者確認後，才執行 `/GM_web open`（見 `.claude/skills/GM_web/SKILL.md`）。若使用者的訊息本身已經是明確的開啟請求（例如直接輸入 `/GM_web open` 或「開啟綠建材檢索平台」），可視為已確認，直接執行，不需要再多問一次。
 
 ### 5.1 需求導向 3 步驟動態抓取與 Showcase 更新規範 (3-Step On-Demand Fetch & Dynamic Update Rule)
 * **核心作業流程**：
-  1. **步驟 1 (接收材料需求與關鍵字觸發)**：接收使用者告知的當前材料需求（如「牆體綠建材」、「塗料/油漆」、「木地板」、「隔音樓板」、「矽酸鈣板」等）後，先詢問是否要開啟綠建材 Showcase 網頁（`/GMweb open`），取得使用者同意後才執行。
+  1. **步驟 1 (接收材料需求與關鍵字觸發)**：接收使用者告知的當前材料需求（如「牆體綠建材」、「塗料/油漆」、「木地板」、「隔音樓板」、「矽酸鈣板」等）後，先詢問是否要開啟綠建材 Showcase 網頁（`/GM_web open`），取得使用者同意後才執行。
   2. **步驟 2 (從原網頁精準抓取相關材料)**：專門從 TABC 綠建材採購指南原網頁真實資料中，擷取屬於該材料類別的真實認證品項物件（包含真實標章核定編號、申請公司、有效期限、白話規格、官方圖片 URI 與驗證頁 URI）。
-  3. **步驟 3 (更新 Showcase 網頁並呈現)**：資料庫更新請一律透過 `update_tabc_database.py`（`/GMupdate`，見 `.claude/skills/GMupdate/SKILL.md`），不要手動零星寫入 `assets/green-material-showcase.html` 的 `tabcDatabase` 陣列；使用者同意開啟網頁後，執行 `/GMweb open` 呈現。
+  3. **步驟 3 (更新 Showcase 網頁並呈現)**：資料庫更新請一律透過 `GM_update_tabc_database.py`（`/GM_update`，見 `.claude/skills/GM_update/SKILL.md`），不要手動零星寫入 `assets/green-material-showcase.html` 的 `tabcDatabase` 陣列；使用者同意開啟網頁後，執行 `/GM_web open` 呈現。
 
 ---
 
 ## 6. 互動對話與分析呈現流程 (Standard Execution Steps)
 
-1. **需求對照與詢問是否開啟網頁**：接收使用者綠建材需求後，先詢問是否要開啟 [green-material-showcase.html](../assets/green-material-showcase.html) 檢索平台；同意後執行 `/GMweb open`。
+1. **需求對照與詢問是否開啟網頁**：接收使用者綠建材需求後，先詢問是否要開啟 [green-material-showcase.html](../assets/green-material-showcase.html) 檢索平台；同意後執行 `/GM_web open`。
 2. **原網頁真實物件擷取**：撈取/精選該品類下於 TABC 原網頁真實取得 GBM 認證之廠商、建材與圖片。
-3. **資料庫更新（如需要）**：主資料庫已過期或缺漏時，透過 `/GMupdate` 更新，不手動零星寫入展示網頁。
+3. **資料庫更新（如需要）**：主資料庫已過期或缺漏時，透過 `/GM_update` 更新，不手動零星寫入展示網頁。
 4. **Revit 共享參數導引**：於展示網頁中提供單鍵「查看 Revit 參數」與批次匯入 Revit 共享參數選項。
 

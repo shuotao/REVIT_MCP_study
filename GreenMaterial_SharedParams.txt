@@ -11,6 +11,7 @@ GROUP	1	綠建材認證與產品標示 (Green Material Certificate & Identity)
 GROUP	2	綠建材物理與化學性能 (Green Material Properties)
 GROUP	3	國家標準與試驗驗證 (CNS Standard & Testing Verification)
 GROUP	4	非幾何輔助材料 (Construction)
+GROUP	5	門窗專屬效能 (Window/Door Performance)
 *PARAM	GUID	NAME	DATATYPE	DATACATEGORY	GROUP	VISIBLE	DESCRIPTION	USERMODIFIABLE	HIDEWHENNOVALUE
 PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111101	GreenMaterial_Certified	YESNO		1	1	全牆綠建材評定合格狀態	1	0
 PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111102	GreenMaterial_Mat1_Name	TEXT		1	1	材料1 (主體/牆板) 綠建材產品名稱	1	0
@@ -79,3 +80,5 @@ PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111164	GreenMaterial_Mat6_QualifiedItems	TEX
 PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111165	GreenMaterial_Adhesive	TEXT		4	1	附著黏貼之接著劑標章資訊	1	0
 PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111166	GreenMaterial_Sealant	TEXT		4	1	附著填縫之矽利康/密封膠資訊	1	0
 PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111167	GreenMaterial_Waterproofing	TEXT		4	1	附著塗佈之防水膜資訊	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111168	GreenMaterial_Window_ShadingCoefficient	NUMBER		5	1	門窗遮陽係數 Sc（僅 Windows/Curtain Wall 適用）	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111169	GreenMaterial_AcousticRw	NUMBER		5	1	門窗隔音等級 Rw (dB)（Windows 與 Doors 適用）	1	0

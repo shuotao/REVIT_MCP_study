@@ -1,12 +1,12 @@
 ---
-name: GMweb
-description: Open the green-material search & Set Manager web page directly via a single "open" argument. Windows only. Trigger keywords: 開啟檢索平台網頁、開啟綠建材檢索平台、GMweb open、open search platform.
+name: GM_web
+description: Open the green-material search & Set Manager web page directly via a single "open" argument. Windows only. Trigger keywords: 開啟檢索平台網頁、開啟綠建材檢索平台、GM_web open、open search platform.
 user-invocable: true
 ---
 
 Open the green-material search & Set Manager web page (`assets/green-material-showcase.html`, served via `local_server.py` at `http://localhost:8888`).
 
-This is the single entry point for the green-material search & Set Manager page. (`/GM` used to have a duplicate `search` action pointing at the same page — that branch was removed since it was fully redundant with this skill; `/GM` now only opens the project kanban board.)
+This is the single entry point for the green-material search & Set Manager page. (`/GM_kanban` used to have a duplicate `search` action pointing at the same page — that branch was removed since it was fully redundant with this skill; `/GM_kanban` now only opens the project kanban board.)
 
 ## Usage
 
@@ -17,7 +17,7 @@ This is the single entry point for the green-material search & Set Manager page.
 
 This skill launches a browser and a local Python server. It is Windows-only. If not Windows, tell the user to run `python local_server.py` from the repo root, then open `http://localhost:8888` manually. Then stop.
 
-## `/GMweb open`
+## `/GM_web open`
 
 1. Check whether something is already listening on port 8888:
    ```powershell
@@ -49,4 +49,4 @@ The green-material showcase page's Set Manager calls `POST /api/save-sets` / `GE
 
 ## Reference
 
-See `.claude/skills/GM/SKILL.md` for the project kanban board opener (a separate, unrelated page).
+See `.claude/skills/GM_kanban/SKILL.md` for the project kanban board opener (a separate, unrelated page).

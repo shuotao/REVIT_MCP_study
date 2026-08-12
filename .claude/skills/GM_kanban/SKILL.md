@@ -1,5 +1,5 @@
 ---
-name: GM
+name: GM_kanban
 description: Open the project kanban board (kanban.html). Windows-tooling based (PowerShell Start-Process).
 user-invocable: true
 ---
@@ -10,7 +10,7 @@ Open the project kanban board.
 
 - **`monstrare`** or **no args** → Open the project kanban board (`kanban.html`)
 
-## `/GM monstrare` — Project Kanban Board
+## `/GM_kanban monstrare` — Project Kanban Board
 
 1. Locate `kanban.html` at the repo root (search upward from cwd if needed; fall back to `tools/kanban/index.html` if the root copy is missing — both embed the same `cardsData`, regenerated directly from `tools/kanban/cards/*.json` whenever a card changes; there is no separate sync script).
 2. Open it directly in the default browser:
@@ -30,4 +30,4 @@ No server is needed — `kanban.html` embeds its card data (`cardsData`) directl
 
 ## Relationship to Other Files
 
-- For the green-material search & Set Manager page, use `/GMweb open` instead — that used to be duplicated here as a `search` action, but the two were redundant (same target page, same steps), so this skill was narrowed to kanban-only and `/GMweb` is now the single entry point for the search page.
+- For the green-material search & Set Manager page, use `/GM_web open` instead — that used to be duplicated here as a `search` action, but the two were redundant (same target page, same steps), so this skill was narrowed to kanban-only and `/GM_web` is now the single entry point for the search page.

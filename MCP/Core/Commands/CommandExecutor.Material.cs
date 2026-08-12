@@ -749,13 +749,16 @@ namespace RevitMCP.Core
                         }
                         else if (typeElem is FamilySymbol fs)
                         {
-                            SetStructuralMaterial(fs, mat.Id);
+                            var diag = SetStructuralMaterialDiagnostic(fs, mat.Id);
                             assignedTypes.Add(new
                             {
                                 TypeId = typeId,
                                 TypeName = fs.Name,
                                 FamilyName = fs.FamilyName,
-                                Category = fs.Category?.Name ?? "Unknown"
+                                Category = fs.Category?.Name ?? "Unknown",
+                                ParamUsed = diag.ParamUsed,
+                                ParamStorageType = diag.StorageType,
+                                VerifiedImmediatelyAfterSet = diag.VerifiedImmediatelyAfterSet
                             });
                             successCount++;
                         }
@@ -1121,32 +1124,69 @@ namespace RevitMCP.Core
         /// </summary>
         private string SetStructuralMaterial(FamilySymbol symbol, ElementId newMatId)
         {
+            return SetStructuralMaterialDiagnostic(symbol, newMatId).OriginalMaterialName;
+        }
+
+        /// <summary>
+        /// 2026-08-12 診斷用擴充：回報實際命中哪個 BuiltInParameter、Set() 呼叫是否真的立即生效
+        /// （同一 Transaction 內 Set() 後馬上讀回，不等 Commit）。用於排查「回報成功但讀回一直是
+        /// &lt;none&gt;」的族群（實測「混凝土樑-矩形」踩到，柱的族群正常，兩者理論上走同一段程式碼）。
+        /// </summary>
+        private (string OriginalMaterialName, string ParamUsed, bool ParamIsReadOnly, bool VerifiedImmediatelyAfterSet, string StorageType) SetStructuralMaterialDiagnostic(FamilySymbol symbol, ElementId newMatId)
+        {
             Document doc = symbol.Document;
             string origMatName = "<none>";
 
-            // 嘗試 STRUCTURAL_MATERIAL_PARAM
-            Parameter matParam = symbol.get_Parameter(BuiltInParameter.STRUCTURAL_MATERIAL_PARAM);
+            Parameter structParam = symbol.get_Parameter(BuiltInParameter.STRUCTURAL_MATERIAL_PARAM);
+            string paramUsed;
+            Parameter matParam;
 
-            // 備用：MATERIAL_ID_PARAM
-            if (matParam == null || matParam.IsReadOnly)
-                matParam = symbol.get_Parameter(BuiltInParameter.MATERIAL_ID_PARAM);
-
-            if (matParam != null && !matParam.IsReadOnly)
+            if (structParam != null && !structParam.IsReadOnly)
             {
-                ElementId origId = matParam.AsElementId();
-                if (origId != ElementId.InvalidElementId)
-                {
-                    Material origMat = doc.GetElement(origId) as Material;
-                    origMatName = origMat?.Name ?? $"(ID:{origId.GetIdValue()})";
-                }
-                matParam.Set(newMatId);
+                matParam = structParam;
+                paramUsed = "STRUCTURAL_MATERIAL_PARAM";
             }
             else
             {
-                throw new Exception("找不到可修改的材質參數 (STRUCTURAL_MATERIAL_PARAM / MATERIAL_ID_PARAM)");
+                matParam = symbol.get_Parameter(BuiltInParameter.MATERIAL_ID_PARAM);
+                paramUsed = structParam == null
+                    ? "MATERIAL_ID_PARAM (STRUCTURAL_MATERIAL_PARAM 不存在)"
+                    : "MATERIAL_ID_PARAM (STRUCTURAL_MATERIAL_PARAM 唯讀)";
             }
 
-            return origMatName;
+            if (matParam == null)
+                throw new Exception($"找不到可修改的材質參數 (STRUCTURAL_MATERIAL_PARAM / MATERIAL_ID_PARAM)。structParam={(structParam == null ? "null" : (structParam.IsReadOnly ? "唯讀" : "可寫但未選用，邏輯異常"))}");
+
+            bool isReadOnly = matParam.IsReadOnly;
+            if (isReadOnly)
+                throw new Exception($"找到材質參數 ({paramUsed}) 但為唯讀，無法寫入");
+
+            ElementId origId = matParam.AsElementId();
+            if (origId != ElementId.InvalidElementId)
+            {
+                Material origMat = doc.GetElement(origId) as Material;
+                origMatName = origMat?.Name ?? $"(ID:{origId.GetIdValue()})";
+            }
+
+            matParam.Set(newMatId);
+
+            // 同一 Transaction 內、Commit 前立刻讀回，確認 Set() 真的生效，不是靜默被忽略。
+            // 2026-08-12 實測發現：部分族群（如「混凝土樑-矩形」）的 STRUCTURAL_MATERIAL_PARAM
+            // 存在且回報非唯讀，Set() 也不拋例外，但值就是沒有真的被寫入——很可能是族群定義內
+            // 該參數與其他參數/公式關聯導致 Revit 靜默忽略直接賦值。與其讓呼叫端誤以為成功，
+            // 這裡直接視為失敗並拋例外，讓 AssignExistingMaterial 正確計入 errors、不計入 successCount。
+            ElementId afterId = matParam.AsElementId();
+            bool verified = afterId == newMatId;
+            if (!verified)
+            {
+                throw new Exception(
+                    $"寫入 {paramUsed} 未生效（Set() 未拋例外，但同一 Transaction 內立即讀回值仍是 " +
+                    $"{(afterId == ElementId.InvalidElementId ? "<none>" : afterId.GetIdValue().ToString())}，" +
+                    "非預期的新材質 ID）。此族群的結構材質參數可能在族群編輯器內與其他參數/公式關聯，" +
+                    "無法透過 Type 參數直接賦值變更，需要開啟族群文件檢查。");
+            }
+
+            return (origMatName, paramUsed, isReadOnly, verified, matParam.StorageType.ToString());
         }
 
         /// <summary>
@@ -1179,9 +1219,13 @@ namespace RevitMCP.Core
 
                     int instanceCount = allInstances.Count(e => e.GetTypeId() == fs.Id);
 
+                    // 讀取端的參數解析順序必須跟 SetStructuralMaterial（實際寫入端）完全一致，
+                    // 否則某些族群（例如 STRUCTURAL_MATERIAL_PARAM 存在但唯讀）寫入端會正確
+                    // 退回 MATERIAL_ID_PARAM，讀取端卻只判斷 null、不判斷唯讀，導致明明寫入
+                    // 成功卻一直回報 <none>（2026-08-12 實測「混凝土樑-矩形」族群踩到）。
                     string structuralMat = "<none>";
                     Parameter matParam = fs.get_Parameter(BuiltInParameter.STRUCTURAL_MATERIAL_PARAM);
-                    if (matParam == null)
+                    if (matParam == null || matParam.IsReadOnly)
                         matParam = fs.get_Parameter(BuiltInParameter.MATERIAL_ID_PARAM);
 
                     if (matParam != null && matParam.HasValue)

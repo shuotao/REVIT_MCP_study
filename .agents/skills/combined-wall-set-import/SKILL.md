@@ -9,7 +9,7 @@ description: 綠建材牆板與塗料組合 Set 導入 Revit 建立單一牆體 
 
 ## 🎯 適用時機與觸發條件
 
-- 使用者輸入 `/import revit` 且對應的材料 Set 屬於「牆體組合類 (Wall Combined Set)」。
+- 使用者輸入 `/GM_inject revit` 且對應的材料 Set 屬於「牆體組合類 (Wall Combined Set)」。
 - 當專案包含「塗料 (Finish 1 [4])」與「石膏板/牆板 (Structure [1])」之組合綠建材需求。
 
 ## ⚠️ 材質建立與 Project Materials 主動檢查門檻 (MANDATORY VERIFICATION)

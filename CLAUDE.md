@@ -33,9 +33,9 @@ These counts must be derived from source, not copied by memory.
 
 | Item | Current Count | Source of Truth |
 |---|---:|---|
-| Runtime MCP tools | 177 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 75 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
-| Claude skills | 56 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 178 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 76 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
+| Claude skills | 57 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, `README.zh-TW.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
 
@@ -295,9 +295,10 @@ Read the matching file before applying a workflow or calculation.
 | threshold opening, 門檻開口, 門窗統計, door count, window count, get_room_door_counts, get_room_window_counts | `domain/threshold-opening-takeoff.md` |
 | RC filled region, RC 填充區域, 批次填充, batch fill region, batch_create_rc_filled_region, create_rc_filled_region | `domain/rc-filled-region-workflow.md` |
 | curtain wall elevation, 帷幕立面, 帷幕外立面, curtain elevation, create_curtain_wall_elevations | `domain/curtain-wall-elevation-workflow.md` |
-| green building material, green material, 綠建材, 綠建材標章, TABC, 綠建材採購指南 | `domain/green-material-catalog.md` |
-| green material parameter, 綠建材參數, GBM_LicenseNo, 綠建材標註, 綠建材Schema | `domain/green-material-parameter-schema.md` |
-| green material search, 綠建材關鍵字, 關鍵字檢索, 牆材料, 地板材料, 同義擴充, DATA Engine | `domain/green-material-keyword-search.md` |
+| green building material, green material, 綠建材, 綠建材標章, TABC, 綠建材採購指南 | `domain/GM_catalog.md` |
+| green material parameter, 綠建材參數, GBM_LicenseNo, 綠建材標註, 綠建材Schema | `domain/GM_parameter-schema.md` |
+| green material search, 綠建材關鍵字, 關鍵字檢索, 牆材料, 地板材料, 同義擴充, DATA Engine | `domain/GM_keyword-search.md` |
+| RFA family injection, 門窗綠建材, 獨立元件, RFA 導入, loadable family, 防音門窗, Low-E玻璃, 遮陽係數, 隔音Rw | `domain/GM_rfa-family-injection.md` |
 
 Meta and governance domain files:
 
@@ -316,7 +317,7 @@ Meta and governance domain files:
 
 ## Skills
 
-The canonical skill catalog is the .claude/skills/ directory itself (56 skills; count table above is the gate).
+The canonical skill catalog is the .claude/skills/ directory itself (57 skills; count table above is the gate).
 
 Use the smallest relevant skill set. If a skill and a domain file conflict on the method, the domain file wins.
 

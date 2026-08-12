@@ -3,7 +3,7 @@
 Revit 綠建材推送計畫擬訂引擎 v3 (基於 TASK-003 11大工程情境與 GreenMaterial_SharedParams.txt v5 六槽位共享參數)
 ========================================================================
 功能：
-  - 依據 /GMimport 指令解析材料 Set 的真實 licno 清單
+  - 依據 /GM_import 指令解析材料 Set 的真實 licno 清單
   - 從 tabc_master_database.json 精確匹配全量材料數據
   - 自動判斷 Revit 品類 (Walls / Floors / Ceilings / Windows / Auxiliary)
   - 自動配置構造層 (Finish 1 / Substrate / Structure) 與預設厚度推判 (2mm / 15mm / 150mm)
@@ -39,6 +39,23 @@ def load_exported_sets():
     return {}
 
 
+def _extract_acoustic_nrc(test_items: str) -> float:
+    """從 testItems 文字中擷取降噪係數 NRC 真實數值（如「降噪係數 NRC：0.75」，天花板類吸音材料的
+    testItems 一律採此固定格式）。抓不到時回傳 0.0，不臆測數字——舊邏輯 `0.75 if "吸音" in sub_cat
+    else 0.0` 是錯的：subCategory 實際值是「天花板類」，字面上從不包含「吸音」兩字，導致所有天花板
+    材料的 AcousticNRC 永遠被硬寫成 0.0，即使 testItems 裡明明有真實數值（TASK-005.8 發現）。
+    """
+    if not test_items:
+        return 0.0
+    m = re.search(r"NRC[：:]\s*([\d.]+)", test_items)
+    if not m:
+        return 0.0
+    try:
+        return float(m.group(1))
+    except ValueError:
+        return 0.0
+
+
 def _normalize_licno(licno: str) -> str:
     """去除尾端的 (續)/(增)/(改) 等註記後綴，僅供比對使用。
     輸出永遠採用資料庫記錄「原始、帶後綴」的 licno，此函式不用於任何輸出欄位。
@@ -48,7 +65,44 @@ def _normalize_licno(licno: str) -> str:
     return re.sub(r"[（(].*?[）)]\s*$", "", licno).strip()
 
 
-def analyze_material_mapping(sub_cat: str, title: str) -> dict:
+# ── 牆體用途厚度矩陣（TASK-005.6）──────────────────────────────────────────
+# TABC 標章資料本身無法判斷一面牆是外牆/分戶牆/輕隔間（這是專案/使用情境資訊，不是材料屬性；
+# 掃描過 106 筆牆壁類材料標題，僅少數含數字，且那些數字是矽酸鈣板密度/耐燃等級代碼「0.8FK」
+# 「1.0FK」，不是厚度——矽酸鈣板實際常見厚度是 6-12mm，把 0.8FK 當 0.8mm 厚度是臆測，違反
+# 「異常或缺失規格不得自行臆測」的驗收條件）。因此改為：從 Q3「補充條件」自由文字讀取使用者
+# 明確填寫的牆體用途關鍵字，找到才套用對應預設厚度；找不到就用最保守的通用結構牆預設值，
+# 並標記 wallUsageUnspecified，供 /import 技能在確認步驟明確提示使用者覆寫。
+_WALL_USAGE_ALIASES = [
+    (("外牆", "外部牆", "戶外牆", "exterior"), "Exterior"),
+    (("分戶牆", "戶間牆", "共同壁", "party wall"), "PartyWall"),
+    (("輕隔間", "隔間牆", "室內隔間", "light partition"), "LightPartition"),
+]
+
+_WALL_STRUCTURE_THICKNESS_MATRIX = {
+    "Exterior": "150 mm（外牆 RC 結構，依 Q3 補充條件解析）",
+    "PartyWall": "135 mm（分戶牆 RC/磚牆結構，依 Q3 補充條件解析；如設計另有指定厚度請於確認步驟覆寫）",
+    "LightPartition": "100 mm（室內輕隔間 石膏板/矽酸鈣板，依 Q3 補充條件解析；如為防火時效隔間，實際系統厚度可能更大，請於確認步驟覆寫）",
+}
+_WALL_STRUCTURE_THICKNESS_DEFAULT = "150 mm（結構牆，未指定用途，已套用保守預設值，請於確認步驟覆寫或於 Q3 補充條件說明外牆/分戶牆/輕隔間）"
+
+
+def _extract_wall_usage_hint(user_intent: str) -> str:
+    """從 /GM_import 文字（含 Q3 補充條件自由文字）掃描牆體用途關鍵字。補充條件是自由文字，
+    不像品類/掛載類別有固定「標籤: 值」格式，所以直接在整段 user_intent 裡找關鍵字，
+    而非嘗試解析成單一欄位。找不到回傳空字串（未指定，呼叫端套用保守預設值）。"""
+    if not user_intent:
+        return ""
+    for keywords, canonical in _WALL_USAGE_ALIASES:
+        if any(k in user_intent for k in keywords):
+            return canonical
+    return ""
+
+
+def _wall_structure_thickness(wall_usage_hint: str) -> str:
+    return _WALL_STRUCTURE_THICKNESS_MATRIX.get(wall_usage_hint, _WALL_STRUCTURE_THICKNESS_DEFAULT)
+
+
+def analyze_material_mapping(sub_cat: str, title: str, wall_usage_hint: str = "") -> dict:
     """
     依據 TASK-003 的 11 大工程情境，自動推判：
       1. 目標 Revit 品類 (Category)
@@ -120,8 +174,12 @@ def analyze_material_mapping(sub_cat: str, title: str) -> dict:
         return {
             "revitCategory": "OST_Walls",
             "layer": "Structure [1]" if is_structure_material else "Finish 1 [4]",
-            "defaultThickness": "150 mm (結構牆)" if is_structure_material else "120 mm (輕隔間)",
+            "defaultThickness": (
+                _wall_structure_thickness(wall_usage_hint) if is_structure_material else "120 mm (輕隔間)"
+            ),
             "buiNaming": "W_INT_RC15",
+            "wallUsageHint": wall_usage_hint or None,
+            "wallUsageUnspecified": is_structure_material and not wall_usage_hint,
         }
 
     # 透水鋪面類 -> 場地鋪面，非 Wall/Floor/Ceiling 標準構件，交由人工判斷對應方式
@@ -175,8 +233,10 @@ def analyze_material_mapping(sub_cat: str, title: str) -> dict:
         return {
             "revitCategory": "OST_Walls",
             "layer": "Structure [1]",
-            "defaultThickness": "150 mm (結構牆)",
+            "defaultThickness": _wall_structure_thickness(wall_usage_hint),
             "buiNaming": "W_INT_RC15",
+            "wallUsageHint": wall_usage_hint or None,
+            "wallUsageUnspecified": not wall_usage_hint,
         }
 
     # === 第三階段：真的判斷不出來，誠實回報需要人工判斷，不要硬猜品類 ===
@@ -216,7 +276,7 @@ _CATEGORY_HINT_ALIASES = {
 
 
 def _extract_category_hint(user_intent: str) -> str:
-    """從 /GMimport 文字裡的 [需求對齊：...品類: Floor...] 擷取 Set 宣告的品類，用於解析 needsManualReview 的材料。"""
+    """從 /GM_import 文字裡的 [需求對齊：...品類: Floor...] 擷取 Set 宣告的品類，用於解析 needsManualReview 的材料。"""
     if not user_intent:
         return ""
     m = re.search(r"品類[:：]\s*([A-Za-z一-鿿]+)", user_intent)
@@ -227,7 +287,7 @@ def _extract_category_hint(user_intent: str) -> str:
 
 
 def _extract_attach_category_hint(user_intent: str) -> str:
-    """從 /GMimport 文字裡的 [需求對齊：...掛載類別: Wall...] 擷取「純材料」Set 要依附的既有品類
+    """從 /GM_import 文字裡的 [需求對齊：...掛載類別: Wall...] 擷取「純材料」Set 要依附的既有品類
     （TASK-005.5：情境 5 單選非模型綠建材）。故意用「掛載類別」而非「依附品類」當標籤字串，
     避免與 _extract_category_hint 的「品類[:：]」正則互相誤吃子字串。"""
     if not user_intent:
@@ -239,7 +299,7 @@ def _extract_attach_category_hint(user_intent: str) -> str:
     return _CATEGORY_HINT_ALIASES.get(raw, raw)
 
 
-# ── layerComposition 覆寫（見 domain/green-material-parameter-schema.md 「明確層級覆寫」）──
+# ── layerComposition 覆寫（見 domain/GM_parameter-schema.md 「明確層級覆寫」）──
 # 使用者在 green-material-showcase.html 對 Wall/Floor 單一組合 Set 明確拖曳指定每項材料的
 # Structure/Substrate/Finish 角色與 Core Boundary 位置時，該設定存在 exported_material_sets.json
 # 的 Set 物件 layerComposition.sequence 欄位。此欄位一旦存在，即為權威來源，優先於
@@ -349,14 +409,20 @@ def _resolve_layer_composition_auxiliary(aux_type_key: str) -> dict:
     }
 
 
-def _resolve_layer_composition_mapping(role: str, finish_index, category: str) -> dict:
+def _resolve_layer_composition_mapping(role: str, finish_index, category: str, wall_usage_hint: str = "") -> dict:
     """依 layerComposition 指定的角色，產出與 analyze_material_mapping() 相容的 mapping_info。"""
     info = _LC_CATEGORY_TO_REVIT.get(category, {"revitCategory": "OST_Materials", "prefix": "X"})
     prefix = info["prefix"]
 
     if role == "Structure":
         layer = "Structure [1]"
-        thickness = "150 mm（結構層，依材料層級設定指定，建議人工確認實際配比厚度）"
+        # TASK-005.6：Wall 的 Structure 層厚度依牆體用途矩陣解析；Floor/Ceiling 維持原本的
+        # 通用結構層預設（沒有外牆/分戶牆/輕隔間這種區分，樓板厚度矩陣已由情境 2/9 涵蓋）。
+        thickness = (
+            _wall_structure_thickness(wall_usage_hint) + "（依材料層級設定指定）"
+            if category == "Wall"
+            else "150 mm（結構層，依材料層級設定指定，建議人工確認實際配比厚度）"
+        )
         bui = f"{prefix}_INT_Structure"
     elif role == "Substrate":
         layer = "Substrate [2]"
@@ -370,7 +436,7 @@ def _resolve_layer_composition_mapping(role: str, finish_index, category: str) -
     else:
         return None
 
-    return {
+    result = {
         "revitCategory": info["revitCategory"],
         "layer": layer,
         "defaultThickness": thickness,
@@ -378,6 +444,10 @@ def _resolve_layer_composition_mapping(role: str, finish_index, category: str) -
         "resolvedByLayerComposition": True,
         "layerCompositionRole": role,
     }
+    if role == "Structure" and category == "Wall":
+        result["wallUsageHint"] = wall_usage_hint or None
+        result["wallUsageUnspecified"] = not wall_usage_hint
+    return result
 
 
 def _layer_composition_sequence_labels(layer_composition: dict, database) -> list:
@@ -394,10 +464,10 @@ def _layer_composition_sequence_labels(layer_composition: dict, database) -> lis
     return labels
 
 
-# ── Mat1~Mat6 六槽位分配（見 domain/green-material-parameter-schema.md「六槽位分配規則」）──
+# ── Mat1~Mat6 六槽位分配（見 domain/GM_parameter-schema.md「六槽位分配規則」）──
 # GreenMaterial_SharedParams.txt 的 v5 schema 定義了 6 個材料槽位（64 個欄位），但 Scenario 3
 # 的單一組合仍可能有 7 個以上材料，超過槽位上限。過去「材料數超過槽位數時選誰進槽位」的判斷，
-# 是由執行 /import revit 的 AI Agent 在對話當下臨場決定，同一個 Set 換一次對話可能得到不同結果。
+# 是由執行 /GM_inject revit 的 AI Agent 在對話當下臨場決定，同一個 Set 換一次對話可能得到不同結果。
 # 這裡把該規則寫成確定性函式：優先序固定為 Structure > Finish > Substrate > 其他，
 # 同優先序內依材料在 plan_items（已依 layerComposition 或 DB 順序排列）中的原始順序決定，
 # 任何人重跑同一個 Set 永遠得到同一個分配結果。槽位數等於材料數（最多到 6 個），
@@ -428,7 +498,7 @@ def _assign_material_slots(plan_items: list) -> dict:
     len(_SLOT_KEYS)（目前 6）名依序進 Mat1~Mat6 槽位，材料數 <= 6 時全部都會分到槽位；
     超過 6 個才會有材料被標記為未分配（unassigned）。同時把 assignedSlot
     （'mat1'~'mat6'/None）直接寫回每個 plan_items 項目，供下游（Markdown 報告、
-    /import revit）直接讀取，不需要重新判斷一次。
+    /GM_inject revit）直接讀取，不需要重新判斷一次。
 
     非幾何輔助材料（接著劑/填縫劑/防水材料）一樣參與排名、可以拿到 Mat 槽位——
     Mat1~Mat6 的用途是記錄「這個元件用了哪些綠建材」的完整清單，不是只有物理
@@ -464,6 +534,7 @@ def generate_injection_plan(set_name: str, licno_list=None, user_intent: str = "
     database = load_database()
     category_hint = _extract_category_hint(user_intent)
     attach_category_hint = _extract_attach_category_hint(user_intent)
+    wall_usage_hint = _extract_wall_usage_hint(user_intent)
 
     # layerComposition 覆寫：若此 Set 在網頁上已明確指定材料層級，取得角色對照表與順序
     layer_composition = _load_layer_composition(set_name)
@@ -542,11 +613,11 @@ def generate_injection_plan(set_name: str, licno_list=None, user_intent: str = "
         title = item.get("title", "")
 
         # 進行 TASK-003 11大情境深度分析
-        mapping_info = analyze_material_mapping(sub_cat, title)
+        mapping_info = analyze_material_mapping(sub_cat, title, wall_usage_hint)
 
         # layerComposition 為權威來源：使用者已在網頁上為此材料明確指定 Structure/Substrate/
         # Finish 角色，或明確拖曳到「輔助材料」區時，優先採用該設定，覆寫關鍵字啟發式判斷結果
-        # （見 domain/green-material-parameter-schema.md「明確層級覆寫」）。輔助材料區優先於
+        # （見 domain/GM_parameter-schema.md「明確層級覆寫」）。輔助材料區優先於
         # 幾何角色檢查——兩者理論上互斥（同一 licno 不會同時出現在 sequence 與 auxiliary），
         # 但輔助材料的使用者意圖更明確，優先權更高。
         lc_aux_entry = _lookup_layer_composition_aux(item.get("licno"), lc_aux_map)
@@ -556,7 +627,7 @@ def generate_injection_plan(set_name: str, licno_list=None, user_intent: str = "
             lc_entry = _lookup_layer_composition_role(item.get("licno"), lc_role_map)
             if lc_entry is not None:
                 role, finish_index = lc_entry
-                resolved = _resolve_layer_composition_mapping(role, finish_index, lc_category)
+                resolved = _resolve_layer_composition_mapping(role, finish_index, lc_category, wall_usage_hint)
                 if resolved:
                     mapping_info = resolved
 
@@ -589,10 +660,7 @@ def generate_injection_plan(set_name: str, licno_list=None, user_intent: str = "
             "GreenMaterial_TVOC": 0.08,
             "GreenMaterial_Formaldehyde": 0.01,
             "GreenMaterial_RecycledRatio": 0.0,
-            "GreenMaterial_AcousticNRC": 0.75 if "吸音" in sub_cat else 0.0,
-            "GreenMaterial_DecorArea": 0.0,
-            "GreenMaterial_QualifyArea": 0.0,
-            "GreenMaterial_RatioContribution": 0.0,
+            "GreenMaterial_AcousticNRC": _extract_acoustic_nrc(item.get("testItems", "")),
             "GreenMaterial_CNSSpec": item.get("cnsSpec", "依 CNS 國家標準試驗合格"),
             "GreenMaterial_TestItems": item.get("testItems", "TVOC逸散率、甲醛釋出量、重金屬檢測"),
             "GreenMaterial_QualifiedItems": item.get("qualifiedItems", f"{cat}綠建材"),
@@ -640,7 +708,6 @@ def generate_injection_plan(set_name: str, licno_list=None, user_intent: str = "
         execution_steps.append("5. 偵測到獨立門窗元件，採用方法 7.1 備份既有 .rfa 家族檔並寫入 Family Type 參數")
 
     execution_steps.append(f"{len(execution_steps)+1}. 批量將 TABC 履歷與 CNS 試驗數據寫入 OST_Materials 與 Type Identity Data")
-    execution_steps.append(f"{len(execution_steps)+1}. 自動匯出綠建材明細表 (Schedule) 至 Excel 歸檔")
 
     plan = {
         "planId": plan_id,
@@ -660,6 +727,10 @@ def generate_injection_plan(set_name: str, licno_list=None, user_intent: str = "
         # TASK-005.5：純材料（isAuxiliary）Set 要依附的既有品類，來自 showcase 頁面的
         # 「純材料掛載品類」子問題（[需求對齊：...掛載類別: Wall]）。非純材料 Set 通常為 None。
         "pureMaterialAttachCategory": attach_category_hint or None,
+        # TASK-005.6：從 Q3 補充條件自由文字解析出的牆體用途（外牆/分戶牆/輕隔間），
+        # 用於 Wall Structure 層的厚度矩陣。None 表示使用者未指定，各 Structure 材料的
+        # mappingDetails.wallUsageUnspecified 會標記為 True，/import 技能須在確認步驟提示覆寫。
+        "wallUsageHint": wall_usage_hint or None,
     }
 
     # 儲存 JSON
@@ -810,8 +881,8 @@ def write_back_to_set_manager(set_name: str, plan: dict, purpose_override: str =
     return sets[matched_key]
 
 
-# ── /GMset compare：Set 與最新 Master DB 比對（見 domain 觸發字「green material search」相關流程，
-# 由 .claude/skills/GMset/SKILL.md 驅動）──
+# ── /GM_set compare：Set 與最新 Master DB 比對（見 domain 觸發字「green material search」相關流程，
+# 由 .claude/skills/GM_set/SKILL.md 驅動）──
 # Revit_Injection_Plan.json 每次 generate_injection_plan() 都會被覆寫，不保留逐 Set 歷史；
 # 唯一持久保存的歷史快照是 write_back_to_set_manager() 寫入 exported_material_sets.json 的
 # purpose 摘要文字（格式："...：title1 (licno1)、title2 (licno2)"），比對材料名稱是否變動時
@@ -904,7 +975,7 @@ def compare_and_refresh_set(set_name: str) -> dict:
     """比對單一 Set，若有差異則用目前最新資料庫重新執行 generate_injection_plan() +
     write_back_to_set_manager()，刷新 Revit_Injection_Plan.json / 報告 / Set 的
     plannedActions、planStatus、planId。這一步只更新計畫檔與 Set 狀態，不寫入 Revit——
-    實際 Revit 寫入仍需使用者另外執行 /import revit。"""
+    實際 Revit 寫入仍需使用者另外執行 /GM_inject revit。"""
     database = load_database()
     sets = load_exported_sets()
     entry = _find_set_entry(set_name, sets)
@@ -924,6 +995,6 @@ def compare_and_refresh_set(set_name: str) -> dict:
 
 if __name__ == "__main__":
     licnos = ["GBM0104204", "GBM0104194"]
-    user_intent = "/GMimport 請為材料 Set 【室內牆】(GBM0104204, GBM0104194) 擬訂 Revit 綠建材寫入計畫"
+    user_intent = "/GM_import 請為材料 Set 【室內牆】(GBM0104204, GBM0104194) 擬訂 Revit 綠建材寫入計畫"
     plan = generate_injection_plan("室內牆", licnos, user_intent)
     write_back_to_set_manager("室內牆", plan)

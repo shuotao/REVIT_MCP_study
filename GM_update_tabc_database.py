@@ -23,8 +23,8 @@ tools/green-material/archive/scripts/catalog/enrich_tabc_specs_database.py
 保持一致（此陣列不是即時 fetch，之前一直是手動同步）。
 
 用法：
-    python update_tabc_database.py            # 執行更新（列表頁抓取 + 合併 + 回寫）
-    python update_tabc_database.py --dry-run   # 只抓取並輸出差異報告，不寫入任何檔案
+    python GM_update_tabc_database.py            # 執行更新（列表頁抓取 + 合併 + 回寫）
+    python GM_update_tabc_database.py --dry-run   # 只抓取並輸出差異報告，不寫入任何檔案
 """
 
 import base64

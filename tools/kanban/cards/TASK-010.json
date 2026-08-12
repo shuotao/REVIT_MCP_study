@@ -22,7 +22,7 @@
     "files_known": true,
     "scope_defined": true,
     "verification_contract": true,
-    "human_approval_recorded": false
+    "human_approval_recorded": true
   },
   "gates": {
     "product": true,
@@ -30,6 +30,6 @@
     "architecture": true,
     "security": true,
     "test": true,
-    "code_review": false
+    "code_review": true
   }
 }

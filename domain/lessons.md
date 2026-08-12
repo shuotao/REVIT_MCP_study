@@ -245,3 +245,10 @@ metadata:
 - **避坑經驗**：`setup.ps1` 半年來對 8 個 native 呼叫點都用了 `2>&1` + 全域 EAP Stop，`dotnet build` 明明 0 error 卻被腳本誤報「編譯例外」。issue #89 由首次貢獻者 @ray92chiu-png 在乾淨 Windows + stock PowerShell 5.1 環境上首度踩到並精準定位根因，修法是新增 `Invoke-ExternalCommand` helper，在呼叫 native 指令前後暫時把 EAP 切回 Continue，事後仍靠 `$LASTEXITCODE` 判斷成敗（commit `1b5a71e`）。橫向掃描後發現 `scripts/release-port.ps1` 的 `net stop`/`net start http` 同款地雷，一併修正（commit `33f1a44`）。
 - **根因（為何半年沒事）**：CI 一律用 `-SkipBuild -SkipDeploy` 跑 `verify-qaqc.ps1`，setup.ps1 的 native 呼叫路徑從未被實際執行過；早期部署者剛好用 PowerShell 7（無此行為）或工具鏈已預裝、繞過了 native 安裝分支。**「半年沒事」是倖存者偏差，不是腳本沒問題**——CI 覆蓋率的空洞，會被下一個踩線的使用者（而非測試）發現。
 - **實踐**：任何跨版本執行環境（PS 5.1 vs PS 7、cmd vs bash）的腳本，涉及 native 指令 stderr 重導向時，一律用 exit code 判斷成敗，不要讓 stderr 存在與否影響控制流；CI gate 若刻意 skip 某段路徑（如 `-SkipBuild -SkipDeploy`），必須在文件或 log 中明確標記「此路徑未被 CI 覆蓋」，避免長期零覆蓋卻被誤認為已驗證。
+
+## [L-031] 「Set() 不拋例外」不等於「寫入真的生效」——Type/Instance 參數範疇因族群而異
+
+- **規則**：對 Revit 元素呼叫 `Parameter.Set()` 沒有拋例外，**不代表值真的被寫入**。當一個參數在族群定義裡被關聯到公式、或被作者設為 Instance 範疇而非 Type 範疇時，對該 Type（`FamilySymbol`）的 `Set()` 呼叫可能靜默無效——`IsReadOnly` 也可能回報 `false`（不是唯讀問題），純粹是「這個 Type 物件不是這份資料真正的儲存位置」。任何 Type 層級寫入工具，都必須在同一個 Transaction 內、`Set()` 之後立刻讀回比對，而不是只憑「沒拋例外」判定成功。
+- **避坑經驗**：TASK-005.12（Column/Beam 結構材質指派）中，`assign_existing_material` 對「混凝土樑-矩形」族群的 `STRUCTURAL_MATERIAL_PARAM` 呼叫 `Set()`，回報成功、`ErrorCount: 0`，但 `get_types_by_category`/`get_element_info` 驗證材質根本沒套上。加入診斷（`ParamUsed`/`VerifiedImmediatelyAfterSet`：`Set()` 後立即 `AsElementId()` 讀回比對）才抓到根因——該族群把材質參數設計成 Instance 範疇，Type 層級的寫入被 Revit 靜默忽略。同族群的柱（無此設計）完全正常，證明不是 Scenario 邏輯錯，是單一族群的參數範疇選擇。使用者自行在族群編輯器把該參數的 Instance 核取方塊取消勾選、轉為 Type 範疇後，同一套工具鏈立刻正常運作。
+- **實踐**：(a) 任何「複製 Type → 指派 Type 層級參數」的寫入鏈，把「`Set()` 後立即讀回驗證」做成標準步驟，讀回不符就拋例外，讓上層呼叫端（如 `AssignExistingMaterial`）正確計入失敗、不誤把 Type 排進成功清單；(b) 錯誤訊息裡帶上足夠診斷資訊（用了哪個 `BuiltInParameter`、儲存型別、讀回結果），讓下一個排查的人不用重新從頭加 log；(c) 遇到「回報成功但驗證對不上」時，優先懷疑該元素/族群定義本身的參數範疇（Type vs Instance）或公式關聯，而不是懷疑呼叫端邏輯——先用另一個沒有這類設計的同品類元素/族群對照測試，快速判斷是通用 bug 還是單一族群的問題。
+- **警告**：不要把「工具回報 `Success: true`」直接當作「Revit 模型真的改了」——尤其是牽涉族群自訂關聯、公式驅動、或參數範疇可能因族群作者設計而異的欄位。跟 Tool Call Data Honesty 是同一哲學延伸到「寫入端」：讀取端不可用記憶捏造數據，寫入端同樣不可用「沒報錯」捏造成功。

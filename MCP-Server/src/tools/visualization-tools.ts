@@ -257,6 +257,51 @@ export const visualizationTools: Tool[] = [
         },
     },
     {
+        name: "inject_green_material_into_family",
+        description: "門窗／獨立元件 RFA 綠建材導入（TASK-005.7 / domain/GM_rfa-family-injection.md）：以使用者指定的既有相似 FamilySymbol 為基底，開啟該家族文件 → 立即另存可復原備份（規則2，先於任何修改）→ 在家族文件內新增一個 Type，絕不改動來源 Type（規則1）→ 寫入 Identity Data 與 GreenMaterial_Mat1_* 共享參數 + 遮陽係數/隔音等級門窗專屬欄位（規則3）→ 另存為新家族檔名 → LoadFamily 載回專案，且在同一個 Transaction 內做載入前後同名家族 Type 參數簽章快照比對，一偵測到非目標 Type 被異動就整批回滾並報錯，不會靜默覆蓋（規則4）。單一原子呼叫涵蓋整個家族文件生命週期（開啟→備份→編輯→另存→關閉→載回），因為家族文件物件無法跨多次 MCP 呼叫保持開啟。呼叫前必須已由使用者明確指定 sourceTypeId——規則1禁止 AI 自行臆測或無型錄依據挑選基底 Family。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                sourceTypeId: { type: "number", description: "使用者指定的基底 FamilySymbol（門或窗，或幕牆嵌板等載入式族群）Element ID，必須是既有的、經使用者確認過的相似型號，不可由 AI 自行挑選" },
+                newTypeName: { type: "string", description: "家族文件內新建 Type 的名稱" },
+                backupFolder: { type: "string", description: "備份根目錄絕對路徑（也是新家族檔案的存放目錄）。預設專案檔所在目錄下的 _rfa_backup/（若專案尚未儲存過則退回系統暫存目錄）" },
+                newFamilySuffix: { type: "string", description: "新家族檔名後綴，預設 '_TABC'，會再接上 mat1.certNo 組成完整後綴以避免撞名", default: "_TABC" },
+                sharedParamFilePath: { type: "string", description: "GreenMaterial_SharedParams.txt 的絕對路徑（repo 根目錄）" },
+                identityData: {
+                    type: "object",
+                    description: "Family Type 內建 Identity Data。依 Revit 版本與族群樣板不保證每個欄位都存在，缺的欄位會列在回傳的 MissingParameters",
+                    properties: {
+                        manufacturer: { type: "string" },
+                        model: { type: "string" },
+                        description: { type: "string" },
+                        url: { type: "string" },
+                    },
+                },
+                mat1: {
+                    type: "object",
+                    description: "門/窗主材料（玻璃或門扇）綠建材資料，寫入 GreenMaterial_Mat1_*，格式與 set_green_material_type_parameters 的 mat1 相同",
+                    properties: {
+                        name: { type: "string" },
+                        certNo: { type: "string", description: "綠建材標章證書字號，如 'GBM0103810'" },
+                        category: { type: "string" },
+                        subCategory: { type: "string" },
+                        applicant: { type: "string" },
+                        validUntil: { type: "string" },
+                        tvoc: { type: "number", description: "TVOC 逸散率 (mg/m2.h)，只在有實際數據時才填，不得估算" },
+                        formaldehyde: { type: "number", description: "甲醛逸散率 (mg/m2.h)，只在有實際數據時才填，不得估算" },
+                        cnsSpec: { type: "string" },
+                        testItems: { type: "string" },
+                        qualifiedItems: { type: "string" },
+                    },
+                    required: ["name", "certNo"],
+                },
+                shadingCoefficient: { type: "number", description: "GreenMaterial_Window_ShadingCoefficient：遮陽係數 Sc。僅 Window/Curtain Wall 案例填，Door 案例應留空（不適用）" },
+                acousticRw: { type: "number", description: "GreenMaterial_AcousticRw：隔音等級 Rw (dB)。Window 與 Door 皆適用，只在型錄/測試報告有明確數據時才填" },
+            },
+            required: ["sourceTypeId", "newTypeName", "sharedParamFilePath", "mat1"],
+        },
+    },
+    {
         name: "set_material_surface_pattern",
         description: "為綠建材 Material 建立（或重用既有，依名稱去重不重複建立）Model 目標的 Surface Pattern 並套入該材質的表面／剖切樣式。用於地磚 600×600 網格縫線、木地板木紋等依產品規格需要在平面/剖面顯示紋理的飾面材料（TASK-005.2 情境 2）。",
         inputSchema: {

@@ -83,7 +83,7 @@ export const baseTools: Tool[] = [
                 categories: {
                     type: "array",
                     items: { type: "string" },
-                    description: "要綁定的品類名稱清單: Walls, Floors, Ceilings, Windows, Doors, Materials, Roofs, CurtainPanels",
+                    description: "要綁定的品類名稱清單: Walls, Floors, Ceilings, Windows, Doors, Materials, Roofs, CurtainPanels, Columns（同時綁 OST_Columns 與 OST_StructuralColumns）, StructuralFraming（樑）",
                 },
                 bindToInstance: {
                     type: "boolean",

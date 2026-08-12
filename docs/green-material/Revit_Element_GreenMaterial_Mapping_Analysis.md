@@ -6,19 +6,21 @@
 
 本報告由 **建築 Agent** 針對各種 Revit 元件對接情境進行深度剖析、提出優化建議，並擴充完整的情境對映規範表。
 
+> **2026-08-12 說明**：本文件是 TASK-003 階段的**早期分析提案**，記錄當時對各情境的優化建議與設計構想。部分構想後續被實際落地時的定案取代（已在對應格加註「實際定案」說明，比照情境 3 既有的標記方式，原提案文字保留、不刪除）；也有部分構想（如情境 2 的自動 Surface Pattern）已被完整實作。共享參數數量請一律以 `domain/GM_parameter-schema.md`（權威來源，目前 69 個欄位）為準，本文件內出現的「16 個共享參數」等舊數字僅反映提案當時的構想規模。
+
 ---
 
 ## 2. 7 大既有對映情境之建築 Agent 優化分析
 
 | 情境編號與名稱 | 原始剖析內容 | 建築 Agent 優化分析與建議 | 建議之 Revit 參數/構造層落點 |
 | :--- | :--- | :--- | :--- |
-| **情境 1**<br>牆體構造與塗料 (`OST_Walls`) | 牆 Type 名稱由牆體+塗料組合；牆體設為 Structure，塗料設為 Finish。 | 1. **塗料厚度**：薄塗材 (`GBM0104204`) 設為 $2\,\text{mm}$，厚度設於 `Finish 1 [4]`。<br>2. **命名規範**：採標準 BIM 命名 `W_[內外牆]_[結構厚度]_[綠建材名稱]` (如 `W_INT_RC15_GBM0104204`)，避免欄位過長。<br>3. 塗料履歷雙向寫入 `OST_Materials` 材質庫與牆 Type Identity Data。 | • `Finish 1 [4]` 構造層<br>• `OST_Materials` 16個共享參數<br>• `Type Identity Data` 欄位 |
+| **情境 1**<br>牆體構造與塗料 (`OST_Walls`) | 牆 Type 名稱由牆體+塗料組合；牆體設為 Structure，塗料設為 Finish。 | 1. **塗料厚度**：薄塗材 (`GBM0104204`) 設為 $2\,\text{mm}$，厚度設於 `Finish 1 [4]`。<br>2. **命名規範**：採標準 BIM 命名 `W_[內外牆]_[結構厚度]_[綠建材名稱]` (如 `W_INT_RC15_GBM0104204`)，避免欄位過長。<br>3. 塗料履歷雙向寫入 `OST_Materials` 材質庫與牆 Type Identity Data。<br>**實際定案（`duplicate_element_type`，2026-08-12 驗證）**：Type 命名改採 `TABC_<Set名稱>`（如 `TABC_室內牆與塗料`），不是 `W_INT_RC15_GBM0104204` 這種欄位式命名——後者只留存在計畫報告書的 `buiNaming` 建議欄位，從未用作實際 Type 名稱。履歷是**單向**寫入：`OST_Materials` 只存 `GBM編號_材料名稱` 識別字串、不掛任何共享參數；完整參數只寫在 Type 層 Identity Data。詳見 `domain/GM_parameter-schema.md` §2.1、`revit_injection_logic_and_naming_spec.md` 第 2 節。 | • `Finish 1 [4]` 構造層<br>• `OST_Materials`（僅識別字串，不掛參數）<br>• `Type Identity Data`（完整 69 個共享參數的子集） |
 | **情境 2**<br>地磚與表面填充 (`OST_Floors`) | 預設 Structure + 地磚 Finish 1 [4] + Surface Hatch 表面填滿圖案。 | 1. **自動 Surface Pattern**：Agent 依 TABC 規格 (如 `60x60cm` 地磚) 自動生成 Revit 幾何對應 Pattern (如 600x600 網格或木紋 Hatch)。<br>2. **厚度層級**：面磚設 $15\,\text{mm}$ `Finish 1 [4]`，下方設定 $20\,\text{mm}$ 泥作打底層 `Substrate [2]`。 | • `Finish 1 [4]` 面冊層<br>• `Substrate [2]` 打底層<br>• `Material Appearance` 填滿圖案 |
-| **情境 3**<br>系統家族參數存放位置 (`Walls`/`Floors`) | 綠建材名稱連結 Materials and Finishes，新建 Material 參數由 Agent 判斷，證號履歷入 Identity Data。 | 1. **雙階層寫入規範 (Dual-Level Placement)**：<br>   - **Material 層級 (`OST_Materials`)**：存放完整的 16 個共享參數本體。<br>   - **Type 層級 (`Identity Data`)**：存放綠建材摘要字串 (`GreenMaterial_Summary`)，便於點選元件直接於 Property Palette 檢視。 | • `OST_Materials` (16個共享參數)<br>• `Type Identity Data` (摘要字串)<br>• `Materials and Finishes` |
+| **情境 3**<br>系統家族參數存放位置 (`Walls`/`Floors`) ⚠️ **本列為早期提案，已被下方定案取代，見備註** | 綠建材名稱連結 Materials and Finishes，新建 Material 參數由 Agent 判斷，證號履歷入 Identity Data。 | ~~1. **雙階層寫入規範 (Dual-Level Placement)**：<br>   - **Material 層級 (`OST_Materials`)**：存放完整的 16 個共享參數本體。<br>   - **Type 層級 (`Identity Data`)**：存放綠建材摘要字串 (`GreenMaterial_Summary`)，便於點選元件直接於 Property Palette 檢視。~~<br>**實際定案（TASK-005.3，2026-08-12 驗證）方向相反**：Material 層僅存 `GBM編號_材料名稱` 識別字串、不掛參數；完整 64 欄位共享參數全部寫在 Type 層 Identity Data。詳見 `domain/GM_parameter-schema.md` §2.1。 | • `OST_Materials`（僅 `Material.Name` 識別字串）<br>• `Type Identity Data`（完整 64 欄位）<br>• `Materials and Finishes` |
 | **情境 4**<br>非幾何材料附屬 (填縫劑/接著劑) | 於 Set 內包含地板材料與填縫劑時，Floor Type Construction 增設英文欄位 (如 `Sealant`)，資訊入 Identity Data。 | 1. **標準輔助欄位規範**：統一定義 auxiliary 共享參數欄位：<br>   - `GreenMaterial_Adhesive` (接著劑/泥狀膠)<br>   - `GreenMaterial_Sealant` (填縫材/矽利康)<br>   - `GreenMaterial_Waterproofing` (防水膜)<br>2. 參數歸類於 `Construction` 或 `Green Building` 屬性群組。 | • `Floor Type Construction` 群組<br>• `GreenMaterial_Sealant`<br>• `GreenMaterial_Adhesive` |
 | **情境 5**<br>單選非模型綠建材 (僅選填縫劑/膠類) | Agent 詢問套用位置 ➔ 使用者選既有 Floor Type ➔ Agent 複製建立新 Type 並增設欄位與使用者討論。 | 1. **互動引導 SOP**：Agent 提供 2 種複製模式：<br>   - **模式 A (新建 Type)**：複製 Type 並命名 `[原Type]_GBM0104192(填縫劑)`，防止影響舊元件。<br>   - **模式 B (既有套用)**：不複製，直接將填縫材參數寫入當前選取 Type。 | • 互動式討論 Prompt<br>• `Type Duplication` 機制<br>• `Construction` 自訂欄位 |
-| **情境 6**<br>牆壁/地坪預設厚度判斷 | Agent 自動判斷外牆 (15cm) 或內牆 (12cm, 10cm) 常見厚度。 | 1. **厚度推判矩陣 (Thickness Heuristics)**：<br>   - **外牆 (`OST_Walls`)**：$150\,\text{mm}$ RC + $20\,\text{mm}$ 外飾層。<br>   - **室內輕隔間 (`OST_Walls`)**：$100\,\text{mm}$ / $120\,\text{mm}$ 矽酸鈣/石膏板牆。<br>   - **室內分戶牆 (`OST_Walls`)**：$120\,\text{mm}$ / $150\,\text{mm}$ 磚牆/RC。<br>   - **樓板 (`OST_Floors`)**：$150\,\text{mm}$ 結構板 + $30\,\text{mm}$ 裝修地坪。 | • Agent 自動推判預設值<br>• 提供使用者一鍵微調介面 |
-| **情境 7**<br>獨立元件/門窗 (`OST_Windows`/`OST_Doors`) | 方法 7.1 (選模型既有元件另存 .rfa 注入參數) vs 方法 7.2 (Agent 從頭生成 - 太暴力且缺乏型錄尺寸)。 | 1. **採納方法 7.1 為標準 SOP**（方法 7.2 確實不符實務）。<br>2. **圖像預覽匹配機制**：Agent 讀取 TABC 預覽圖與 `subCategory` (如 GBM0103738 雙開橫拉窗)，提示使用者選擇相似基底元件，另存 .rfa 注入 16 個共享參數並導回專案。 | • `Family (.rfa)` 另存備份<br>• `Family Type Parameters`<br>• `Identity Data` / 遮陽 $S_c$ / 隔音 $R_w$ |
+| **情境 6**<br>牆壁/地坪預設厚度判斷 | Agent 自動判斷外牆 (15cm) 或內牆 (12cm, 10cm) 常見厚度。 | 1. **厚度推判矩陣 (Thickness Heuristics)**：<br>   - **外牆 (`OST_Walls`)**：$150\,\text{mm}$ RC + $20\,\text{mm}$ 外飾層。<br>   - **室內輕隔間 (`OST_Walls`)**：$100\,\text{mm}$ / $120\,\text{mm}$ 矽酸鈣/石膏板牆。<br>   - **室內分戶牆 (`OST_Walls`)**：$120\,\text{mm}$ / $150\,\text{mm}$ 磚牆/RC。<br>   - **樓板 (`OST_Floors`)**：$150\,\text{mm}$ 結構板 + $30\,\text{mm}$ 裝修地坪。<br>**實際定案（TASK-005.6，`GM_generate_revit_injection_plan.py` `_WALL_STRUCTURE_THICKNESS_MATRIX`）**：厚度不是 Agent 從幾何或牆體類型自動判斷，而是解析使用者在 `/GM_import` Q3 補充條件自由文字裡填寫的用途關鍵字（外牆/分戶牆/輕隔間）才套用對應值——外牆 150mm、分戶牆 135mm、輕隔間 100mm；偵測不到用途關鍵字時一律用保守預設 150mm，並標記 `wallUsageUnspecified: true`，`/GM_inject revit` 必須在確認步驟明確提示使用者覆寫，不是自動一鍵微調介面。樓板厚度矩陣未實作用途分級，統一走情境 2/9 的固定值。 | • Agent 自動推判預設值<br>• 提供使用者一鍵微調介面 |
+| **情境 7**<br>獨立元件/門窗 (`OST_Windows`/`OST_Doors`) | 方法 7.1 (選模型既有元件另存 .rfa 注入參數) vs 方法 7.2 (Agent 從頭生成 - 太暴力且缺乏型錄尺寸)。 | 1. **採納方法 7.1 為標準 SOP**（方法 7.2 確實不符實務）。<br>2. **圖像預覽匹配機制**：Agent 讀取 TABC 預覽圖與 `subCategory` (如 GBM0103738 雙開橫拉窗)，提示使用者選擇相似基底元件，另存 .rfa 注入 16 個共享參數並導回專案。<br>**實際定案（TASK-005.7，`inject_green_material_into_family`，2026-08-12 端到端驗證）**：方法 7.1 確實被採納為標準做法，但**沒有圖像預覽匹配機制**——`domain/GM_rfa-family-injection.md` 規則 1 明確禁止 Agent 自行臆測或依型錄照片推薦基底元件，`sourceTypeId` 必須由使用者親自從 `list_family_symbols`/`query_elements_with_filter` 候選清單中指定。另存新家族時若目標檔名已存在會直接中止、不覆寫（2026-08-12 code review 新增的防護），而非單純注入參數了事。共享參數是 `GreenMaterial_Mat1_*`（沿用 Mat1~6 六槽位 Schema）+ 遮陽係數/隔音等級，不是獨立的 16 個欄位。 | • `Family (.rfa)` 另存備份<br>• `Family Type Parameters`<br>• `Identity Data` / 遮陽 $S_c$ / 隔音 $R_w$ |
 
 ---
 
@@ -45,6 +47,8 @@
 | **`OST_Windows` / `OST_Doors`** | 防音門窗、Low-E 玻璃 (情境 7) | 載入家族 `.rfa` (方法 7.1) | 玻璃/門窗材質屬性 | `Family Type Identity Data`, 遮陽 $S_c$, 隔音 $R_w$ | 依原 Family 尺寸 |
 | **非幾何輔助材料** | 接著劑、填縫劑、膠類 (情境 4, 5) | 附屬於 `Walls` / `Floors` Type | 寫入對應 Parent Material 屬性 | `GreenMaterial_Adhesive`, `GreenMaterial_Sealant` (Construction) | $0\,\text{mm}$ (屬性寫入) |
 
+**⚠️ 2026-08-12 表格數字修正說明**：上表「全量 16 個共享參數」是提案當時的規模構想，實際落地的 Schema 是 69 個共享參數（`domain/GM_parameter-schema.md`），且「上層/材質寫入 (`OST_Materials`)」欄位整欄方向已反轉——`OST_Materials` 只存 `GBM編號_材料名稱` 識別字串，不掛任何共享參數；完整參數改寫在「下層/元件屬性寫入」欄的 Type `Identity Data`（見情境 1 修正註記）。`W_INT_RC15_GBM0103919` 這類欄位式字串也僅存在於計畫報告書的 `buiNaming` 建議欄，不是實際 Identity Data 欄位或 Type 名稱。
+
 ---
 
 ## 5. 📘 Material 獨立命名與生成 Domain 規範 (Material Creation Domain Rules)
@@ -55,16 +59,20 @@ $$\text{MaterialName} = \text{GBM標章編號} + \text{"\_"} + \text{材料名�
 
 ### 🟢 命名標準對照
 - **板材獨立材質**: **`GBM0103810_NICHIAS矽酸鈣板材`**
-- **塗料獨立材質**: **`GBM0104106_水性漆Finish`**
+- **塗料獨立材質**: ~~`GBM0104106_水性漆Finish`~~ **⚠️ 此範例本身違反下方防呆門檻第 1 條（自行加了 `Finish` 後綴），是文件筆誤，正確範例應為 `GBM0104106_水性漆(居室外用)`（見 `.agents/skills/combined-wall-set-import/domain.md` 第 1 節，該處明確把 `GBM0104106_水性漆Finish` 列為禁止範例）。**
 
 ### ⛔ 嚴格防呆門檻
-1. 嚴禁包含 `預設牆_` 或 `TABC_` 前綴。
+1. 嚴禁包含 `預設牆_` 前綴，或在名稱後方自行加上 `Finish`/`Structure` 等英文後綴。
 2. 嚴禁將塗料與板材標章串接在同一個 Material 名稱。
+
+（`TABC_` 前綴不適用於此規則——那是 Scenario 1/3 組合式 **Type** 名稱的前綴，跟本節規範的 **Material** 名稱是兩件事，見 `revit_injection_logic_and_naming_spec.md` 第 2 節的完整對照表。）
 
 ---
 
 ## 6. 檔案與工具鏈對接
-- **Domain 規範檔**：[combined-wall-set-import](../../.agents/skills/combined-wall-set-import/SKILL.md)
+- **Domain 規範檔（早期，仍有效）**：[combined-wall-set-import](../../.agents/skills/combined-wall-set-import/SKILL.md)、[domain.md](../../.agents/skills/combined-wall-set-import/domain.md)
+- **Domain 規範檔（現行權威來源）**：[GM_parameter-schema.md](../../domain/GM_parameter-schema.md)、[GM_catalog.md](../../domain/GM_catalog.md)、[GM_rfa-family-injection.md](../../domain/GM_rfa-family-injection.md)
 - **Revit 共享參數檔**：[GreenMaterial_SharedParams.txt](../../GreenMaterial_SharedParams.txt)
-- **計畫擬訂引擎**：[generate_revit_injection_plan.py](../../generate_revit_injection_plan.py)
+- **Revit 寫入 Skill**：[.claude/skills/GM_inject/SKILL.md](../../.claude/skills/GM_inject/SKILL.md)（`/GM_inject revit`，實際呼叫 `duplicate_element_type`／`create_single_material_type`／`create_multi_layer_type`／`inject_green_material_into_family` 等 MCP 工具）
+- **計畫擬訂引擎**：[GM_generate_revit_injection_plan.py](../../GM_generate_revit_injection_plan.py)
 - **Showcase 展示網頁**：[assets/green-material-showcase.html](../../assets/green-material-showcase.html)

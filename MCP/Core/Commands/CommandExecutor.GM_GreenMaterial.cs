@@ -51,6 +51,20 @@ namespace RevitMCP.Core
                 string name = catName.Value<string>();
                 Category cat = null;
 
+                // Columns 同時涵蓋建築柱 (OST_Columns) 與結構柱 (OST_StructuralColumns) 兩個品類，
+                // 跟 get_types_by_category 對 "Columns" 的處理方式一致（CollectFamilySymbolTypes
+                // 合併查兩個 BuiltInCategory），這裡也要兩個都綁，柱 Type 不論是哪一種都能寫入。
+                if (string.Equals(name, "Columns", StringComparison.OrdinalIgnoreCase))
+                {
+                    Category archColCat = Category.GetCategory(doc, BuiltInCategory.OST_Columns);
+                    Category structColCat = Category.GetCategory(doc, BuiltInCategory.OST_StructuralColumns);
+                    if (archColCat == null && structColCat == null)
+                        throw new Exception($"無法識別品類: {name}");
+                    if (archColCat != null) targetCategories.Insert(archColCat);
+                    if (structColCat != null) targetCategories.Insert(structColCat);
+                    continue;
+                }
+
                 // 嘗試用 BuiltInCategory 對映
                 var builtInMap = new Dictionary<string, BuiltInCategory>(StringComparer.OrdinalIgnoreCase)
                 {
@@ -62,6 +76,7 @@ namespace RevitMCP.Core
                     { "Materials", BuiltInCategory.OST_Materials },
                     { "Roofs", BuiltInCategory.OST_Roofs },
                     { "CurtainPanels", BuiltInCategory.OST_CurtainWallPanels },
+                    { "StructuralFraming", BuiltInCategory.OST_StructuralFraming },
                 };
 
                 if (builtInMap.TryGetValue(name, out var bic))
@@ -95,6 +110,7 @@ namespace RevitMCP.Core
 
                 int totalBound = 0;
                 int totalSkipped = 0;
+                int totalFailed = 0;
                 var results = new List<object>();
 
                 using (Transaction trans = new Transaction(doc, "載入綠建材共享參數"))
@@ -140,13 +156,76 @@ namespace RevitMCP.Core
                                 }
                                 else
                                 {
-                                    totalSkipped++;
-                                    results.Add(new
+                                    // 綁定型態 (Type/Instance) 相符，但仍須確認現有 CategorySet 是否已涵蓋這次
+                                    // 要求的所有品類——不能只憑「參數名稱一樣、綁定型態一樣」就判定已綁定完成。
+                                    // 舊邏輯在這裡直接跳過：若參數之前已綁定 Walls，這次要求 Ceilings，會被誤判
+                                    // 為「已存在相符綁定」而略過，但 CategorySet 從未真正涵蓋 Ceilings，導致
+                                    // 後續 set_green_material_type_parameters 在新品類上全數 MissingParameters
+                                    // （TASK-005.8 發現）。改為：CategorySet 缺少的品類用 Insert + ReInsert 擴充。
+                                    ElementBinding elemBinding = existingBinding as ElementBinding;
+                                    CategorySet existingCats = elemBinding?.Categories;
+                                    bool needsExpand = false;
+
+                                    if (existingCats != null)
                                     {
-                                        ParameterName = exDef.Name,
-                                        Group = defGroup.Name,
-                                        Status = "已存在相符綁定，跳過"
-                                    });
+                                        foreach (Category targetCat in targetCategories)
+                                        {
+                                            bool alreadyCovered = false;
+                                            foreach (Category existingCat in existingCats)
+                                            {
+                                                if (existingCat.Id == targetCat.Id)
+                                                {
+                                                    alreadyCovered = true;
+                                                    break;
+                                                }
+                                            }
+                                            if (!alreadyCovered)
+                                            {
+                                                existingCats.Insert(targetCat);
+                                                needsExpand = true;
+                                            }
+                                        }
+                                    }
+
+                                    if (needsExpand)
+                                    {
+                                        // ReInsert() 有回傳值：失敗時不能仍計入成功數，否則後續寫入共享
+                                        // 參數時該品類仍會出現 MissingParameters，卻誤報綁定已成功（TASK-005.8 相關）。
+                                        bool reinserted;
+                                        try { reinserted = bindingMap.ReInsert(existingDef, elemBinding); }
+                                        catch { reinserted = false; }
+
+                                        if (reinserted)
+                                        {
+                                            totalBound++;
+                                            results.Add(new
+                                            {
+                                                ParameterName = exDef.Name,
+                                                Group = defGroup.Name,
+                                                Status = "已擴充綁定至新品類"
+                                            });
+                                        }
+                                        else
+                                        {
+                                            totalFailed++;
+                                            results.Add(new
+                                            {
+                                                ParameterName = exDef.Name,
+                                                Group = defGroup.Name,
+                                                Status = "擴充綁定失敗，CategorySet 未成功更新"
+                                            });
+                                        }
+                                    }
+                                    else
+                                    {
+                                        totalSkipped++;
+                                        results.Add(new
+                                        {
+                                            ParameterName = exDef.Name,
+                                            Group = defGroup.Name,
+                                            Status = "已存在相符綁定，跳過"
+                                        });
+                                    }
                                     continue;
                                 }
                             }
@@ -171,6 +250,7 @@ namespace RevitMCP.Core
                             }
                             catch {}
 #endif
+#if !REVIT2024_OR_GREATER
                             if (!bound)
                             {
                                 try
@@ -179,6 +259,7 @@ namespace RevitMCP.Core
                                 }
                                 catch {}
                             }
+#endif
 
                             if (bound)
                             {
@@ -208,24 +289,24 @@ namespace RevitMCP.Core
 
                 return new
                 {
-                    Success = true,
+                    Success = totalFailed == 0,
                     FilePath = filePath,
                     TotalBound = totalBound,
                     TotalSkipped = totalSkipped,
+                    TotalFailed = totalFailed,
                     Categories = categoriesArr.Select(c => c.Value<string>()).ToArray(),
                     BindingLevel = bindToInstance ? "Instance" : "Type",
                     Parameters = results,
                     Message = $"成功綁定 {totalBound} 個共享參數至 {targetCategories.Size} 個品類" +
-                              (totalSkipped > 0 ? $"，{totalSkipped} 個已存在被跳過" : "")
+                              (totalSkipped > 0 ? $"，{totalSkipped} 個已存在被跳過" : "") +
+                              (totalFailed > 0 ? $"，{totalFailed} 個擴充綁定失敗（詳見 Parameters）" : "")
                 };
             }
             finally
             {
-                // 還原原本的共享參數檔設定
-                if (!string.IsNullOrEmpty(originalFile))
-                {
-                    app.SharedParametersFilename = originalFile;
-                }
+                // 無條件還原，包含原本為空字串的情況——否則執行前若為空，Revit 的全域共享
+                // 參數檔設定會被永久改成呼叫端傳入的 filePath，造成非預期的環境異動。
+                app.SharedParametersFilename = originalFile ?? string.Empty;
             }
         }
 
@@ -461,7 +542,7 @@ namespace RevitMCP.Core
         /// 實體寫入指定 ElementType 的 Identity Data。
         /// 參數須已透過 load_shared_parameters 綁定至該 Type 所屬品類，否則對應欄位會列在 MissingParameters。
         /// 槽位數對應材料數：一個 Set 有幾種材料就只傳幾個 mat1..matN 物件，其餘留空即可，
-        /// 不會強制寫滿 6 組（哪個材料進哪個槽位由 generate_revit_injection_plan.py 的
+        /// 不會強制寫滿 6 組（哪個材料進哪個槽位由 GM_generate_revit_injection_plan.py 的
         /// _assign_material_slots() 依 Structure > Finish > Substrate > Other 的固定優先序決定）。
         /// 參數：
         ///   typeId (number): 目標 ElementType Element ID（如 duplicate_element_type 建立的新型別）
@@ -471,8 +552,8 @@ namespace RevitMCP.Core
         ///   mat1 / mat2 / mat4 / mat5 / mat6 (object, optional): { name, certNo, category, subCategory, applicant, validUntil, tvoc, formaldehyde, cnsSpec, testItems, qualifiedItems }
         ///   mat3 (object, optional): { name, certNo, category, subCategory, applicant, validUntil }（沿用既有 v4 schema，無 TVOC/Formaldehyde/CNS 欄位）
         ///   adhesive / sealant / waterproofing (string, optional): 非幾何輔助材料（接著劑/填縫劑/防水材料）專屬 Construction 群組欄位，
-        ///     格式為 "產品名稱 (標章編號)"（與 generate_revit_injection_plan.py 的 sp[auxiliaryParam] 輸出一致）。
-        ///     這些材料仍應依 generate_revit_injection_plan.py 的 assignedSlot 一併填入對應的 matN 物件——
+        ///     格式為 "產品名稱 (標章編號)"（與 GM_generate_revit_injection_plan.py 的 sp[auxiliaryParam] 輸出一致）。
+        ///     這些材料仍應依 GM_generate_revit_injection_plan.py 的 assignedSlot 一併填入對應的 matN 物件——
         ///     Mat 槽位記錄的是「這個元件用了哪些綠建材」的完整清單，輔助材料不例外；
         ///     adhesive/sealant/waterproofing 只是額外補記它們「附著」的施工用途，兩者並存不衝突。
         /// </summary>

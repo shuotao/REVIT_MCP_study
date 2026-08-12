@@ -139,6 +139,10 @@ namespace RevitMCP.Core
                         result = SetMaterialSurfacePattern(parameters);
                         break;
 
+                    case "inject_green_material_into_family":
+                        result = InjectGreenMaterialIntoFamily(parameters);
+                        break;
+
                     case "create_door":
                         result = CreateDoor(parameters);
                         break;
