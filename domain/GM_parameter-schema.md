@@ -107,7 +107,7 @@ Mat3 是唯一維持輕量 6 欄位形狀的槽位（沿用 v4 原始定義，�
 
 ### 2.1 雙階層欄位責任對照（TASK-005.3）
 
-`docs/green-material/Revit_Element_GreenMaterial_Mapping_Analysis.md` 情境 3 是 TASK-003 階段的**早期分析提案**，曾建議「Material 層存放完整參數、Type 層只存摘要字串」；本節記錄的是**實際落地並生效**的相反安排（v2.0 定案，2.1 節已明文），TASK-005.3 的驗收基準以本節為準：
+`tools/green-material/archive/reports/Revit_Element_GreenMaterial_Mapping_Analysis.md` 情境 3 是 TASK-003 階段的**早期分析提案**，曾建議「Material 層存放完整參數、Type 層只存摘要字串」；本節記錄的是**實際落地並生效**的相反安排（v2.0 定案，2.1 節已明文），TASK-005.3 的驗收基準以本節為準：
 
 | 層級 | 承載物件 | 內容 | 範例 |
 | :--- | :--- | :--- | :--- |

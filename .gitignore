@@ -137,3 +137,8 @@ __pycache__/
 # 本機執行 GM_update_tabc_database.py（或 /GM_update）可重新產生，見 tools/green-material/README.md。
 /tabc_master_database.json
 /assets/green-material-showcase.html
+
+# /GM_import 與 /GM_set compare 每次執行都會整份覆寫的單一最新注入計畫快照，
+# 沒有保存歷史版本的價值，改由本機執行時重新產生，見 tools/green-material/README.md。
+/Revit_Injection_Plan.json
+/docs/green-material/Revit_Injection_Plan_Report.md

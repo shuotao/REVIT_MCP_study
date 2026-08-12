@@ -160,10 +160,10 @@ AI Client
 
 | 文件 | 適合何時閱讀 |
 |---|---|
-| [Revit 元件與綠建材對映分析](Revit_Element_GreenMaterial_Mapping_Analysis.md) | 想了解各 Revit 品類如何對應材料與參數時 |
 | [Revit 綠建材注入計畫規格](Revit_GreenMaterial_Injection_Plan_Specification.md) | 想了解計畫 JSON、比對順序與資料結構時 |
 | [注入邏輯與命名規範](revit_injection_logic_and_naming_spec.md) | 想確認 Type、Material、Family 命名規則時 |
-| [最近一次注入計畫報告](Revit_Injection_Plan_Report.md) | 想查看目前產生器的最新工作產物時 |
+
+`Revit_Injection_Plan_Report.md` 是 `/GM_import`／`/GM_set compare` 每次執行都會整份覆寫的最新計畫快照，自 2026-08 起已加入 `.gitignore`、不再被 git 追蹤（檔案仍保留在本機，執行對應指令即可重新產生）。TASK-003 階段的早期對映分析提案（部分構想已被本節與 `domain/GM_parameter-schema.md` 取代）已歸檔至 [`tools/green-material/archive/reports/Revit_Element_GreenMaterial_Mapping_Analysis.md`](../../tools/green-material/archive/reports/Revit_Element_GreenMaterial_Mapping_Analysis.md)，僅供追溯。
 
 ### 權威方法與參數定義
 

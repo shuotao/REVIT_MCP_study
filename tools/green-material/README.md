@@ -28,6 +28,10 @@
 
 首次 clone 本 repo 或需要更新資料時，執行 `GM_update_tabc_database.py`（或 `/GM_update`）從 TABC 官網重新抓取，即可在本機重建這兩個檔案；`local_server.py`、`GM_generate_revit_injection_plan.py` 等工具皆讀取本機檔案，不需要它們存在於 git 歷史中。
 
+### 注入計畫快照也不入庫
+
+`Revit_Injection_Plan.json` 與 `docs/green-material/Revit_Injection_Plan_Report.md` 是 `/GM_import`／`/GM_set compare` 每次執行都會整份覆寫的「最新一次」計畫快照，沒有保存歷史版本的價值，自 2026-08 起同樣加入 `.gitignore`。執行 `/GM_import` 或 `/GM_set compare` 即可在本機重新產生；`exported_material_sets.json`（Set 工作資料，持續累積、非單次覆寫）仍正常入庫追蹤。
+
 ## 目錄分類
 
 | 目錄 | 保存內容 | 維護狀態 |

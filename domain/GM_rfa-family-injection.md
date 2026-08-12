@@ -6,7 +6,7 @@ metadata:
   updated: "2026-08-12"
   created: "2026-08-12"
   references:
-    - "docs/green-material/Revit_Element_GreenMaterial_Mapping_Analysis.md 情境 7"
+    - "tools/green-material/archive/reports/Revit_Element_GreenMaterial_Mapping_Analysis.md 情境 7"
     - "MCP/Core/Commands/CommandExecutor.FamilyExport.cs（EditFamily/SaveAs/Close 既有前例）"
     - "GreenMaterial_SharedParams.txt（v4/v5 Schema）"
   related:
