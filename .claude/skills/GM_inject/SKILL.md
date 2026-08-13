@@ -41,6 +41,8 @@ This mirrors `.agents/skills/combined-wall-set-import/SKILL.md` — read that fi
 2. **Get the plan's two materials**: re-run the match (don't reuse a stale `Revit_Injection_Plan.json` from a different Set) —
    ```bash
    python -c "
+   import sys
+   sys.path.insert(0, 'tools/green-material')
    import GM_generate_revit_injection_plan as g, json
    plan = g.generate_injection_plan('<SetName>', <items_list_from_json>, '')
    print(json.dumps(plan, ensure_ascii=False, indent=2))
@@ -62,7 +64,7 @@ This mirrors `.agents/skills/combined-wall-set-import/SKILL.md` — read that fi
 
 6. **Verify materials exist** (mandatory — do not skip): call `get_all_materials(searchKeyword: "<the Set's licno prefix or GBM>")` and confirm both new materials appear with the IDs `duplicate_element_type` returned.
 
-7. **Bind shared parameters if needed**: call `load_shared_parameters` with `filePath` pointing to `GreenMaterial_SharedParams.txt` (absolute path, repo root) and `categories: ["Walls"]`, `bindToInstance: false`. Safe to call even if already bound (idempotent — reports `已存在相符綁定，跳過`).
+7. **Bind shared parameters if needed**: call `load_shared_parameters` with `filePath` pointing to `GreenMaterial_SharedParams.txt` (absolute path, `tools/green-material/`) and `categories: ["Walls"]`, `bindToInstance: false`. Safe to call even if already bound (idempotent — reports `已存在相符綁定，跳過`).
 
 8. **Write the 31 shared parameters**: call `set_green_material_type_parameters` on the new `typeId` with:
    - `certified: true`
@@ -75,6 +77,8 @@ This mirrors `.agents/skills/combined-wall-set-import/SKILL.md` — read that fi
 10. **Update the Set's status**: call
     ```bash
     python -c "
+    import sys
+    sys.path.insert(0, 'tools/green-material')
     import GM_generate_revit_injection_plan as g
     g.write_back_to_set_manager('<SetName>', plan_dict, planned_actions_override='已建立 Element ID <NewTypeId> 與材質 Element ID <finishMaterialId>/<structureMaterialId>')
     "
@@ -94,6 +98,8 @@ Each material in the Set becomes its own new ElementType (Floor/Wall/Ceiling —
 2. **Get the plan's materials**: re-run the match for this Set —
    ```bash
    python -c "
+   import sys
+   sys.path.insert(0, 'tools/green-material')
    import GM_generate_revit_injection_plan as g, json
    plan = g.generate_injection_plan('<SetName>', <items_list_from_json>, '')
    print(json.dumps(plan, ensure_ascii=False, indent=2))
@@ -182,6 +188,8 @@ A single non-geometric material (caulk/adhesive/waterproofing — no physical Co
 2. **Get the material's classification**: re-run the match —
    ```bash
    python -c "
+   import sys
+   sys.path.insert(0, 'tools/green-material')
    import GM_generate_revit_injection_plan as g, json
    plan = g.generate_injection_plan('<SetName>', <items_list_from_json>, '')
    print(json.dumps(plan, ensure_ascii=False, indent=2))
@@ -212,6 +220,8 @@ A single non-geometric material (caulk/adhesive/waterproofing — no physical Co
 6. **Update the Set's status**: call
    ```bash
    python -c "
+   import sys
+   sys.path.insert(0, 'tools/green-material')
    import GM_generate_revit_injection_plan as g
    g.write_back_to_set_manager('<SetName>', plan_dict, planned_actions_override='已建立/覆蓋 Element ID <typeId>（<Path A 新建|Path B 覆蓋>）')
    "
@@ -240,7 +250,7 @@ Read `domain/GM_rfa-family-injection.md` in full before running this scenario �
    - The material data and shading/acoustic values about to be written
    Do not proceed without explicit confirmation — this scenario opens and saves a separate Revit family document, which is a heavier operation than the Type-duplication scenarios above.
 
-5. **Run the injection**: call `inject_green_material_into_family` with `sourceTypeId`, `newTypeName`, `sharedParamFilePath` (absolute path to `GreenMaterial_SharedParams.txt` at the repo root), `mat1`, and `shadingCoefficient`/`acousticRw` as applicable. This single call covers the whole family-document lifecycle (EditFamily → backup → new Type → write params → SaveAs under a new family name → LoadFamily back into the project) — it can't be split into smaller steps because the family document can't stay open across separate MCP calls.
+5. **Run the injection**: call `inject_green_material_into_family` with `sourceTypeId`, `newTypeName`, `sharedParamFilePath` (absolute path to `GreenMaterial_SharedParams.txt` in `tools/green-material/`), `mat1`, and `shadingCoefficient`/`acousticRw` as applicable. This single call covers the whole family-document lifecycle (EditFamily → backup → new Type → write params → SaveAs under a new family name → LoadFamily back into the project) — it can't be split into smaller steps because the family document can't stay open across separate MCP calls.
 
 6. **Read the response carefully**:
    - `BackupPath` — confirm this file path was actually reported; that's the "可復原備份" the domain file requires.
@@ -264,6 +274,8 @@ Columns and structural framing (beams) don't have a `CompoundStructure` — a Co
 2. **Get the plan's material(s)**: re-run the match for this Set —
    ```bash
    python -c "
+   import sys
+   sys.path.insert(0, 'tools/green-material')
    import GM_generate_revit_injection_plan as g, json
    plan = g.generate_injection_plan('<SetName>', <items_list_from_json>, '')
    print(json.dumps(plan, ensure_ascii=False, indent=2))

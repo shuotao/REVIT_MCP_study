@@ -23,6 +23,8 @@ Mention to the user (don't block on it) that this compares against the **local**
 1. **Run the comparison** from the repo root:
    ```bash
    python -c "
+   import sys
+   sys.path.insert(0, 'tools/green-material')
    import GM_generate_revit_injection_plan as g
    import json
    results = g.compare_all_sets()
@@ -43,6 +45,8 @@ Mention to the user (don't block on it) that this compares against the **local**
 4. **For each confirmed Set**, refresh it:
    ```bash
    python -c "
+   import sys
+   sys.path.insert(0, 'tools/green-material')
    import GM_generate_revit_injection_plan as g
    import json
    result = g.compare_and_refresh_set('<set_name>')
@@ -67,7 +71,7 @@ Mention to the user (don't block on it) that this compares against the **local**
 
 ## Relationship to Other Files
 
-- `GM_generate_revit_injection_plan.py` (repo root) — `diff_set_with_latest()` / `compare_all_sets()` / `compare_and_refresh_set()` are the comparison engine this skill drives, alongside the existing `generate_injection_plan()` / `write_back_to_set_manager()` also used by `/GM_import`.
+- `GM_generate_revit_injection_plan.py` (`tools/green-material/`) — `diff_set_with_latest()` / `compare_all_sets()` / `compare_and_refresh_set()` are the comparison engine this skill drives, alongside the existing `generate_injection_plan()` / `write_back_to_set_manager()` also used by `/GM_import`.
 - `exported_material_sets.json` — the Set data being compared; also the only place a licno → title snapshot from the last plan run persists (embedded in each Set's `purpose` text), since `Revit_Injection_Plan.json` itself is overwritten on every run.
 - `.claude/skills/GM_update/SKILL.md` — the natural predecessor (`/GM_update`) to make sure the comparison is against fresh source data.
 - `.claude/skills/GM_import/SKILL.md` — shares the same plan-generation engine; use that instead of this skill when building a **new** Set's plan from scratch rather than comparing an existing one.

@@ -1682,11 +1682,19 @@ let cardsData = [
     }
 
     // === File System Access: 直接把瀏覽器端的異動寫回 tools/kanban/cards/*.json 與
-    // kanban.html / tools/kanban/index.html 的內嵌 cardsData，取代原本只寫 localStorage
-    // 草稿、從不回寫檔案的模式。僅 Chromium 系瀏覽器（Chrome/Edge）支援。===
+    // tools/green-material/GM_kanban.html / tools/kanban/index.html 的內嵌 cardsData，取代原本只寫
+    // localStorage 草稿、從不回寫檔案的模式。僅 Chromium 系瀏覽器（Chrome/Edge）支援。===
     const FS_IDB_NAME = 'kanban_fs_handles';
     const FS_IDB_STORE = 'handles';
     let repoRootHandle = null;
+
+    // GM_kanban.html 已從 repo root 搬到 tools/green-material/（見 2026-08 log），
+    // 這裡集中處理巢狀路徑查找，避免三處呼叫各自重複 getDirectoryHandle 鏈。
+    async function getGmKanbanFileHandle(rootHandle) {
+      const toolsDir = await rootHandle.getDirectoryHandle('tools');
+      const gmDir = await toolsDir.getDirectoryHandle('green-material');
+      return gmDir.getFileHandle('GM_kanban.html');
+    }
 
     function fsIdbOpen() {
       return new Promise((resolve, reject) => {
@@ -1732,15 +1740,15 @@ let cardsData = [
         if (handle) {
           const perm = await handle.requestPermission({ mode: 'readwrite' });
           if (perm === 'granted') {
-            await handle.getFileHandle('kanban.html'); // sanity check：確認還是同一個專案根目錄
+            await getGmKanbanFileHandle(handle); // sanity check：確認還是同一個專案根目錄
             repoRootHandle = handle;
             updateFsStatus('已連結：' + handle.name);
             return;
           }
         }
         handle = await window.showDirectoryPicker({ id: 'revit-mcp-study-root', mode: 'readwrite' });
-        // Sanity check：必須選到含 kanban.html 與 tools/kanban/cards/ 的專案根目錄
-        await handle.getFileHandle('kanban.html');
+        // Sanity check：必須選到含 tools/green-material/GM_kanban.html 與 tools/kanban/cards/ 的專案根目錄
+        await getGmKanbanFileHandle(handle);
         const cardsDirCheck = await handle.getDirectoryHandle('tools').then(t => t.getDirectoryHandle('kanban')).then(k => k.getDirectoryHandle('cards'));
         void cardsDirCheck;
         repoRootHandle = handle;
@@ -1748,7 +1756,7 @@ let cardsData = [
         updateFsStatus('已連結：' + handle.name);
       } catch (e) {
         if (e.name !== 'AbortError') {
-          alert('連結資料夾失敗：' + e.message + '\n請確認選的是專案根目錄（內含 kanban.html 與 tools/kanban/cards/）。');
+          alert('連結資料夾失敗：' + e.message + '\n請確認選的是專案根目錄（內含 tools/green-material/GM_kanban.html 與 tools/kanban/cards/）。');
         }
       }
     }
@@ -1819,7 +1827,7 @@ let cardsData = [
         }
 
         const embedBlock = buildCardsEmbedBlock(cardsData);
-        const rootKanbanHandle = await repoRootHandle.getFileHandle('kanban.html');
+        const rootKanbanHandle = await getGmKanbanFileHandle(repoRootHandle);
         await writeCardsEmbedIntoFile(rootKanbanHandle, embedBlock);
         const mirrorHandle = await kanbanDirHandle.getFileHandle('index.html');
         await writeCardsEmbedIntoFile(mirrorHandle, embedBlock);
@@ -1828,7 +1836,7 @@ let cardsData = [
         localStorage.removeItem(KANBAN_STORAGE_KEY);
 
         updateFsStatus(`已儲存 ${written} 張卡片（${new Date().toLocaleTimeString('zh-TW')}）`);
-        alert(`已寫回 ${written} 個卡片檔案，並同步更新 kanban.html / tools/kanban/index.html 的內嵌資料。\n\n注意：本頁畫面仍是舊的內嵌資料，若要看到跟檔案完全一致的畫面請重新整理。`);
+        alert(`已寫回 ${written} 個卡片檔案，並同步更新 tools/green-material/GM_kanban.html / tools/kanban/index.html 的內嵌資料。\n\n注意：本頁畫面仍是舊的內嵌資料，若要看到跟檔案完全一致的畫面請重新整理。`);
       } catch (e) {
         alert('儲存失敗：' + e.message);
         updateFsStatus('儲存失敗：' + e.message);

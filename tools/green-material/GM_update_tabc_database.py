@@ -37,7 +37,8 @@ import time
 import urllib.error
 import urllib.request
 
-WORKSPACE = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+WORKSPACE = os.path.dirname(os.path.dirname(SCRIPT_DIR))  # repo root (this file lives in tools/green-material/)
 DB_PATH = os.path.join(WORKSPACE, "tabc_master_database.json")
 SHOWCASE_PATH = os.path.join(WORKSPACE, "assets", "green-material-showcase.html")
 

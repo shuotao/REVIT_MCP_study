@@ -56,7 +56,7 @@
 | 工具 / 模組名稱 | 位置 | 對應 Task | 開發狀態 | 功能說明 |
 | :--- | :--- | :---: | :---: | :--- |
 | **共享參數載入與綁定** | MCP 工具 `load_shared_parameters`（`MCP/Core/Commands/CommandExecutor.GM_GreenMaterial.cs`） | Task 005.1 / 005.8 | **已完成** | 把 `GreenMaterial_SharedParams.txt` 的參數綁定至指定品類 Type 層級；CategorySet 擴充會檢查 `BindingMap.ReInsert()` 回傳值，失敗不誤報成功（2026-08-12 code review 修正） |
-| **推送計畫擬訂引擎** | [`GM_generate_revit_injection_plan.py`](../../GM_generate_revit_injection_plan.py) | Task 004 / 005.5 / 005.6 | **已完成** | 讀取 `/GM_import` 需求對齊文字，比對 `tabc_master_database.json`，動態推判 Revit 品類、構造層、厚度、Mat1~6 槽位分配 |
+| **推送計畫擬訂引擎** | [`GM_generate_revit_injection_plan.py`](../../tools/green-material/GM_generate_revit_injection_plan.py) | Task 004 / 005.5 / 005.6 | **已完成** | 讀取 `/GM_import` 需求對齊文字，比對 `tabc_master_database.json`，動態推判 Revit 品類、構造層、厚度、Mat1~6 槽位分配 |
 | **組合式 Type 建立（2 材料固定）** | MCP 工具 `duplicate_element_type` | Task 005.1 / 005.3 | **已完成** | Scenario 1：牆體板材+塗料固定 2 材料組合 |
 | **組合式 Type 建立（通用多層）** | MCP 工具 `create_multi_layer_type` | Task 005.10 / 011 | **已完成** | Scenario 3：任意品類、任意材料數的多層構造，含 Core Boundary 自動判斷 |
 | **分立式 Type 建立** | MCP 工具 `create_single_material_type` | Task 005.2 | **已完成** | Scenario 2：各別建立，含地板 Surface Pattern 套用 |

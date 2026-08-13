@@ -17,7 +17,8 @@ import os
 import re
 import datetime
 
-WORKSPACE = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+WORKSPACE = os.path.dirname(os.path.dirname(SCRIPT_DIR))  # repo root (this file lives in tools/green-material/)
 DB_PATH = os.path.join(WORKSPACE, "tabc_master_database.json")
 SETS_FILE = os.path.join(WORKSPACE, "exported_material_sets.json")
 PLAN_JSON = os.path.join(WORKSPACE, "Revit_Injection_Plan.json")

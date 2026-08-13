@@ -16,7 +16,7 @@ Refresh the local green-material master database (`tabc_master_database.json`) f
 
 1. **Dry run first** (no files are written):
    ```bash
-   python GM_update_tabc_database.py --dry-run
+   python tools/green-material/GM_update_tabc_database.py --dry-run
    ```
    This hits the live TABC site (`https://tabcmgr.hopto.org/mgr/SearchCaseAction.aspx`), pages through all 4 categories (健康/高性能/再生/生態), and prints a JSON diff report: `added` (new licnos), `updated` (licno + which fields changed), `notSeen` (licnos not seen this crawl — not deleted), `totalBefore`/`totalAfter`.
    - This can take 1–3 minutes (roughly 60–100 HTTP requests to an external site with a small delay between each). Tell the user it's running.
@@ -29,7 +29,7 @@ Refresh the local green-material master database (`tabc_master_database.json`) f
 
 3. **Ask the user to confirm** before running the real update (this overwrites `tabc_master_database.json` and rewrites a large chunk of `assets/green-material-showcase.html`, both git-tracked files):
    ```bash
-   python GM_update_tabc_database.py
+   python tools/green-material/GM_update_tabc_database.py
    ```
    - This performs the same crawl again (the site has no bulk-export API, so a second live fetch is unavoidable — do not try to reuse the dry-run's in-memory result across a separate process invocation), merges into `tabc_master_database.json` (atomic write via temp file + `os.replace`), and rewrites the `const tabcDatabase = [...]` block in `assets/green-material-showcase.html` so the webpage's offline cache matches.
    - Report `showcaseSynced` from the result — if `false`, the HTML file's markers weren't found (structure changed) and the JSON file was still updated correctly; tell the user the showcase page needs manual re-sync.
@@ -55,13 +55,13 @@ Refresh the local green-material master database (`tabc_master_database.json`) f
 | Error | Response |
 |-------|----------|
 | `RuntimeError` — zero items fetched | Site unreachable or HTML structure changed. Stop, report to user, do not modify any file. |
-| `FileNotFoundError` — `tabc_master_database.json` missing | Stop, tell the user the master database file is missing from the repo root. |
+| `FileNotFoundError` — `tabc_master_database.json` missing | Stop, tell the user the master database file is missing (it lives at the repo root; the script that reads it lives in `tools/green-material/`). |
 | `showcaseSynced: false` in the real-run result | JSON updated successfully but `assets/green-material-showcase.html`'s `const tabcDatabase = [...]` markers weren't found — tell the user the showcase page's offline cache is now out of sync with the JSON and needs a manual look (the file's structure may have changed). |
 | Dry run shows a very large `notSeen` count (e.g. hundreds) | Likely a partial crawl (network hiccup mid-run cut off several categories), not a real mass delisting. Warn the user and suggest re-running the dry run before proceeding to the real update. |
 
 ## Relationship to Other Files
 
-- `GM_update_tabc_database.py` (repo root) — the fetch/merge/sync engine this skill drives; also the canonical reference for exactly which fields are real vs. template-derived.
+- `GM_update_tabc_database.py` (`tools/green-material/`) — the fetch/merge/sync engine this skill drives; also the canonical reference for exactly which fields are real vs. template-derived.
 - `tabc_master_database.json` (repo root) — the file this skill refreshes; consumed by `GM_generate_revit_injection_plan.py` (`/GM_import`, `/GM_set compare`) and `assets/green-material-showcase.html`.
 - `tools/green-material/README.md` — governance notes on why the old `archive/scripts/catalog/*.py` scrapers are historical, not live dependencies.
 - `.claude/skills/GM_set/SKILL.md` — the natural follow-up (`/GM_set compare`) once the master database has fresh data.

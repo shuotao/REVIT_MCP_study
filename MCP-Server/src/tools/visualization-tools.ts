@@ -100,7 +100,7 @@ export const visualizationTools: Tool[] = [
     },
     {
         name: "set_green_material_type_parameters",
-        description: "將綠建材共享參數 Schema（GreenMaterial_SharedParams.txt，Mat1~Mat6 六槽位 + Construction 群組共 67 個欄位）實體寫入指定 ElementType 的 Identity Data。參數須已透過 load_shared_parameters 綁定至該 Type 所屬品類（如 Walls），否則對應欄位會列在回傳的 MissingParameters 中。Mat1=主體/牆板，Mat2=面材/塗料，Mat3=附屬/膠材（僅有基本欄位，無 TVOC/Formaldehyde/CNS），Mat4/Mat5/Mat6=追加構造層（欄位與 Mat1/Mat2 同樣完整）。一個 Set 有幾種材料就只傳幾個 matN 物件，其餘留空，不必寫滿 6 組；哪個材料進哪個槽位請依 generate_revit_injection_plan.py 產出的 plan['materialSlotAssignment'] 決定，不要自行猜測順序——非幾何輔助材料（接著劑/填縫劑/防水材料）一樣要填一個 matN 物件（Mat 槽位記錄的是「這個元件用了哪些綠建材」的完整清單，不是只有物理構造層才算數），另外再用 adhesive/sealant/waterproofing 額外補記它們的施工用途，兩者並存不衝突、不是二選一。",
+        description: "將綠建材共享參數 Schema（GreenMaterial_SharedParams.txt，Mat1~Mat6 六槽位 + Construction 群組共 67 個欄位）實體寫入指定 ElementType 的 Identity Data。參數須已透過 load_shared_parameters 綁定至該 Type 所屬品類（如 Walls），否則對應欄位會列在回傳的 MissingParameters 中。Mat1=主體/牆板，Mat2=面材/塗料，Mat3=附屬/膠材（僅有基本欄位，無 TVOC/Formaldehyde/CNS），Mat4/Mat5/Mat6=追加構造層（欄位與 Mat1/Mat2 同樣完整）。一個 Set 有幾種材料就只傳幾個 matN 物件，其餘留空，不必寫滿 6 組；哪個材料進哪個槽位請依 GM_generate_revit_injection_plan.py 產出的 plan['materialSlotAssignment'] 決定，不要自行猜測順序——非幾何輔助材料（接著劑/填縫劑/防水材料）一樣要填一個 matN 物件（Mat 槽位記錄的是「這個元件用了哪些綠建材」的完整清單，不是只有物理構造層才算數），另外再用 adhesive/sealant/waterproofing 額外補記它們的施工用途，兩者並存不衝突、不是二選一。",
         inputSchema: {
             type: "object",
             properties: {
@@ -266,7 +266,7 @@ export const visualizationTools: Tool[] = [
                 newTypeName: { type: "string", description: "家族文件內新建 Type 的名稱" },
                 backupFolder: { type: "string", description: "備份根目錄絕對路徑（也是新家族檔案的存放目錄）。預設專案檔所在目錄下的 _rfa_backup/（若專案尚未儲存過則退回系統暫存目錄）" },
                 newFamilySuffix: { type: "string", description: "新家族檔名後綴，預設 '_TABC'，會再接上 mat1.certNo 組成完整後綴以避免撞名", default: "_TABC" },
-                sharedParamFilePath: { type: "string", description: "GreenMaterial_SharedParams.txt 的絕對路徑（repo 根目錄）" },
+                sharedParamFilePath: { type: "string", description: "GreenMaterial_SharedParams.txt 的絕對路徑（位於 tools/green-material/）" },
                 identityData: {
                     type: "object",
                     description: "Family Type 內建 Identity Data。依 Revit 版本與族群樣板不保證每個欄位都存在，缺的欄位會列在回傳的 MissingParameters",

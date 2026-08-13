@@ -30,9 +30,11 @@ For a "純材料" (pure-material) Set — TASK-005.5, e.g. a single caulk/adhesi
    - `purpose_override`: the text inside `[需求對齊：...]` if present, else empty string.
    - If `set_name` or `licnos` can't be found, stop and ask the user to paste the request again in the expected format.
 
-2. **Run the plan engine** from the repo root:
+2. **Run the plan engine** from the repo root (the engine itself lives in `tools/green-material/`, so add it to `sys.path` first):
    ```bash
    python -c "
+   import sys
+   sys.path.insert(0, 'tools/green-material')
    import GM_generate_revit_injection_plan as g
    plan = g.generate_injection_plan('<set_name>', ['<licno1>', '<licno2>', ...], '<original full text>')
    g.write_back_to_set_manager('<set_name>', plan, purpose_override='<purpose_override>')
@@ -90,6 +92,6 @@ For a "純材料" (pure-material) Set — TASK-005.5, e.g. a single caulk/adhesi
 
 ## Relationship to Other Files
 
-- `GM_generate_revit_injection_plan.py` (repo root) — the actual matching/plan engine this skill drives.
+- `GM_generate_revit_injection_plan.py` (`tools/green-material/`) — the actual matching/plan engine this skill drives.
 - `.agents/skills/combined-wall-set-import/SKILL.md` — the Revit-side procedure `/GM_inject revit` follows for Wall/单一組合 sets.
 - `exported_material_sets.json` — shared state between the showcase webpage, this skill, and `/GM_inject revit`.

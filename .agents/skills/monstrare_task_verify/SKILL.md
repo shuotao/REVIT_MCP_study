@@ -17,4 +17,4 @@ description: Monstrare 看板任務完成階段規範 (Lessons Learned Rule)。�
    - 所有標註為 `done` 的任務必須由**使用者親自測試成功後，手動或指示 Agent 移至 `done`**。
 
 3. **Monstrare 看板同步說明**：
-   - 直接編輯 `tools/kanban/cards/<TASK-ID>.json`，再重新產生 `kanban.html` 與 `tools/kanban/index.html` 內嵌的 `cardsData`（兩者皆由 cards 目錄的內容直接生成，沒有中間同步腳本）；完成的 Task 階段屬性統一定義為 `"stage": "verify"`。
+   - 直接編輯 `tools/kanban/cards/<TASK-ID>.json`，再重新產生 `tools/green-material/GM_kanban.html` 與 `tools/kanban/index.html` 內嵌的 `cardsData`（兩者皆由 cards 目錄的內容直接生成，沒有中間同步腳本）；完成的 Task 階段屬性統一定義為 `"stage": "verify"`。
