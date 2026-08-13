@@ -2,9 +2,12 @@
 name: dwg-column-import
 description: "從 CAD/DWG 圖層批次建立 Revit 結構柱/建築柱的方法 SOP：單位/放樣前置健檢、矩形柱識別、三模式（自動建型別 / 既有族群尺寸對應 / 既有族群柱號對應）依情境選用、強制斷點分步協作建模。涵蓋 LAYER 指定、import vs link、DXF/DWG 通用（DWG 需 ODA）、柱名稱對應（textLayerName）、單位自動偵測、基準點座標、族群協作選擇等工程確認點。觸發於 dwg 建柱、cad 匯入建模、圖層建柱、批次建柱、柱號對應。"
 metadata:
-  version: "1.2"
-  updated: "2026-06-18"
-  references: []
+  version: "1.3"
+  updated: "2026-08-10"
+  references:
+    - "Issue #62（@EricKuo123）：DWG 匯入連結與版本檢查器規格書 — 連結後版本稽核，與本 SOP 的匯入前把關互補 — https://github.com/shuotao/REVIT_MCP_study/issues/62"
+  contributors:
+    - "@EricKuo123（issue #62：連結後版本稽核概念與版本判定依據 —— 檔案 mtime + 檔名版次 Regex，非 DWG 格式版本）"
   related:
     - ifc-structural-sync.md
     - tool-capability-boundary.md
@@ -191,6 +194,31 @@ flowchart TD
 - **案例 1（2026-06-09，FL1）**：13 頂點倒角 polyline，`preview` 識別 30 根，`create` **30/30 成功**、自動選「混凝土柱-矩形」族（模式 A）。
 - **案例 2（2026-06-16，2FL 汀洲路）**：DXF `$INSUNITS=0`（實為 cm），柱輪廓 `S-COLS-CONC`、柱號 `S-COLS-LABL`（`C3a(100×60)`），族群 `2_RC柱-矩形`。自動偵測單位 cm，前綴比對 `C3a_100 x 60`，**12/12 成功、unmatchedLabels 空**（模式 C）。
 - **案例 3（2026-06-18，回溯驗證）**：合成 mm 檔與 `$INSUNITS=0` cm 檔各跑模式 C，`matchDebug` 兩者 `dist=0`（mm raw=12000、cm raw=1200 都收斂同位置），證單位自動偵測；happy path 建出 C1~C5 六根、`unmatchedLabels` 空。
+
+## 6.5 互補概念：連結後版本稽核（來源 issue #62，@EricKuo123）
+
+本 SOP 的單位／放樣健檢是**匯入前把關**（`preview_dwg_columns` 的 `preflight`，擋下不合理尺寸與疑似連錯單位；
+Import 的 CAD 讀不到柱號文字時直接要求改用 Link）。它管的是「這次建模能不能開始」。
+
+[@EricKuo123](https://github.com/EricKuo123) 在 issue [#62](https://github.com/shuotao/REVIT_MCP_study/issues/62)
+提出的另一半是**連結後稽核** —— 模型裡已經有一堆 CAD 連結之後，怎麼知道哪一份圖說過期了。兩者互補，不重疊：
+
+| | 本 SOP（已落地） | #62 提案（未實作） |
+|---|---|---|
+| 時機 | 匯入／建模**前** | 連結**後**，隨時稽核 |
+| 目的 | 這次建模能不能開始 | 手上的連結是不是最新圖說 |
+| 對 Import CAD 的處理 | 擋下，要求改 Link | 標示「需人工確認」，不擋 |
+
+該提案規格書中值得記下的工程判斷（**與直覺不同，特別記錄**）：
+
+- **「版本」不是讀 DWG/DXF 的檔案格式版本**（`AC1027`、`$ACADVER` 那類），而是讀**連結外部檔案的 `LastWriteTime`**，
+  與使用者自行設定的「最新圖說日期」比對，再輔以對**檔名**做版次 Regex 解析（`R01`、`Rev.B`、日期字串）。
+  理由是實務上工程師換圖是換檔案，格式版本幾乎不變，比對格式版本抓不到過期圖說。
+- 觸發方式是使用者主動按「重新掃描」，用 `FilteredElementCollector` 掃既有 `ImportInstance`，不是自動背景輪詢。
+- 與本 SOP 共用的只有 `ImportInstance.IsLinked` 這個判斷，用途完全不同。
+
+> 狀態：**僅有規格，無實作，也無 fork 程式碼**。提案人的規格書（.docx）掛在 issue #62 上；
+> 上述內容是維護者於 2026-08-10 解出附件全文後整理。若日後要做，這裡是起點，不必從頭問規格。
 
 ## 7. 附：create_level
 `create_level(elevation, name?)`：以公釐標高建樓層（自動 /304.8 轉 feet）。重複會在 `Warning` 提示但仍建。常用於建柱前補頂部樓層（否則丟「找不到高於…的樓層」）。

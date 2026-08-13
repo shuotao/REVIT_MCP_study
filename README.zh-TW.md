@@ -14,7 +14,7 @@ Revit MCP 透過 Model Context Protocol (MCP) 讓 AI Client 呼叫 Revit 工具�
 
 ## 這是什麼？
 
-用講人話的方式操作 Revit。跟你的 AI Client 說「幫這個視圖的牆全部標尺寸」或「檢查帷幕牆立面」，Revit 就會做——背後是 **178 個 MCP 工具**，由 **76 份專業 BIM SOP**（建築法規、數量計算、法規檢核）支撐。
+用講人話的方式操作 Revit。跟你的 AI Client 說「幫這個視圖的牆全部標尺寸」或「檢查帷幕牆立面」，Revit 就會做——背後是 **185 個 MCP 工具**，由 **80 份專業 BIM SOP**（建築法規、數量計算、法規檢核）支撐。
 
 **給誰用：** 使用 Revit、想要 AI 輔助且符合規範的 BIM 工程師與建築師。你需要 Windows 上的 Revit（2022–2026），並願意安裝一個 add-in。
 
@@ -33,15 +33,25 @@ Revit MCP 透過 Model Context Protocol (MCP) 讓 AI Client 呼叫 Revit 工具�
 
 | 項目 | 數量 | 來源 |
 |---|---:|---|
-| Runtime MCP tools | 178 | `MCP-Server/src/tools/index.ts` 的 `registerRevitTools()` |
-| Domain SOP files | 76 | `domain/*.md` 扣除 `README.md`，加上 `domain/references/*.md` |
-| Claude skills | 57 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 185 | `MCP-Server/src/tools/index.ts` 的 `registerRevitTools()` |
+| Domain SOP files | 80 | `domain/*.md` 扣除 `README.md`，加上 `domain/references/*.md` |
+| Claude skills | 61 | `.claude/skills/*/SKILL.md` |
 
 如果這些數字改變，請同步更新 `CLAUDE.md`、本 README、`README.md`、`docs/DOCUMENT_AUDIENCE_INVENTORY.md`，並執行：
 
 ```powershell
 .\scripts\verify-qaqc.ps1 -SkipBuild -SkipDeploy
 ```
+
+## 新功能：互動式碰撞檢視器（MCP Apps）
+
+`detect_clashes` 現在可以透過 [MCP Apps](https://modelcontextprotocol.io/) extension（`io.modelcontextprotocol/ui`）在對話中直接顯示互動式碰撞檢視 UI，需要 AI Client（host）支援此 extension 才會顯示。這是純加法式功能：
+
+- 互動介面只會出現在**支援 MCP Apps 的圖形介面 host**（Claude Desktop、claude.ai 網頁版、VS Code GitHub Copilot）；**終端機 CLI（如 Claude Code）無法顯示面板，一律是純文字結果 —— 這是正常的，不是故障**。
+- 不支援 MCP Apps 的 Client 仍會拿到 `detect_clashes` 原本的純文字結果，不受任何影響。
+- stdio 連線方式與既有 Revit add-in 完全不受影響，不需要重新安裝或重新設定。
+
+完整的 MCP 2026-07-28 升級說明見 `docs/MIGRATION_GUIDE.md`。
 
 ## 架構
 
@@ -150,8 +160,15 @@ MCP/bin/Release.R24/RevitMCP.dll
 建議使用：
 
 ```powershell
-.\scripts\install-addon.ps1
+# 指定 Revit 版本（必要時；偵測到多版本而未指定會要求你選擇，非互動模式則直接失敗，不會擅自挑）
+.\scripts\install-addon.ps1 -Version 2024
+
+# 多版本環境一次部署完
+.\scripts\install-addon.ps1 -All
 ```
+
+腳本會複製**建構產物中的全部 DLL**（R22–R24 為 13 個、R25–R26 為 8 個，兩者都正確）、
+部署前檢查建構產物世代是否與目標 Revit 相符、部署後逐檔 SHA256 驗證、並輪替舊版備份。
 
 手動部署時，`.addin` 與 DLL 必須放在對應版本的 Revit Addins 位置，並維持 `RevitMCP.addin` 內的相對 assembly path：
 
@@ -209,11 +226,12 @@ VS Code 設定在 `.vscode/mcp.json`：
 
 ### AI Client 切換與並用限制
 
-Revit 端的 WebSocket 服務一次只接受一條 MCP 連線：後連上的 MCP Server 會取代先前的連線。因此多個 AI Client 是「切換使用」而不是「同時並用」：
+Revit 端的 WebSocket 服務採「獨占鎖」機制：同一時間只有一個 AI Client 能保持連線。第二個嘗試連線的 Client 會被直接拒絕（HTTP 409），而不是取代掉原本的連線——第一個連線因此維持穩定。因此多個 AI Client 是「切換使用」而不是「同時並用」：
 
-1. 關閉目前使用的 AI Client（或停用其 MCP server）。
-2. 啟動另一個 AI Client，它的 MCP Server 連上 `localhost:8964` 後即接手。
-3. 若連線狀態異常，於 Revit ribbon 重啟 MCP 服務即可重置。
+1. 在 Revit ribbon 點擊 **「切換/釋放連線」** 按鈕，釋放目前的連線。
+2. 啟動或重新連線另一個 AI Client，它的 MCP Server 連上 `localhost:8964` 後即取得連線。
+3. **「MCP 設定」** 對話框會顯示目前是哪個 Client 持有連線（例如 `claude-code`、`claude-ai`）。
+4. 若連線狀態異常，可使用同一個 ribbon 按鈕，或於 Revit ribbon 重啟 MCP 服務即可重置。
 
 ## 啟動流程
 

@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Skills 索引（57 個）· BIM_MCP</title>
-<meta property="og:title" content="RevitMCP Skills 索引：57 個編排層工作流">
-<meta property="og:description" content="57 個 Skill × 描述 × 觸發關鍵字 × 對應 Domain 表。Skill 是編排（何時/順序），Domain 是知識（法規/SOP）。從 CLAUDE.md 抽出。">
+<title>Skills 索引（61 個）· BIM_MCP</title>
+<meta property="og:title" content="RevitMCP Skills 索引：61 個編排層工作流">
+<meta property="og:description" content="61 個 Skill × 描述 × 觸發關鍵字 × 對應 Domain 表。Skill 是編排（何時/順序），Domain 是知識（法規/SOP）。從 CLAUDE.md 抽出。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
@@ -118,9 +118,9 @@
 </nav>
 
 <header class="bim-hero">
-  <div class="bim-hero-eyebrow">SKILLS INDEX <span class="accent">57 個</span></div>
+  <div class="bim-hero-eyebrow">SKILLS INDEX <span class="accent">61 個</span></div>
   <h1 class="bim-hero-title">Skills · <span class="accent">編排層</span><br>何時觸發 / 什麼順序</h1>
-  <p class="bim-hero-sub">Skills 是<strong>編排</strong>（orchestration），不是知識本身。一個 Skill 規定「<em>什麼關鍵字觸發 / 呼叫哪些工具 / 套用哪個 Domain SOP</em>」。Skill metadata 永遠常駐於 AI Client context；body 與 Domain 被引用時才載入。本頁列 57 個 Skill 的描述、觸發關鍵字與對應 Domain。</p>
+  <p class="bim-hero-sub">Skills 是<strong>編排</strong>（orchestration），不是知識本身。一個 Skill 規定「<em>什麼關鍵字觸發 / 呼叫哪些工具 / 套用哪個 Domain SOP</em>」。Skill metadata 永遠常駐於 AI Client context；body 與 Domain 被引用時才載入。本頁列 61 個 Skill 的描述、觸發關鍵字與對應 Domain。</p>
 </header>
 
 <section data-collapse class="bim-section">
@@ -129,15 +129,15 @@
   <div class="bim-grid bim-grid-3">
     <div class="bim-card">
       <h4>Skill（編排）</h4>
-      <p style="font-size:13px;">何時觸發 + 呼叫哪些 tool + 什麼順序。57 個。</p>
+      <p style="font-size:13px;">何時觸發 + 呼叫哪些 tool + 什麼順序。61 個。</p>
     </div>
     <div class="bim-card">
       <h4><a href="domain-index.html" style="border-bottom:1px solid var(--accent-border);">Domain（知識）</a></h4>
-      <p style="font-size:13px;">法規條文、SOP、計算公式。76 個。被 Skill 引用。</p>
+      <p style="font-size:13px;">法規條文、SOP、計算公式。80 個。被 Skill 引用。</p>
     </div>
     <div class="bim-card">
       <h4>Tool（執行）</h4>
-      <p style="font-size:13px;">原子操作（query / create / modify）。178 個 MCP tools。</p>
+      <p style="font-size:13px;">原子操作（query / create / modify）。185 個 MCP tools。</p>
     </div>
   </div>
   <p class="bim-section-desc" style="margin-top:var(--gap-md);">「<strong>不要把每個 Domain 都升級成 Skill</strong>」——這是本專案的核心架構原則。詳見 <a href="philosophy-22-propositions.html">22 命題</a>。</p>
@@ -515,7 +515,7 @@
     </div>
   </div>
 
-  <div class="cat-header">D · 模型分析（17 個）</div>
+  <div class="cat-header">D · 模型分析（21 個）</div>
 
   <div class="skill-card">
     <div>
@@ -753,7 +753,34 @@
     </div>
   </div>
 
-  <div class="cat-header">E · 開發運維（11 個）</div>
+  <div class="skill-card">
+    <div>
+      <div class="skill-name">/set-project-units</div>
+      <div class="skill-cat">D · 模型分析</div>
+    </div>
+    <div>
+      <div class="skill-desc">一鍵切換整個專案的顯示單位（mode=taiwan＝公制＋Air Flow m³/h，對齊建技 §102 通風量）。單一 Transaction 可 Ctrl+Z，避免手動逐 discipline 漏設（Air Flow 常被漏成 CFM）。</div>
+      <div class="skill-meta">
+        <span class="trigger-tag">專案單位</span><span class="trigger-tag">單位轉換</span><span class="trigger-tag">set project units</span><span class="trigger-tag">公制</span><span class="trigger-tag">m³/h</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="skill-card">
+    <div>
+      <div class="skill-name">/mep-settings-curation</div>
+      <div class="skill-cat">D · 模型分析</div>
+    </div>
+    <div>
+      <div class="skill-desc">盤點與增減 Mechanical Settings 的尺寸目錄（管段 / 風管 Rect·Oval·Round）、角度、坡度、流體。四階段：目錄盤點 → 模型實際用量 → 標準對帳 → 增減。核心規則是「目錄 ≠ 用量」：增無限，減只能刪模型沒用到的，且走 列表 → 執行 → QC → 誤刪復原 四步。</div>
+      <div class="skill-meta">
+        <span class="trigger-tag">盤點管徑</span><span class="trigger-tag">風管尺寸表</span><span class="trigger-tag">segments and sizes</span><span class="trigger-tag">刪掉沒用到的尺寸</span><span class="trigger-tag">mechanical settings</span><span class="trigger-tag">CNS 對帳</span>
+        <a href="domain-index.html#mep-mechanical-settings" class="domain-link">→ mep-mechanical-settings</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="cat-header">E · 開發運維（12 個）</div>
 
   <div class="skill-card">
     <div>
@@ -761,7 +788,7 @@
       <div class="skill-cat">E · 開發運維</div>
     </div>
     <div>
-      <div class="skill-desc">解析從 green-material-showcase.html「對齊需求與擬訂計畫」彈窗複製的 <code>/GM_import</code> 文字，呼叫 GM_generate_revit_injection_plan.py 擬訂 Revit 綠建材寫入計畫（僅規劃/回報，不寫入 Revit）。</div>
+      <div class="skill-desc">解析從 green-material-showcase.html「對齊需求與擬訂計畫」彈窗複製的 /GM_import 文字，呼叫 GM_generate_revit_injection_plan.py 擬訂 Revit 綠建材寫入計畫（僅規劃/回報，不寫入 Revit）。</div>
       <div class="skill-meta">
         <span class="trigger-tag">GM_import</span><span class="trigger-tag">材料 Set 對齊</span><span class="trigger-tag">injection plan</span><span class="trigger-tag">綠建材</span>
         <a href="domain-index.html#GM_catalog" class="domain-link">→ GM_catalog</a>
@@ -775,7 +802,7 @@
       <div class="skill-cat">E · 開發運維</div>
     </div>
     <div>
-      <div class="skill-desc"><code>/GM_inject revit</code>：把 <code>/GM_import</code> 已對齊的材料 Set 實際寫入目前開啟的 Revit 專案。支援 Wall／單一組合（2 材料合併一個 Type）、各別建立（每個材料各自獨立建 Type）、通用多材料單一組合（2 材料以上、任意品類的多層構造，如地板飾面+緩衝墊+結構混凝土三層）三種情境。</div>
+      <div class="skill-desc"><code>/GM_inject revit</code>：把 /GM_import 已對齊的材料 Set 實際寫入目前開啟的 Revit 專案。支援 Wall／單一組合（2 材料合併一個 Type）、各別建立（每個材料各自獨立建 Type）、通用多材料單一組合（2 材料以上、任意品類的多層構造，如地板飾面+緩衝墊+結構混凝土三層）三種情境。</div>
       <div class="skill-meta">
         <span class="trigger-tag">GM_inject revit</span><span class="trigger-tag">綠建材導入</span><span class="trigger-tag">combined wall set</span>
         <a href="domain-index.html#GM_parameter-schema" class="domain-link">→ GM_parameter-schema</a>
@@ -816,7 +843,7 @@
       <div class="skill-cat">E · 開發運維</div>
     </div>
     <div>
-      <div class="skill-desc">單一 <code>open</code> 參數直接開啟綠建材檢索與 Set Manager 網頁（唯一入口，<code>/GM_kanban</code> 原本重複的 <code>search</code> 分支已移除）：檢查 8888 埠、必要時啟動 local_server.py、開啟瀏覽器（Windows only）。</div>
+      <div class="skill-desc">單一 <code>open</code> 參數直接開啟綠建材檢索與 Set Manager 網頁（唯一入口，/GM_kanban 原本重複的 <code>search</code> 分支已移除）：檢查 8888 埠、必要時啟動 local_server.py、開啟瀏覽器（Windows only）。</div>
       <div class="skill-meta">
         <span class="trigger-tag">GM_web open</span><span class="trigger-tag">開啟檢索平台網頁</span><span class="trigger-tag">開啟綠建材檢索平台</span><span class="trigger-tag">open search platform</span>
       </div>
@@ -881,6 +908,20 @@
 
   <div class="skill-card">
     <div>
+      <div class="skill-name">/loop-up</div>
+      <div class="skill-cat">E · 開發運維</div>
+    </div>
+    <div>
+      <div class="skill-desc">多模型分工的自動迴圈修正：Fable 規劃、Sonnet 實作、Haiku 唯讀觀察記錄、高階模型唯讀稽核驗收；失敗時從最前端的 prompt 回頭修正再重跑，同階段三次不過就升級 Fable advisor。全程 human out of the loop，但 commit／push／發佈／刪除仍須停下來問人。修改驗證工具本身時，驗收強制包含負向測試以防「永遠 PASS」的假綠燈。</div>
+      <div class="skill-meta">
+        <span class="trigger-tag">loop-up</span><span class="trigger-tag">多模型分工</span><span class="trigger-tag">自動迴圈修正</span><span class="trigger-tag">prompt-first correction</span><span class="trigger-tag">迴圈驗收</span>
+        <a href="domain-index.html#qa-checklist" class="domain-link">→ qa-checklist</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="skill-card">
+    <div>
       <div class="skill-name">/claude-md-sync</div>
       <div class="skill-cat">E · 開發運維</div>
     </div>
@@ -907,7 +948,7 @@
     </div>
   </div>
 
-  <div class="cat-header">F · 進階開發 / 文件作者（3 個）</div>
+  <div class="cat-header">F · 進階開發 / 文件作者（4 個）</div>
 
   <div class="skill-card">
     <div>
@@ -949,6 +990,20 @@
       </div>
     </div>
   </div>
+
+  <div class="skill-card">
+    <div>
+      <div class="skill-name">/archicad-skill-adapter</div>
+      <div class="skill-cat">F · 進階開發 / 文件作者</div>
+    </div>
+    <div>
+      <div class="skill-desc">把既有 Revit-oriented BIM Skill 的意圖與名詞轉譯為受控的 Archicad MCP workflow，同時保留原始 Domain 方法與 Revit 路徑不變。opt-in 分支，只有明確選定 Archicad 或雙 backend 情境才會進入 discovery／translate／verify 流程；目前僅 3 個 Skill 有正式 pilot 規格，尚未經 Skill 層級的 live test 驗證。</div>
+      <div class="skill-meta">
+        <span class="trigger-tag">Archicad</span><span class="trigger-tag">backend 轉譯</span><span class="trigger-tag">GUID</span><span class="trigger-tag">Zone</span><span class="trigger-tag">Tapir</span>
+        <a href="domain-index.html#tool-capability-boundary" class="domain-link">→ tool-capability-boundary（L11）</a>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- ============================================ -->
@@ -956,7 +1011,7 @@
 <!-- ============================================ -->
 <section data-collapse class="bim-section bim-anchor" id="quick-table">
   <div class="bim-section-eyebrow">QUICK TABLE · 速查表</div>
-  <h2 class="bim-section-title">速查：57 Skill 一覽</h2>
+  <h2 class="bim-section-title">速查：61 Skill 一覽</h2>
   <p class="bim-section-desc">複製給合作對象 / 列印貼牆。</p>
 
   <figure class="bim-figure">
@@ -995,6 +1050,8 @@
       <tr><td><code>/copy-sheets-cross-project</code></td><td>C 文件</td><td>跨專案複製含 model views 圖紙</td><td>—</td></tr>
       <tr><td><code>/excel-to-legend</code></td><td>C 文件</td><td>Excel 表格匯入 Drafting View</td><td>—</td></tr>
       <tr><td><code>/detect-clashes</code></td><td>D 分析</td><td>MEP × CSA 碰撞</td><td>mep-csa-clash-detection</td></tr>
+      <tr><td><code>/mep-settings-curation</code></td><td>D 分析</td><td>管徑/風管尺寸目錄盤點與增刪</td><td>mep-mechanical-settings</td></tr>
+      <tr><td><code>/set-project-units</code></td><td>D 分析</td><td>一鍵切換專案顯示單位</td><td>mep-mechanical-settings</td></tr>
       <tr><td><code>/qa-review</code></td><td>D 分析</td><td>專案品質檢核</td><td>qa-checklist</td></tr>
       <tr><td><code>/dwg-beam-import</code></td><td>D 分析</td><td>CAD/DWG 圖層批次建樑</td><td>dwg-beam-import</td></tr>
       <tr><td><code>/dwg-column-import</code></td><td>D 分析</td><td>CAD/DWG 圖層批次建柱</td><td>dwg-column-import</td></tr>
@@ -1011,13 +1068,22 @@
       <tr><td><code>/room-numbering</code></td><td>D 分析</td><td>房間重新排序 / 自動編號</td><td>room-numbering-workflow</td></tr>
       <tr><td><code>/ifc-structural-sync</code></td><td>D 分析</td><td>IFC 同步原生梁柱</td><td>ifc-structural-native-sync</td></tr>
       <tr><td><code>/finish-schedule-governance</code></td><td>D 分析</td><td>粉刷明細表材料代碼治理</td><td>finish-schedule-governance</td></tr>
+      <tr><td><code>/GM_import</code></td><td>E 運維</td><td>解析對齊需求、擬訂 Revit 綠建材寫入計畫</td><td>GM_catalog</td></tr>
+      <tr><td><code>/GM_inject</code></td><td>E 運維</td><td>把已對齊的材料 Set 實際寫入 Revit</td><td>GM_parameter-schema</td></tr>
+      <tr><td><code>/GM_query</code></td><td>E 運維</td><td>查詢已寫入模型的綠建材認證資訊</td><td>GM_parameter-schema</td></tr>
+      <tr><td><code>/GM_kanban</code></td><td>E 運維</td><td>開啟本機專案看板</td><td>—</td></tr>
+      <tr><td><code>/GM_web</code></td><td>E 運維</td><td>開啟綠建材檢索與 Set Manager 網頁</td><td>—</td></tr>
+      <tr><td><code>/GM_update</code></td><td>E 運維</td><td>從 TABC 官網更新綠建材資料庫</td><td>GM_catalog</td></tr>
+      <tr><td><code>/GM_set</code></td><td>E 運維</td><td>比對 Set 與最新 TABC 資料是否過期/異動</td><td>GM_parameter-schema</td></tr>
       <tr><td><code>/build-revit</code></td><td>E 運維</td><td>多版本 build</td><td>(deployment-guide)</td></tr>
       <tr><td><code>/deploy-addon</code></td><td>E 運維</td><td>DLL 部署</td><td>(deployment-guide)</td></tr>
       <tr><td><code>/claude-md-sync</code></td><td>E 運維</td><td>CLAUDE.md 雙向同步</td><td>path-maintenance-qa</td></tr>
+      <tr><td><code>/loop-up</code></td><td>E 運維</td><td>多模型分工自動迴圈修正</td><td>qa-checklist</td></tr>
       <tr><td><code>/hj-pr-proposal</code></td><td>E 運維</td><td>domain/skill 轉譯為 HJ PR 草案</td><td>skill-authoring-standard</td></tr>
       <tr><td><code>/core-reload-dev</code></td><td>F 進階</td><td>opt-in 熱重載開發迭代</td><td>core-reload-boundary</td></tr>
       <tr><td><code>/domain-diagram</code></td><td>F 進階</td><td>domain SOP 流程圖像化</td><td>domain-flow-visualization</td></tr>
       <tr><td><code>/dll-to-mcp-tool</code></td><td>F 進階</td><td>把 DLL/.cs 封裝為 MCP 工具</td><td>—</td></tr>
+      <tr><td><code>/archicad-skill-adapter</code></td><td>F 進階</td><td>Revit Skill 轉譯為 Archicad MCP workflow</td><td>tool-capability-boundary</td></tr>
     </tbody>
   </table>
 </section>
@@ -1027,7 +1093,7 @@
 <!-- ============================================ -->
 <section data-collapse class="bim-section bim-anchor" id="why-not-merge">
   <div class="bim-section-eyebrow">RATIONALE · 為什麼不每個 Domain 都升級成 Skill</div>
-  <h2 class="bim-section-title">57 Skill vs 76 Domain — 為什麼數量不同？</h2>
+  <h2 class="bim-section-title">61 Skill vs 80 Domain — 為什麼數量不同？</h2>
 
   <div class="bim-grid bim-grid-2">
     <div class="bim-card bim-card-bad">
@@ -1037,7 +1103,7 @@
     </div>
     <div class="bim-card bim-card-ok">
       <h4 style="color:var(--ok);">✓ 本專案做法</h4>
-      <p>Skill = 編排（57 個 metadata 常駐）；Domain = 知識（76 markdown，被引用才載入）。</p>
+      <p>Skill = 編排（61 個 metadata 常駐）；Domain = 知識（80 markdown，被引用才載入）。</p>
       <p style="font-size:13px;color:var(--text-muted);">知識複用，編排薄層。一個防火 SOP 被三個 Skill 共享，原文只有一份。</p>
     </div>
   </div>

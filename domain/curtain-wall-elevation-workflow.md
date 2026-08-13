@@ -2,8 +2,8 @@
 name: curtain-wall-elevation-workflow
 description: "帷幕牆外立面視圖生成 SOP：當使用者要求帷幕立面、帷幕表、curtain wall elevation、create_curtain_wall_elevations 時觸發；規範如何用 Revit 原生 ElevationMarker 為每道 curtain wall 建立外側 elevation view、套用「帷幕立面」View Template、回報 skipped reason，並區分 MCP tool discovery / deployment 問題。"
 metadata:
-  version: "1.3"
-  updated: "2026-07-12"
+  version: "1.4"
+  updated: "2026-07-31"
   created: "2026-07-12"
   references: []
   related:
@@ -74,13 +74,24 @@ dir
 | `placementViewName` | string | optional | 指定 placement view 名稱。 |
 | `scale` | number | `50` | 立面比例。 |
 | `offsetMm` | number | `1500` | marker 放在牆外側的距離。 |
-| `horizontalMarginMm` | number | `0` | crop 左右 margin；預設貼合帷幕 bounding box。 |
-| `verticalMarginMm` | number | `0` | crop 上下 margin；預設貼合帷幕 bounding box。 |
-| `depthMm` | number | `1200` | 無法由帷幕元素 bounding box 推算深度時的 fallback far clip depth。 |
+| `horizontalMarginMm` | number | `0` | crop 左右 margin；直線帷幕以投影後的 `Wall.LocationCurve` 端點為基準，非直線牆才使用可視幾何 fallback。 |
+| `verticalMarginMm` | number | `0` | crop 上下 margin；底部套用於 Level-aware resolved bottom，頂部套用於帷幕幾何 top。 |
+| `depthMm` | number | `1200` | 無有效目標點或無法解析視線方向時使用的 fallback far clip depth。 |
 | `viewTemplateName` | string | `"帷幕立面"` | 要套用或建立的 View Template 名稱。 |
 | `applyViewTemplate` | boolean | `true` | 是否套用 View Template。 |
 | `nameSeparator` | string | `""` | `{LevelName}` 與 `{Mark}` 中間的分隔字串。 |
+| `wallTagTypeId` | number | required | 已載入的 `OST_WallTags` `FamilySymbol` ID；未提供時先回傳選單，且不修改模型。 |
+| `addDimensions` | boolean | `true` | 是否建立總寬、總高及 CurtainGrid 尺寸。 |
+| `dimensionTypeSelectionMode` | string | `"auto"` | `auto` 自動解析 DimensionType；`prompt` 且未指定類型時要求使用者選擇。 |
+| `dimensionTypeId` | number | optional | 指定線性 `DimensionType` ID，優先於名稱與自動解析。 |
+| `dimensionTypeName` | string | optional | 指定線性 `DimensionType` 名稱。 |
+| `dimensionOffsetMm` | number | `300` | 無法取得 DimensionType 輔助線長度時，帷幕邊界至內層尺寸線的模型距離 fallback。 |
+| `dimensionStackOffsetMm` | number | `250` | 無法取得 DimensionType 輔助線長度時，內外層尺寸線間距的模型距離 fallback。 |
 | `dryRun` | boolean | `false` | 只預覽結果，不建立 view。 |
+
+Far clip 以 `view.Origin` 沿立面實際視線方向投影目標帷幕元素，取最遠正深度並加 `50 mm`。只有無有效目標點或無法解析視線時才使用 `depthMm`；全部投影深度為負時改用最大絕對深度並回傳警告。寫入後會以 `1 mm` 容差讀回驗證。
+
+`wallTagTypeId` 是 dry run 與正式執行的共同必要前置輸入；未選擇有效牆標籤類型時，不會進入尺寸類型解析或建立任何模型元素。
 
 ### Output
 
@@ -95,9 +106,16 @@ dir
 | `ViewTemplateName` | 使用的 template 名稱。 |
 | `TemplateCreated` | 是否新建 template。 |
 | `TemplateUpdated` | 是否更新 template category / non-controlled params。 |
+| `AddDimensions` | 本批次是否要求建立尺寸。 |
+| `DimensionTypeId` / `DimensionTypeName` / `DimensionTypeSource` | 本批次解析到的 DimensionType 與來源。 |
+| `DimensionWarnings[]` | DimensionType 解析或尺寸批次警告。 |
+| `WallTagTypeId` / `WallTagTypeName` | 本批次使用的牆標籤類型。 |
+| `WallTagWarnings[]` | 牆標籤批次警告。 |
 | `Created[]` | 每道成功牆的結果。 |
 | `Skipped[]` | 每道失敗或跳過牆的原因。 |
 | `TemplateWarnings[]` | category 或 template parameter 無法處理時的 warning。 |
+
+`Created[]` 的穩定結果群組包含：基本 view／wall 識別、far clip readback、Level-aware crop、尺寸建立與 Reference 驗證、牆標籤結果，以及需要時的 active-view 診斷。內部除錯欄位可隨診斷需求增加，不應把範例視為完整固定欄位清單。
 
 `Created[]` item 範例：
 
@@ -109,7 +127,13 @@ dir
   "LevelName": "1F",
   "Mark": "CW-01",
   "MarkerId": 24680,
-  "FarClipDepthMm": 186.5,
+  "FarClipDepthMm": 1750.0,
+  "FarClipMethod": "view_origin_to_target_max_depth",
+  "FarClipRequestedDepthMm": 1750.0,
+  "FarClipActualOffsetMm": 1750.0,
+  "FarClipActualActive": 1,
+  "FarClipActualMode": 2,
+  "FarClipPass": true,
   "DirectionDot": 1.0,
   "DirectionFixApplied": false,
   "DesiredLookDirection": { "X": -1.0, "Y": 0.0, "Z": 0.0 },
@@ -119,6 +143,18 @@ dir
   "CropPointCount": 128,
   "CropFallbackElementCount": 0,
   "CropFrameSource": "wall_location_curve",
+  "CurtainHorizontalBoundarySource": "wall_location_curve_endpoints",
+  "CurtainBoundaryMinXmm": -3469.0,
+  "CurtainBoundaryMaxXmm": 3469.0,
+  "CropBottomRule": "min(wall_level_y, curtain_geometry_min_y) - vertical_margin",
+  "CropBottomBoundarySource": "wall_level",
+  "CropBottomLevelId": 13579,
+  "CropBottomLevelName": "1F",
+  "CropBottomLevelViewYmm": 0.0,
+  "CurtainGeometryMinYmm": 200.0,
+  "CurtainGeometryMaxYmm": 3000.0,
+  "CropBottomResolvedYmm": 0.0,
+  "CropWarnings": [],
   "CropRightDirection": { "X": 0.0, "Y": 1.0, "Z": 0.0 },
   "CropUpDirection": { "X": 0.0, "Y": 0.0, "Z": 1.0 },
   "CropDepthDirection": { "X": -1.0, "Y": 0.0, "Z": 0.0 },
@@ -134,6 +170,25 @@ dir
   "CropRegionShapeApplied": false,
   "CropRegionShapeFallbackReason": "disabled_for_diagnostics",
   "MarkerPoint": { "X": 100.0, "Y": 20.0, "Z": 0.0 },
+  "AddDimensions": true,
+  "DimensionTypeId": 11223,
+  "DimensionTypeName": "線性 - 2.5mm",
+  "DimensionsCreatedCount": 4,
+  "DimensionStatus": "created",
+  "TotalWidthDimensionId": 67891,
+  "TotalHeightDimensionId": 67892,
+  "CurtainBottomToLevelDistanceMm": 200.0,
+  "LevelOffsetDimensionMode": "enhanced_total_height_chain",
+  "LevelOffsetDimensionElementId": 67892,
+  "LevelOffsetDimensionStatus": "created",
+  "LevelOffsetDimensionAreReferencesAvailable": false,
+  "LevelOffsetDimensionReferenceSource": "wall_level_plane_reference",
+  "PostCommitDimensionValidation": [],
+  "WallTagId": 67895,
+  "WallTagStatus": "created",
+  "WallTagPositionMm": { "X": 0.0, "Y": 5200.0, "Z": 0.0 },
+  "WasViewOpenBeforeDimensioning": false,
+  "WasViewActiveBeforeDimensioning": false,
   "WallMidPoint": { "X": 95.0, "Y": 20.0, "Z": 0.0 }
 }
 ```
@@ -324,6 +379,24 @@ view_2d_visible_bounds
 - `CropFallbackElementIds`
 - `CropRegionShapeApplied = false`
 
+### Level-aware Crop Bottom
+
+垂直 crop bottom 使用 wall 所屬 `wall.LevelId`，不可用最近 Level 或幾何高度重新猜測：
+
+```text
+levelY = project(Level.Elevation into elevation view 2D frame)
+cropBottomBeforeMarginY = min(levelY, curtainGeometryMinY)
+cropBottomY = cropBottomBeforeMarginY - verticalMargin
+cropTopY = curtainGeometryMaxY + verticalMargin
+```
+
+- 一般帷幕且 `verticalMarginMm = 0` 時，底界精確對齊所屬樓層線。
+- 帷幕幾何低於樓層線時，底界保留幾何 MinY，避免裁掉負 Base Offset 或其他下伸部分。
+- Level、牆中心或 2D frame 無法解析時，fallback 到幾何 MinY，並在 `CropWarnings` 與 `CropBottomBoundaryFallbackReason` 回報。
+- `View2DMin` / `CropBottomResolvedYmm` 代表實際 crop bottom；尺寸與 grid reference 搜尋必須使用獨立的 `CurtainGeometryMinY` / `CurtainGeometryMaxY`，不可把樓層線當成尺寸邊界。
+- 牆標籤仍以實際 crop bottom 加 `5200 mm` 定位。
+
+`Created[]` 需回傳 `CropBottomBoundarySource`、Level ID/name/elevation、Level view Y、帷幕幾何 MinY/MaxY、margin 前後的 resolved bottom 與 `CropWarnings`。
 debug SOP：
 
 - 如果 crop 還是偏大，先跑 `diagnose_curtain_wall_elevation_directions` 並設定 `includeCropDiagnostics = true`。
@@ -334,10 +407,10 @@ debug SOP：
 
 - `CropBoxActive = true`
 - `CropBoxVisible = false`
-- crop box 貼合帷幕所有相關元素在 elevation view 2D 畫面中的最小矩形範圍
-- `VIEWER_BOUND_ACTIVE = 1`
+- crop box 水平與頂部貼合帷幕幾何；底部使用 Level-aware 規則，並保留低於樓層線的帷幕幾何
+- `VIEWER_BOUND_ACTIVE_FAR = 1`
 - `VIEWER_BOUND_FAR_CLIPPING = 2`，也就是 UI 的「剪裁含線」
-- `VIEWER_BOUND_OFFSET = autoDepthFt`
+- `VIEWER_BOUND_OFFSET_FAR = autoDepthFt`
 
 不要直接用 `element.get_BoundingBox(null)` 的 8 個角點當主要 crop 來源。`get_BoundingBox(null)` 是 world-axis-aligned bounding box；斜向帷幕會先被世界 X/Y 軸放大，再投影到立面座標，造成 crop 過寬。
 
@@ -387,7 +460,14 @@ host wall 只允許在完全沒有 panel / mullion / insert points 時作最後 
 
 只有當某個元素無法取得 geometry points 時，才 fallback 到該元素 `get_BoundingBox(null)` 的角點。所有點都必須先投影到 actual view crop frame 後再算 local min/max。
 
-`autoDepthFt = localMaxZ - localMinZ`，同樣使用 geometry-derived local Z 範圍。如果完全無法取得 geometry 或 bbox points，才使用 `depthMm` 當 fallback。
+far clip 與 crop 的 X/Y 範圍分開計算。每個目標點的深度為：
+
+```text
+candidateDepth = (targetPoint - view.Origin) dot visualLookDirection
+autoDepthFt = max(positive candidateDepth) + 50 mm
+```
+
+若所有 candidate depth 都為負，改用最大絕對深度加 `50 mm` 並回傳 warning；沒有有效目標點或無法解析視線方向時才使用 `depthMm`。寫入 `VIEWER_BOUND_OFFSET_FAR` 後必須 `Document.Regenerate()`，再讀回 active、mode 與 offset；requested/actual offset 差值必須小於等於 `1 mm`。
 
 `Created[]` 需回傳 crop 診斷欄位：
 
@@ -478,6 +558,8 @@ template 只保留這些 category visible：
 | `OST_Windows` | 以窗族實作的帷幕 panel |
 | `OST_Levels` | level lines |
 | `OST_WallTags` | wall tags |
+| `OST_Dimensions` | 帷幕總尺寸、CurtainGrid 尺寸與樓層偏移尺寸 |
+| `OST_Lines` | 尺寸 Reference fallback 使用的不可見 view-specific 細部線 |
 
 ### Non-Controlled Template Parameters
 
@@ -489,6 +571,26 @@ template 不控制：
 - far clip offset / depth
 
 因此每張帷幕立面仍可保留自己的 crop box 與 far clip depth。
+
+## Wall Tag Selection and Placement
+
+`create_curtain_wall_elevations` 在任何模型變更前必須取得 `wallTagTypeId`：
+
+- 未提供時回傳 `WorkflowState = "awaiting_wall_tag_type_selection"`、`RequiresUserInput = true`、`NoModelChanges = true`。
+- `AvailableWallTagTypes[]` 列出已載入的 `OST_WallTags` `FamilySymbol`，欄位為 `TypeId`、`FamilyName`、`TypeName`、`DisplayName`。
+- 提示文字必須包含「應選擇具有[標記]參數的標籤類型」。Revit API 不可靠地公開 tag family label 綁定，因此不自動判斷族內 Label 是否綁定 `Mark`。
+- 無已載入類型時回傳 `NextAction = "load_wall_tag_family"`；錯誤或非牆標籤的 ID 必須在 Transaction 前拒絕。
+
+每張成功建立的帷幕立面在尺寸流程完成後，以 `IndependentTag` 建立一個無引線、水平的牆標籤：
+
+```text
+viewX = (curtainBoundaryMinX + curtainBoundaryMaxX) / 2
+viewY = cropBottomY + 5200 mm
+```
+
+標籤 reference 必須指向該立面的目標 curtain wall。`OST_WallTags` 在 View Template 中保持可見，annotation crop 必須關閉；任一已建立立面的標籤失敗時回滾整個 `TransactionGroup`。
+
+批次輸出增加 `WallTagTypeId`、`WallTagTypeName`、`WallTagWarnings`；每個 `Created[]` 增加 `WallTagId`、`WallTagStatus`、`WallTagPositionMm`（view 2D 座標）與 `WallTagWorldPositionMm`。
 
 ## Failure Semantics
 
@@ -685,11 +787,83 @@ Flipped = false -> opposite_orientation
 - 黑色三角方向看回帷幕牆。
 - `Created[].DirectionDot` 應接近 `1.0`，至少 `>= 0.98`。
 - View Template 名稱為 `帷幕立面`。
-- template 只顯示 walls、curtain wall panels、curtain wall mullions、doors、windows、levels、wall tags。
-- crop box 貼合帷幕 bounding box。
+- template 只顯示 walls、curtain wall panels、curtain wall mullions、doors、windows、levels、wall tags、dimensions、lines。
+- 直線帷幕的 crop box 左右界貼合 `Wall.LocationCurve` 投影端點；頂界貼合帷幕可視幾何，底界符合 `min(Level Y, curtain geometry MinY) - verticalMargin`。
 - far clip mode 是「剪裁含線」。
 - crop box / far clip depth 不被 template 鎖住。
+- 每張成功立面恰有一個指向目標 curtain wall 的無引線水平牆標籤，位置為 resolved crop bottom + `5200 mm`。
+- 帷幕底高於 Level 超過 `1 mm` 時，左側總高鏈同時顯示 Level 至帷幕底與帷幕總高；距離小於等於 `1 mm` 時不增加 Level 段；帷幕底低於 Level 時在總高尺寸外側建立獨立 Level offset 尺寸。
 - `Skipped[]` 有具體 reason，沒有 silent failure。
+
+## 尺寸標示規則
+
+`create_curtain_wall_elevations` 預設以 `addDimensions = true` 建立四組 Revit `Dimension`：
+
+- 上方內層：垂直帷幕網格投影形成的水平尺寸鏈。
+- 上方外層：總寬。
+- 左側內層：水平帷幕網格投影形成的垂直尺寸鏈。
+- 左側外層：總高。
+
+### 樓層線至帷幕底部尺寸
+
+左側總高尺寸使用帷幕實際幾何底部、頂部與 `wall.LevelId` 的 Level Reference：
+
+- 帷幕底高於樓層線超過 `1 mm`：在同一總高尺寸鏈加入樓層線，顯示樓層至帷幕底與帷幕總高兩段。
+- 絕對距離小於等於 `1 mm`：視為零，不加入樓層距離段。
+- 帷幕底低於樓層線超過 `1 mm`：保留原總高尺寸，並在其左側再偏移一個 `dimensionStackOffset` 建立獨立尺寸。
+- Level 幾何 Reference 必須使用 `Level.GetPlaneReference()`，並驗證 stable representation 可 round-trip；禁止使用 `new Reference(level)`。
+- Level plane Reference 無法使用或被 `NewDimension` 拒絕時，在投影後的 Level Y 建立 view-specific 細部線，強制套用 `OST_InvisibleLines`，再使用其幾何 Reference。
+- 無法取得或套用 Invisible Lines 時必須刪除輔助線並保留原總高，不可留下可見細部線。
+- 同鏈尺寸 commit 後驗證失敗時，回退為原總高加外側獨立尺寸，樓層端改用不可見細部線 Reference；獨立樓層距離尺寸驗證失敗時也採相同修復。
+- `wall_level_plane_reference` 且為 `level_offset` 或包含 Level offset 的增強總高鏈時，Revit 若在 commit 後回傳 `AreReferencesAvailable = false`，只有 Dimension 存在、OwnerView、Reference 數量及 segment values（容差 `0.5 mm`）全部正確才保留，validation mode 為 `level_plane_segment_validation`；API 原始 false 值照實回傳。
+- 上述例外不得套用至一般總高、總寬、CurtainGrid 或其他 geometry／DetailCurve 尺寸，這些尺寸維持 strict `AreReferencesAvailable` 驗證。
+- Level offset 的 Invisible Lines 備援可額外按 `GraphicsStyleCategory.Id == OST_InvisibleLines` 尋找 Projection style；共用尺寸 fallback 的線型解析行為不變。
+- `LevelOffsetDimensionReferenceSource` 區分 `wall_level_plane_reference` 與 `invisible_detail_curve_fallback`。
+- Level Reference 解析與細部線建立只需要 `Document.Regenerate()`，不要求為此切換 `ActiveView`；既有 CurtainGridLine 原生 Reference 流程仍可依其自身需求啟用目標視圖。
+
+`Created[]` 回傳 `CurtainBottomToLevelDistanceMm`、`LevelOffsetDimensionMode`、`LevelOffsetDimensionElementId`、`LevelOffsetDimensionStatus`、`LevelOffsetDimensionAreReferencesAvailable` 與 `LevelOffsetDimensionReferenceSource`。
+
+直線帷幕的水平尺寸鏈以 `Wall.LocationCurve` 兩個端點投影至立面 `RightDirection` 後的原始邊界為準，不使用 panel、mullion 或 insert bounding box，也不包含 `horizontalMarginMm`。crop 左右界才會在原始邊界外加 `horizontalMarginMm`；預設為 `0` 時，crop 與帷幕左右端點一致。原生 geometry reference 必須位於端點 `1 mm` 內；找不到時使用端點座標建立 Invisible detail curve reference，不退回最近的豎框外緣。非直線 LocationCurve 保留既有可視幾何範圍並回傳 fallback 原因。
+
+尺寸線的垂直座標仍以立面的 `UpDirection` 與已驗證的 `Crop2DMin`／`Crop2DMax` 為基準。帷幕可視邊界至內層網格尺寸線的模型間距，優先採用（DimensionType 的「輔助線長度」+ 圖紙 `3 mm`）乘以立面視圖比例；內層網格尺寸線至外層總尺寸線的模型間距，採用輔助線長度乘以立面視圖比例。只有無法讀取有效輔助線長度時，才分別使用 `dimensionOffsetMm`（預設模型距離 `300 mm`）與 `dimensionStackOffsetMm`（預設模型距離 `250 mm`）作為 fallback，並在回傳結果中說明來源與原因。即使某方向沒有足夠網格而略過網格尺寸，總尺寸仍保留在固定外層位置。
+
+DimensionType 解析順序：
+
+1. `dimensionTypeId`
+2. `dimensionTypeName`
+3. 本次 RevitMCP process 最近成功使用的帷幕立面標註類型
+4. Revit 預設線性標註類型
+5. 第一個可用的 `DimensionType`
+
+`dimensionTypeSelectionMode = prompt` 且未提供類型時，工具回傳 `awaiting_dimension_type_selection`，不建立任何視圖。自動模式找不到類型時仍建立立面，並在 `DimensionWarnings` 回報。
+
+Reference 策略：
+
+- 總寬與總高只接受帷幕面板、豎框、門窗或其他插入物的真實 geometry reference。
+- 網格尺寸優先使用 `CurtainGridLine` 與帷幕元素的真實 reference。
+- 網格 reference 不足或 Revit 拒絕建立時，才建立套用 Invisible 線型的 detail curve 作為 fallback。
+- 回傳欄位會標示 `geometry_reference`、`detail_curve_fallback_from_curtain_grid_coordinates`、`skipped` 或 `failed`。
+
+除錯時使用 `diagnose_curtain_wall_elevation_dimensions`。預設 `rollback = true`，測試產生的尺寸、ReferencePlane 與 detail curve 都不會留在模型。應檢查 `AttemptedDimensions`、`VerifiedDimensionIds`、`OwnerViewId` 與 `Failures`，不要只依賴 API 未拋出例外就判定成功。
+
+
+### 樓層偏移尺寸 Runtime 回歸測試
+
+`testMode = "level_offset"` 必須指定 `wallId`，或在目標立面只選取一道 curtain wall；此模式禁止退回模型第一道帷幕牆。`viewId` 未提供時，目標視圖固定使用目前作用中的 elevation view。
+
+測試以 production crop、view frame、帷幕底／頂 geometry Reference、`wall.LevelId` 與解析後的 DimensionType／尺寸堆疊間距建立資料，並比較 target view 未啟用與啟用兩種狀態。每種狀態依序測試：
+
+- `Level.GetPlaneReference()` + 帷幕底的兩 Reference 尺寸。
+- Level + 帷幕底 + 帷幕頂的三 Reference 尺寸鏈。
+- `OST_InvisibleLines` 細部線 + 帷幕底的兩 Reference fallback。
+- 細部線 + 帷幕底 + 帷幕頂的三 Reference fallback 尺寸鏈。
+- 完整 production 建立與 post-commit repair 流程。
+
+每個 raw attempt 都在已 commit 的 inner transaction 後讀取 `AreReferencesAvailable`、Reference 數量與 segment values，並回傳 Reference element ID、`ElementReferenceType`、stable representation round-trip、OwnerViewId、線型 read-back、`PostCommitValidationMode`、例外與 `FailureStage`。production attempt 同步回傳 validation mode、預期／實際 segment values 與既有 `LevelOffsetDimension*` 診斷欄位。
+
+整個測試固定包在 outer `TransactionGroup` 並最終 rollback；呼叫端傳入的 `rollback` 不得關閉此保護。回傳 `RollbackCleanupPassed` 驗證所有暫時 Dimension 與 DetailCurve 已不存在。後續 production 修正只能依 `FirstFailure` 或 `FirstProductionFailure` 的第一個失敗 assertion 決定。
+
+
 
 ## Boundaries
 
@@ -697,7 +871,6 @@ Flipped = false -> opposite_orientation
 
 - linked model curtain wall
 - 自動修正 wall orientation
-- 自動新增牆標籤
 - sheet 排版
 - 帷幕表編號
 - panel / mullion 統計表

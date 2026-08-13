@@ -97,6 +97,7 @@ export const clashTools: Tool[] = [
                     type: "object",
                     description: "CSA 結構來源（通常為主模型）",
                     properties: {
+                        linkInstanceId: { type: "number", description: "連結模型 ID；為 0 或省略時從主模型讀取" },
                         categories: {
                             type: "array",
                             items: { type: "string" },

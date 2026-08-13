@@ -10,10 +10,13 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 import { RevitSocketClient } from "./socket.js";
 import { registerRevitTools, executeRevitTool } from "./tools/revit-tools.js";
+import { listAppResources, readAppResource } from "./apps/register-apps.js";
 
 // MCP Server Instance
 const server = new Server(
@@ -24,6 +27,8 @@ const server = new Server(
   {
     capabilities: {
       tools: {},
+      // MCP Apps (io.modelcontextprotocol/ui): serve ui:// HTML resources for interactive tools.
+      resources: {},
     },
   }
 );
@@ -41,6 +46,24 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 });
 
 /**
+ * Handle List Resources Request (MCP Apps: ui:// interactive UI resources)
+ */
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return { resources: listAppResources() };
+});
+
+/**
+ * Handle Read Resource Request (serves the ui:// App HTML)
+ */
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  const resource = readAppResource(request.params.uri);
+  if (!resource) {
+    throw new Error(`Resource not found: ${request.params.uri}`);
+  }
+  return resource;
+});
+
+/**
  * Handle Call Tool Request
  */
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -50,7 +73,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     // Check Revit Connection
     if (!revitClient.isConnected()) {
-      console.error("[MCP Server] Revit not connected, attempting to connect...");
+      // 取得目前 AI 客戶端名稱（MCP initialize 的 clientInfo.name），連線時一併回報給 Revit add-in
+      const clientInfo = server.getClientVersion();
+      revitClient.clientName = clientInfo?.name || "unknown";
+      console.error(`[MCP Server] Revit not connected, connecting as client="${revitClient.clientName}"...`);
       await revitClient.connect();
     }
 

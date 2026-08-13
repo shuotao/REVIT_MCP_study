@@ -1,5 +1,6 @@
-﻿# Revit MCP QA/QC Verification Script
-# Usage: .\scripts\verify-qaqc.ps1 [-SkipBuild] [-SkipDeploy] [-Version 2024]
+﻿#Requires -Version 5.1
+# Revit MCP QA/QC Verification Script
+# Usage: .\scripts\verify-qaqc.ps1 [-SkipBuild] [-SkipDeploy] [-Version 2024] [-AddinsRoot <path>]
 #
 # Phases:
 #   1. File Structure Integrity
@@ -10,11 +11,15 @@
 #   6. Domain Metadata and Shared SOP Quality
 #   7. Cross-Document Alignment (CLAUDE.md / BIM_MCP web / scripts must report same Skill/Domain/Tool counts)
 #   8. Document Audience and Encoding Hygiene
+#   9. MCP 2026 Compliance (tool annotation coverage: title / readOnlyHint / destructiveHint allow-list)
 
 param(
     [switch]$SkipBuild,
     [switch]$SkipDeploy,
-    [string]$Version = ""
+    [string]$Version = "",
+    # Phase 5 專用：Addins 根目錄（預設為使用者實際部署位置）。
+    # 指向暫存 fixture 即可對 Phase 5 做負向測試，不動真實部署。
+    [string]$AddinsRoot = ""
 )
 
 $ErrorActionPreference = "Continue"
@@ -381,14 +386,28 @@ if ($SkipDeploy) {
     Write-Skip "Deployment check" "Skipped via -SkipDeploy flag"
 }
 else {
-    $appDataPath = $env:APPDATA
-    $supportedVersions = @("2022", "2023", "2024", "2025", "2026")
+    # -AddinsRoot 未指定時使用實際部署位置
+    $addinsBase = $AddinsRoot
+    if (-not $addinsBase) { $addinsBase = Join-Path $env:APPDATA "Autodesk\Revit\Addins" }
+
+    # 版本→建構組態對應。與 scripts/install-addon.ps1 的 $versionConfigMap（L233-240）
+    # 刻意重複定義——兩支都是獨立入口腳本，抽共用模組的 import 成本大於 5 行常值；
+    # 修改任一側時必須同步另一側（雙向註解互指）。
+    $versionConfigMap = @{
+        "2022" = "Release.R22"
+        "2023" = "Release.R23"
+        "2024" = "Release.R24"
+        "2025" = "Release.R25"
+        "2026" = "Release.R26"
+    }
+    # supportedVersions 由對應表導出，檔內單一事實來源（取代原硬編陣列）
+    $supportedVersions = @($versionConfigMap.Keys | Sort-Object)
 
     Write-Host ""
     Write-Host "  5-1. Installed addin locations:" -ForegroundColor Cyan
     $installedVersions = @()
     foreach ($ver in $supportedVersions) {
-        $addinsDir = Join-Path $appDataPath "Autodesk\Revit\Addins\$ver"
+        $addinsDir = Join-Path $addinsBase $ver
         if (Test-Path $addinsDir) {
             $addinFiles = Get-ChildItem -Path $addinsDir -Filter "*.addin" -Recurse -ErrorAction SilentlyContinue |
                 Where-Object { $_.Name -match "RevitMCP|revit-mcp" }
@@ -412,7 +431,7 @@ else {
     Write-Host "  5-2. Duplicate addin detection:" -ForegroundColor Cyan
     $duplicateFound = $false
     foreach ($ver in $installedVersions) {
-        $addinsDir = Join-Path $appDataPath "Autodesk\Revit\Addins\$ver"
+        $addinsDir = Join-Path $addinsBase $ver
         $addinFiles = Get-ChildItem -Path $addinsDir -Filter "*.addin" -Recurse -ErrorAction SilentlyContinue |
             Where-Object { $_.Name -match "RevitMCP|revit-mcp" }
 
@@ -437,6 +456,107 @@ else {
     }
     if (-not $duplicateFound -and $installedVersions.Count -gt 0) {
         Write-Check "No duplicate addin files" $true
+    }
+
+    # 各版本部署狀態盤點（#91 標準配置：Addins\<year>\RevitMCP.addin + Addins\<year>\RevitMCP\*.dll）
+    $deployStates = @()
+    foreach ($ver in $supportedVersions) {
+        $addinsDir = Join-Path $addinsBase $ver
+        if (-not (Test-Path -LiteralPath $addinsDir)) { continue }   # 該版本 Revit 未安裝：整組靜默略過
+        $buildConfig = $versionConfigMap[$ver]
+        $binDir = Join-Path $projectRoot "MCP\bin\$buildConfig"
+        $deployStates += @{
+            Version   = $ver
+            AddinsDir = $addinsDir
+            Config    = $buildConfig
+            BinDir    = $binDir
+            HasBuild  = [bool](Test-Path -LiteralPath (Join-Path $binDir "RevitMCP.dll"))
+            Deployed  = [bool]($installedVersions -contains $ver)     # 沿用 5-1 的偵測結果
+            DeployDir = (Join-Path $addinsDir "RevitMCP")
+        }
+    }
+
+    # 5-3: Deployed dependency completeness
+    Write-Host ""
+    Write-Host "  5-3. Deployed dependency completeness (deployed set must cover build output):" -ForegroundColor Cyan
+    foreach ($st in $deployStates) {
+        $ver = $st.Version
+        if (-not $st.Deployed) {
+            Write-Skip "Revit $ver dependency completeness" "RevitMCP not deployed for this version (user choice)"
+            continue
+        }
+        if (-not $st.HasBuild) {
+            Write-Skip "Revit $ver dependency completeness" "No build output at MCP\bin\$($st.Config) - run dotnet build -c $($st.Config) first"
+            continue
+        }
+        $expected = @(Get-ChildItem -Path $st.BinDir -Filter "*.dll" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })
+        $deployed = @(Get-ChildItem -Path $st.DeployDir -Filter "*.dll" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })
+        $missing = @($expected | Where-Object { $_ -notin $deployed })
+        Write-Check "Revit $ver dependency set complete ($($expected.Count) DLLs from $($st.Config))" ($missing.Count -eq 0) `
+            $(if ($missing.Count -gt 0) { "Missing in $($st.DeployDir): $($missing -join ', ')" } else { "" })
+    }
+
+    # 5-4: Build freshness
+    Write-Host ""
+    Write-Host "  5-4. Build freshness (deployed RevitMCP.dll SHA256 vs build output):" -ForegroundColor Cyan
+    $freshVersions = @()
+    $staleVersions = @()
+    foreach ($st in $deployStates) {
+        $ver = $st.Version
+        if (-not $st.Deployed) {
+            Write-Skip "Revit $ver build freshness" "RevitMCP not deployed for this version (user choice)"
+            continue
+        }
+        if (-not $st.HasBuild) {
+            Write-Skip "Revit $ver build freshness" "No build output at MCP\bin\$($st.Config) - run dotnet build -c $($st.Config) first"
+            continue
+        }
+        $deployedMain = Join-Path $st.DeployDir "RevitMCP.dll"
+        if (-not (Test-Path -LiteralPath $deployedMain)) {
+            Write-Skip "Revit $ver build freshness" "RevitMCP.dll not present in $($st.DeployDir) (see 5-3)"
+            continue
+        }
+        $srcHash = (Get-FileHash -LiteralPath (Join-Path $st.BinDir "RevitMCP.dll") -Algorithm SHA256).Hash
+        $dstHash = (Get-FileHash -LiteralPath $deployedMain -Algorithm SHA256).Hash
+        if ($srcHash -eq $dstHash) {
+            $freshVersions += $ver
+            Write-Check "Revit $ver RevitMCP.dll matches $($st.Config) build output" $true
+        }
+        else {
+            $staleVersions += $ver
+            Write-Warn "Revit $ver RevitMCP.dll differs from $($st.Config) build output" `
+                "deployed=$($dstHash.Substring(0,12))... build=$($srcHash.Substring(0,12))... - possibly not redeployed after rebuild; run scripts\install-addon.ps1"
+        }
+    }
+
+    # 5-5: Cross-version deployment consistency (aggregates 5-4 results, no re-hashing)
+    Write-Host ""
+    Write-Host "  5-5. Cross-version deployment consistency:" -ForegroundColor Cyan
+    if ($staleVersions.Count -gt 0) {
+        Write-Warn "Deployed versions lag current build outputs" `
+            "Stale: $($staleVersions -join ', ')$(if ($freshVersions.Count -gt 0) { "; in-sync: $($freshVersions -join ', ')" })"
+    }
+    elseif ($freshVersions.Count -gt 0) {
+        Write-Check "All comparable deployed versions match current build outputs ($($freshVersions -join ', '))" $true
+    }
+    else {
+        Write-Skip "Cross-version deployment consistency" "No version comparable (no deployments or no build outputs)"
+    }
+
+    # 5-6: Legacy root-level DLL residue (pre-#91 layout)
+    Write-Host ""
+    Write-Host "  5-6. Legacy root-level DLL residue (pre-#91 layout):" -ForegroundColor Cyan
+    $residueFound = $false
+    foreach ($st in $deployStates) {
+        $rootDll = Join-Path $st.AddinsDir "RevitMCP.dll"
+        if (Test-Path -LiteralPath $rootDll) {
+            $residueFound = $true
+            Write-Warn "Revit $($st.Version) has root-level RevitMCP.dll (pre-#91 layout)" `
+                "Delete $rootDll - the manifest loads RevitMCP\RevitMCP.dll from the subfolder; the root copy is stale residue"
+        }
+    }
+    if (-not $residueFound -and $deployStates.Count -gt 0) {
+        Write-Check "No legacy root-level RevitMCP.dll residue" $true
     }
 }
 
@@ -580,7 +700,7 @@ $scanPaths = @(
     "$projectRoot\docs\DOCUMENT_AUDIENCE_INVENTORY.md",
     "$projectRoot\docs\BIM_MCP\*.html",
     "$projectRoot\docs\BIM_MCP\reference\*.html",
-    "$projectRoot\docs\BIM_MCP\_shared.js"
+    "$projectRoot\docs\BIM_MCP\shared.js"
 )
 
 # Known claim-site patterns — ONLY match GRAND-TOTAL claim phrases (not "5 個 ARCHI 工具" type batch counts).
@@ -836,21 +956,127 @@ Write-Check "All real domain files appear in BIM_MCP domain-index" ($notInIndex.
     $(if ($notInIndex.Count -gt 0) { "Missing card(s): $($notInIndex -join ', ')" } else { "" })
 if ($notInIndex.Count -gt 0) { $notInIndex | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkYellow } }
 
-# 7-10: Real skills → BIM_MCP skills-index.html (forward check)
+# 7-10: Real skills <-> BIM_MCP skills-index.html (exactly-one check, both directions)
 # Same omission class as 7-9 but for skills — skills-index count can be bumped without
-# the matching skill card actually being added. Every .claude/skills/*/SKILL.md must be carded.
+# the matching skill card actually being added.
+#
+# "Present" is NOT enough. A presence-only check passes when a skill is carded TWICE,
+# which is exactly what happened on 2026-08-10: two agents each added an
+# archicad-skill-adapter card and QAQC still reported PASS. Count instead of test.
+#
+# Match with explicit terminators (</div>, </code>) so a skill name that is a prefix of
+# another (e.g. `loop` vs `loop-up`) cannot satisfy the other's requirement.
 Write-Host ""
-Write-Host "  7-10. Real skills -> BIM_MCP skills-index:" -ForegroundColor Cyan
+Write-Host "  7-10. Real skills <-> BIM_MCP skills-index (exactly one card + one row each):" -ForegroundColor Cyan
 $skillsIndexText = Read-FileText "$projectRoot\docs\BIM_MCP\reference\skills-index.html"
 $skillNames = Get-ChildItem -Path "$projectRoot\.claude\skills" -Directory -ErrorAction SilentlyContinue |
     Where-Object { Test-Path (Join-Path $_.FullName 'SKILL.md') } | ForEach-Object { $_.Name }
-$skillNotInIndex = @()
-foreach ($s in $skillNames) {
-    if (-not $skillsIndexText -or $skillsIndexText -notmatch [regex]::Escape("/$s")) { $skillNotInIndex += $s }
+
+$skillIndexProblems = @()
+if (-not $skillsIndexText) {
+    $skillIndexProblems += "skills-index.html unreadable"
 }
-Write-Check "All real skills appear in BIM_MCP skills-index" ($skillNotInIndex.Count -eq 0) `
-    $(if ($skillNotInIndex.Count -gt 0) { "Missing card(s): $($skillNotInIndex -join ', ')" } else { "" })
-if ($skillNotInIndex.Count -gt 0) { $skillNotInIndex | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkYellow } }
+else {
+    foreach ($s in $skillNames) {
+        $cardCount = ([regex]::Matches($skillsIndexText, 'class="skill-name">/' + [regex]::Escape($s) + '</div>')).Count
+        $rowCount  = ([regex]::Matches($skillsIndexText, '<code>/' + [regex]::Escape($s) + '</code>')).Count
+        if ($cardCount -eq 0) { $skillIndexProblems += "$s : missing card" }
+        elseif ($cardCount -gt 1) { $skillIndexProblems += "$s : DUPLICATE card x$cardCount" }
+        if ($rowCount -eq 0) { $skillIndexProblems += "$s : missing quick-table row" }
+        elseif ($rowCount -gt 1) { $skillIndexProblems += "$s : DUPLICATE quick-table row x$rowCount" }
+    }
+
+    # Reverse direction: a card whose skill directory no longer exists (renamed/deleted skill
+    # leaves a stale card, and the forward check above can never see it).
+    foreach ($m in [regex]::Matches($skillsIndexText, 'class="skill-name">/([a-z0-9-]+)</div>')) {
+        $carded = $m.Groups[1].Value
+        if ($skillNames -notcontains $carded) { $skillIndexProblems += "$carded : orphan card (no .claude/skills/$carded/SKILL.md)" }
+    }
+}
+
+Write-Check "Every skill has exactly one skills-index card and row" ($skillIndexProblems.Count -eq 0) `
+    $(if ($skillIndexProblems.Count -gt 0) { "$($skillIndexProblems.Count) problem(s)." } else { "" })
+if ($skillIndexProblems.Count -gt 0) { $skillIndexProblems | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkYellow } }
+
+# 7-11. MCP Registry publish consistency (hard gate).
+# server.json <-> MCP-Server/package.json <-> schema must agree (3-place version
+# parity + namespace + encoding). Delegates to the same validator the publish
+# workflow uses. If drift is found, run the mcp-registry-sync (Sonnet) agent to fix
+# (see CLAUDE.md -> MCP Registry Publish Consistency).
+Write-Host ""
+Write-Host "  7-11. MCP Registry publish consistency:" -ForegroundColor Cyan
+$pyCmd = $null
+foreach ($c in @('python3', 'python', 'py')) {
+    $cmd = Get-Command $c -ErrorAction SilentlyContinue
+    if (-not $cmd) { continue }
+    # Windows: `python3` 常是 Microsoft Store 的 App Execution Alias stub（%LOCALAPPDATA%\Microsoft\WindowsApps\），
+    # 執行只回 exit 9009 而不跑 Python，會讓本閘門誤判 FAIL。跳過 WindowsApps stub，並實測候選能真的執行。
+    if ($cmd.Source -and $cmd.Source -like '*\WindowsApps\*') { continue }
+    & $c -c "import sys" *> $null
+    if ($LASTEXITCODE -eq 0) { $pyCmd = $c; break }
+}
+$validatorPath = "$projectRoot\scripts\validate_publish_consistency.py"
+if (-not $pyCmd) {
+    Write-Skip "MCP Registry publish consistency (server.json <-> package.json <-> schema)" "no python found"
+}
+elseif (-not (Test-Path $validatorPath)) {
+    Write-Skip "MCP Registry publish consistency (server.json <-> package.json <-> schema)" "validator script missing"
+}
+else {
+    Push-Location $projectRoot
+    & $pyCmd $validatorPath *> $null
+    $registryOk = ($LASTEXITCODE -eq 0)
+    Pop-Location
+    Write-Check "MCP Registry publish consistency (server.json <-> package.json <-> schema)" $registryOk `
+        "Run 'python scripts/validate_publish_consistency.py'; use the mcp-registry-sync (Sonnet) agent to fix drift"
+}
+
+# 7-12: .agents/skills mirror fidelity — GIT-TRACKED mirrors only
+#
+# `.agents/skills/<name>/SKILL.md` mirrors let non-Claude clients (Agy / Codex) discover skills.
+# The tracked ones arrived per-skill from contributors (commit 604cafe, `.agents` + `.claude` pair),
+# NOT from a generator — so there is no rule that every skill must be mirrored, and this check does
+# not require one. What it requires is that a mirror the repo ships still matches its source: a
+# silently drifting mirror is worse than no mirror, because a non-Claude client reads it as current
+# instructions and nothing anywhere reports a problem.
+#
+# ⚠️ Scope is deliberately limited to `git ls-files`. `.agents/skills/` is a MIXED namespace:
+# locally-installed tools (observed: an OpenAI Codex desktop app) scan the project and write their
+# own untracked mirrors into the same directory. Those are the user's machine state, not repo
+# content — failing QA/QC on them would turn this gate red for reasons unrelated to the repository,
+# on any machine that happens to have such a tool installed. Do not widen this to a filesystem scan.
+Write-Host ""
+Write-Host "  7-12. .agents/skills mirror fidelity (git-tracked mirrors only):" -ForegroundColor Cyan
+$mirrorProblems = @()
+$mirrorChecked = 0
+Push-Location $projectRoot
+$trackedMirrors = @(& git ls-files '.agents/skills/*/SKILL.md' 2>$null)
+Pop-Location
+if (-not $trackedMirrors -or $trackedMirrors.Count -eq 0) {
+    Write-Skip ".agents/skills mirror fidelity" "no tracked mirrors"
+}
+else {
+    function Get-NormalisedText([string]$p) {
+        if (-not (Test-Path $p)) { return $null }
+        return ((Get-Content -LiteralPath $p -Raw -Encoding UTF8) -replace "`r`n", "`n").TrimEnd()
+    }
+    foreach ($rel in $trackedMirrors) {
+        $skillName = (Split-Path (Split-Path $rel -Parent) -Leaf)
+        $mirrorPath = Join-Path $projectRoot ($rel -replace '/', '\')
+        $sourcePath = Join-Path "$projectRoot\.claude\skills\$skillName" 'SKILL.md'
+        $mirrorChecked++
+        if (-not (Test-Path $sourcePath)) {
+            $mirrorProblems += "$skillName : orphan mirror (no .claude/skills/$skillName/SKILL.md)"
+            continue
+        }
+        if ((Get-NormalisedText $sourcePath) -ne (Get-NormalisedText $mirrorPath)) {
+            $mirrorProblems += "$skillName : tracked mirror out of sync with .claude/skills/$skillName/SKILL.md"
+        }
+    }
+    Write-Check "Tracked .agents/skills mirrors match their sources ($mirrorChecked checked)" ($mirrorProblems.Count -eq 0) `
+        $(if ($mirrorProblems.Count -gt 0) { "$($mirrorProblems.Count) problem(s). Re-copy the source over the mirror, or drop the mirror from git." } else { "" })
+    if ($mirrorProblems.Count -gt 0) { $mirrorProblems | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkYellow } }
+}
 
 # ─────────────────────────────────────────────
 # Phase 8: Document Audience and Encoding Hygiene
@@ -918,6 +1144,96 @@ if ($skillMojibake.Count -gt 0) {
 }
 else {
     Write-Check "Skill docs pass mojibake warning scan" $true
+}
+
+# ─────────────────────────────────────────────
+# Phase 9: MCP 2026 Compliance
+# ─────────────────────────────────────────────
+Write-Host ""
+Write-Host "[Phase 9] MCP 2026 Compliance" -ForegroundColor Yellow
+Write-Host "─────────────────────────────────────────────" -ForegroundColor DarkGray
+
+# Invokes the built registry the same way Phase 7's Get-ToolCount does (node --input-type=module
+# -e against build/tools/index.js). Does not rebuild — honors -SkipBuild by using whatever build/
+# already exists. Returns $null if the built registry is unavailable so the caller can Skip
+# instead of failing the whole phase.
+function Get-ToolAnnotationReport {
+    $nodeScript = "import('./MCP-Server/build/tools/index.js').then(m=>{const tools=m.registerRevitTools();const allow=new Set(['delete_element','dedup_detail_elements_in_view','curate_mep_sizes']);const missingTitle=[];const missingReadOnlyHint=[];const badDestructive=[];for(const t of tools){const title=t.title;if(typeof title!=='string'||title.trim().length===0)missingTitle.push(t.name);const ro=t.annotations?t.annotations.readOnlyHint:undefined;if(typeof ro!=='boolean')missingReadOnlyHint.push(t.name);const destructive=t.annotations?t.annotations.destructiveHint:undefined;if(destructive===true&&!allow.has(t.name))badDestructive.push(t.name);}console.log(JSON.stringify({total:tools.length,missingTitle:missingTitle,missingReadOnlyHint:missingReadOnlyHint,badDestructive:badDestructive}));}).catch(()=>process.exit(2))"
+    Push-Location $projectRoot
+    $result = & node --input-type=module -e $nodeScript 2>$null
+    $exit = $LASTEXITCODE
+    Pop-Location
+    if ($exit -eq 0 -and $result) {
+        try {
+            return ($result | ConvertFrom-Json)
+        }
+        catch {
+            return $null
+        }
+    }
+    return $null
+}
+
+# MCP Apps (io.modelcontextprotocol/ui): for every tool that declares _meta.ui.resourceUri, confirm
+# the ui:// resource resolves via readAppResource with the exact Apps MIME, non-empty HTML, and no
+# external src/href/url() references (self-contained / CSP-safe). Returns $null if build/ is absent.
+function Get-AppResourceReport {
+    $nodeScript = "Promise.all([import('./MCP-Server/build/tools/index.js'),import('./MCP-Server/build/apps/register-apps.js')]).then(([tm,am])=>{const tools=tm.registerRevitTools();const ui=tools.filter(t=>t._meta&&t._meta.ui&&t._meta.ui.resourceUri);const out=[];const rx=/(?:src|href)\s*=\s*['\x22]?https?:|url\(\s*['\x22]?https?:/gi;for(const t of ui){const uri=t._meta.ui.resourceUri;let ok=false,mime='',bytes=0,ext=0;try{const r=am.readAppResource(uri);const c=r&&r.contents&&r.contents[0];if(c){mime=c.mimeType;const html=c.text||'';bytes=html.length;const scan=html.replace(/<script[\s\S]*?<\/script>/gi,'');ext=(scan.match(rx)||[]).length;ok=mime==='text/html;profile=mcp-app'&&bytes>0&&/^\s*<!doctype/i.test(html)&&ext===0;}}catch(e){mime='ERR:'+e.message;}out.push({name:t.name,uri,ok,mime,bytes,ext});}console.log(JSON.stringify({uiToolCount:ui.length,resources:out}));}).catch(()=>process.exit(2))"
+    Push-Location $projectRoot
+    $result = & node --input-type=module -e $nodeScript 2>$null
+    $exit = $LASTEXITCODE
+    Pop-Location
+    if ($exit -eq 0 -and $result) {
+        try {
+            return ($result | ConvertFrom-Json)
+        }
+        catch {
+            return $null
+        }
+    }
+    return $null
+}
+
+Write-Host ""
+Write-Host "  9-1. Tool annotation coverage (title / readOnlyHint / destructiveHint allow-list):" -ForegroundColor Cyan
+$builtRegistry = Join-Path $projectRoot "MCP-Server\build\tools\index.js"
+if (-not (Test-Path $builtRegistry)) {
+    Write-Skip "Tool annotation coverage (build/tools/index.js)" "Built registry missing - run npm run build in MCP-Server first"
+}
+elseif (-not ($annotationReport = Get-ToolAnnotationReport)) {
+    # 已 build 但無法評估 registerRevitTools() → 視為 FAIL（不可靜默略過，以免回歸漏檢）。
+    Write-Check "Tool annotation coverage: built registry evaluates" $false "build/tools/index.js exists but registerRevitTools() failed to evaluate - run: node --input-type=module -e ""import('./MCP-Server/build/tools/index.js').then(m=>m.registerRevitTools())"""
+}
+else {
+    $destructiveAllowList = @('delete_element', 'dedup_detail_elements_in_view', 'curate_mep_sizes')
+    $missingTitle = @($annotationReport.missingTitle)
+    $missingReadOnlyHint = @($annotationReport.missingReadOnlyHint)
+    $badDestructive = @($annotationReport.badDestructive)
+
+    Write-Check "All $($annotationReport.total) tools declare a non-empty title" ($missingTitle.Count -eq 0) `
+        $(if ($missingTitle.Count -gt 0) { "Missing/empty title: $($missingTitle -join ', ')" } else { "" })
+
+    Write-Check "All $($annotationReport.total) tools declare boolean annotations.readOnlyHint" ($missingReadOnlyHint.Count -eq 0) `
+        $(if ($missingReadOnlyHint.Count -gt 0) { "Missing/non-boolean readOnlyHint: $($missingReadOnlyHint -join ', ')" } else { "" })
+
+    Write-Check "destructiveHint=true confined to allow-list ($($destructiveAllowList -join ', '))" ($badDestructive.Count -eq 0) `
+        $(if ($badDestructive.Count -gt 0) { "Unexpected destructiveHint=true on: $($badDestructive -join ', ')" } else { "" })
+}
+
+Write-Host ""
+Write-Host "  9-2. MCP Apps UI resource integrity (ui:// resolves / MIME / self-contained):" -ForegroundColor Cyan
+$appReport = Get-AppResourceReport
+if (-not $appReport) {
+    Write-Skip "MCP Apps UI resource integrity" "Runtime registry / app bundle unavailable - run npm run build in MCP-Server first"
+}
+elseif ([int]$appReport.uiToolCount -eq 0) {
+    Write-Skip "MCP Apps UI resource integrity" "No tools declare _meta.ui.resourceUri"
+}
+else {
+    foreach ($res in $appReport.resources) {
+        $detail = if (-not $res.ok) { "mime=$($res.mime) bytes=$($res.bytes) externalRefs=$($res.ext)" } else { "" }
+        Write-Check "App '$($res.name)' -> $($res.uri) self-contained $($res.mime)" ([bool]$res.ok) $detail
+    }
 }
 
 # ─────────────────────────────────────────────

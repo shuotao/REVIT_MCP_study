@@ -6,6 +6,14 @@ MCP-Server/node_modules/
 MCP.Contracts/
 MCP.CoreRuntime/
 
+# Secrets / credentials — NEVER commit tokens or API keys
+.env
+.env.*
+!.env.example
+*.pat
+*.token
+github_pat_*
+
 # IDE and Editor files
 .vs/
 .vscode/*
@@ -142,3 +150,10 @@ __pycache__/
 # 沒有保存歷史版本的價值，改由本機執行時重新產生，見 tools/green-material/README.md。
 /Revit_Injection_Plan.json
 /docs/green-material/Revit_Injection_Plan_Report.md
+
+# 本機 AI client 工具產生的工作檔（非 repo 內容）
+# 已知來源：使用者端安裝的 OpenAI Codex 桌面 app 會掃描專案，
+# 自行產生 .codex/（含帶絕對路徑的 hooks.json）與 .agents/skills/ 下的 skill 鏡像。
+# .agents/skills/ 是混合命名空間：貢獻者在 commit 604cafe 提交的 8 個鏡像是 repo 內容
+# （已被追蹤，不受此規則影響），其餘由本機工具產生者一律不進版控。
+.codex/

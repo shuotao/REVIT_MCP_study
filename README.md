@@ -14,7 +14,7 @@ Revit MCP lets AI clients call Autodesk Revit tools through the Model Context Pr
 
 ## What is this?
 
-Talk to Revit in plain language. Ask your AI client to *"dimension every wall on this view"* or *"check the curtain-wall elevations"*, and Revit does it — through **178 MCP tools** backed by **76 professional BIM SOPs** (building code, quantity take-off, compliance checks).
+Talk to Revit in plain language. Ask your AI client to *"dimension every wall on this view"* or *"check the curtain-wall elevations"*, and Revit does it — through **185 MCP tools** backed by **80 professional BIM SOPs** (building code, quantity take-off, compliance checks).
 
 **Who it's for:** BIM engineers and architects who use Revit and want AI-assisted, standards-based workflows. You'll need Revit (2022–2026) on Windows and to be comfortable installing an add-in.
 
@@ -33,15 +33,25 @@ Questions or want to show what you built? → **[Discussions](https://github.com
 
 | Item | Count | Source |
 |---|---:|---|
-| Runtime MCP tools | 178 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 76 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
-| Claude skills | 57 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 185 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 80 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
+| Claude skills | 61 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.zh-TW.md`, this file, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and run:
 
 ```powershell
 .\scripts\verify-qaqc.ps1 -SkipBuild -SkipDeploy
 ```
+
+## New: Interactive Clash Viewer (MCP Apps)
+
+`detect_clashes` can now render an interactive clash-review UI inline in the conversation, via the [MCP Apps](https://modelcontextprotocol.io/) extension (`io.modelcontextprotocol/ui`). This requires an MCP host that supports the extension. It is purely additive:
+
+- Interactive rendering only happens in **GUI hosts** that support MCP Apps (Claude Desktop, the claude.ai web app, VS Code GitHub Copilot). A terminal CLI like **Claude Code can't render the panel and always shows the text result — this is expected, not a fault**.
+- Hosts without MCP Apps support keep getting `detect_clashes`'s normal text result — nothing changes for them.
+- The stdio connection and the existing Revit add-in are unaffected; no reinstall or reconfiguration is needed.
+
+See `docs/MIGRATION_GUIDE.md` for the full MCP 2026-07-28 upgrade notes.
 
 ## Architecture
 
@@ -150,8 +160,17 @@ MCP/bin/Release.R24/RevitMCP.dll
 Recommended:
 
 ```powershell
-.\scripts\install-addon.ps1
+# Pick the Revit version explicitly. With several installed and no -Version, the script asks;
+# in -NonInteractive mode it fails rather than guessing (it never silently picks the highest).
+.\scripts\install-addon.ps1 -Version 2024
+
+# Deploy to every installed version that has a matching build
+.\scripts\install-addon.ps1 -All
 ```
+
+The script copies **every DLL in the build output** (13 for R22-R24, 8 for R25-R26 — both are correct),
+checks the build generation matches the target Revit before copying, verifies each file by SHA256
+afterwards, and rotates old backups.
 
 For manual deployment, place the `.addin` file and DLL under the matching Revit Addins directory, and keep the relative assembly path in `RevitMCP.addin`:
 
@@ -209,11 +228,12 @@ Replace `<YOUR_PROJECT_PATH>` in the templates with the actual project path on y
 
 ### Switching Between AI Clients
 
-The Revit-side WebSocket service accepts only one MCP connection at a time: a newly connected MCP server replaces the previous connection. Multiple AI clients are therefore used by switching, not concurrently:
+The Revit-side WebSocket service holds an exclusive lock: only one AI client can be connected at a time. A second client that tries to connect is cleanly rejected (HTTP 409), not swapped in — the first connection stays stable. Multiple AI clients are therefore used by switching, not concurrently:
 
-1. Close the current AI client (or disable its MCP server).
-2. Start the other AI client; once its MCP server connects to `localhost:8964`, it takes over.
-3. If the connection misbehaves, restart the MCP service from the Revit ribbon to reset it.
+1. In the Revit ribbon, click the **"切換/釋放連線" (Switch/Release Connection)** button to release the current connection.
+2. Start or reconnect the other AI client; once its MCP server connects to `localhost:8964`, it takes the lock.
+3. The **"MCP 設定"** dialog shows which client currently holds the connection (e.g. `claude-code`, `claude-ai`).
+4. If the connection misbehaves, use the same ribbon button, or restart the MCP service from the Revit ribbon to reset it.
 
 ## Startup Flow
 

@@ -20,14 +20,40 @@ namespace RevitMCP.Core
     public class SocketService
     {
         private HttpListener _httpListener;
-        private WebSocket _webSocket;
         private bool _isRunning;
         private readonly ServiceSettings _settings;
         private CancellationTokenSource _cancellationTokenSource;
 
+        // 連線鎖定狀態 (取代裸 _webSocket)：_connectionLock 保護以下四個欄位，
+        // 讓 accept loop / receive task / UI thread (SwitchConnection) 可安全並行存取。
+        private readonly object _connectionLock = new object();
+        private WebSocket _activeSocket;
+        private string _activeRemoteEndpoint;
+        private string _activeClientName;   // 來自 ws 連線 query string ?client= (MCP clientInfo.name)
+        private DateTime? _connectedAtUtc;
+        private DateTime _lastRejectLogUtc = DateTime.MinValue;
+
         public event EventHandler<RevitCommandRequest> CommandReceived;
         public bool IsRunning => _isRunning;
-        public bool IsConnected => _webSocket != null && _webSocket.State == WebSocketState.Open;
+        public bool IsConnected
+        {
+            get
+            {
+                lock (_connectionLock)
+                {
+                    return _activeSocket != null && _activeSocket.State == WebSocketState.Open;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 檢查目前是否已鎖定連線。只能在持有 _connectionLock 時呼叫。
+        /// </summary>
+        private bool IsLocked_NoLock()
+        {
+            return _activeSocket != null &&
+                (_activeSocket.State == WebSocketState.Open || _activeSocket.State == WebSocketState.CloseReceived);
+        }
 
         public SocketService(ServiceSettings settings)
         {
@@ -123,13 +149,40 @@ namespace RevitMCP.Core
                 try
                 {
                     var context = await _httpListener.GetContextAsync();
-                    
+
                     if (context.Request.IsWebSocketRequest)
                     {
-                        var wsContext = await context.AcceptWebSocketAsync(null);
-                        _webSocket = wsContext.WebSocket;
+                        bool locked;
+                        lock (_connectionLock)
+                        {
+                            locked = _settings.ExclusiveLock && IsLocked_NoLock();
+                        }
 
-                        Logger.Info("[Socket] MCP Server 已連線");
+                        if (locked)
+                        {
+                            // 已有連線鎖定中：在 AcceptWebSocketAsync 之前直接拒絕 (409)，
+                            // 不做 101 upgrade。client 端會視為 handshake 失敗，之後每 5 秒自動重試。
+                            context.Response.StatusCode = 409;
+                            context.Response.Close();
+                            RateLimitedRejectLog(context.Request.RemoteEndPoint);
+                            continue;
+                        }
+
+                        var wsContext = await context.AcceptWebSocketAsync(null);
+
+                        string logClient, logRemote;
+                        lock (_connectionLock)
+                        {
+                            _activeSocket = wsContext.WebSocket;
+                            _activeRemoteEndpoint = context.Request.RemoteEndPoint?.ToString();
+                            // 客戶端名稱由 node MCP server 以 ?client=<clientInfo.name> 帶入 (匿名時為 unknown)
+                            _activeClientName = context.Request.QueryString["client"];
+                            _connectedAtUtc = DateTime.UtcNow;
+                            logClient = _activeClientName;
+                            logRemote = _activeRemoteEndpoint;
+                        }
+
+                        Logger.Info("[Socket] MCP Server 已連線 (locked) - client=" + (logClient ?? "unknown") + " " + logRemote);
 
                         // 在獨立任務中處理訊息，不要阻塞接受連線的迴圈
                         _ = Task.Run(async () => await ReceiveMessagesAsync(wsContext.WebSocket, cancellationToken));
@@ -147,6 +200,68 @@ namespace RevitMCP.Core
                         Logger.Error("[Socket] 接受連線錯誤", ex);
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// 限流記錄拒絕連線的 log，避免 client 每 5 秒重連造成洗版。
+        /// </summary>
+        private void RateLimitedRejectLog(System.Net.IPEndPoint remote)
+        {
+            var now = DateTime.UtcNow;
+            if ((now - _lastRejectLogUtc).TotalSeconds >= 30)
+            {
+                _lastRejectLogUtc = now;
+                Logger.Info("[Socket] 已拒絕重複連線 (連線已被鎖定) 來源: " + remote + ". 後續拒絕將靜默 30 秒。");
+            }
+        }
+
+        /// <summary>
+        /// 釋放目前鎖定的連線，讓下一個重新連線的 client 取得鎖。
+        /// 連線為匿名，無法保證釋放後由哪個 client 取得連線。
+        /// </summary>
+        public (bool released, string previousRemote) SwitchConnection()
+        {
+            WebSocket toClose;
+            string prev;
+            lock (_connectionLock)
+            {
+                toClose = _activeSocket;
+                prev = (string.IsNullOrEmpty(_activeClientName) ? "unknown" : _activeClientName) + " (" + (_activeRemoteEndpoint ?? "?") + ")";
+                _activeSocket = null;
+                _activeRemoteEndpoint = null;
+                _activeClientName = null;
+                _connectedAtUtc = null;
+            }
+
+            if (toClose == null)
+            {
+                return (false, null);
+            }
+
+            try
+            {
+                // 必須用 Abort()，不能用 CloseAsync：CloseAsync 需要等待對方回應 close frame，
+                // 會和 receive task 既有的 ReceiveAsync 相撞，拋出「already one outstanding receive」例外。
+                toClose.Abort();
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug("[Socket] Abort 期間例外(可忽略): " + ex.Message);
+            }
+
+            Logger.Info("[Socket] 使用者釋放連線: " + prev + ". 下一個重連的客戶端將取得鎖。");
+            return (true, prev);
+        }
+
+        /// <summary>
+        /// 取得目前連線鎖定狀態快照，供 UI (設定視窗) 顯示使用。
+        /// </summary>
+        public (bool locked, string clientName, string remote, DateTime? sinceUtc) GetStatusSnapshot()
+        {
+            lock (_connectionLock)
+            {
+                return (_activeSocket != null && _activeSocket.State == WebSocketState.Open, _activeClientName, _activeRemoteEndpoint, _connectedAtUtc);
             }
         }
 
@@ -193,9 +308,37 @@ namespace RevitMCP.Core
                 // 這是正常關閉，不需要視為錯誤
                 Logger.Info("[Socket] 訊息接收已停止 (服務已取消)");
             }
+            catch (WebSocketException ex)
+            {
+                // 使用者切換/停止造成的中止 (Abort()) 會讓這裡的 ReceiveAsync 拋出例外，屬正常流程
+                Logger.Debug("[Socket] 接收訊息中止 (使用者切換/停止造成的中止,屬正常): " + ex.Message);
+            }
             catch (Exception ex)
             {
                 Logger.Error("[Socket] 接收訊息錯誤", ex);
+            }
+            finally
+            {
+                lock (_connectionLock)
+                {
+                    if (ReferenceEquals(_activeSocket, socket))
+                    {
+                        _activeSocket = null;
+                        _activeRemoteEndpoint = null;
+                        _activeClientName = null;
+                        _connectedAtUtc = null;
+                    }
+                }
+
+                // 唯一的 disposer：SwitchConnection() 與 Stop() 只呼叫 Abort()，不在此之外 Dispose，
+                // 避免與這裡的 receive loop 重複釋放。
+                try
+                {
+                    socket.Dispose();
+                }
+                catch
+                {
+                }
             }
         }
 
@@ -221,7 +364,14 @@ namespace RevitMCP.Core
         /// </summary>
         public async Task SendResponseAsync(RevitCommandResponse response)
         {
-            if (!IsConnected)
+            // 鎖內快照後改用區域變數 socket 傳送，避免 IsConnected 檢查與 SendAsync 之間
+            // _activeSocket 被 SwitchConnection()/Stop() 換掉或清空 (TOCTOU)。
+            WebSocket socket;
+            lock (_connectionLock)
+            {
+                socket = _activeSocket;
+            }
+            if (socket == null || socket.State != WebSocketState.Open)
             {
                 throw new InvalidOperationException("WebSocket 未連線");
             }
@@ -230,7 +380,7 @@ namespace RevitMCP.Core
             {
                 string json = JsonConvert.SerializeObject(response);
                 byte[] bytes = Encoding.UTF8.GetBytes(json);
-                await _webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+                await socket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
                 Logger.Debug($"[Socket] 已發送回應 (RequestId: {response.RequestId})");
             }
             catch (Exception ex)
@@ -255,35 +405,27 @@ namespace RevitMCP.Core
                 // 先取消所有背景任務
                 _cancellationTokenSource?.Cancel();
 
-                // 處理 WebSocket 關閉 (不阻塞 UI 執行緒)
-                if (_webSocket != null)
+                // 釋放連線鎖定 (只 Abort，不 CloseAsync/Dispose —— 交給 receive task 的 finally
+                // 處理 Dispose，維持單一 disposer 原則)
+                WebSocket ws;
+                lock (_connectionLock)
                 {
-                    var ws = _webSocket;
-                    _webSocket = null; // 先斷開引用
+                    ws = _activeSocket;
+                    _activeSocket = null;
+                    _activeRemoteEndpoint = null;
+                    _activeClientName = null;
+                    _connectedAtUtc = null;
+                }
 
-                    Task.Run(async () =>
+                if (ws != null)
+                {
+                    try
                     {
-                        try
-                        {
-                            if (ws.State == WebSocketState.Open)
-                            {
-                                // 給予 2 秒時間嘗試正常關閉
-                                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2)))
-                                {
-                                    await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "服務關閉", cts.Token);
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Debug($"WebSocket 正常關閉失敗 (此為正常現象): {ex.Message}");
-                        }
-                        finally
-                        {
-                            ws.Dispose();
-                            Logger.Info("WebSocket 已釋放");
-                        }
-                    });
+                        ws.Abort();
+                    }
+                    catch
+                    {
+                    }
                 }
 
                 // 停止 HttpListener
