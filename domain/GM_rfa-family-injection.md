@@ -54,8 +54,11 @@ Document.EditFamily(family)          // 開啟家族文件，不可在 Transacti
 | 資料 | 落點 | 內容 |
 |---|---|---|
 | **產品識別** | Family Type 內建 Identity Data 參數（`Manufacturer`／`Model`／`Description`／`URL`，依 Revit 版本與類別實際存在的欄位為準，不是每個都保證存在） | 綠建材標章字號、廠商、產品名稱（可與下方共享參數重複，Identity Data 是給人看的，共享參數是給明細表/QAQC 抓的） |
+| **整體合格狀態** | `GreenMaterial_Certified`（YESNO 全域欄位，不分 Mat 槽位，語意與 Walls/Floors/Ceilings/Windows/Doors 系統家族路徑 `set_green_material_type_parameters` 的 `certified` 完全相同——見 `GM_parameter-schema.md` §1.1） | `inject_green_material_into_family` 的 `certified` 參數（選填布林值），透過 `FamilyManager.AddParameter` 加進家族文件、再 `Set()` 寫入，與 Mat1 槽位走同一套機制，只是欄位不分槽位 |
 | **綠建材主資料** | `GreenMaterial_Mat1_*`（沿用 `GM_parameter-schema.md` 的 16 欄位 Mat1 槽位——門窗的玻璃或門扇視為該 Type 的主材料） | `Name`/`CertNo`/`Category`/`SubCategory`/`Applicant`/`ValidUntil`/`CNSSpec`/`TestItems`/`QualifiedItems`，只填有實際數據的欄位，不得杜撰 TVOC/甲醛 |
 | **門窗專屬效能** | **新增專屬共享參數**（不沿用 Mat1 通用欄位，因為遮陽係數/隔音等級是門窗獨有、其他品類沒有對應意義）：`GreenMaterial_Window_ShadingCoefficient`（NUMBER，僅 Windows/Curtain Wall 適用）、`GreenMaterial_AcousticRw`（NUMBER，Windows 與 Doors 皆適用，對應型錄上的 Rw 隔音等級 dB） | 只在型錄/測試報告有明確數值時才寫，缺值就留空，不得估算填入 |
+
+> **2026-08-13 修正與已知限制**：v1.0 版本的 `inject_green_material_into_family` 只寫 Mat1 槽位與門窗專屬欄位，漏了 `GreenMaterial_Certified`（Walls/Floors/Ceilings/Columns/StructuralFraming 各路徑都有寫，唯獨門窗這條路徑沒有）。C# 端已補上 `SetFamilySharedBoolParam` 寫入邏輯（會先嘗試 `IdentityData` 群組、失敗再退而嘗試 `Data` 群組），呼叫端（`GM_inject` Scenario 7）可以連同 `certified: true` 一起傳入。**但實測發現這條路無法保證成功**：對既有案例家族「雙開落地窗- (2)_TABC_GBM0104092」執行時，兩個群組都以 Revit API 內部通用錯誤 `autodesk.parameter.group:data-1.0.0: Shared parameter creation failed.` 失敗，原因目前無法確定（同一支 API、同一個家族的 TEXT/NUMBER 型別 Mat1 欄位與 `GreenMaterial_AcousticRw` 都成功，只有這個 YESNO 布林欄位失敗，懷疑與 Revit 對 Loadable Family 新增 YesNo Type 參數的內部限制有關，但未證實）。**目前的結論：門窗這條路徑的 `GreenMaterial_Certified` 是 best-effort，不保證寫入成功；`MissingParameters` 出現這個欄位（尤其帶上述錯誤字串時）不代表整個注入失敗，只代表這個全域欄位加不上去，Mat1 資料本身仍完整有效。** 呼叫端仍應傳 `certified: true`（成功的家族就會拿到，失敗的家族至少會留下明確的錯誤訊息可回報），但不要把「Certified 缺漏」當成整個 Scenario 7 執行失敗的判準。
 
 > **實作前必讀的編碼地雷**：`GreenMaterial_SharedParams.txt` 是 **cp950 (Big5) ANSI 編碼**，不是 UTF-8（檔案開頭註解已明講）。用一般 UTF-8 文字工具（含大多數程式碼編輯器的預設存檔）直接編輯或新增 PARAM 列，會把既有中文 GROUP/PARAM 說明重新存成亂碼，Revit 重新解析時會整批壞掉。新增 `GreenMaterial_Window_ShadingCoefficient`／`GreenMaterial_AcousticRw` 這兩個 PARAM 列時，必須用能指定 cp950 編碼寫檔的方式操作（例如 Python `open(path, "a", encoding="cp950")`），且新增前後都要驗證既有列的中文沒有變亂碼。GUID 沿用檔案既有的遞增慣例（目前最大到 `...111111111167`，新參數接續 `...168`/`...169`），並建議獨立一個 `GROUP 5「門窗專屬效能 (Window/Door Performance)」`，不要塞進既有 GROUP 1~4。
 
@@ -75,7 +78,7 @@ Document.EditFamily(family)          // 開啟家族文件，不可在 Transacti
   → EditFamily 開家族文件
   → SaveAs 備份（規則2，先於任何修改）
   → 家族文件內 Duplicate Type
-  → 寫 Identity Data + GreenMaterial_Mat1_* + 遮陽/隔音專屬參數（規則3）
+  → 寫 Identity Data + GreenMaterial_Certified + GreenMaterial_Mat1_* + 遮陽/隔音專屬參數（規則3）
   → SaveAs 為新家族檔名
   → 關閉家族文件（不覆寫原檔）
   → LoadFamily 回專案（規則4，帶 IFamilyLoadOptions）
@@ -90,6 +93,7 @@ Document.EditFamily(family)          // 開啟家族文件，不可在 Transacti
 
 - 基底 Family+Type 名稱（使用者指定的）
 - 備份檔案的絕對路徑（且檔案實際存在）
+- 新 Type 的 `GreenMaterial_Certified` = Yes（若呼叫端有傳 `certified: true` 且該家族允許新增此欄位——見上方 2026-08-13 已知限制，失敗不算驗證失敗，但要在回報中明確告知使用者這個欄位沒寫成功）
 - 新 Type 的 `GreenMaterial_Mat1_*` 值 vs. 來源型錄資料的比對
 - Window 案例：`GreenMaterial_Window_ShadingCoefficient` 有值；Door 案例：此欄位應留空（不適用）
 - 兩案例都要有 `GreenMaterial_AcousticRw`（若型錄有數據）

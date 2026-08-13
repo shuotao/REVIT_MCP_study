@@ -58,6 +58,7 @@ namespace RevitMCP.Core
         ///   sharedParamFilePath (string): GreenMaterial_SharedParams.txt 的絕對路徑
         ///   identityData (object, optional): { manufacturer, model, description, url }
         ///   mat1 (object): { name, certNo, category, subCategory, applicant, validUntil, tvoc, formaldehyde, cnsSpec, testItems, qualifiedItems }
+        ///   certified (bool, optional): GreenMaterial_Certified（YESNO 全域欄位，語意與 set_green_material_type_parameters 的 certified 相同——這個 Type 整體的綠建材評定合格狀態）
         ///   shadingCoefficient (number, optional): GreenMaterial_Window_ShadingCoefficient，僅 Window/Curtain Wall 適用
         ///   acousticRw (number, optional): GreenMaterial_AcousticRw，Window 與 Door 皆適用
         /// </summary>
@@ -71,6 +72,7 @@ namespace RevitMCP.Core
             string sharedParamFilePath = parameters["sharedParamFilePath"]?.Value<string>();
             JObject identityData = parameters["identityData"] as JObject;
             JObject mat1 = parameters["mat1"] as JObject;
+            JToken certifiedToken = parameters["certified"];
             JToken shadingToken = parameters["shadingCoefficient"];
             JToken acousticToken = parameters["acousticRw"];
 
@@ -163,6 +165,9 @@ namespace RevitMCP.Core
                     }
 
                     WriteFamilyGreenMaterialSlot(fm, defFile, "Mat1", mat1, written, missing);
+
+                    if (certifiedToken != null && certifiedToken.Type != JTokenType.Null)
+                        SetFamilySharedBoolParam(fm, defFile, "GreenMaterial_Certified", certifiedToken.Value<bool>(), written, missing);
 
                     if (shadingToken != null && shadingToken.Type != JTokenType.Null)
                         SetFamilySharedNumberParam(fm, defFile, "GreenMaterial_Window_ShadingCoefficient", shadingToken.Value<double>(), written, missing);
@@ -368,14 +373,31 @@ namespace RevitMCP.Core
             if (fp != null) return fp;
 
             ExternalDefinition exDef = FindExternalDefinition(defFile, paramName);
-            if (exDef == null) { missing.Add(paramName); return null; }
+            if (exDef == null) { missing.Add($"{paramName}（共享參數檔內找不到此定義，檢查 sharedParamFilePath 是否正確）"); return null; }
 
             // FamilyManager.AddParameter(ExternalDefinition, ForgeTypeId, bool) — 這個簽章在
             // Revit 2022~2026 API 一致存在（舊版 NewFamilyParameter 名稱與 BuiltInParameterGroup
             // 多載已由 AddParameter + GroupTypeId 取代），不需要版本分支。
-            try { fp = fm.AddParameter(exDef, GroupTypeId.IdentityData, false); } catch { fp = null; }
-            if (fp == null) missing.Add(paramName);
-            return fp;
+            // 2026-08-13：GreenMaterial_Certified（YESNO）在 IdentityData 群組下 AddParameter 會失敗
+            // （實測案例：Window 家族「雙開落地窗- (2)_TABC_GBM0104092」），但同一支 API 對 TEXT/NUMBER
+            // 型別的 Mat1_* 欄位在同一群組下都能成功——原因不明，保留 IdentityData 為優先嘗試（大部分
+            // 欄位、大部分家族都適用），失敗時退而改用泛用的 Data 群組，並把兩次失敗訊息都保留供除錯。
+            string lastError = null;
+            foreach (var groupId in new[] { GroupTypeId.IdentityData, GroupTypeId.Data })
+            {
+                try
+                {
+                    fp = fm.AddParameter(exDef, groupId, false);
+                    if (fp != null) return fp;
+                }
+                catch (Exception ex)
+                {
+                    lastError = $"{groupId.TypeId}: {ex.Message}";
+                }
+            }
+
+            missing.Add(lastError != null ? $"{paramName}（新增失敗，最後錯誤：{lastError}）" : paramName);
+            return null;
         }
 
         private ExternalDefinition FindExternalDefinition(DefinitionFile defFile, string paramName)
@@ -405,6 +427,15 @@ namespace RevitMCP.Core
             if (fp == null) return;
             if (fp.IsReadOnly) { missing.Add(paramName); return; }
             fm.Set(fp, value);
+            written.Add(paramName);
+        }
+
+        private void SetFamilySharedBoolParam(FamilyManager fm, DefinitionFile defFile, string paramName, bool value, List<string> written, List<string> missing)
+        {
+            FamilyParameter fp = GetOrCreateFamilyParameter(fm, defFile, paramName, missing);
+            if (fp == null) return;
+            if (fp.IsReadOnly) { missing.Add(paramName); return; }
+            fm.Set(fp, value ? 1 : 0);
             written.Add(paramName);
         }
 

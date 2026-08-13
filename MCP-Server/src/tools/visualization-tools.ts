@@ -258,7 +258,7 @@ export const visualizationTools: Tool[] = [
     },
     {
         name: "inject_green_material_into_family",
-        description: "門窗／獨立元件 RFA 綠建材導入（TASK-005.7 / domain/GM_rfa-family-injection.md）：以使用者指定的既有相似 FamilySymbol 為基底，開啟該家族文件 → 立即另存可復原備份（規則2，先於任何修改）→ 在家族文件內新增一個 Type，絕不改動來源 Type（規則1）→ 寫入 Identity Data 與 GreenMaterial_Mat1_* 共享參數 + 遮陽係數/隔音等級門窗專屬欄位（規則3）→ 另存為新家族檔名 → LoadFamily 載回專案，且在同一個 Transaction 內做載入前後同名家族 Type 參數簽章快照比對，一偵測到非目標 Type 被異動就整批回滾並報錯，不會靜默覆蓋（規則4）。單一原子呼叫涵蓋整個家族文件生命週期（開啟→備份→編輯→另存→關閉→載回），因為家族文件物件無法跨多次 MCP 呼叫保持開啟。呼叫前必須已由使用者明確指定 sourceTypeId——規則1禁止 AI 自行臆測或無型錄依據挑選基底 Family。",
+        description: "門窗／獨立元件 RFA 綠建材導入（TASK-005.7 / domain/GM_rfa-family-injection.md）：以使用者指定的既有相似 FamilySymbol 為基底，開啟該家族文件 → 立即另存可復原備份（規則2，先於任何修改）→ 在家族文件內新增一個 Type，絕不改動來源 Type（規則1）→ 寫入 Identity Data 與 GreenMaterial_Mat1_* 共享參數、嘗試寫入 GreenMaterial_Certified 全域欄位（best-effort，部分家族會被 Revit 拒絕新增此 YESNO 欄位，屬已知限制，失敗不影響 Mat1 資料）+ 遮陽係數/隔音等級門窗專屬欄位（規則3）→ 另存為新家族檔名 → LoadFamily 載回專案，且在同一個 Transaction 內做載入前後同名家族 Type 參數簽章快照比對，一偵測到非目標 Type 被異動就整批回滾並報錯，不會靜默覆蓋（規則4）。單一原子呼叫涵蓋整個家族文件生命週期（開啟→備份→編輯→另存→關閉→載回），因為家族文件物件無法跨多次 MCP 呼叫保持開啟。呼叫前必須已由使用者明確指定 sourceTypeId——規則1禁止 AI 自行臆測或無型錄依據挑選基底 Family。",
         inputSchema: {
             type: "object",
             properties: {
@@ -295,6 +295,7 @@ export const visualizationTools: Tool[] = [
                     },
                     required: ["name", "certNo"],
                 },
+                certified: { type: "boolean", description: "GreenMaterial_Certified：這個 Type 整體的綠建材評定合格狀態（YESNO 全域欄位），語意與 set_green_material_type_parameters 的 certified 相同。通常傳 true。best-effort：部分家族會被 Revit 拒絕新增此欄位並回傳 'Shared parameter creation failed.'，此時會列在回應的 MissingParameters，Mat1 等其餘欄位不受影響。" },
                 shadingCoefficient: { type: "number", description: "GreenMaterial_Window_ShadingCoefficient：遮陽係數 Sc。僅 Window/Curtain Wall 案例填，Door 案例應留空（不適用）" },
                 acousticRw: { type: "number", description: "GreenMaterial_AcousticRw：隔音等級 Rw (dB)。Window 與 Door 皆適用，只在型錄/測試報告有明確數據時才填" },
             },
