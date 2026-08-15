@@ -1,6 +1,6 @@
 # 綠建材導入 Revit：開發歸檔索引
 
-本目錄集中管理綠建材工具的歷史開發程式、來源快照與中間產物。正式執行入口（四個 Python 引擎 + 共享參數檔）自 2026-08 起收斂到本目錄根層級（`tools/green-material/`，非 `archive/`），資料／狀態檔（`tabc_master_database.json`、`exported_material_sets.json`、`Revit_Injection_Plan.json`）與展示頁（`assets/green-material-showcase.html`）、本機伺服器（`local_server.py`）仍留在 repository 根目錄；Revit MCP 實作仍保留在 `MCP/` 與 `MCP-Server/`。
+本目錄集中管理綠建材工具的歷史開發程式、來源快照與中間產物。正式執行入口（四個 Python 引擎 + 共享參數檔）自 2026-08 起收斂到本目錄根層級（`tools/green-material/`，非 `archive/`），資料／狀態檔（`tabc_master_database.json`、`exported_material_sets.json`、`Revit_Injection_Plan.json`）與展示頁（`assets/green-material-showcase.html`）、本機伺服器（`local_server.py`）仍留在 repository 根目錄；Revit MCP 實作仍保留在 `MCP/` 與 `MCP-Server/`。以上三個資料／狀態檔與展示頁皆已加入 `.gitignore`，一律留在本機、不隨 repo 散布。
 
 ## 正式來源（持續維護）
 
@@ -31,7 +31,11 @@
 
 ### 注入計畫快照也不入庫
 
-`Revit_Injection_Plan.json` 與 `docs/green-material/Revit_Injection_Plan_Report.md` 是 `/GM_import`／`/GM_set compare` 每次執行都會整份覆寫的「最新一次」計畫快照，沒有保存歷史版本的價值，自 2026-08 起同樣加入 `.gitignore`。執行 `/GM_import` 或 `/GM_set compare` 即可在本機重新產生；`exported_material_sets.json`（Set 工作資料，持續累積、非單次覆寫）仍正常入庫追蹤。
+`Revit_Injection_Plan.json` 與 `docs/green-material/Revit_Injection_Plan_Report.md` 是 `/GM_import`／`/GM_set compare` 每次執行都會整份覆寫的「最新一次」計畫快照，沒有保存歷史版本的價值，自 2026-08 起同樣加入 `.gitignore`。執行 `/GM_import` 或 `/GM_set compare` 即可在本機重新產生。
+
+### Set 工作資料也不入庫
+
+`exported_material_sets.json`（透過 `local_server.py` 的 `POST /api/save-sets` 寫入）是使用者個人在本機累積的材料 Set，不是專案共用資料，2026-08 起加入 `.gitignore` 並從 git 追蹤移除（檔案仍保留在本機，不會被刪除）——避免多台電腦之間透過 `git pull` 互相看到彼此儲存的 Set。每台電腦的 Set 各自獨立，不會跨機同步。
 
 ## 目錄分類
 

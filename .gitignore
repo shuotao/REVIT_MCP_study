@@ -149,6 +149,10 @@ __pycache__/
 # /GM_import 與 /GM_set compare 每次執行都會整份覆寫的單一最新注入計畫快照，
 # 沒有保存歷史版本的價值，改由本機執行時重新產生，見 tools/green-material/README.md。
 /Revit_Injection_Plan.json
+
+# 使用者本機儲存的材料 Set（透過 local_server.py 的 /api/save-sets 寫入）是個人工作資料，
+# 不應該讓別台電腦透過 git pull 看到，一律留在本機，不隨 repo 散布。
+/exported_material_sets.json
 /docs/green-material/Revit_Injection_Plan_Report.md
 
 # 本機 AI client 工具產生的工作檔（非 repo 內容）
