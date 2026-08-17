@@ -2,8 +2,8 @@
 name: door-window-legend-workflow
 description: 門窗圖例表 seed-based Legend Component 建立流程，主入口為 door-window-legend-tools，缺少 seed 時透過 list_seeds 取得候選並等待使用者選擇。
 metadata:
-  version: "1.6"
-  updated: "2026-08-10"
+  version: "2.0"
+  updated: "2026-08-16"
   created: "2026-05-20"
   references:
     - "Issue #74（@yunchen-kt）：門窗圖例 Key 的承載位置 A/B 架構對照與 Revit API 設計約束 — https://github.com/shuotao/REVIT_MCP_study/issues/74"
@@ -20,6 +20,7 @@ metadata:
 ---
 
 # 門窗圖例表 Workflow
+- `mode=migrate`：先 preview legacy item，再明確套用 A+ ownership migration。
 
 ## 目的
 
@@ -86,6 +87,65 @@ Revit 強制 view 名唯一、使用者改不掉；欄位位置由模板固定�
 > B 方案目前**只有架構分析，沒有對應的工具實作**。若要落地，需先補一份跨環境的 B 方案 SOP
 > 與相應的 tool contract；在那之前不要宣稱本專案支援 B。
 
+
+## A+：Item Detail Group 容器與 ownership
+
+A+ 保留 A 方案「一張 Legend view 放全部門窗 item」的操作方式，但不再把 `TextNote` 或空間距離當作 item 身份。每個成功建立的 item 都必須成為一個 Revit `Detail Group`：
+
+- 外層原生容器：`Detail Group`。
+- 邏輯 ownership root：該 item 的 `Legend Component`。
+- 完整 members：Legend Component、Type Mark、FFL line/text、寬高 Dimension、窗台高 Dimension，以及 Dimension fallback reference curves。
+- `GroupType` 名稱固定使用 `RMCP_DWL_{ItemGuid短碼}`；Type Mark 不是身份。
+- container 只記錄產出圖例所需的 ownership／role／target 資訊，不複製防火等級、材質、五金等門窗業務性質。
+
+v2 `ExtensibleStorage` 使用固定 schema，主要欄位如下：
+
+- component：`ItemGuid`、`DesiredKey`、`TargetType`、`GroupUniqueId`、child `UniqueId[]` 與 role[]。
+- group／group type：`ItemGuid`、owner component `UniqueId`、schema version。
+- child：`ItemGuid`、owner component `UniqueId`、`MemberRole`。
+- 持久參照一律使用 `UniqueId`；`ElementId` 只在當次 Revit transaction 內作索引。
+
+完整性 gate：
+
+1. 每個 item 在自己的 `SubTransaction` 內先生成完整內容。
+2. 呼叫 `NewGroup()`，並核對 Revit 實際 group members 是否包含所有預期元素。
+3. 任一必要 member 無法成組，rollback 該 item，並將整次 create/update/migrate 回報為 `group_capability_gate_failed`；不得留下「只有部分元素成組」的版本。
+4. R24／R26 宿主整合案例仍是正式啟用 gate；純編譯成功不等於宿主 gate 已通過。
+
+新制 update 規則：
+
+- managed item 只依 v2 metadata 找 owner、group 與 children；不得使用最近文字、最近 FFL 或 bbox 猜成員。
+- append source 若來自 managed item，先複製整個 group，再對副本 `UngroupMembers()`，只保留獨立 source component；來源 group 不得被修改。
+- damaged item owner 唯一時，清除同 item 殘餘並重建。正常時保留原 FFL 中心；FFL 已損壞時使用 component bottom-center。
+- stale managed item 刪除 group instance，讓 Revit 原生 cascade 移除 members；之後清除零 instance 且帶 RMCP metadata 的 orphan `GroupType`。
+- 手動 copy 造成重複 `ItemGuid`，或同一 view 出現重複 `DesiredKey`，均為 conflict。conflict 優先於 stale deletion、damage repair 與 Type Mark sync：只回報並跳過，不自動刪除或改寫任何副本。
+- 第一版不註冊 `IUpdater`；create/update/migrate 執行 reconciliation 與 orphan GroupType sweep。
+
+`list_legend_views` 額外回傳：
+
+- `managedItemCount`
+- `legacyItemCount`
+- `damagedItemCount`
+- `conflictCount`
+
+update 額外回傳：
+
+- `RebuiltCount`
+- `StaleGroupDeletedCount`
+- `DamagedRepairedCount`
+- `ConflictItems[]`
+- `OrphansRemovedCount`
+
+## Legacy migration
+
+`mode=migrate` 是唯一允許使用舊位置推斷建立 ownership 的流程：
+
+- `apply=false`：純預覽，不開修改 transaction；回傳 `Ready`、`Ambiguous`、`Overlap`、`Unresolved`。
+- `apply=true`：只轉換同一次辨識中判定為 ready 的 item；`Ambiguous`、`Overlap`、`Unresolved` 永遠跳過。
+- `itemKeys[]`：可限制本次 apply 的 ready item；省略或空陣列代表全部 ready。
+- migration 成功後立即寫入 v2 metadata；後續 update 不再使用位置推斷。
+- 任一 selected ready item 無法完整 `NewGroup()`，整個 migration transaction rollback，`AppliedCount=0`。
+- legacy view 必須先 `apply=false` 取得 preview，再由使用者明確改用 `apply=true`；tool 不會自行從 preview 進入 apply。
 ## Tool Contract
 
 ### `door-window-legend-tools`
@@ -93,7 +153,7 @@ Revit 強制 view 名唯一、使用者改不掉；欄位位置由模板固定�
 輸入：
 
 - `targetType`: `door` 或 `window`
-- `mode`: `list`、`create` 或 `update`
+- `mode`: `list`、`create`、`update` 或 `migrate`
 - `layoutDirection`: `horizontal` 或 `vertical`，create/update 必填
 - `maxPerLine`: 大於等於 1，create/update 必填
 - `seedLegendViewId`: create 使用的 seed Legend 視圖 ID
@@ -105,6 +165,8 @@ create 若缺少 `seedLegendViewId`，回傳：
 - `WorkflowState = "awaiting_seed_selection"`
 - `NextAction = "call_list_seeds"`
 - `SeedTypeRequired = "legend"`
+- `apply`: migrate 使用，預設 `false`
+- `itemKeys`: migrate apply 的 optional item key 限定清單
 - `RequiresUserInput = true`
 - `DoNotAutoSelectSeed = true`
 - `DoNotRetryWithOtherSeeds = true`
@@ -403,11 +465,14 @@ window list/create 額外輸出重點：
 
 ## Update 既有門窗圖例表
 
+> 本章保留的 bbox／FFL／TextNote 位置辨識只適用 legacy migration preview。v2 managed item 的一般 update 一律以 A+ metadata ownership 為準；兩者衝突時，A+ 規則優先。
+
+
 `door-window-legend-tools` 支援 `mode=update`，用於更新既有門表/窗表，不重新生成整張表。
 
 Tool contract：
 
-- `mode`: `list | create | update`
+- `mode`: `list | create | update | migrate`
 - `legendViewId`: update 使用的既有 Legend View ID
 - `layoutDirection`: update 必填，`horizontal | vertical`
 - `maxPerLine`: update 必填，每列或每欄數量

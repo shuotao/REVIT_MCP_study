@@ -54,6 +54,16 @@ namespace RevitMCP.Core
 
         private class DoorWindowLegendExistingItem
         {
+	        	public string ItemGuid { get; set; }
+
+	        	public ElementId GroupId { get; set; } = ElementId.InvalidElementId;
+
+	        	public bool IsManaged { get; set; }
+
+	        	public bool IsDamaged { get; set; }
+
+	        	public List<ElementId> ManagedMemberIds { get; set; } = new List<ElementId>();
+
         	public ElementId ComponentId { get; set; } = ElementId.InvalidElementId;
 
         	public ElementId TypeId { get; set; } = ElementId.InvalidElementId;
@@ -75,6 +85,71 @@ namespace RevitMCP.Core
         	public double SillHeightCm { get; set; }
 
         	public int GridIndex { get; set; }
+        }
+
+        private class DoorWindowLegendOwnershipInfo
+        {
+            public string EntityRole { get; set; }
+
+            public string ItemGuid { get; set; }
+
+            public string DesiredKey { get; set; }
+
+            public string TargetType { get; set; }
+
+            public string OwnerComponentUniqueId { get; set; }
+
+            public string GroupUniqueId { get; set; }
+
+            public string MemberRole { get; set; }
+
+            public List<string> ChildUniqueIds { get; set; } = new List<string>();
+
+            public List<string> ChildRoles { get; set; } = new List<string>();
+        }
+
+        private class DoorWindowLegendGroupingException : InvalidOperationException
+        {
+            public DoorWindowLegendGroupingException(string message)
+                : base(message)
+            {
+            }
+        }
+
+        private class DoorWindowLegendExpectedGroupWarningPreprocessor : IFailuresPreprocessor
+        {
+            private static readonly Guid AtomViolationWhenOnePlaceInstanceGuid =
+                new Guid("c519d291-2e28-4075-b0d0-3cbc8c848bc2");
+
+            public FailureProcessingResult PreprocessFailures(FailuresAccessor failuresAccessor)
+            {
+                foreach (FailureMessageAccessor failure in failuresAccessor.GetFailureMessages())
+                {
+                    FailureDefinitionId definitionId = failure.GetFailureDefinitionId();
+                    if (failure.GetSeverity() != FailureSeverity.Warning
+                        || definitionId == null
+                        || definitionId.Guid != AtomViolationWhenOnePlaceInstanceGuid)
+                    {
+                        continue;
+                    }
+                    Logger.Info(
+                        "door-window-legend-tools suppressed expected single-instance group warning. "
+                        + "failureDefinitionId=" + definitionId.Guid.ToString("D")
+                        + ", failingElementIds=" + string.Join(",", failure.GetFailingElementIds()
+                            .Where(id => id != null && id != ElementId.InvalidElementId)
+                            .Select(id => id.GetIdValue())));
+                    failuresAccessor.DeleteWarning(failure);
+                }
+                return FailureProcessingResult.Continue;
+            }
+        }
+
+        private class DoorWindowLegendManagementStats
+        {
+            public int LegacyItemCount { get; set; }
+            public int ManagedItemCount { get; set; }
+            public int DamagedItemCount { get; set; }
+            public int ConflictCount { get; set; }
         }
 
         private class DoorWindowLegendViewTargetCounts
@@ -448,18 +523,21 @@ namespace RevitMCP.Core
 
         private static readonly Guid DoorWindowLegendTextMetadataSchemaGuid = new Guid("5f4ad61f-91cb-4c6a-b5b2-733960ef7ad1");
 
+        private static readonly Guid DoorWindowLegendItemMetadataSchemaGuid = new Guid("2f8460c9-5d0b-4b58-980e-bbc97f49e277");
+
+
         private object DoorWindowLegendTools(JObject parameters)
         {
         	Document document = _uiApp.ActiveUIDocument.Document;
         	string text = parameters?["targetType"]?.Value<string>()?.Trim().ToLowerInvariant();
         	string text2 = parameters?["mode"]?.Value<string>()?.Trim().ToLowerInvariant();
-        	if (text2 != "list" && text2 != "create" && text2 != "update")
+	        	if (text2 != "list" && text2 != "create" && text2 != "update" && text2 != "migrate")
         	{
-        		throw new Exception("mode must be list, create, or update");
+	        		throw new Exception("mode must be list, create, update, or migrate");
         	}
         	if (text != "door" && text != "window")
         	{
-        		if (text2 == "update")
+        		if (text2 == "update" || text2 == "migrate")
         		{
         			return new
         			{
@@ -485,6 +563,16 @@ namespace RevitMCP.Core
         	int? num = parameters?["seedLegendViewId"]?.Value<int?>();
         	int? legendViewId = parameters?["legendViewId"]?.Value<int?>();
         	int? dimensionTypeId = parameters?["dimensionTypeId"]?.Value<int?>();
+	        	if (text2 == "migrate")
+	        	{
+	        		bool apply = parameters?["apply"]?.Value<bool?>() ?? false;
+	        		List<string> itemKeys = parameters?["itemKeys"]?.Values<string>()
+	        			.Where(key => !string.IsNullOrWhiteSpace(key))
+	        			.Select(key => key.Trim())
+	        			.Distinct(StringComparer.OrdinalIgnoreCase)
+	        			.ToList() ?? new List<string>();
+	        		return MigrateDoorWindowLegend(document, text, legendViewId, apply, itemKeys);
+	        	}
         	if (text2 == "update")
         	{
         		return UpdateDoorWindowLegend(document, text, text3, maxPerLine, list, legendViewId, dimensionTypeId);
@@ -660,15 +748,230 @@ namespace RevitMCP.Core
         			TypeId = t.TypeId.GetIdValue(),
         			TypeMarkRaw = t.TypeMarkRaw,
         			TypeMarkDisplay = t.TypeMarkDisplay,
-        			TypeName = t.TypeName,
-        			SillHeightCm = t.SillHeightCm,
-        			SillHeightFeet = t.SillHeightFeet,
-        			SillHeightSource = t.SillHeightSource,
-        			RepresentativeInstanceId = SafeGetElementIdValue(t.RepresentativeInstanceId)
-        		}).ToList(),
-        		SuggestedAction = "create_legend"
-        	};
+	        			TypeName = t.TypeName,
+	        			SillHeightCm = t.SillHeightCm,
+	        			SillHeightFeet = t.SillHeightFeet,
+	        			SillHeightSource = t.SillHeightSource,
+	        			RepresentativeInstanceId = SafeGetElementIdValue(t.RepresentativeInstanceId)
+	        		}).ToList(),
+	        		SuggestedAction = "create_legend"
+	        	};
+	       }
+        private Dictionary<ElementId, string> BuildLegacyDoorWindowDimensionRoleMap(Document doc, IEnumerable<ElementId> memberIds, string targetType)
+        {
+            Dictionary<ElementId, string> roles = new Dictionary<ElementId, string>(new ElementIdValueComparer());
+            List<Dimension> dimensions = (memberIds ?? Enumerable.Empty<ElementId>())
+                .Select(doc.GetElement)
+                .OfType<Dimension>()
+                .ToList();
+            if (dimensions.Count == 0)
+            {
+                return roles;
+            }
+
+            Dimension widthDimension = dimensions
+                .OrderByDescending(GetDoorWindowDimensionHorizontalScore)
+                .First();
+            roles[widthDimension.Id] = "width_dimension";
+            List<Dimension> verticalDimensions = dimensions
+                .Where(dimension => dimension.Id.GetIdValue() != widthDimension.Id.GetIdValue())
+                .OrderByDescending(GetDoorWindowDimensionCurveLength)
+                .ToList();
+            if (verticalDimensions.Count > 0) roles[verticalDimensions[0].Id] = "height_dimension";
+            if (targetType == "window" && verticalDimensions.Count > 1) roles[verticalDimensions[1].Id] = "sill_dimension";
+            return roles;
         }
+
+        private double GetDoorWindowDimensionHorizontalScore(Dimension dimension)
+        {
+            try
+            {
+                Line line = dimension?.Curve as Line;
+                XYZ direction = line?.Direction;
+                return direction == null ? double.MinValue : Math.Abs(direction.X) - Math.Abs(direction.Y);
+            }
+            catch
+            {
+                return double.MinValue;
+            }
+        }
+
+        private double GetDoorWindowDimensionCurveLength(Dimension dimension)
+        {
+            try
+            {
+                return dimension?.Curve?.Length ?? 0.0;
+            }
+            catch
+            {
+                return 0.0;
+            }
+        }
+
+        private object MigrateDoorWindowLegend(Document doc, string targetType, int? legendViewId, bool apply, List<string> itemKeys)
+        {
+            if (!legendViewId.HasValue)
+            {
+                return new
+                {
+                    TargetType = targetType,
+                    WorkflowState = "awaiting_legend_view_selection",
+                    NextAction = "call_list_legend_views",
+                    SelectionField = "legendViewId",
+                    RequiresUserInput = true,
+                    MissingFields = new string[1] { "legendViewId" },
+                    Message = "migration preview 前必須先選擇既有 Legend 視圖。"
+                };
+            }
+            View legendView = GetLegendViewById(doc, legendViewId.Value);
+            if (legendView == null)
+            {
+                return new
+                {
+                    TargetType = targetType,
+                    LegendViewId = legendViewId.Value,
+                    ErrorCode = "legend_view_not_found",
+                    Message = "找不到指定的 Legend 視圖。"
+                };
+            }
+
+            List<DoorWindowLegendExistingItem> legacyItems = CollectExistingDoorWindowLegendItems(doc, legendView, targetType, "horizontal", 100)
+                .Where(item => !item.IsManaged)
+                .ToList();
+            Dictionary<DoorWindowLegendExistingItem, List<ElementId>> memberIds = legacyItems.ToDictionary(
+                item => item,
+                item => CollectDoorWindowLegendItemRelatedElementIds(doc, legendView, item, targetType));
+            HashSet<IdType> overlappingIds = memberIds
+                .SelectMany(pair => pair.Value.Select(id => new { Item = pair.Key, Id = id.GetIdValue() }))
+                .GroupBy(entry => entry.Id)
+                .Where(group => group.Select(entry => entry.Item).Distinct().Count() > 1)
+                .Select(group => group.Key)
+                .ToHashSet();
+            List<DoorWindowLegendExistingItem> readyItems = new List<DoorWindowLegendExistingItem>();
+            List<object> ready = new List<object>();
+            List<object> ambiguous = new List<object>();
+            List<object> overlap = new List<object>();
+            List<object> unresolved = new List<object>();
+            foreach (DoorWindowLegendExistingItem item in legacyItems)
+            {
+                List<ElementId> ids = memberIds[item];
+                object summary = new
+                {
+                    ItemKey = item.Key,
+                    TypeId = item.TypeId.GetIdValue(),
+                    ComponentId = SafeGetElementIdValue(item.ComponentId),
+                    FflLineId = SafeGetElementIdValue(item.FflLineId),
+                    AnchorX = item.Anchor?.X,
+                    AnchorY = item.Anchor?.Y,
+                    MemberIds = ids.Select(SafeGetElementIdValue).ToList(),
+                    SelectedForApply = itemKeys == null || itemKeys.Count == 0 || itemKeys.Contains(item.Key, StringComparer.OrdinalIgnoreCase)
+                };
+                if (string.IsNullOrWhiteSpace(item.Key) || !IsValidElementId(item.ComponentId))
+                {
+                    unresolved.Add(summary);
+                    continue;
+                }
+                if (ids.Any(id => overlappingIds.Contains(id.GetIdValue())))
+                {
+                    overlap.Add(summary);
+                    continue;
+                }
+                bool alreadyGrouped = ids.Select(doc.GetElement).Any(element => element != null && IsValidElementId(element.GroupId));
+                List<Element> candidateElements = ids.Select(doc.GetElement).Where(element => element != null).ToList();
+                int typeMarkCount = candidateElements.OfType<TextNote>().Count(note => (note.Text ?? string.Empty).IndexOf("FFL", StringComparison.OrdinalIgnoreCase) < 0);
+                int fflLabelCount = candidateElements.OfType<TextNote>().Count(note => (note.Text ?? string.Empty).IndexOf("FFL", StringComparison.OrdinalIgnoreCase) >= 0);
+                int dimensionCount = candidateElements.OfType<Dimension>().Count();
+                int requiredDimensionCount = targetType == "window" ? 3 : 2;
+                bool completeLegacyItem = item.HasDetectedFfl && typeMarkCount == 1 && fflLabelCount == 1 && dimensionCount == requiredDimensionCount;
+                if (!completeLegacyItem || alreadyGrouped)
+                {
+                    ambiguous.Add(summary);
+                    continue;
+                }
+                readyItems.Add(item);
+                ready.Add(summary);
+            }
+
+            if (!apply)
+            {
+                return new
+                {
+                    WorkflowState = "migration_preview",
+                    TargetType = targetType,
+                    LegendViewId = legendViewId.Value,
+                    LegendViewName = SafeGetViewName(legendView),
+                    Apply = false,
+                    Ready = ready,
+                    Ambiguous = ambiguous,
+                    Overlap = overlap,
+                    Unresolved = unresolved,
+                    ReadyCount = ready.Count,
+                    Message = "preview 未修改模型；只有 Ready 項目可在 apply=true 時轉換。"
+                };
+            }
+
+            HashSet<string> selectedKeys = new HashSet<string>(itemKeys ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
+            List<DoorWindowLegendExistingItem> selectedReadyItems = readyItems
+                .Where(item => selectedKeys.Count == 0 || selectedKeys.Contains(item.Key))
+                .ToList();
+            int appliedCount = 0;
+            int orphansRemovedCount = 0;
+            Transaction transaction = new Transaction(doc, "遷移門窗圖例 A+ ownership");
+            try
+            {
+                transaction.Start();
+                orphansRemovedCount += CleanupOrphanedDoorWindowLegendGroupTypes(doc);
+                foreach (DoorWindowLegendExistingItem item in selectedReadyItems)
+                {
+                    SubTransaction itemTransaction = new SubTransaction(doc);
+                    itemTransaction.Start();
+                    try
+                    {
+                        Dictionary<ElementId, string> roles = new Dictionary<ElementId, string>(new ElementIdValueComparer());
+                        Dictionary<ElementId, string> dimensionRoles = BuildLegacyDoorWindowDimensionRoleMap(doc, memberIds[item], targetType);
+                        foreach (ElementId id in memberIds[item])
+                        {
+                            Element element = doc.GetElement(id);
+                            if (element == null)
+                            {
+                                throw new DoorWindowLegendGroupingException("migration member 在套用前已不存在。");
+                            }
+                            if (id.GetIdValue() == item.ComponentId.GetIdValue()) roles[id] = "component";
+                            else if (IsValidElementId(item.FflLineId) && id.GetIdValue() == item.FflLineId.GetIdValue()) roles[id] = "ffl_line";
+                            else if (element is TextNote textNote) roles[id] = (textNote.Text ?? string.Empty).IndexOf("FFL", StringComparison.OrdinalIgnoreCase) >= 0 ? "ffl_label" : "type_mark";
+                            else if (element is Dimension && dimensionRoles.TryGetValue(id, out string dimensionRole)) roles[id] = dimensionRole;
+                            else if (element is DetailCurve) roles[id] = "dimension_reference_curve";
+                            else roles[id] = "member";
+                        }
+                        CreateManagedDoorWindowLegendItemGroup(doc, legendView, item.ComponentId, targetType, item.Key, roles);
+                        itemTransaction.Commit();
+                        appliedCount++;
+                    }
+                    catch
+                    {
+                        itemTransaction.RollBack();
+                        throw;
+                    }
+                    finally
+                    {
+                        ((IDisposable)itemTransaction)?.Dispose();
+                    }
+                }
+                orphansRemovedCount += CleanupOrphanedDoorWindowLegendGroupTypes(doc);
+                transaction.Commit();
+            }
+            catch (DoorWindowLegendGroupingException ex)
+            {
+                if (transaction.GetStatus() == TransactionStatus.Started) transaction.RollBack();
+                return new { WorkflowState = "migration_gate_failed", TargetType = targetType, LegendViewId = legendViewId.Value, Apply = true, ErrorCode = "group_capability_gate_failed", Message = ex.Message, AppliedCount = 0, Ready = ready, Ambiguous = ambiguous, Overlap = overlap, Unresolved = unresolved };
+            }
+            finally
+            {
+                ((IDisposable)transaction)?.Dispose();
+            }
+            return new { WorkflowState = "migration_applied", TargetType = targetType, LegendViewId = legendViewId.Value, LegendViewName = SafeGetViewName(legendView), Apply = true, AppliedCount = appliedCount, SkippedCount = legacyItems.Count - appliedCount, OrphansRemovedCount = orphansRemovedCount, Ready = ready, Ambiguous = ambiguous, Overlap = overlap, Unresolved = unresolved };
+        }
+
 
         private object UpdateDoorWindowLegend(Document doc, string targetType, string layoutDirection, int? maxPerLine, List<DoorWindowLegendTypeInfo> desiredTypes, int? legendViewId, int? dimensionTypeId)
         {
@@ -777,14 +1080,47 @@ namespace RevitMCP.Core
         	Dictionary<string, DoorWindowLegendTypeInfo> dictionary = (from t in desiredTypes
         		group t by BuildDoorWindowLegendItemKey(targetType, t.TypeId, t.SillHeightCm)).ToDictionary((IGrouping<string, DoorWindowLegendTypeInfo> g) => g.Key, (IGrouping<string, DoorWindowLegendTypeInfo> g) => g.First());
         	HashSet<IdType> hashSet = new HashSet<IdType>(desiredTypes.Select((DoorWindowLegendTypeInfo t) => t.TypeId.GetIdValue()));
-        	HashSet<string> existingKeys = (from i in list3
-        		where !string.IsNullOrWhiteSpace(i.Key)
-        		select i.Key).ToHashSet();
+	        	HashSet<string> conflictingItemGuids = list3
+	        		.Where(i => i.IsManaged && !string.IsNullOrWhiteSpace(i.ItemGuid))
+	        		.GroupBy(i => i.ItemGuid, StringComparer.OrdinalIgnoreCase)
+	        		.Where(group => group.Count() > 1)
+	        		.Select(group => group.Key)
+	        		.ToHashSet(StringComparer.OrdinalIgnoreCase);
+	        	HashSet<string> conflictingDesiredKeys = list3
+	        		.Where(i => !string.IsNullOrWhiteSpace(i.Key))
+	        		.GroupBy(i => i.Key, StringComparer.OrdinalIgnoreCase)
+	        		.Where(group => group.Count() > 1)
+	        		.Select(group => group.Key)
+	        		.ToHashSet(StringComparer.OrdinalIgnoreCase);
+	        	HashSet<DoorWindowLegendExistingItem> conflictItems = list3
+	        		.Where(i => conflictingItemGuids.Contains(i.ItemGuid ?? string.Empty) || conflictingDesiredKeys.Contains(i.Key ?? string.Empty))
+	        		.ToHashSet();
+	        	List<object> conflictDebug = conflictItems.Select(i => (object)new
+	        	{
+	        		ItemGuid = i.ItemGuid,
+	        		DesiredKey = i.Key,
+	        		ComponentId = SafeGetElementIdValue(i.ComponentId),
+	        		GroupId = SafeGetElementIdValue(i.GroupId),
+	        		ConflictReason = conflictingItemGuids.Contains(i.ItemGuid ?? string.Empty) ? "duplicate_item_guid" : "duplicate_desired_key"
+	        	}).ToList();
+	        	HashSet<string> existingKeys = list3
+	        		.Where(i => !string.IsNullOrWhiteSpace(i.Key) && (!i.IsDamaged || conflictItems.Contains(i)))
+	        		.Select(i => i.Key)
+	        		.ToHashSet(StringComparer.OrdinalIgnoreCase);
         	List<DoorWindowLegendTypeInfo> list4 = desiredTypes.Where((DoorWindowLegendTypeInfo t) => !existingKeys.Contains(BuildDoorWindowLegendItemKey(targetType, t.TypeId, t.SillHeightCm))).ToList();
         	List<DoorWindowLegendExistingItem> list5 = new List<DoorWindowLegendExistingItem>();
         	List<object> list6 = new List<object>();
         	foreach (DoorWindowLegendExistingItem item in list3)
         	{
+	        		if (conflictItems.Contains(item))
+	        		{
+	        			continue;
+	        		}
+	        		if (item.IsManaged && item.IsDamaged)
+	        		{
+	        			list5.Add(item);
+	        			continue;
+	        		}
         		if (string.IsNullOrWhiteSpace(item.Key) || !dictionary.ContainsKey(item.Key))
         		{
         			if (targetType == "window" && !item.HasDetectedFfl && hashSet.Contains(item.TypeId.GetIdValue()))
@@ -814,6 +1150,12 @@ namespace RevitMCP.Core
         	int num5 = 0;
         	int num6 = 0;
         	List<object> list7 = new List<object>();
+	        	int staleGroupDeletedCount = 0;
+	        	int damagedRepairedCount = 0;
+	        	List<DoorWindowLegendExistingItem> repairItems = new List<DoorWindowLegendExistingItem>();
+	        	List<ElementId> temporarySourceIds = new List<ElementId>();
+	        	ElementId appendSourceComponentId = ElementId.InvalidElementId;
+	        	int orphansRemovedCount = 0;
         	if (doorWindowLegendViewTargetCounts.DoorCount > 0 && doorWindowLegendViewTargetCounts.WindowCount > 0)
         	{
         		list7.Add(new
@@ -833,12 +1175,44 @@ namespace RevitMCP.Core
         	try
         	{
         		val2.Start();
+				FailureHandlingOptions updateFailureOptions = val2.GetFailureHandlingOptions();
+				updateFailureOptions.SetFailuresPreprocessor(new DoorWindowLegendExpectedGroupWarningPreprocessor());
+				val2.SetFailureHandlingOptions(updateFailureOptions);
+	        		orphansRemovedCount += CleanupOrphanedDoorWindowLegendGroupTypes(doc);
+	        		if (list4.Count > 0)
+	        		{
+	        			DoorWindowLegendExistingItem sourceItem = list3
+	        				.Where(i => !conflictItems.Contains(i) && IsValidElementId(i.ComponentId))
+	        				.OrderByDescending(i => i.GridIndex)
+	        				.FirstOrDefault();
+	        			if (sourceItem == null)
+	        			{
+	        				val2.RollBack();
+	        				return new
+	        				{
+	        					TargetType = targetType,
+	        					LegendViewId = SafeGetElementIdValue((Element)(object)legendViewById),
+	        					LegendViewName = SafeGetViewName(legendViewById),
+	        					ErrorCode = "legend_seed_component_not_found",
+	        					Message = "找不到無衝突且仍存在的 Legend Component 作為 append source。"
+	        				};
+	        			}
+	        			appendSourceComponentId = CreateIndependentLegendComponentSource(doc, sourceItem, out temporarySourceIds);
+	        		}
         		foreach (DoorWindowLegendExistingItem item2 in list5)
         		{
         			DoorWindowLegendDeleteResult doorWindowLegendDeleteResult = DeleteDoorWindowLegendItemGroup(doc, legendViewById, item2, targetType);
         			if (doorWindowLegendDeleteResult.Success)
         			{
         				num3++;
+	        				if (item2.IsDamaged && !string.IsNullOrWhiteSpace(item2.Key) && dictionary.ContainsKey(item2.Key))
+	        				{
+	        					repairItems.Add(item2);
+	        				}
+	        				else if (item2.IsManaged && IsValidElementId(item2.GroupId))
+	        				{
+	        					staleGroupDeletedCount++;
+	        				}
         				list8.Add(new
         				{
         					ExistingKey = item2.Key,
@@ -868,7 +1242,7 @@ namespace RevitMCP.Core
         		}
         		foreach (DoorWindowLegendExistingItem item3 in list3)
         		{
-        			if (!list5.Contains(item3) && !string.IsNullOrWhiteSpace(item3.Key) && dictionary.ContainsKey(item3.Key))
+	        			if (!list5.Contains(item3) && !conflictItems.Contains(item3) && !item3.IsDamaged && !string.IsNullOrWhiteSpace(item3.Key) && dictionary.ContainsKey(item3.Key))
         			{
         				DoorWindowLegendTypeMarkSyncResult doorWindowLegendTypeMarkSyncResult = SyncDoorWindowLegendTypeMarkTextNote(doc, legendViewById, item3, targetType);
         				if (doorWindowLegendTypeMarkSyncResult.Action == "updated")
@@ -897,7 +1271,7 @@ namespace RevitMCP.Core
         		}
         		if (list4.Count > 0)
         		{
-        			DoorWindowLegendExistingItem doorWindowLegendExistingItem = list3.OrderByDescending((DoorWindowLegendExistingItem i) => i.GridIndex).FirstOrDefault();
+	        			DoorWindowLegendExistingItem doorWindowLegendExistingItem = list3.Where(i => !conflictItems.Contains(i)).OrderByDescending((DoorWindowLegendExistingItem i) => i.GridIndex).FirstOrDefault();
         			if (doorWindowLegendExistingItem == null || !IsValidElementId(doorWindowLegendExistingItem.ComponentId))
         			{
         				val2.RollBack();
@@ -912,11 +1286,43 @@ namespace RevitMCP.Core
         			}
         			XYZ doorWindowLegendGridOrigin = GetDoorWindowLegendGridOrigin(list3);
         			int startIndex = Math.Max(0, list3.Max((DoorWindowLegendExistingItem i) => i.GridIndex) + 1);
-        			addedCount = PlaceLegendItemsFromOriginalSeedSource(doc, legendViewById, doorWindowLegendExistingItem.ComponentId, targetType, layoutDirection, maxPerLine.Value, list4, failedTypes, list7, val, out dimensionCreatedCount, out dimensionFailedCount, out keepElementIds, startIndex, doorWindowLegendGridOrigin);
+	        			addedCount = PlaceDoorWindowLegendUpdateItems(doc, legendViewById, appendSourceComponentId, targetType, layoutDirection, maxPerLine.Value, list4, repairItems, failedTypes, list7, val, startIndex, doorWindowLegendGridOrigin, out dimensionCreatedCount, out dimensionFailedCount, out keepElementIds, out damagedRepairedCount);
         		}
+	        		DeleteTemporaryDoorWindowLegendElements(doc, temporarySourceIds);
+	        		ValidateCreatedDoorWindowLegendItemsAfterTemporaryCleanup(doc, keepElementIds);
+	        		orphansRemovedCount += CleanupOrphanedDoorWindowLegendGroupTypes(doc);
         		doc.Regenerate();
         		val2.Commit();
         	}
+	        	catch (DoorWindowLegendGroupingException ex)
+	        	{
+	        		if (val2.GetStatus() == TransactionStatus.Started) val2.RollBack();
+	        		return new
+	        		{
+	        			WorkflowState = "update_gate_failed",
+	        			TargetType = targetType,
+	        			LegendViewId = SafeGetElementIdValue((Element)(object)legendViewById),
+	        			LegendViewName = SafeGetViewName(legendViewById),
+	        			ErrorCode = "group_capability_gate_failed",
+	        			ConflictItems = conflictDebug,
+	        			Message = ex.Message
+	        		};
+	        	}
+	        	catch (Exception ex)
+	        	{
+	        		if (val2.GetStatus() == TransactionStatus.Started) val2.RollBack();
+	        		Logger.Error($"door-window-legend-tools update failed. targetType={targetType}, legendViewId={SafeGetElementIdValue((Element)(object)legendViewById)}", ex);
+	        		return new
+	        		{
+	        			WorkflowState = "update_failed",
+	        			TargetType = targetType,
+	        			LegendViewId = SafeGetElementIdValue((Element)(object)legendViewById),
+	        			LegendViewName = SafeGetViewName(legendViewById),
+	        			ErrorCode = "door_window_legend_update_failed",
+	        			ConflictItems = conflictDebug,
+	        			Message = ex.Message
+	        		};
+	        	}
         	finally
         	{
         		((IDisposable)val2)?.Dispose();
@@ -953,7 +1359,12 @@ namespace RevitMCP.Core
         		DimensionCreatedCount = dimensionCreatedCount,
         		DimensionFailedCount = dimensionFailedCount,
         		TypeMarkUpdatedCount = num5,
-        		TypeMarkSkippedCount = num6
+	        		TypeMarkSkippedCount = num6,
+	        		RebuiltCount = damagedRepairedCount,
+	        		StaleGroupDeletedCount = staleGroupDeletedCount,
+	        		DamagedRepairedCount = damagedRepairedCount,
+	        		ConflictItems = conflictDebug,
+	        		OrphansRemovedCount = orphansRemovedCount
         	};
         }
 
@@ -1034,7 +1445,7 @@ namespace RevitMCP.Core
         	string text2 = SafeGetViewName(seedView);
         	object dimensionTypeId = SafeGetElementIdValue((Element)(object)dimensionType);
         	string dimensionTypeName = SafeGetDimensionTypeName(dimensionType);
-        	TransactionGroup val = new TransactionGroup(doc, "撱箇?" + text);
+        	TransactionGroup val = new TransactionGroup(doc, "建立" + text);
         	try
         	{
         		val.Start();
@@ -1051,10 +1462,15 @@ namespace RevitMCP.Core
         		int num4 = 0;
         		int dimensionCreatedCount = 0;
         		int dimensionFailedCount = 0;
-        		Transaction val3 = new Transaction(doc, "撱箇?" + text + " Legend");
+        		Transaction val3 = new Transaction(doc, "建立" + text + " Legend");
         		try
         		{
         			val3.Start();
+                    FailureHandlingOptions failureOptions = val3.GetFailureHandlingOptions();
+                    failureOptions.SetFailuresPreprocessor(new DoorWindowLegendExpectedGroupWarningPreprocessor());
+                    val3.SetFailureHandlingOptions(failureOptions);
+
+	        		CleanupOrphanedDoorWindowLegendGroupTypes(doc);
         			View val4 = DuplicateLegendView(doc, seedView, text);
         			val4.Scale = 50;
         			doc.Regenerate();
@@ -1118,7 +1534,7 @@ namespace RevitMCP.Core
         					{
         						TargetType = targetType,
         						DisplayName = GetDoorWindowDisplayName(targetType),
-        						ErrorCode = "legend_seed_component_type_mismatch",
+	        						ErrorCode = ex is DoorWindowLegendGroupingException ? "group_capability_gate_failed" : "legend_seed_component_type_mismatch",
         						SeedLegendViewId = obj,
         						SeedLegendViewName = text2,
         						Message = ex.Message,
@@ -1128,7 +1544,45 @@ namespace RevitMCP.Core
         					};
         				}
         			}
+	        		CleanupOrphanedDoorWindowLegendGroupTypes(doc);
         			val3.Commit();
+	        		if (num > 0)
+	        		{
+	        			List<DoorWindowLegendExistingItem> postCommitItems = CollectExistingDoorWindowLegendItems(doc, val4, targetType, layoutDirection, maxPerLine);
+	        			List<DoorWindowLegendExistingItem> postCommitManagedItems = postCommitItems.Where(item => item.IsManaged).ToList();
+	        			List<DoorWindowLegendExistingItem> invalidManagedItems = postCommitManagedItems
+	        				.Where(item => item.IsDamaged || !IsValidElementId(item.GroupId) || doc.GetElement(item.GroupId) == null)
+	        				.ToList();
+	        			int persistentGroupCount = postCommitManagedItems
+	        				.Where(item => IsValidElementId(item.GroupId) && doc.GetElement(item.GroupId) is Autodesk.Revit.DB.Group)
+	        				.Select(item => item.GroupId.GetIdValue())
+	        				.Distinct()
+	        				.Count();
+	        			if (postCommitManagedItems.Count != num || persistentGroupCount != num || invalidManagedItems.Count > 0)
+	        			{
+	        				List<object> persistenceFailures = postCommitManagedItems.Select(item => (object)new
+	        				{
+	        					item.ItemGuid,
+	        					DesiredKey = item.Key,
+	        					ComponentId = SafeGetElementIdValue(item.ComponentId),
+	        					GroupId = SafeGetElementIdValue(item.GroupId),
+	        					item.IsDamaged
+	        				}).ToList();
+	        				val.RollBack();
+	        				return new
+	        				{
+	        					TargetType = targetType,
+	        					DisplayName = GetDoorWindowDisplayName(targetType),
+	        					ErrorCode = "group_capability_gate_failed",
+	        					GatePhase = "post_transaction_commit",
+	        					ExpectedGroupCount = num,
+	        					PersistentGroupCount = persistentGroupCount,
+	        					ManagedItemCount = postCommitManagedItems.Count,
+	        					PersistenceFailures = persistenceFailures,
+	        					Message = "Revit 在 transaction commit 後未保留完整 Detail Group；已 rollback 新圖例，未交付散件版本。"
+	        				};
+	        			}
+	        		}
         		}
         		finally
         		{
@@ -1261,6 +1715,7 @@ namespace RevitMCP.Core
         				}
         			}
         		}
+        		DoorWindowLegendManagementStats managementStats = GetDoorWindowLegendManagementStats(doc, v);
         		return new
         		{
         			viewId = ((Element)v).Id.GetIdValue(),
@@ -1268,11 +1723,19 @@ namespace RevitMCP.Core
         			legendComponentCount = list.Count,
         			doorLegendComponentCount = num,
         			windowLegendComponentCount = num2,
+        			managedItemCount = managementStats.ManagedItemCount,
+        			legacyItemCount = managementStats.LegacyItemCount,
+        			damagedItemCount = managementStats.DamagedItemCount,
+        			conflictCount = managementStats.ConflictCount,
         			ViewId = ((Element)v).Id.GetIdValue(),
         			ViewName = ((Element)v).Name,
         			LegendComponentCount = list.Count,
         			DoorLegendComponentCount = num,
-        			WindowLegendComponentCount = num2
+        			WindowLegendComponentCount = num2,
+        			ManagedItemCount = managementStats.ManagedItemCount,
+        			LegacyItemCount = managementStats.LegacyItemCount,
+        			DamagedItemCount = managementStats.DamagedItemCount,
+        			ConflictCount = managementStats.ConflictCount
         		};
         	}).ToList();
         }
@@ -1310,7 +1773,7 @@ namespace RevitMCP.Core
         			{
         				TypeId = item2,
         				TypeMarkRaw = typeMark,
-        				TypeMarkDisplay = (string.IsNullOrWhiteSpace(typeMark) ? "(?芸‵)" : typeMark.Trim()),
+        				TypeMarkDisplay = (string.IsNullOrWhiteSpace(typeMark) ? "(未填)" : typeMark.Trim()),
         				TypeName = (((Element)val2).Name ?? string.Empty)
         			});
         		}
@@ -1343,7 +1806,7 @@ namespace RevitMCP.Core
         				{
         					TypeId = typeId,
         					TypeMarkRaw = typeMark,
-        					TypeMarkDisplay = (string.IsNullOrWhiteSpace(typeMark) ? "(??詹\u0080?" : typeMark.Trim()),
+        					TypeMarkDisplay = (string.IsNullOrWhiteSpace(typeMark) ? "(未填)" : typeMark.Trim()),
         					TypeName = (((Element)val).Name ?? string.Empty),
         					SillHeightCm = num,
         					SillHeightFeet = sillHeightFeet,
@@ -1777,6 +2240,71 @@ namespace RevitMCP.Core
         	}
         }
 
+        private int PlaceDoorWindowLegendUpdateItems(
+            Document doc,
+            View legendView,
+            ElementId sourceComponentId,
+            string targetType,
+            string layoutDirection,
+            int maxPerLine,
+            List<DoorWindowLegendTypeInfo> missingTypes,
+            List<DoorWindowLegendExistingItem> repairItems,
+            List<DoorWindowLegendFailedType> failedTypes,
+            List<object> attemptDebug,
+            DimensionType dimensionType,
+            int appendStartIndex,
+            XYZ appendGridOrigin,
+            out int dimensionCreatedCount,
+            out int dimensionFailedCount,
+            out List<ElementId> keepElementIds,
+            out int damagedRepairedCount)
+        {
+            dimensionCreatedCount = 0;
+            dimensionFailedCount = 0;
+            damagedRepairedCount = 0;
+            keepElementIds = new List<ElementId>();
+            int addedCount = 0;
+            Dictionary<string, DoorWindowLegendTypeInfo> missingByKey = missingTypes.ToDictionary(
+                type => BuildDoorWindowLegendItemKey(targetType, type.TypeId, type.SillHeightCm),
+                type => type,
+                StringComparer.OrdinalIgnoreCase);
+            HashSet<string> repairedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (DoorWindowLegendExistingItem repairItem in repairItems)
+            {
+                if (string.IsNullOrWhiteSpace(repairItem.Key) || !missingByKey.TryGetValue(repairItem.Key, out DoorWindowLegendTypeInfo repairType))
+                {
+                    continue;
+                }
+                XYZ repairAnchor = new XYZ(repairItem.Anchor.X, repairItem.Anchor.Y + (targetType == "window" ? repairType.SillHeightCm * CmToFeet : 0.0), 0.0);
+                int created;
+                int failed;
+                List<ElementId> repairedKeepIds;
+                int repaired = PlaceLegendItemsFromOriginalSeedSource(doc, legendView, sourceComponentId, targetType, layoutDirection, maxPerLine, new List<DoorWindowLegendTypeInfo> { repairType }, failedTypes, attemptDebug, dimensionType, out created, out failed, out repairedKeepIds, 0, repairAnchor);
+                if (repaired != 1)
+                {
+                    throw new InvalidOperationException("damaged item 無法在原 anchor 完整重建: " + repairItem.Key);
+                }
+                damagedRepairedCount++;
+                addedCount += repaired;
+                dimensionCreatedCount += created;
+                dimensionFailedCount += failed;
+                keepElementIds.AddRange(repairedKeepIds);
+                repairedKeys.Add(repairItem.Key);
+            }
+            List<DoorWindowLegendTypeInfo> appendTypes = missingTypes.Where(type => !repairedKeys.Contains(BuildDoorWindowLegendItemKey(targetType, type.TypeId, type.SillHeightCm))).ToList();
+            if (appendTypes.Count > 0)
+            {
+                int created;
+                int failed;
+                List<ElementId> appendedKeepIds;
+                addedCount += PlaceLegendItemsFromOriginalSeedSource(doc, legendView, sourceComponentId, targetType, layoutDirection, maxPerLine, appendTypes, failedTypes, attemptDebug, dimensionType, out created, out failed, out appendedKeepIds, appendStartIndex, appendGridOrigin);
+                dimensionCreatedCount += created;
+                dimensionFailedCount += failed;
+                keepElementIds.AddRange(appendedKeepIds);
+            }
+            return addedCount;
+        }
+
         private int PlaceLegendItemsFromOriginalSeedSource(Document doc, View legendView, ElementId sourceSeedComponentId, string targetType, string layoutDirection, int maxPerLine, List<DoorWindowLegendTypeInfo> usedTypes, List<DoorWindowLegendFailedType> failedTypes, List<object> attemptDebug, DimensionType dimensionType, out int dimensionCreatedCount, out int dimensionFailedCount, out List<ElementId> keepElementIds, int startIndex = 0, XYZ gridOriginOverride = null)
         {
         	keepElementIds = new List<ElementId>();
@@ -1799,6 +2327,9 @@ namespace RevitMCP.Core
         		XYZ legendPlacementAnchor = GetLegendPlacementAnchor(element.get_BoundingBox(legendView), targetType);
         		XYZ translation = targetAnchor - legendPlacementAnchor;
         		ElementId val = ElementId.InvalidElementId;
+        		SubTransaction itemTransaction = new SubTransaction(doc);
+        		bool itemCommitted = false;
+        		itemTransaction.Start();
         		try
         		{
         			Logger.Info($"door-window-legend-tools type attempt start. view={SafeGetViewName(legendView)}({SafeGetElementIdValue((Element)(object)legendView)}), sourceSeedComponentId={sourceSeedComponentId.GetIdValue()}, targetTypeId={doorWindowLegendTypeInfo.TypeId.GetIdValue()}, typeMark={doorWindowLegendTypeInfo.TypeMarkDisplay}, typeName={doorWindowLegendTypeInfo.TypeName}");
@@ -1824,11 +2355,12 @@ namespace RevitMCP.Core
         					Message = text
         				});
         				Logger.Error($"door-window-legend-tools copy failed. targetTypeId={doorWindowLegendTypeInfo.TypeId.GetIdValue()}, typeMark={doorWindowLegendTypeInfo.TypeMarkDisplay}, typeName={doorWindowLegendTypeInfo.TypeName}");
+        				itemTransaction.RollBack();
+        				itemTransaction.Dispose();
         				continue;
         			}
         			if (!TryApplyLegendComponentTypeInView(doc, ((Element)legendView).Id, val, doorWindowLegendTypeInfo.TypeId, sourceSeedComponentId, out ElementId appliedComponentId, out string reason))
         			{
-        				doc.Delete(val);
         				failedTypes.Add(new DoorWindowLegendFailedType
         				{
         					TypeId = doorWindowLegendTypeInfo.TypeId,
@@ -1849,6 +2381,8 @@ namespace RevitMCP.Core
         					ViewDebugAfter = BuildLegendViewDebug(doc, legendView)
         				});
         				Logger.Error($"door-window-legend-tools set LEGEND_COMPONENT failed. copiedComponentId={SafeGetElementIdValue(val)}, targetTypeId={doorWindowLegendTypeInfo.TypeId.GetIdValue()}, reason={reason}");
+        				itemTransaction.RollBack();
+        				itemTransaction.Dispose();
         				continue;
         			}
         			Element legendComponent = doc.GetElement(appliedComponentId) ?? FindLegendComponentByTargetType(doc, ((Element)legendView).Id, doorWindowLegendTypeInfo.TypeId);
@@ -1860,8 +2394,28 @@ namespace RevitMCP.Core
         			DoorWindowLegendFflResult doorWindowLegendFflResult = ((targetType == "window") ? CreateWindowLegendFflElements(doc, legendView, legendComponent, defaultElementTypeId, targetAnchor) : CreateDoorLegendFflElements(doc, legendView, legendComponent, defaultElementTypeId, targetType));
         			DoorWindowLegendSillDimensionResult doorWindowLegendSillDimensionResult = CreateWindowSillHeightDimension(doc, legendView, legendComponent, dimensionType, doorWindowLegendFflResult.LineId, targetAnchor, targetType);
         			string itemKey = BuildDoorWindowLegendItemKey(targetType, doorWindowLegendTypeInfo.TypeId, doorWindowLegendTypeInfo.SillHeightCm);
-        			SetDoorWindowLegendTextMetadata(doc, val4, "type_mark", targetType, appliedComponentId, doorWindowLegendTypeInfo.TypeId, itemKey);
-        			SetDoorWindowLegendTextMetadata(doc, doorWindowLegendFflResult.TextId, "ffl_label", targetType, appliedComponentId, doorWindowLegendTypeInfo.TypeId, itemKey);
+        			Dictionary<ElementId, string> memberRoles = new Dictionary<ElementId, string>(new ElementIdValueComparer());
+        			memberRoles[appliedComponentId] = "component";
+        			if (IsValidElementId(val4)) memberRoles[val4] = "type_mark";
+        			if (IsValidElementId(doorWindowLegendFflResult.LineId)) memberRoles[doorWindowLegendFflResult.LineId] = "ffl_line";
+        			if (IsValidElementId(doorWindowLegendFflResult.TextId)) memberRoles[doorWindowLegendFflResult.TextId] = "ffl_label";
+        			if (IsValidElementId(doorWindowLegendDimensionResult.WidthDimensionId)) memberRoles[doorWindowLegendDimensionResult.WidthDimensionId] = "width_dimension";
+        			if (IsValidElementId(doorWindowLegendDimensionResult.HeightDimensionId)) memberRoles[doorWindowLegendDimensionResult.HeightDimensionId] = "height_dimension";
+        			if (IsValidElementId(doorWindowLegendSillDimensionResult.DimensionId)) memberRoles[doorWindowLegendSillDimensionResult.DimensionId] = "sill_dimension";
+        			foreach (ElementId generatedId in doorWindowLegendDimensionResult.KeepElementIds.Concat(doorWindowLegendSillDimensionResult.KeepElementIds))
+        			{
+        				if (IsValidElementId(generatedId) && !memberRoles.ContainsKey(generatedId))
+        				{
+        					memberRoles[generatedId] = "dimension_reference_curve";
+        				}
+        			}
+	        			SetDoorWindowLegendTextMetadata(doc, val4, "type_mark", targetType, appliedComponentId, doorWindowLegendTypeInfo.TypeId, itemKey);
+	        			SetDoorWindowLegendTextMetadata(doc, doorWindowLegendFflResult.TextId, "ffl_label", targetType, appliedComponentId, doorWindowLegendTypeInfo.TypeId, itemKey);
+        			Autodesk.Revit.DB.Group managedGroup = CreateManagedDoorWindowLegendItemGroup(doc, legendView, appliedComponentId, targetType, itemKey, memberRoles);
+        			itemTransaction.Commit();
+        			itemCommitted = true;
+        			itemTransaction.Dispose();
+        			keepElementIds.Add(managedGroup.Id);
         			keepElementIds.Add(appliedComponentId);
         			if (IsValidElementId(val4))
         			{
@@ -1882,6 +2436,7 @@ namespace RevitMCP.Core
         				SourceSeedComponentId = sourceSeedComponentId.GetIdValue(),
         				CopiedComponentId = SafeGetElementIdValue(val),
         				AppliedComponentId = SafeGetElementIdValue(appliedComponentId),
+        				GroupId = SafeGetElementIdValue((Element)(object)managedGroup),
         				PlacementAnchor = ((targetType == "window") ? "ffl_bottom_center" : ((targetType == "door") ? "bottom_center" : "left_center")),
         				PlacementAdjustmentX = val2.X,
         				PlacementAdjustmentY = val2.Y,
@@ -1923,6 +2478,24 @@ namespace RevitMCP.Core
         		}
         		catch (Exception ex)
         		{
+        			try
+        			{
+        				if (!itemCommitted && itemTransaction.HasStarted())
+        				{
+        					itemTransaction.RollBack();
+        				}
+        			}
+        			catch
+        			{
+        			}
+        			finally
+        			{
+        				itemTransaction.Dispose();
+        			}
+        			if (ex is DoorWindowLegendGroupingException || itemCommitted)
+        			{
+        				throw;
+        			}
         			SafeDeleteElement(doc, val);
         			failedTypes.Add(new DoorWindowLegendFailedType
         			{
@@ -2816,7 +3389,7 @@ namespace RevitMCP.Core
         		{
         			Category val = subCategory;
         			string text = val.Name ?? string.Empty;
-        			if (text.IndexOf("Invisible", StringComparison.OrdinalIgnoreCase) >= 0 || text.IndexOf("?梯?", StringComparison.OrdinalIgnoreCase) >= 0 || text.IndexOf("Invisible", StringComparison.OrdinalIgnoreCase) >= 0)
+        			if (text.IndexOf("Invisible", StringComparison.OrdinalIgnoreCase) >= 0 || text.IndexOf("不可見", StringComparison.OrdinalIgnoreCase) >= 0 || text.IndexOf("隱藏", StringComparison.OrdinalIgnoreCase) >= 0)
         			{
         				return val.GetGraphicsStyle((GraphicsStyleType)1);
         			}
@@ -2842,6 +3415,19 @@ namespace RevitMCP.Core
         			BoundingBoxXYZ val = element.get_BoundingBox(legendView);
         			if (val != null)
         			{
+        				DoorWindowLegendExistingItem managedItem = new DoorWindowLegendExistingItem
+        				{
+        					ComponentId = item,
+        					TypeId = ((Element)legendComponentFamilySymbol).Id,
+        					TypeMarkDisplay = GetTypeMark(legendComponentFamilySymbol),
+        					TypeName = (((Element)legendComponentFamilySymbol).Name ?? string.Empty),
+        					Bounds = val
+        				};
+        				if (TryPopulateManagedExistingItem(doc, element, managedItem))
+        				{
+        					list.Add(managedItem);
+        					continue;
+        				}
         				DetailCurve val2 = FindNearestDoorWindowFflLine(doc, legendView, val, targetType);
         				bool flag = val2 != null;
         				double num = (flag ? GetDetailCurveLineY(val2) : val.Min.Y);
@@ -2942,6 +3528,22 @@ namespace RevitMCP.Core
         		return $"{typeId.GetIdValue()}|{num:F1}";
         	}
         	return typeId.GetIdValue().ToString(CultureInfo.InvariantCulture);
+        }
+
+        private bool RequiresDoorWindowLegendSillDimension(string targetType, string desiredKey)
+        {
+            if (!string.Equals(targetType, "window", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+            int separatorIndex = desiredKey?.LastIndexOf('|') ?? -1;
+            if (separatorIndex < 0
+                || separatorIndex >= desiredKey.Length - 1
+                || !double.TryParse(desiredKey.Substring(separatorIndex + 1), NumberStyles.Float, CultureInfo.InvariantCulture, out double sillHeightCm))
+            {
+                return true;
+            }
+            return Math.Abs(sillHeightCm) > 0.05;
         }
 
         private XYZ GetDoorWindowLegendGridOrigin(List<DoorWindowLegendExistingItem> items)
@@ -3088,6 +3690,21 @@ namespace RevitMCP.Core
         	{
         		hashSet.Add(item.ComponentId);
         	}
+        	if (item.IsManaged)
+        	{
+        		if (IsValidElementId(item.GroupId) && doc.GetElement(item.GroupId) != null)
+        		{
+        			return new List<ElementId> { item.GroupId };
+        		}
+        		foreach (ElementId managedId in item.ManagedMemberIds.Where(IsValidElementId))
+        		{
+        			if (doc.GetElement(managedId) != null)
+        			{
+        				hashSet.Add(managedId);
+        			}
+        		}
+        		return hashSet.ToList();
+        	}
         	BoundingBoxXYZ bounds = item.Bounds;
         	if (bounds == null)
         	{
@@ -3158,6 +3775,19 @@ namespace RevitMCP.Core
         	if (doc == null || legendView == null || item == null)
         	{
         		failureReason = "invalid_find_context";
+        		return null;
+        	}
+        	if (item.IsManaged && !string.IsNullOrWhiteSpace(item.ItemGuid))
+        	{
+        		foreach (TextNote note in ((IEnumerable)new FilteredElementCollector(doc, ((Element)legendView).Id).OfClass(typeof(TextNote))).Cast<TextNote>())
+        		{
+        			DoorWindowLegendOwnershipInfo ownership = ReadDoorWindowLegendItemMetadata(note);
+        			if (ownership != null && string.Equals(ownership.ItemGuid, item.ItemGuid, StringComparison.OrdinalIgnoreCase) && string.Equals(ownership.MemberRole, "type_mark", StringComparison.OrdinalIgnoreCase))
+        			{
+        				return note;
+        			}
+        		}
+        		failureReason = "managed_type_mark_member_missing";
         		return null;
         	}
         	string b = item.ComponentId.GetIdValue().ToString(CultureInfo.InvariantCulture);
@@ -3448,7 +4078,7 @@ namespace RevitMCP.Core
         	}
         	if (((Element)val).Category.Id.GetIdValue() == RevitCompatibility.GetIdValue(new ElementId((BuiltInCategory)(-2000023))))
         	{
-        		return "?\u0080";
+        		return "門";
         	}
         	if (((Element)val).Category.Id.GetIdValue() == RevitCompatibility.GetIdValue(new ElementId((BuiltInCategory)(-2000014))))
         	{
@@ -3539,6 +4169,524 @@ namespace RevitMCP.Core
         	}
         	value = parameter.AsDouble();
         	return true;
+        }
+
+        private Schema GetDoorWindowLegendItemMetadataSchema(bool createIfMissing)
+        {
+            Schema schema = Schema.Lookup(DoorWindowLegendItemMetadataSchemaGuid);
+            if (schema != null || !createIfMissing)
+            {
+                return schema;
+            }
+
+            SchemaBuilder builder = new SchemaBuilder(DoorWindowLegendItemMetadataSchemaGuid);
+            builder.SetSchemaName("DoorWindowLegendItemMetadataV3");
+            builder.SetReadAccessLevel(AccessLevel.Vendor);
+            builder.SetWriteAccessLevel(AccessLevel.Vendor);
+            builder.SetVendorId("revit-mcp");
+            builder.AddSimpleField("Tool", typeof(string));
+            builder.AddSimpleField("SchemaVersion", typeof(int));
+            builder.AddSimpleField("EntityRole", typeof(string));
+            builder.AddSimpleField("ItemGuid", typeof(string));
+            builder.AddSimpleField("DesiredKey", typeof(string));
+            builder.AddSimpleField("TargetType", typeof(string));
+            builder.AddSimpleField("OwnerComponentUniqueId", typeof(string));
+            builder.AddSimpleField("GroupUniqueId", typeof(string));
+            builder.AddSimpleField("MemberRole", typeof(string));
+            builder.AddArrayField("ChildUniqueIds", typeof(string));
+            builder.AddArrayField("ChildRoles", typeof(string));
+            return builder.Finish();
+        }
+
+        private void SetDoorWindowLegendItemMetadata(
+            Element element,
+            string entityRole,
+            string itemGuid,
+            string desiredKey,
+            string targetType,
+            string ownerComponentUniqueId,
+            string groupUniqueId,
+            string memberRole,
+            IList<string> childUniqueIds,
+            IList<string> childRoles)
+        {
+            if (element == null)
+            {
+                throw new DoorWindowLegendGroupingException("無法在不存在的元素上寫入門窗圖例 ownership metadata。");
+            }
+            Schema schema = GetDoorWindowLegendItemMetadataSchema(createIfMissing: true);
+            Entity entity = new Entity(schema);
+            SetSchemaString(entity, schema, "Tool", "door-window-legend");
+            Field versionField = schema.GetField("SchemaVersion");
+            if (versionField != null)
+            {
+                entity.Set<int>(versionField, 3);
+            }
+            SetSchemaString(entity, schema, "EntityRole", entityRole);
+            SetSchemaString(entity, schema, "ItemGuid", itemGuid);
+            SetSchemaString(entity, schema, "DesiredKey", desiredKey);
+            SetSchemaString(entity, schema, "TargetType", targetType);
+            SetSchemaString(entity, schema, "OwnerComponentUniqueId", ownerComponentUniqueId);
+            SetSchemaString(entity, schema, "GroupUniqueId", groupUniqueId);
+            SetSchemaString(entity, schema, "MemberRole", memberRole);
+            SetSchemaStringArray(entity, schema, "ChildUniqueIds", childUniqueIds);
+            SetSchemaStringArray(entity, schema, "ChildRoles", childRoles);
+            element.SetEntity(entity);
+        }
+
+        private void SetSchemaStringArray(Entity entity, Schema schema, string fieldName, IList<string> values)
+        {
+            Field field = schema.GetField(fieldName);
+            if (field != null)
+            {
+                entity.Set<IList<string>>(field, values ?? new List<string>());
+            }
+        }
+
+        private List<string> GetSchemaStringArray(Entity entity, Schema schema, string fieldName)
+        {
+            try
+            {
+                Field field = schema.GetField(fieldName);
+                IList<string> values = field == null ? null : entity.Get<IList<string>>(field);
+                return values == null ? new List<string>() : values.ToList();
+            }
+            catch
+            {
+                return new List<string>();
+            }
+        }
+
+        private DoorWindowLegendOwnershipInfo ReadDoorWindowLegendItemMetadata(Element element)
+        {
+            if (element == null)
+            {
+                return null;
+            }
+            try
+            {
+                Schema schema = GetDoorWindowLegendItemMetadataSchema(createIfMissing: false);
+                if (schema == null)
+                {
+                    return null;
+                }
+                Entity entity = element.GetEntity(schema);
+                if (!entity.IsValid() || !string.Equals(GetSchemaString(entity, schema, "Tool"), "door-window-legend", StringComparison.OrdinalIgnoreCase))
+                {
+                    return null;
+                }
+                return new DoorWindowLegendOwnershipInfo
+                {
+                    EntityRole = GetSchemaString(entity, schema, "EntityRole"),
+                    ItemGuid = GetSchemaString(entity, schema, "ItemGuid"),
+                    DesiredKey = GetSchemaString(entity, schema, "DesiredKey"),
+                    TargetType = GetSchemaString(entity, schema, "TargetType"),
+                    OwnerComponentUniqueId = GetSchemaString(entity, schema, "OwnerComponentUniqueId"),
+                    GroupUniqueId = GetSchemaString(entity, schema, "GroupUniqueId"),
+                    MemberRole = GetSchemaString(entity, schema, "MemberRole"),
+                    ChildUniqueIds = GetSchemaStringArray(entity, schema, "ChildUniqueIds"),
+                    ChildRoles = GetSchemaStringArray(entity, schema, "ChildRoles")
+                };
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private Autodesk.Revit.DB.Group CreateManagedDoorWindowLegendItemGroup(
+            Document doc,
+            View legendView,
+            ElementId componentId,
+            string targetType,
+            string desiredKey,
+            IDictionary<ElementId, string> memberRoles,
+            string existingItemGuid = null)
+        {
+            if (doc == null || legendView == null || !IsValidElementId(componentId))
+            {
+                throw new DoorWindowLegendGroupingException("建立門窗圖例 Detail Group 時缺少有效的 view 或 component。");
+            }
+
+            Dictionary<ElementId, string> roles = new Dictionary<ElementId, string>(new ElementIdValueComparer());
+            foreach (KeyValuePair<ElementId, string> pair in memberRoles ?? new Dictionary<ElementId, string>())
+            {
+                if (IsValidElementId(pair.Key) && doc.GetElement(pair.Key) != null)
+                {
+                    roles[pair.Key] = pair.Value ?? "member";
+                }
+            }
+            roles[componentId] = "component";
+            if (roles.Count < 2)
+            {
+                throw new DoorWindowLegendGroupingException("門窗圖例 item 沒有足夠的生成元素可建立完整 Detail Group。");
+            }
+
+            List<string> requiredRoles = new List<string>
+            {
+                "component",
+                "type_mark",
+                "ffl_line",
+                "ffl_label",
+                "width_dimension",
+                "height_dimension"
+            };
+            if (RequiresDoorWindowLegendSillDimension(targetType, desiredKey)) requiredRoles.Add("sill_dimension");
+            List<string> missingRoles = requiredRoles.Where(required => !roles.Values.Contains(required, StringComparer.OrdinalIgnoreCase)).ToList();
+            if (missingRoles.Count > 0)
+            {
+                throw new DoorWindowLegendGroupingException("完整 item 缺少必要 member role: " + string.Join(",", missingRoles));
+            }
+
+            string itemGuid = string.IsNullOrWhiteSpace(existingItemGuid) ? Guid.NewGuid().ToString("D") : existingItemGuid;
+            Element component = doc.GetElement(componentId);
+            string ownerUniqueId = component.UniqueId;
+            List<KeyValuePair<ElementId, string>> childPairs = roles
+                .Where(pair => pair.Key.GetIdValue() != componentId.GetIdValue())
+                .ToList();
+            List<string> childUniqueIds = childPairs
+                .Select(pair => doc.GetElement(pair.Key).UniqueId)
+                .ToList();
+            List<string> childRoles = childPairs.Select(pair => pair.Value).ToList();
+            try
+            {
+                foreach (KeyValuePair<ElementId, string> pair in roles)
+                {
+                    Element member = doc.GetElement(pair.Key);
+                    string entityRole = pair.Key.GetIdValue() == componentId.GetIdValue() ? "component" : "member";
+                    SetDoorWindowLegendItemMetadata(member, entityRole, itemGuid, desiredKey, targetType, ownerUniqueId, string.Empty, pair.Value, entityRole == "component" ? childUniqueIds : new List<string>(), entityRole == "component" ? childRoles : new List<string>());
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new DoorWindowLegendGroupingException("建立 Detail Group 前無法寫入 item ownership metadata: " + ex.Message);
+            }
+
+            Autodesk.Revit.DB.Group group;
+            try
+            {
+                group = doc.Create.NewGroup(roles.Keys.ToList());
+            }
+            catch (Exception ex)
+            {
+                throw new DoorWindowLegendGroupingException("完整 item 無法建立 Detail Group: " + ex.Message);
+            }
+            if (group == null || group.Category == null || group.Category.Id.GetIdValue() != RevitCompatibility.GetIdValue(new ElementId(BuiltInCategory.OST_IOSDetailGroups)))
+            {
+                throw new DoorWindowLegendGroupingException("Revit 未將完整門窗圖例 item 建立為 Detail Group。");
+            }
+
+            HashSet<IdType> expectedIds = roles.Keys.Select(id => id.GetIdValue()).ToHashSet();
+            HashSet<IdType> actualIds = group.GetMemberIds().Where(IsValidElementId).Select(id => id.GetIdValue()).ToHashSet();
+            List<IdType> missingIds = expectedIds.Where(id => !actualIds.Contains(id)).ToList();
+            if (missingIds.Count > 0)
+            {
+                throw new DoorWindowLegendGroupingException("Detail Group 排除了必要成員: " + string.Join(",", missingIds));
+            }
+
+            string groupName = "RMCP_DWL_" + itemGuid.Replace("-", string.Empty).Substring(0, 8);
+            try
+            {
+                group.GroupType.Name = groupName;
+            }
+            catch (Exception ex)
+            {
+                throw new DoorWindowLegendGroupingException("無法設定 managed Detail GroupType 名稱: " + ex.Message);
+            }
+
+            try
+            {
+            string groupUniqueId = group.UniqueId;
+            SetDoorWindowLegendItemMetadata(group, "container", itemGuid, desiredKey, targetType, ownerUniqueId, groupUniqueId, "container", childUniqueIds, childRoles);
+            SetDoorWindowLegendItemMetadata(group.GroupType, "container_type", itemGuid, desiredKey, targetType, ownerUniqueId, groupUniqueId, "container_type", new List<string>(), new List<string>());
+            }
+            catch (Exception ex)
+            {
+                throw new DoorWindowLegendGroupingException("完整成組後無法寫入雙向 ownership metadata: " + ex.Message);
+            }
+            return group;
+        }
+
+
+        private ElementId CreateIndependentLegendComponentSource(
+            Document doc,
+            DoorWindowLegendExistingItem sourceItem,
+            out List<ElementId> temporaryElementIds)
+        {
+            temporaryElementIds = new List<ElementId>();
+            if (doc == null || sourceItem == null || !IsValidElementId(sourceItem.ComponentId))
+            {
+                return ElementId.InvalidElementId;
+            }
+
+            ICollection<ElementId> copiedIds;
+            if (sourceItem.IsManaged && IsValidElementId(sourceItem.GroupId))
+            {
+                copiedIds = ElementTransformUtils.CopyElement(doc, sourceItem.GroupId, XYZ.Zero);
+                Autodesk.Revit.DB.Group copiedGroup = copiedIds
+                    .Select(id => doc.GetElement(id))
+                    .OfType<Autodesk.Revit.DB.Group>()
+                    .FirstOrDefault();
+                if (copiedGroup == null)
+                {
+                    throw new DoorWindowLegendGroupingException("無法複製 managed Detail Group 作為 append source。");
+                }
+                ICollection<ElementId> ungroupedIds;
+                try
+                {
+                    ungroupedIds = copiedGroup.UngroupMembers();
+                }
+                catch (Exception ex)
+                {
+                    throw new DoorWindowLegendGroupingException("複製的 managed Detail Group 無法 Ungroup: " + ex.Message);
+                }
+                ElementId componentId = ungroupedIds.FirstOrDefault(id => IsLegendComponentElement(doc.GetElement(id)));
+                if (!IsValidElementId(componentId))
+                {
+                    throw new DoorWindowLegendGroupingException("Ungroup 後找不到獨立的 Legend Component append source。");
+                }
+                temporaryElementIds.AddRange(ungroupedIds
+                    .Where(IsValidElementId)
+                    .Where(id => doc.GetElement(id) != null)
+                    .Distinct(new ElementIdValueComparer()));
+                if (doc.GetElement(componentId) == null)
+                {
+                    throw new DoorWindowLegendGroupingException("Ungroup 後的獨立 Legend Component 在建立 append source 時已失效。");
+                }
+                return componentId;
+            }
+
+            copiedIds = ElementTransformUtils.CopyElement(doc, sourceItem.ComponentId, XYZ.Zero);
+            ElementId copiedComponentId = copiedIds.FirstOrDefault(id => IsLegendComponentElement(doc.GetElement(id)));
+            if (!IsValidElementId(copiedComponentId))
+            {
+                throw new InvalidOperationException("無法建立獨立的 legacy Legend Component append source。");
+            }
+            temporaryElementIds.Add(copiedComponentId);
+            return copiedComponentId;
+        }
+
+        private void DeleteTemporaryDoorWindowLegendElements(Document doc, IEnumerable<ElementId> elementIds)
+        {
+            List<ElementId> existingIds = (elementIds ?? Enumerable.Empty<ElementId>())
+                .Where(IsValidElementId)
+                .Where(id => doc.GetElement(id) != null)
+                .Distinct(new ElementIdValueComparer())
+                .ToList();
+            if (existingIds.Count > 0)
+            {
+                doc.Delete(existingIds);
+            }
+        }
+
+        private void ValidateCreatedDoorWindowLegendItemsAfterTemporaryCleanup(Document doc, IEnumerable<ElementId> createdElementIds)
+        {
+            List<ElementId> expectedIds = (createdElementIds ?? Enumerable.Empty<ElementId>())
+                .Where(IsValidElementId)
+                .Distinct(new ElementIdValueComparer())
+                .ToList();
+            List<IdType> missingIds = expectedIds
+                .Where(id => doc.GetElement(id) == null)
+                .Select(id => id.GetIdValue())
+                .ToList();
+            if (missingIds.Count > 0)
+            {
+                throw new DoorWindowLegendGroupingException(
+                    "清除臨時 append source 時連帶刪除了新建 item 元素: " + string.Join(",", missingIds));
+            }
+
+            foreach (Autodesk.Revit.DB.Group group in expectedIds
+                .Select(id => doc.GetElement(id))
+                .OfType<Autodesk.Revit.DB.Group>())
+            {
+                DoorWindowLegendOwnershipInfo ownership = ReadDoorWindowLegendItemMetadata(group);
+                if (ownership == null
+                    || !string.Equals(ownership.EntityRole, "container", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new DoorWindowLegendGroupingException(
+                        "清除臨時 append source 後，新建 Detail Group 缺少 container metadata: " + group.Id.GetIdValue());
+                }
+
+                HashSet<IdType> memberIds = group.GetMemberIds()
+                    .Where(IsValidElementId)
+                    .Select(id => id.GetIdValue())
+                    .ToHashSet();
+                Element owner = GetElementByUniqueId(doc, ownership.OwnerComponentUniqueId);
+                if (owner == null || !memberIds.Contains(owner.Id.GetIdValue()))
+                {
+                    throw new DoorWindowLegendGroupingException(
+                        "清除臨時 append source 後，新建 Detail Group 缺少 owner component: " + group.Id.GetIdValue());
+                }
+
+                List<string> missingChildren = ownership.ChildUniqueIds
+                    .Where(uniqueId =>
+                    {
+                        Element child = GetElementByUniqueId(doc, uniqueId);
+                        return child == null || !memberIds.Contains(child.Id.GetIdValue());
+                    })
+                    .ToList();
+                if (missingChildren.Count > 0)
+                {
+                    throw new DoorWindowLegendGroupingException(
+                        "清除臨時 append source 後，新建 Detail Group 缺少 metadata children: "
+                        + string.Join(",", missingChildren));
+                }
+            }
+        }
+
+        private int CleanupOrphanedDoorWindowLegendGroupTypes(Document doc)
+        {
+            HashSet<IdType> liveGroupTypeIds = new FilteredElementCollector(doc)
+                .OfClass(typeof(Autodesk.Revit.DB.Group))
+                .Cast<Autodesk.Revit.DB.Group>()
+                .Where(group => group.GroupType != null)
+                .Select(group => group.GroupType.Id.GetIdValue())
+                .ToHashSet();
+            List<ElementId> orphanTypeIds = new FilteredElementCollector(doc)
+                .OfClass(typeof(GroupType))
+                .Cast<GroupType>()
+                .Where(groupType =>
+                {
+                    DoorWindowLegendOwnershipInfo ownership = ReadDoorWindowLegendItemMetadata(groupType);
+                    return ownership != null
+                        && string.Equals(ownership.EntityRole, "container_type", StringComparison.OrdinalIgnoreCase)
+                        && !liveGroupTypeIds.Contains(groupType.Id.GetIdValue());
+                })
+                .Select(groupType => groupType.Id)
+                .ToList();
+            if (orphanTypeIds.Count > 0)
+            {
+                doc.Delete(orphanTypeIds);
+            }
+            return orphanTypeIds.Count;
+        }
+        private Autodesk.Revit.DB.Group FindUniqueManagedDoorWindowLegendGroupByItemGuid(Document doc, string itemGuid)
+        {
+            if (doc == null || string.IsNullOrWhiteSpace(itemGuid))
+            {
+                return null;
+            }
+            List<Autodesk.Revit.DB.Group> matches = new FilteredElementCollector(doc)
+                .OfClass(typeof(Autodesk.Revit.DB.Group))
+                .Cast<Autodesk.Revit.DB.Group>()
+                .Where(group =>
+                {
+                    DoorWindowLegendOwnershipInfo ownership = ReadDoorWindowLegendItemMetadata(group);
+                    return ownership != null
+                        && string.Equals(ownership.EntityRole, "container", StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(ownership.ItemGuid, itemGuid, StringComparison.OrdinalIgnoreCase);
+                })
+                .Take(2)
+                .ToList();
+            return matches.Count == 1 ? matches[0] : null;
+        }
+
+        private Element GetElementByUniqueId(Document doc, string uniqueId)
+        {
+            if (doc == null || string.IsNullOrWhiteSpace(uniqueId))
+            {
+                return null;
+            }
+            try
+            {
+                return doc.GetElement(uniqueId);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private bool TryPopulateManagedExistingItem(Document doc, Element component, DoorWindowLegendExistingItem item)
+        {
+            DoorWindowLegendOwnershipInfo ownership = ReadDoorWindowLegendItemMetadata(component);
+            if (ownership == null || !string.Equals(ownership.EntityRole, "component", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(ownership.ItemGuid))
+            {
+                return false;
+            }
+
+            item.IsManaged = true;
+            item.ItemGuid = ownership.ItemGuid;
+            item.Key = ownership.DesiredKey;
+            Autodesk.Revit.DB.Group group = GetElementByUniqueId(doc, ownership.GroupUniqueId) as Autodesk.Revit.DB.Group ?? FindUniqueManagedDoorWindowLegendGroupByItemGuid(doc, ownership.ItemGuid);
+            item.GroupId = group == null ? ElementId.InvalidElementId : group.Id;
+            Dictionary<string, Element> children = new Dictionary<string, Element>(StringComparer.OrdinalIgnoreCase);
+            bool missingChild = ownership.ChildUniqueIds.Count != ownership.ChildRoles.Count;
+            int childCount = Math.Min(ownership.ChildUniqueIds.Count, ownership.ChildRoles.Count);
+            for (int index = 0; index < childCount; index++)
+            {
+                Element child = GetElementByUniqueId(doc, ownership.ChildUniqueIds[index]);
+                if (child == null)
+                {
+                    missingChild = true;
+                    continue;
+                }
+                item.ManagedMemberIds.Add(child.Id);
+                children[ownership.ChildRoles[index]] = child;
+            }
+            List<string> requiredChildRoles = new List<string> { "type_mark", "ffl_line", "ffl_label", "width_dimension", "height_dimension" };
+            if (RequiresDoorWindowLegendSillDimension(ownership.TargetType, ownership.DesiredKey)) requiredChildRoles.Add("sill_dimension");
+            if (requiredChildRoles.Any(required => !children.ContainsKey(required)))
+            {
+                missingChild = true;
+            }
+            item.ManagedMemberIds.Add(component.Id);
+            DetailCurve fflLine = children.TryGetValue("ffl_line", out Element fflElement) ? fflElement as DetailCurve : null;
+            item.FflLineId = fflLine == null ? ElementId.InvalidElementId : fflLine.Id;
+            item.HasDetectedFfl = fflLine != null;
+            double fflY = fflLine == null ? item.Bounds.Min.Y : GetDetailCurveLineY(fflLine);
+            item.Anchor = new XYZ((item.Bounds.Min.X + item.Bounds.Max.X) / 2.0, fflY, 0.0);
+            item.SillHeightCm = string.Equals(ownership.TargetType, "window", StringComparison.OrdinalIgnoreCase)
+                ? Math.Round((item.Bounds.Min.Y - fflY) / CmToFeet / SillHeightGroupingPrecisionCm) * SillHeightGroupingPrecisionCm
+                : 0.0;
+            if (string.IsNullOrWhiteSpace(item.Key))
+            {
+                item.Key = BuildDoorWindowLegendItemKey(ownership.TargetType, item.TypeId, item.SillHeightCm);
+            }
+
+            HashSet<IdType> groupMemberIds = group == null
+                ? new HashSet<IdType>()
+                : group.GetMemberIds().Where(IsValidElementId).Select(id => id.GetIdValue()).ToHashSet();
+            item.IsDamaged = group == null || missingChild || item.ManagedMemberIds.Any(id => !groupMemberIds.Contains(id.GetIdValue()));
+            return true;
+        }
+
+        private DoorWindowLegendManagementStats GetDoorWindowLegendManagementStats(Document doc, View legendView)
+        {
+            DoorWindowLegendManagementStats stats = new DoorWindowLegendManagementStats();
+            List<DoorWindowLegendOwnershipInfo> managed = new List<DoorWindowLegendOwnershipInfo>();
+            foreach (ElementId componentId in CollectLegendComponentIds(doc, legendView))
+            {
+                DoorWindowLegendOwnershipInfo ownership = ReadDoorWindowLegendItemMetadata(doc.GetElement(componentId));
+                if (ownership == null || string.IsNullOrWhiteSpace(ownership.ItemGuid))
+                {
+                    stats.LegacyItemCount++;
+                    continue;
+                }
+                stats.ManagedItemCount++;
+                managed.Add(ownership);
+                Autodesk.Revit.DB.Group group = GetElementByUniqueId(doc, ownership.GroupUniqueId) as Autodesk.Revit.DB.Group ?? FindUniqueManagedDoorWindowLegendGroupByItemGuid(doc, ownership.ItemGuid);
+                List<string> requiredRoles = new List<string> { "type_mark", "ffl_line", "ffl_label", "width_dimension", "height_dimension" };
+                if (RequiresDoorWindowLegendSillDimension(ownership.TargetType, ownership.DesiredKey)) requiredRoles.Add("sill_dimension");
+                HashSet<IdType> groupMemberIds = group == null
+                    ? new HashSet<IdType>()
+                    : group.GetMemberIds().Where(IsValidElementId).Select(id => id.GetIdValue()).ToHashSet();
+                List<Element> children = ownership.ChildUniqueIds.Select(id => GetElementByUniqueId(doc, id)).ToList();
+                bool damaged = group == null
+                    || ownership.ChildUniqueIds.Count != ownership.ChildRoles.Count
+                    || !groupMemberIds.Contains(componentId.GetIdValue())
+                    || children.Any(child => child == null)
+                    || requiredRoles.Any(required => !ownership.ChildRoles.Contains(required, StringComparer.OrdinalIgnoreCase))
+                    || children.Where(child => child != null).Any(child => !groupMemberIds.Contains(child.Id.GetIdValue()));
+                if (damaged)
+                {
+                    stats.DamagedItemCount++;
+                }
+            }
+            HashSet<string> conflictingGuids = managed.Where(item => !string.IsNullOrWhiteSpace(item.ItemGuid)).GroupBy(item => item.ItemGuid, StringComparer.OrdinalIgnoreCase).Where(group => group.Count() > 1).Select(group => group.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            HashSet<string> conflictingKeys = managed.Where(item => !string.IsNullOrWhiteSpace(item.DesiredKey)).GroupBy(item => item.DesiredKey, StringComparer.OrdinalIgnoreCase).Where(group => group.Count() > 1).Select(group => group.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            stats.ConflictCount = managed.Count(item => conflictingGuids.Contains(item.ItemGuid) || conflictingKeys.Contains(item.DesiredKey));
+            return stats;
         }
 
         private string NormalizeTypeMarkForSort(string typeMark)

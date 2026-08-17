@@ -4,7 +4,7 @@ export const doorWindowLegendTools: Tool[] = [
     {
         name: "door-window-legend-tools",
         description:
-            "門窗圖例工具。mode=list 列出專案中已使用的門/窗型；mode=create 以 seed Legend 複製生成新圖例；mode=update 更新既有門窗圖例。create/update 會要求使用者明確選擇 layoutDirection、maxPerLine、dimensionTypeId，create 另需 seedLegendViewId，update 另需 legendViewId。",
+            "門窗圖例工具。mode=list 列出專案中已使用的門/窗型；mode=create 以 seed Legend 複製生成 A+ managed 圖例；mode=update 更新既有門窗圖例；mode=migrate 預覽或套用 legacy item 的 A+ ownership migration。",
         inputSchema: {
             type: "object",
             properties: {
@@ -15,8 +15,8 @@ export const doorWindowLegendTools: Tool[] = [
                 },
                 mode: {
                     type: "string",
-                    enum: ["list", "create", "update"],
-                    description: "list 列出型別；create 建立新 Legend；update 更新既有 Legend。",
+                    enum: ["list", "create", "update", "migrate"],
+                    description: "list 列出型別；create 建立新 Legend；update 更新既有 Legend；migrate 預覽或套用 legacy migration。",
                 },
                 layoutDirection: {
                     type: "string",
@@ -42,6 +42,20 @@ export const doorWindowLegendTools: Tool[] = [
                     type: "number",
                     description:
                         "門窗圖例尺寸標註使用的 DimensionType ID。若缺少，工具會要求先呼叫 list_dimension_types 讓使用者選擇。",
+                },
+                apply: {
+                    type: "boolean",
+                    default: false,
+                    description:
+                        "migrate 專用。false 僅預覽且不修改模型；true 只套用 preview 判定為 ready 的項目。",
+                },
+                itemKeys: {
+                    type: "array",
+                    items: {
+                        type: "string",
+                    },
+                    description:
+                        "migrate apply=true 時可選，限定本次套用的 item key；ambiguous、overlap、unresolved 仍一律跳過。",
                 },
             },
             required: ["mode"],
