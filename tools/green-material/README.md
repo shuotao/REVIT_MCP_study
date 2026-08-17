@@ -1,6 +1,6 @@
 # 綠建材導入 Revit：開發歸檔索引
 
-本目錄集中管理綠建材工具的歷史開發程式、來源快照與中間產物。正式執行入口（四個 Python 引擎 + 共享參數檔）自 2026-08 起收斂到本目錄根層級（`tools/green-material/`，非 `archive/`），資料／狀態檔（`tabc_master_database.json`、`exported_material_sets.json`、`Revit_Injection_Plan.json`）與展示頁（`assets/green-material-showcase.html`）、本機伺服器（`local_server.py`）仍留在 repository 根目錄；Revit MCP 實作仍保留在 `MCP/` 與 `MCP-Server/`。以上三個資料／狀態檔與展示頁皆已加入 `.gitignore`，一律留在本機、不隨 repo 散布。
+本目錄集中管理綠建材工具的歷史開發程式、來源快照與中間產物。正式執行入口（四個 Python 引擎 + 共享參數檔）自 2026-08 起收斂到本目錄根層級（`tools/green-material/`，非 `archive/`），資料／狀態檔（`tabc_master_database.json`、`exported_material_sets.json`、`Revit_Injection_Plan.json`）與展示頁（`assets/green-material-showcase.html`）、本機伺服器（`local_server.py`）仍留在 repository 根目錄；Revit MCP 實作仍保留在 `MCP/` 與 `MCP-Server/`。以上三個資料／狀態檔與展示頁皆已加入 `.gitignore`，一律留在本機、不隨 repo 散布——但展示頁的 **UI 原始碼**（`assets/green-material-showcase.template.html`）是獨立的、git 追蹤的檔案，見下方「展示頁是產生檔」一節。
 
 ## 正式來源（持續維護）
 
@@ -10,15 +10,16 @@
 | MCP Tool 定義 | `MCP-Server/src/tools/visualization-tools.ts` | 對 AI Client 暴露綠建材工具 |
 | 命令註冊 | `MCP/Core/CommandExecutor.cs` | 綠建材命令 dispatch |
 | 計畫產生器 | `tools/green-material/GM_generate_revit_injection_plan.py` | Set 對映與 Revit Injection Plan 產生，並提供 `compare_all_sets()` / `compare_and_refresh_set()` 供 `/GM_set compare` 比對 Set 與最新資料庫差異 |
-| 主資料庫更新 | `tools/green-material/GM_update_tabc_database.py` | 從 TABC 官網（`https://tabcmgr.hopto.org`）依 GBMTYPE 1~4 分頁抓取列表頁真實資料，合併回 `tabc_master_database.json` 並同步 `assets/green-material-showcase.html` 內嵌快取；由 `/GM_update` 驅動 |
+| 主資料庫更新 | `tools/green-material/GM_update_tabc_database.py` | 從 TABC 官網（`https://tabcmgr.hopto.org`）依 GBMTYPE 1~4 分頁抓取列表頁真實資料，合併回 `tabc_master_database.json`，並從 `assets/green-material-showcase.template.html` 重新產生 `assets/green-material-showcase.html`；由 `/GM_update` 驅動，也是全新 clone 後的首次建立入口（`--resync-html` 可在不連線 TABC 的情況下單獨重新套用最新樣板） |
 | 注入入口 | `tools/green-material/GM_apply_revit_injection_plan.py` | Injection Plan 執行入口 |
 | 本機 Showcase 服務 | `local_server.py` | 提供展示頁與 Set JSON 同步 API |
 | 共享參數驗證 | `tools/green-material/GM_validate_shared_params.py` | 驗證 `GreenMaterial_SharedParams.txt` |
-| TABC 主資料 | `tabc_master_database.json` | 綠建材標章主資料庫 |
-| Set 工作資料 | `exported_material_sets.json` | Showcase、Agent 與 Revit 匯入流程共享狀態 |
-| 產出計畫 | `Revit_Injection_Plan.json` | 最近一次產生的注入計畫 |
+| TABC 主資料 | `tabc_master_database.json` | 綠建材標章主資料庫（本機專屬，不入庫） |
+| Set 工作資料 | `exported_material_sets.json` | Showcase、Agent 與 Revit 匯入流程共享狀態（本機專屬，不入庫） |
+| 產出計畫 | `Revit_Injection_Plan.json` | 最近一次產生的注入計畫（本機專屬，不入庫） |
 | 共享參數 | `tools/green-material/GreenMaterial_SharedParams.txt` | Revit v4 多材料槽位 Schema |
-| 展示頁 | `assets/green-material-showcase.html` | 綠建材搜尋與 Set 管理 UI |
+| **展示頁 UI 樣板** | `assets/green-material-showcase.template.html` | 綠建材搜尋與 Set 管理 UI 的**唯一原始碼，git 追蹤**。要改 UI／JS／CSS 一律改這裡 |
+| 展示頁（產生檔） | `assets/green-material-showcase.html` | 樣板 + 本機 `tabc_master_database.json` 拼接產生，本機專屬、不入庫，請勿手動編輯 |
 | 專案看板 | `tools/green-material/GM_kanban.html` | Monstrare 專案看板；由 `/GM_kanban` 開啟，內嵌 `cardsData` 與 `tools/kanban/index.html` 互為鏡像，皆由 `tools/kanban/cards/*.json` 產生；頁內「🔗 連結專案資料夾」寫回功能靠 `getGmKanbanFileHandle()` 找到本檔案 |
 
 以上路徑均相對於 repository 根目錄。
@@ -27,7 +28,17 @@
 
 `tabc_master_database.json` 與 `assets/green-material-showcase.html` 內含財團法人臺灣建築中心（TABC）的綠建材標章資料，不屬於本 repo 的 MIT 授權範圍，因此自 2026-08 起已加入 `.gitignore`、不再被 git 追蹤（檔案仍保留在本機）。
 
-首次 clone 本 repo 或需要更新資料時，執行 `GM_update_tabc_database.py`（或 `/GM_update`）從 TABC 官網重新抓取，即可在本機重建這兩個檔案；`local_server.py`、`GM_generate_revit_injection_plan.py` 等工具皆讀取本機檔案，不需要它們存在於 git 歷史中。
+首次 clone 本 repo 或需要更新資料時，執行 `GM_update_tabc_database.py`（或 `/GM_update`）從 TABC 官網重新抓取，即可在本機重建這兩個檔案：`tabc_master_database.json` 不存在時會自動視為空資料庫、走全量匯入，不會報錯；`local_server.py`、`GM_generate_revit_injection_plan.py` 等工具皆讀取本機檔案，不需要它們存在於 git 歷史中。
+
+### 展示頁是產生檔，UI 改動請改樣板
+
+`assets/green-material-showcase.html` 過去曾經整個檔案（含 UI／JS／CSS，不只資料）都被 `.gitignore` 排除，代表任何人在本機對 UI 做的修改都無法透過 git 傳到別台電腦——這是 2026-08 發現的實際問題：曾經有 UI 功能只存在於某台電腦的本機檔案裡，從未進過 git。
+
+修法是把 UI 原始碼抽成獨立、git 追蹤的 `assets/green-material-showcase.template.html`；`GM_update_tabc_database.py` 每次執行（含 `--resync-html`）都會用這份樣板 + 當下的資料重新產生完整的 `assets/green-material-showcase.html`，並整份覆寫。因此：
+
+- **要改 UI／JS／CSS：改 `assets/green-material-showcase.template.html`**，改完跑 `python tools/green-material/GM_update_tabc_database.py --resync-html`（不連線 TABC，秒級）套用。
+- **不要手動編輯 `assets/green-material-showcase.html`**——下次任何一次 `/GM_update` 執行都會被整份覆寫掉，改動會消失且不會有警告。
+- 別台電腦 `git pull` 到樣板更新後，跑一次 `--resync-html` 就能拿到最新 UI，不需要重新抓一次 TABC 資料。
 
 ### 注入計畫快照也不入庫
 

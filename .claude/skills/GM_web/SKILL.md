@@ -46,6 +46,7 @@ The green-material showcase page's Set Manager calls `POST /api/save-sets` / `GE
 | Port 8888 already used by something other than `local_server.py` | Warn the user and ask whether to stop the other process, or open `http://localhost:8888` anyway if it looks like the right server |
 | `python` / `python3` not found | Tell the user to install Python 3, or run `local_server.py` manually |
 | Browser doesn't open automatically | Give the user the direct URL to open manually: `http://localhost:8888` |
+| Page loads a 404 / "找不到 assets/green-material-showcase.html" (fresh clone, no local data yet) | `assets/green-material-showcase.html` is local-only and doesn't exist until it's been built once. Tell the user to run `/GM_update` first (it bootstraps both `tabc_master_database.json` and the showcase page from scratch on a first run), then retry `/GM_web open`. |
 
 ## Reference
 

@@ -64,7 +64,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self.wfile.write(content.encode("utf-8"))
                 return
             except FileNotFoundError:
-                self.send_error(404, f"找不到 {HTML_FILE}")
+                self.send_error(
+                    404,
+                    f"找不到 {HTML_FILE}——請先執行 "
+                    "python tools/green-material/GM_update_tabc_database.py"
+                    "（或 /GM_update）建立本機資料庫與展示頁",
+                )
                 return
 
         # ── 靜態資源 fallback ────────────────────────────────────────────────

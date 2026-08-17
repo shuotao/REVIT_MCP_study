@@ -18,13 +18,21 @@ tools/green-material/archive/scripts/catalog/enrich_tabc_specs_database.py
 既有的「關鍵字規則模板」重新套用（見 tools/green-material/README.md）。
 新增或有異動的記錄會重新套用模板；未變動的既有記錄維持原樣，不覆寫既有欄位。
 
-更新完成後，會同步重寫 assets/green-material-showcase.html 內嵌的
-`const tabcDatabase = [...]` 靜態陣列，讓網頁離線快取跟 tabc_master_database.json
-保持一致（此陣列不是即時 fetch，之前一直是手動同步）。
+更新完成後，會用 assets/green-material-showcase.template.html（git 追蹤的 UI 樣板）
+重新產生 assets/green-material-showcase.html：把樣板裡的 `const tabcDatabase = [...]`
+標記替換成最新資料，讓網頁離線快取跟 tabc_master_database.json 保持一致，同時保證
+展示頁的 UI 一律是樣板目前的最新版本（不會殘留本機舊版 UI）。
+
+tabc_master_database.json 與 assets/green-material-showcase.html 都是本機專屬、不入
+git 的檔案（見 tools/green-material/README.md）。**兩者任一個或都不存在時（例如全新
+clone 這個 repo 之後第一次執行），本腳本會自動視為首次建立，不會報錯**：
+tabc_master_database.json 缺席就視為空資料庫，全部抓到的項目都會被當成新增。
 
 用法：
-    python GM_update_tabc_database.py            # 執行更新（列表頁抓取 + 合併 + 回寫）
-    python GM_update_tabc_database.py --dry-run   # 只抓取並輸出差異報告，不寫入任何檔案
+    python GM_update_tabc_database.py             # 執行更新（列表頁抓取 + 合併 + 回寫；首次執行=全量匯入）
+    python GM_update_tabc_database.py --dry-run    # 只抓取並輸出差異報告，不寫入任何檔案
+    python GM_update_tabc_database.py --resync-html  # 不連線 TABC，只用現有本機資料庫 + 最新樣板
+                                                      # 重新產生展示頁（git pull 到樣板更新後用這個最快）
 """
 
 import base64
@@ -41,6 +49,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 WORKSPACE = os.path.dirname(os.path.dirname(SCRIPT_DIR))  # repo root (this file lives in tools/green-material/)
 DB_PATH = os.path.join(WORKSPACE, "tabc_master_database.json")
 SHOWCASE_PATH = os.path.join(WORKSPACE, "assets", "green-material-showcase.html")
+TEMPLATE_PATH = os.path.join(WORKSPACE, "assets", "green-material-showcase.template.html")
 
 TABC_SEARCH_URL = "https://tabcmgr.hopto.org/mgr/SearchCaseAction.aspx"
 CATEGORY_NAMES = {1: "健康", 2: "高性能", 3: "再生", 4: "生態"}
@@ -252,43 +261,53 @@ def merge_database(existing: list, fetched: dict) -> tuple:
     return merged, diff
 
 
-def _sync_showcase_html(merged: list) -> bool:
-    """把最新的 merged 資料庫重寫進 assets/green-material-showcase.html 內嵌的
-    `const tabcDatabase = [...]` 靜態陣列，避免網頁離線快取跟 tabc_master_database.json 脫鉤。"""
-    if not os.path.exists(SHOWCASE_PATH):
-        return False
-    with open(SHOWCASE_PATH, "r", encoding="utf-8") as f:
+def _build_showcase_html(merged: list) -> str:
+    """從 assets/green-material-showcase.template.html（git 追蹤的 UI 樣板）讀取 UI 外殼，
+    把 merged 資料庫塞進 `const tabcDatabase = [...]` 標記位置，回傳完整的展示頁 HTML 字串。
+    永遠以樣板為 UI 基底，確保重新產生出來的展示頁不會殘留本機手動改過的舊版 UI。"""
+    with open(TEMPLATE_PATH, "r", encoding="utf-8") as f:
         html = f.read()
 
     start_idx = html.find(TABC_DATABASE_MARKER_START)
     if start_idx == -1:
-        return False
+        raise RuntimeError(f"樣板檔案 {TEMPLATE_PATH} 找不到 tabcDatabase 起始標記，樣板可能已損壞")
     array_body_start = start_idx + len(TABC_DATABASE_MARKER_START)
     end_idx = html.find(TABC_DATABASE_MARKER_END, array_body_start)
     if end_idx == -1:
-        return False
+        raise RuntimeError(f"樣板檔案 {TEMPLATE_PATH} 找不到 tabcDatabase 結尾標記，樣板可能已損壞")
 
     full_array = json.dumps(merged, ensure_ascii=False, indent=2)  # "[\n  {...}\n]"
     inner = full_array[1:-1]  # 去掉最外層的 "[" 與 "]"，保留原本的縮排與換行
 
-    new_html = (
+    return (
         html[:start_idx]
         + TABC_DATABASE_MARKER_START
         + inner
         + "];\n"
         + html[end_idx + len(TABC_DATABASE_MARKER_END):]
     )
+
+
+def _sync_showcase_html(merged: list) -> bool:
+    """從樣板重新產生完整的 assets/green-material-showcase.html 並寫入磁碟。
+    樣板不存在或標記缺失時回傳 False（不拋例外，呼叫端可自行決定要不要警告使用者）。"""
+    if not os.path.exists(TEMPLATE_PATH):
+        return False
+    try:
+        new_html = _build_showcase_html(merged)
+    except RuntimeError:
+        return False
     with open(SHOWCASE_PATH, "w", encoding="utf-8") as f:
         f.write(new_html)
     return True
 
 
 def update_tabc_database(dry_run: bool = False, progress=print) -> dict:
-    if not os.path.exists(DB_PATH):
-        raise FileNotFoundError(f"找不到主資料庫檔案: {DB_PATH}")
-
-    with open(DB_PATH, "r", encoding="utf-8") as f:
-        existing = json.load(f)
+    if os.path.exists(DB_PATH):
+        with open(DB_PATH, "r", encoding="utf-8") as f:
+            existing = json.load(f)
+    else:
+        existing = []  # 本機尚無主資料庫（例如全新 clone 後第一次執行）：視為首次建立，走全量匯入
 
     fetched = fetch_all_from_tabc(progress=progress)
     if not fetched:
@@ -296,6 +315,7 @@ def update_tabc_database(dry_run: bool = False, progress=print) -> dict:
 
     merged, diff = merge_database(existing, fetched)
     diff["dryRun"] = dry_run
+    diff["bootstrap"] = len(existing) == 0
     diff["timestamp"] = datetime.datetime.now().isoformat()
 
     if dry_run:
@@ -310,7 +330,30 @@ def update_tabc_database(dry_run: bool = False, progress=print) -> dict:
     return diff
 
 
+def resync_html_only(progress=print) -> dict:
+    """不連線 TABC，只用現有本機 tabc_master_database.json（不存在則視為空資料庫）+
+    最新的 assets/green-material-showcase.template.html 重新產生展示頁。
+    用於 git pull 到樣板更新後，快速套用最新 UI，不必等 1~3 分鐘的即時網站抓取。"""
+    if os.path.exists(DB_PATH):
+        with open(DB_PATH, "r", encoding="utf-8") as f:
+            existing = json.load(f)
+    else:
+        existing = []
+    progress(f"本機資料庫現有 {len(existing)} 筆，僅重新產生展示頁（不連線 TABC 官網）...")
+    synced = _sync_showcase_html(existing)
+    return {
+        "resyncOnly": True,
+        "showcaseSynced": synced,
+        "recordCount": len(existing),
+        "timestamp": datetime.datetime.now().isoformat(),
+    }
+
+
 if __name__ == "__main__":
-    is_dry_run = "--dry-run" in sys.argv[1:]
-    result = update_tabc_database(dry_run=is_dry_run)
+    args = sys.argv[1:]
+    if "--resync-html" in args:
+        result = resync_html_only()
+    else:
+        is_dry_run = "--dry-run" in args
+        result = update_tabc_database(dry_run=is_dry_run)
     print(json.dumps(result, ensure_ascii=False, indent=2))
