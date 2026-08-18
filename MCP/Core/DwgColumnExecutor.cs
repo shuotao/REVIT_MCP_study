@@ -393,7 +393,22 @@ namespace RevitMCP.Core
                     var pts = pl.GetCoordinates().ToList();
                     var c = MakeRect(pts);                          // 嚴格矩形優先（向後相容）
                     if (c == null && pts.Count >= 3)                // 退而求其次：通用外接矩形
+                    {
+                        // #118：MakeRect 已判定「非嚴格矩形」。若去重後恰為 4 個獨立頂點，
+                        // 代表梯形／任意四邊形，通用外接矩形法會把它誤建成矩形柱，故略過不建，
+                        // 保留 diag 紀錄讓 preview 端可見（避免靜默漏建卻無跡可循）。
+                        var uniquePts = new List<XYZ>();
+                        foreach (var p in pts)
+                            if (!uniquePts.Any(q => p.DistanceTo(q) < 0.001))
+                                uniquePts.Add(p);
+                        if (uniquePts.Count == 4)
+                        {
+                            if (diag != null)
+                                diag.Add("skip PolyLine(" + pts.Count + "pt) non-rect quad (unique=4) — trapezoid/arbitrary quad, not built");
+                            continue;
+                        }
                         c = BuildColFromPoints(pts, LongestEdgeAngle(pts), diag, "PolyLine(" + pts.Count + "pt)");
+                    }
                     if (c != null) res.Add(c);
                 }
                 else if (obj is GeometryInstance gi)
