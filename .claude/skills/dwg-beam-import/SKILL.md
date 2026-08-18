@@ -35,6 +35,8 @@ user-invocable: true
 ### 步驟 4 — 批次建樑（改模型，不可復原）⛔ 執行前複述參數取得同意
 `create_beams_from_dwg(layerName, familyName, textLayerNameX?, textLayerNameY?, typeName?, beamRole?)`
 
+`beamRole` 接受 `大樑`/`大梁`、`次樑`/`次梁`（別名 `小樑`/`小梁`，皆對應 Joist）、`地樑`/`地梁`（Girder）。
+
 **內部兩波機制（斜樑防呆）：**
 - 第一波：正交樑優先配對，消耗標籤進 `usedLabelKeys`
 - 第二波：斜樑用剩餘標籤，點到線段距離配對（閾值 = 樑寬/2 + 500mm）

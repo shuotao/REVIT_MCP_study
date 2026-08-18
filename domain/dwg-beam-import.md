@@ -2,8 +2,8 @@
 name: dwg-beam-import
 description: "從 CAD/DWG 圖紙自動翻模 Revit 結構樑的 SOP。包含單向/雙向大樑與次樑的處理，以及兩種建置模式：快速模式 (指定統一尺寸) 與 名稱對應模式 (依圖面文字對應)。也記錄了 Y/Z 軸對正與偏移值的關鍵防呆處理。"
 metadata:
-  version: "1.1"
-  updated: "2026-06-25"
+  version: "1.2"
+  updated: "2026-08-18"
   references: []
   related:
     - dwg-column-import.md
@@ -66,7 +66,7 @@ metadata:
 - `familyName`：族群名稱
 - `typeName`：（模式 A 專用）
 - `textLayerNameX` / `textLayerNameY`：（模式 B 專用）
-- `beamRole`：`大樑` / `次樑` / `地樑`
+- `beamRole`：`大樑` / `次樑`（別名 `小樑`／`小梁`，兩者皆對應 Joist）/ `地樑`
 
 > ⚠️ **【AI 執行防呆強制指令】**
 > 呼叫 `create_beams_from_dwg` 時，即使系統 Schema 沒有定義 `beamRole` 參數，AI 也**必須強制將 `beamRole` ("大樑" / "次樑" / "地樑") 寫入 JSON 參數中傳遞**，絕不可省略！
@@ -120,9 +120,9 @@ if (zOffsetParam != null) zOffsetParam.Set(0.0); // 強制歸零
 ### 3.4 DWG 與 ODA File Converter
 因為 Python 的 `ezdxf` 原生只支援 DXF 格式，若圖紙為 DWG 格式，底層工具 (`ezdxf_worker.py`) 會自動呼叫 `ODAFileConverter.exe` 進行背景轉檔再讀取文字。因此不論 DWG 或 DWF/DXF，只要安裝了 ODA 即可無縫支援「名稱對應模式」。
 
-### 3.5 結構用途 (beamRole) 設定的兩個歷史坑（2026-07-09）
+### 3.5 結構用途 (beamRole) 設定的歷史坑
 
-#### 坑 1：錯誤的 API 寫法導致用途設定無效
+#### 坑 1（2026-07-09）：錯誤的 API 寫法導致用途設定無效
 
 原本程式碼以 `INSTANCE_STRUCTURAL_USAGE_PARAM` 內建參數搭配 `IsReadOnly` 判斷來設定結構用途：
 
@@ -145,10 +145,18 @@ else if (beamRole == "次樑" || beamRole == "次梁" || beamRole == "小梁" ||
 
 > **注意**：`using Autodesk.Revit.DB.Structure` 已在 `DwgBeamExecutor.cs` 頂部引入，但 `StructuralUsage`（非 `StructuralInstanceUsage`）並不存在，必須使用全名或確認引入正確。
 
-#### 坑 2：`install-addon.ps1` 複製 DLL 的目標路徑錯誤
+#### 坑 2（2026-07-09）：`install-addon.ps1` 複製 DLL 的目標路徑錯誤
 
 `RevitMCP.addin` 的 Assembly 路徑指向 `RevitMCP\RevitMCP.dll`（**子資料夾**），但舊版 `install-addon.ps1` 直接把 DLL 複製到 `Addins\2024\RevitMCP.dll`（**上層**）。
 
 結果是：每次修改程式碼後執行部署腳本，Revit 載入的永遠是子資料夾裡的舊版 DLL，修改完全沒有生效。
 
 **修正後（2026-07-09）**：腳本現在正確複製到 `Addins\2024\RevitMCP\RevitMCP.dll`。
+
+#### 坑 3（Issue #117，2026-08-18）：Y/Z 對正的 `try/catch` 連帶吞掉 `StructuralUsage` 賦值
+
+舊寫法把 Y/Z 對正（`Y_JUSTIFICATION` / `Z_OFFSET_VALUE` / `Z_JUSTIFICATION`）與 `StructuralUsage` 賦值放在同一段落，且各自用 `catch { }` 全部吞掉例外。一旦 Y/Z 設定拋出例外，`StructuralUsage` 賦值有可能被連帶跳過，且沒有任何 `errors` 紀錄，使用者只會看到樑蓋出來了但結構用途沒設對，卻找不到原因。
+
+**修正（2026-08-18）**：`PlaceBeamInstance`（`MCP/Core/DwgBeamExecutor.cs`）現在把 `StructuralUsage` 賦值移到 Y/Z 對正區塊**之前**且獨立執行、不再自己 `catch`；若賦值失敗，例外會往外拋，交由呼叫端既有的 per-beam `try/catch`（`fail++` / `errors.Add(ex.Message)`）記錄，不再靜默消失。Y/Z 對正仍保留原本的 `catch { }`（非結構關鍵，維持沿用行為）。
+
+同時修正 `MapBeamRoleToUsage()` 的別名判定：`小樑`／`小梁` 補齊為 `次樑`／`次梁` 的別名，統一對應 `StructuralInstanceUsage.Joist`（此別名先前已寫在本文件坑 1 的範例程式碼中，但實作一直漏掉，屬文件與程式碼不同步）。

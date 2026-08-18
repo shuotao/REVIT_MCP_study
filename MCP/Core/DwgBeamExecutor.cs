@@ -495,6 +495,16 @@ namespace RevitMCP.Core
             XYZ en = new XYZ(b.EndPoint.X, b.EndPoint.Y, bLv.Elevation);
             var inst = doc.Create.NewFamilyInstance(Line.CreateBound(st, en), sym, bLv, StructuralType.Beam);
             if (inst == null) return;
+
+            // #90/#117 依批次角色設定結構用途：大樑/地樑→Girder、次樑/小樑→Joist。
+            // 對新建樑而言 INSTANCE_STRUCTURAL_USAGE_PARAM 為唯讀，須直接對 FamilyInstance.StructuralUsage 賦值。
+            // 刻意放在下方 Y/Z 對正區塊之外、且不吞例外：舊寫法把這段包進同一個 try/catch，
+            // Y/Z 設定拋出例外時會連帶讓 StructuralUsage 賦值整段被跳過且無任何紀錄。
+            // 現在獨立執行，若賦值失敗則往外拋，交由呼叫端既有的 per-beam try/catch
+            // （fail++ / errors.Add(ex.Message)）記錄，不再靜默消失。
+            var usage = MapBeamRoleToUsage(beamRole);
+            if (usage.HasValue) inst.StructuralUsage = usage.Value;
+
             try
             {
                 var yJust = inst.get_Parameter(BuiltInParameter.Y_JUSTIFICATION);
@@ -508,13 +518,6 @@ namespace RevitMCP.Core
             }
             catch { }
 
-            // #90 依批次角色設定結構用途：大樑/地樑→Girder、次樑→Joist。
-            // 對新建樑而言 INSTANCE_STRUCTURAL_USAGE_PARAM 為唯讀，須直接對 FamilyInstance.StructuralUsage 賦值。
-            var usage = MapBeamRoleToUsage(beamRole);
-            if (usage.HasValue)
-            {
-                try { inst.StructuralUsage = usage.Value; } catch { }
-            }
             ok++;
         }
 
@@ -522,7 +525,8 @@ namespace RevitMCP.Core
         static StructuralInstanceUsage? MapBeamRoleToUsage(string beamRole)
         {
             if (string.IsNullOrWhiteSpace(beamRole)) return null;
-            if (beamRole.Contains("次樑") || beamRole.Contains("次梁")) return StructuralInstanceUsage.Joist;
+            if (beamRole.Contains("次樑") || beamRole.Contains("次梁") ||
+                beamRole.Contains("小樑") || beamRole.Contains("小梁")) return StructuralInstanceUsage.Joist;
             if (beamRole.Contains("大樑") || beamRole.Contains("大梁") ||
                 beamRole.Contains("地樑") || beamRole.Contains("地梁")) return StructuralInstanceUsage.Girder;
             return null;
