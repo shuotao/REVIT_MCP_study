@@ -6,9 +6,11 @@
 2. Core model terms
 3. Documentation and organization terms
 4. Data and collaboration terms
-5. Tool orchestration mapping
-6. Stop conditions
-7. Official terminology sources
+5. Which Archicad system owns this term
+6. Units and the numeric contract
+7. Tool orchestration mapping
+8. Stop conditions
+9. Official terminology sources
 
 ## Mapping rules
 
@@ -69,18 +71,88 @@
 | Workset | Teamwork reservation/workspace concepts | No 1:1 | Do not automate ownership changes without explicit scope. |
 | Design Option | Design Options | Approximate | Confirm current API/Add-On support. |
 | Shared Coordinates | Project Location / Survey Point / Project Origin concepts | No 1:1 | Require a coordinate-specific workflow and explicit unit verification. |
-| Internal feet | Tool-schema-defined Archicad units | No 1:1 | Never apply Revit unit conversion automatically. |
+| Internal feet | Two different Archicad layers, see [Units and the numeric contract](#units-and-the-numeric-contract) | No 1:1 | Never apply Revit unit conversion automatically, and never assume a returned number's unit. |
+
+## Which Archicad system owns this term
+
+Revit collapses almost all element data into "parameters". Archicad splits the same ground across
+three systems that are queried by different commands and follow different rules. Deciding which one
+owns the user's term is the first step of any translation; guessing produces empty results that
+look like missing data.
+
+| System | What it holds | How it is reached |
+|---|---|---|
+| **Property** | Per-element data values, both built-in and user-defined | Resolve name to id, then read values |
+| **Classification** | A separate semantic taxonomy the element is filed under | Classification systems and items |
+| **Attribute** | Project-wide named resources: Layer, Line, Fill, Composite, Surface, Profile, Pen Table, Zone Category, MEP System, Building Material | Attribute commands, by attribute type |
+| **Library Part parameter** | GDL parameters of Objects, Doors, Windows, Lamps | GDL parameter commands |
+
+Rules that have no Revit analogue:
+
+- **Property availability is driven by classification.** A property can exist in the project and
+  still be unavailable on a given element because of how that element is classified. An empty
+  property value is therefore ambiguous: it can mean "no value" or "not available here". Resolve
+  which, rather than reporting a blank.
+- **Built-in and user-defined properties are identified differently.** A built-in property is
+  identified by a single non-localized name. A user-defined property is identified by a two-part
+  localized name: the group name and the property name. A one-part name will not resolve a
+  user-defined property.
+- **Never type a property name by hand.** List the available properties, resolve the name to its
+  identifier, then read values by identifier. This is the Archicad form of the
+  `domain/element-query-workflow.md` rule that forbids guessing parameter names.
+- **An attribute is not a property.** Building Material and Surface are attributes, so questions
+  about materials are answered from the attribute side, not by looking for a material property.
+
+## Units and the numeric contract
+
+Archicad returns numbers through two layers that do not agree with each other. This is Archicad's
+own design, not an artifact of any wrapper version.
+
+| Layer | What it returns | Follows |
+|---|---|---|
+| **Property layer** | Display *strings*, which may embed a unit symbol | The project's **calculation units** |
+| **Geometry layer** | Typed numbers | Raw SI: metres, square metres, cubic metres, radians |
+
+Observed on one wall in a project whose calculation units were Meter with 2 decimals and
+DecimalDegree for angle:
+
+| | Slant angle | Reference line length | Thickness |
+|---|---|---|---|
+| Property layer | `"90°"` | `"18.96"` | — |
+| Geometry layer | `1.570796327` | — | `0.2` |
+
+`"90°"` and `1.570796327` are the same angle. The property layer had already converted radians to
+degrees and appended the symbol, because the project asked for degrees.
+
+Consequences, all of which produce silently wrong numbers rather than errors:
+
+- **Read the project's calculation units before converting anything.** The same wall returns
+  `"18.96"` in a metre project and `"1896"` in a centimetre one, with no error and no warning.
+- **Do not parse a property string as a bare number.** It can carry a unit symbol, and its decimal
+  places come from a project setting rather than from the value.
+- **Do not mix the two layers in one calculation.** A length from the property layer and a
+  thickness from the geometry layer are not necessarily in the same unit.
+- **Revit-side Domains carry Revit-side units.** The takeoff Domains in `domain/` compute in
+  millimetres. Feeding an Archicad metre value into one of those formulas is a factor-of-1000
+  error that every downstream total will inherit without complaint.
+- **Archicad working units are a third setting again.** They govern the drafting interface, no
+  command to read them was found, and nothing observed here follows them. A user saying "my project
+  is in centimetres" is usually describing working units, which is not what the API answers with.
+
+Report the unit basis alongside any quantity that leaves this adapter. A number without its unit
+basis is not evidence.
 
 ## Tool orchestration mapping
 
 | Revit-oriented Skill step | Archicad adapter step |
 |---|---|
-| Call a named Revit MCP tool | Search by application-neutral intent with `archicad_discover_tools`. |
+| Call a named Revit MCP tool | Resolve the intent against the current runtime, then dispatch. The discovery mechanism differs by wrapper version — see [archicad-runtime-facts.md](archicad-runtime-facts.md). |
 | Pass an ElementId | Pass a GUID returned by the selected Archicad instance. |
 | Pass a category name | Inspect whether the command expects element type, classification, or another enum. |
 | Use current Revit view | Discover the relevant Navigator/view command and anchor current Archicad state. |
 | Mutate then trust success | Re-read affected GUIDs and verify changed fields. |
 | Reuse a previous model result | Re-anchor project/port and fetch current state in this turn. |
+| Read a numeric parameter value | Establish the unit basis first; property values and geometry values are in different units. |
 
 ## Stop conditions
 

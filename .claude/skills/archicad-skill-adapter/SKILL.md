@@ -32,7 +32,9 @@ For every other Skill, consult `docs/integrations/archicad-skill-portability.md`
 - Treat writes as unverified until a follow-up read confirms the result.
 - Stop when no discovered command supports a required capability. Report the gap instead of inventing a payload.
 
-Read [references/revit-archicad-terminology.md](references/revit-archicad-terminology.md) before translating object names, properties, views, documentation objects, units, or identifiers.
+Read [references/revit-archicad-terminology.md](references/revit-archicad-terminology.md) before translating object names, properties, views, documentation objects, units, or identifiers. Numeric values in particular are not safe to pass through untouched: that file's unit contract explains why a returned number's unit depends on project settings and on which command produced it.
+
+Read [references/archicad-runtime-facts.md](references/archicad-runtime-facts.md) before concluding that a capability is missing. It records which commands are currently defective or absent per wrapper version, so that a wrapper defect is not filed as an Archicad limitation.
 
 ## Workflow
 
@@ -100,6 +102,7 @@ For an existing element-query workflow and the user request `查出 Archicad 目
 ## Reference
 
 - [Revit to Archicad terminology](references/revit-archicad-terminology.md)
+- [Archicad MCP runtime facts](references/archicad-runtime-facts.md)
 - [Element query pilot](references/pilot-element-query.md)
 - [Room and Zone numbering pilot](references/pilot-room-numbering.md)
 - [Quantity takeoff Excel pilot](references/pilot-quantity-takeoff-excel.md)

@@ -6,6 +6,81 @@
 > 上游討論：[`shuotao/REVIT_MCP_study#98`](https://github.com/shuotao/REVIT_MCP_study/issues/98)
 > 本文件只定義下一批轉譯範圍；尚未授權或完成 Skill、Domain、MCP runtime 實作。
 
+## 0. 2026-08-19 實測重評（本節後補，原始內容未刪改）
+
+本文件建立於 2026-07-22，當時的能力判斷基於 `tapir-archicad-mcp==0.4.3`。
+2026-08-19 以 `0.5.3` + Archicad 28 + Tapir Add-On 1.5.8 實機重測後，
+下列判斷需要修正。原始章節保留未動，以便對照。
+
+| 原判斷 | 重測結果 |
+|---|---|
+| `wall-orientation-check` 只能走 capability-gap 人工檢查 | **前提不成立，建議升為 pilot**，見下方 (a) |
+| `detect-clashes` 縮限為 GUID pairs + 兩個 boolean | **維持**，schema 已確認，見下方 (b) |
+| Hotlink 不納入第一版 | **維持**，且已取得反面證據，見下方 (c) |
+| `element-coloring` 走暫時 Highlight | **維持**，但新增單位相關風險，見下方 (d) |
+
+### (a) `wall-orientation-check`：第 6.4 節的兩項「缺少的證據」其實都存在
+
+1. **`Wall.Flipped` 等價值存在。** Archicad 的 `GetDetailsOfElements` 回應中確實含有
+   `flipped` 與 `referenceLineLocation`。目前讀不到的原因是 MCP wrapper 的回應模型過期，
+   把新欄位當成不允許的多餘欄位丟棄（上游
+   [SzamosiMate/tapir-archicad-MCP#24](https://github.com/SzamosiMate/tapir-archicad-MCP/issues/24)，
+   `0.4.3` 與 `0.5.3` 皆失敗）。這是 wrapper 缺陷，不是 Archicad 的 API 缺口。
+
+2. **Revit Room-side 判斷有對應的 command chain。** `elements_get_relations_of_elements`
+   對 Zone 回傳 `zoneRelations`，內含 `wallParts`：
+
+   ```text
+   {elementId, roomEdgeIndex, begDistance, endDistance}
+   ```
+
+   即「這面牆的哪一段構成這個 Zone 的第幾條邊」，等同 Revit 的 room boundary segment。
+   「某牆某段的一側是否有 Zone」因此可直接判定，不需要 ray test，也不需要
+   目前壞掉的 `GetDetailsOfElements`。
+
+   實測：本專案目前樓層 7 個 Zone，其中 6 個回傳完整關係（含 Wall／Beam／Column／Door／
+   Window 分組），1 個回傳空關係。**空結果必須與「確實無邊界」區分後回報，不可省略。**
+
+   建議改寫方向：Archicad route 改走 Zone 關係路線，而非原規劃的 WallDetails 幾何路線；
+   驗收條件仍維持「不自動宣稱 correct／incorrect」，但可從人工檢查表升級為
+   有證據支撐的候選判定。
+
+### (b) `detect-clashes`：schema 已確認，補一個原文未載明的細節
+
+`elements_get_collisions` 的 `settings` 可以整個省略（預設 null），
+但**一旦給定，`volumeTolerance`、`performSurfaceCheck`、`surfaceTolerance` 三者皆為必填**。
+預設值分別為 `0.001`、`false`、`0.001`。其餘輸入與結果欄位與第 5.4 節記載一致。
+
+### (c) Hotlink：維持排除，且現在有反面證據
+
+`project_get_hotlinks` 只回傳 `location` 字串陣列，沒有模組名稱，也沒有任何
+GUID ownership 資訊，無法判斷哪些元素屬於哪個 hotlink。第 5.7 節要求
+「live test 同時證明 GUID ownership、project context 與 collision schema 可用」
+才可納入 —— 其中 GUID ownership 這項仍不成立，因此排除的判斷維持。
+
+附帶提醒：本次測試用的專案本身含 13 個 hotlink 節點，因此任何元素計數都必須
+聲明是否包含 hotlink 內容。未過濾的 `Wall` 列舉中，約位移 570 之後 GUID 格式明顯不同，
+研判即為 hotlink 模組內的元素。
+
+### (d) `element-coloring`：新增一項單位相關風險
+
+第 4.5 節第 5 步要求建立「Property value → GUID count」的分組表。
+Archicad 的 property 值是**依專案計算單位格式化的顯示字串**，可能夾帶單位符號
+（實測回傳 `"90°"`），小數位數也來自專案設定而非數值本身。
+
+因此以 property 值當分組鍵有兩個陷阱：
+
+- 兩個實際不同的數值可能格式化後相同而被併成同一組（例如 2 位小數下的 18.955 與 18.964）
+- 專案計算單位一改，分組鍵全部改變
+
+數值型 property 分組前必須先呼叫 `project_get_calculation_units` 並在報告中聲明單位基準。
+詳見 `.claude/skills/archicad-skill-adapter/references/revit-archicad-terminology.md`
+的「Units and the numeric contract」一節。
+
+另外，property 的可用性由 classification 決定，所以「空值」是有歧義的：
+可能是沒有值，也可能是該元素根本沒有這個 property。第 4.3 節第 3 點
+「不把未查到的元素或值編入結果」在 Archicad 需要進一步區分這兩種情況。
+
 ## 1. 決策摘要
 
 Wave 2 建議處理三個既有 canonical Skills：
