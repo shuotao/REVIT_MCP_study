@@ -117,7 +117,52 @@ namespace RevitMCP.Core
                     case "modify_element_parameter":
                         result = ModifyElementParameter(parameters);
                         break;
-                    
+
+                    case "load_shared_parameters":
+                        result = LoadSharedParameters(parameters);
+                        break;
+
+                    case "create_green_material":
+                        result = CreateGreenMaterial(parameters);
+                        break;
+
+                    case "get_all_materials":
+                        result = GetAllMaterials(parameters);
+                        break;
+                    case "create_material":
+                        result = CreateCustomMaterial(parameters);
+                        break;
+                    case "create_material_by_domain":
+                        result = CreateMaterialByDomain(parameters);
+                        break;
+                    case "duplicate_element_type":
+                        result = DuplicateElementType(parameters);
+                        break;
+
+                    case "set_green_material_type_parameters":
+                        result = SetGreenMaterialTypeParameters(parameters);
+                        break;
+
+                    case "create_single_material_type":
+                        result = CreateSingleMaterialType(parameters);
+                        break;
+
+                    case "create_multi_layer_type":
+                        result = CreateMultiLayerType(parameters);
+                        break;
+
+                    case "duplicate_type_only":
+                        result = DuplicateTypeOnly(parameters);
+                        break;
+
+                    case "set_material_surface_pattern":
+                        result = SetMaterialSurfacePattern(parameters);
+                        break;
+
+                    case "inject_green_material_into_family":
+                        result = InjectGreenMaterialIntoFamily(parameters);
+                        break;
+
                     case "create_door":
                         result = CreateDoor(parameters);
                         break;

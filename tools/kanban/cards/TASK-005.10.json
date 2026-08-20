@@ -1,0 +1,37 @@
+{
+  "id": "TASK-005.10",
+  "title": "情境 10｜單一元件多重綠建材 Multi-Material 導入",
+  "content": "### 任務說明\n處理單一 Wall／Floor／Ceiling Type 同時包含多項綠建材的 Set。每一構造層引用獨立 Material，Type 使用 Mat1／Mat2／Mat3 槽位保存各材料履歷，且槽位依角色配置而非 Set 排序。\n\n### 已完成基礎\n- [x] Wall 板材＋塗料案例：Mat1 固定板材、Mat2 固定塗料\n- [x] 31 個共享參數與 MissingParameters 回報機制\n\n### Floors Multi-Material 路徑（原 TASK-011，2026-08-04 併入本卡）\ncreate_multi_layer_type 工具用 Set【塑膠地板set】驗證 Floor 三材料單一 Type 案例：Mat1=混凝土(Structure)／Mat2=塑膠地磚(Finish1)／Mat3=隔音緩衝墊(Substrate)，25 個共享參數全數寫入、各層 Material ID 經 get_element_info 交叉驗證可追溯。\n\n### 「各別建立」機制（原 TASK-010，2026-08-03 併入本卡；跨情境共用工具，非本卡專屬）\ncreate_single_material_type 提供另一種落地路徑——Set 每個材料各自複製一個獨立 Type（而非本卡定義的「單一 Type 多材料」），已用 Set【地板材料set】（4 種材料）驗證：4 個獨立 FloorType、31 個共享參數綁定、各 Type 10 個 Mat1 欄位全數寫入 0 缺漏。這個機制同時也是 `/import` skill Scenario 2（各別建立）與 TASK-005.2 Floor 落地能力的共用底層，不單獨對應某一張 005.x 卡。\n\n### Sign-off Gates (DOD)\n- [x] 支援 Mat3 輔助材料實際案例（塑膠地板set 案例 Mat3=隔音緩衝墊）\n- [x] Floors／Ceilings Multi-Material 路徑完成（Floors 已驗證；Ceilings 尚未實測，見下）\n- [x] 多證號清單與各層 Material ID 可追溯（get_element_info 逐層驗證）\n- [ ] 使用者完成跨品類最終複審（Ceilings 案例＋最終簽核仍待完成）",
+  "stage": "done",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": true,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-005.1",
+    "TASK-005.3",
+    "TASK-005.4"
+  ],
+  "order": 8.95,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

@@ -1,0 +1,84 @@
+# This is a Revit shared parameter file (v4 Schema — Multi-Material Slot Architecture).
+# Do not edit manually unless you know what you are doing.
+# ENCODING: this file is saved as system ANSI (Big5/cp950 on zh-TW Windows), NOT UTF-8.
+# Revit's DefinitionFile parser reads shared-parameter text files using the OS ANSI codepage,
+# so re-saving this as UTF-8 will corrupt the Chinese GROUP names (mojibake) when Revit re-opens it.
+# If you must edit: edit with an editor set to Big5/cp950, or edit as UTF-8 then re-encode to cp950 before committing.
+*META	VERSION	MINVERSION
+META	2	1
+*GROUP	ID	NAME
+GROUP	1	綠建材認證與產品標示 (Green Material Certificate & Identity)
+GROUP	2	綠建材物理與化學性能 (Green Material Properties)
+GROUP	3	國家標準與試驗驗證 (CNS Standard & Testing Verification)
+GROUP	4	非幾何輔助材料 (Construction)
+GROUP	5	門窗專屬效能 (Window/Door Performance)
+*PARAM	GUID	NAME	DATATYPE	DATACATEGORY	GROUP	VISIBLE	DESCRIPTION	USERMODIFIABLE	HIDEWHENNOVALUE
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111101	GreenMaterial_Certified	YESNO		1	1	全牆綠建材評定合格狀態	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111102	GreenMaterial_Mat1_Name	TEXT		1	1	材料1 (主體/牆板) 綠建材產品名稱	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111103	GreenMaterial_Mat1_CertNo	TEXT		1	1	材料1 (主體/牆板) 綠建材標章證書字號	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111104	GreenMaterial_Mat1_Category	TEXT		1	1	材料1 (主體/牆板) 綠建材分類	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111105	GreenMaterial_Mat1_SubCategory	TEXT		1	1	材料1 (主體/牆板) 綠建材次分類	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111106	GreenMaterial_Mat1_Applicant	TEXT		1	1	材料1 (主體/牆板) 標章申請廠商名稱	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111107	GreenMaterial_Mat1_ValidUntil	TEXT		1	1	材料1 (主體/牆板) 標章有效期限	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111108	GreenMaterial_Mat2_Name	TEXT		1	1	材料2 (面材/塗料) 綠建材產品名稱	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111109	GreenMaterial_Mat2_CertNo	TEXT		1	1	材料2 (面材/塗料) 綠建材標章證書字號	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111110	GreenMaterial_Mat2_Category	TEXT		1	1	材料2 (面材/塗料) 綠建材分類	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111111	GreenMaterial_Mat2_SubCategory	TEXT		1	1	材料2 (面材/塗料) 綠建材次分類	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111112	GreenMaterial_Mat2_Applicant	TEXT		1	1	材料2 (面材/塗料) 標章申請廠商名稱	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111113	GreenMaterial_Mat2_ValidUntil	TEXT		1	1	材料2 (面材/塗料) 標章有效期限	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111114	GreenMaterial_Mat3_Name	TEXT		1	1	材料3 (附屬/膠材) 綠建材產品名稱	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111115	GreenMaterial_Mat3_CertNo	TEXT		1	1	材料3 (附屬/膠材) 綠建材標章證書字號	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111116	GreenMaterial_Mat3_Category	TEXT		1	1	材料3 (附屬/膠材) 綠建材分類	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111117	GreenMaterial_Mat3_SubCategory	TEXT		1	1	材料3 (附屬/膠材) 綠建材次分類	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111118	GreenMaterial_Mat3_Applicant	TEXT		1	1	材料3 (附屬/膠材) 標章申請廠商名稱	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111119	GreenMaterial_Mat3_ValidUntil	TEXT		1	1	材料3 (附屬/膠材) 標章有效期限	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111132	GreenMaterial_Mat4_Name	TEXT		1	1	材料4 (追加構造層) 綠建材產品名稱	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111133	GreenMaterial_Mat4_CertNo	TEXT		1	1	材料4 (追加構造層) 綠建材標章證書字號	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111134	GreenMaterial_Mat4_Category	TEXT		1	1	材料4 (追加構造層) 綠建材分類	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111135	GreenMaterial_Mat4_SubCategory	TEXT		1	1	材料4 (追加構造層) 綠建材次分類	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111136	GreenMaterial_Mat4_Applicant	TEXT		1	1	材料4 (追加構造層) 標章申請廠商名稱	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111137	GreenMaterial_Mat4_ValidUntil	TEXT		1	1	材料4 (追加構造層) 標章有效期限	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111138	GreenMaterial_Mat5_Name	TEXT		1	1	材料5 (追加構造層) 綠建材產品名稱	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111139	GreenMaterial_Mat5_CertNo	TEXT		1	1	材料5 (追加構造層) 綠建材標章證書字號	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111140	GreenMaterial_Mat5_Category	TEXT		1	1	材料5 (追加構造層) 綠建材分類	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111141	GreenMaterial_Mat5_SubCategory	TEXT		1	1	材料5 (追加構造層) 綠建材次分類	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111142	GreenMaterial_Mat5_Applicant	TEXT		1	1	材料5 (追加構造層) 標章申請廠商名稱	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111143	GreenMaterial_Mat5_ValidUntil	TEXT		1	1	材料5 (追加構造層) 標章有效期限	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111144	GreenMaterial_Mat6_Name	TEXT		1	1	材料6 (追加構造層) 綠建材產品名稱	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111145	GreenMaterial_Mat6_CertNo	TEXT		1	1	材料6 (追加構造層) 綠建材標章證書字號	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111146	GreenMaterial_Mat6_Category	TEXT		1	1	材料6 (追加構造層) 綠建材分類	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111147	GreenMaterial_Mat6_SubCategory	TEXT		1	1	材料6 (追加構造層) 綠建材次分類	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111148	GreenMaterial_Mat6_Applicant	TEXT		1	1	材料6 (追加構造層) 標章申請廠商名稱	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111149	GreenMaterial_Mat6_ValidUntil	TEXT		1	1	材料6 (追加構造層) 標章有效期限	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111120	GreenMaterial_Mat1_TVOC	NUMBER		2	1	材料1 (主體/牆板) TVOC 逸散率 (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111121	GreenMaterial_Mat1_Formaldehyde	NUMBER		2	1	材料1 (主體/牆板) 甲醛逸散率 (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111122	GreenMaterial_Mat2_TVOC	NUMBER		2	1	材料2 (面材/塗料) TVOC 逸散率 (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111123	GreenMaterial_Mat2_Formaldehyde	NUMBER		2	1	材料2 (面材/塗料) 甲醛逸散率 (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111150	GreenMaterial_Mat4_TVOC	NUMBER		2	1	材料4 (追加構造層) TVOC 逸散率 (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111151	GreenMaterial_Mat4_Formaldehyde	NUMBER		2	1	材料4 (追加構造層) 甲醛逸散率 (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111152	GreenMaterial_Mat5_TVOC	NUMBER		2	1	材料5 (追加構造層) TVOC 逸散率 (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111153	GreenMaterial_Mat5_Formaldehyde	NUMBER		2	1	材料5 (追加構造層) 甲醛逸散率 (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111154	GreenMaterial_Mat6_TVOC	NUMBER		2	1	材料6 (追加構造層) TVOC 逸散率 (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111155	GreenMaterial_Mat6_Formaldehyde	NUMBER		2	1	材料6 (追加構造層) 甲醛逸散率 (mg/m2.h)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111124	GreenMaterial_RecycledRatio	NUMBER		2	1	再生材料回收摻配率 (%)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111125	GreenMaterial_AcousticNRC	NUMBER		2	1	高性能吸音建材吸音係數 (NRC / SAA)	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111126	GreenMaterial_Mat1_CNSSpec	TEXT		3	1	材料1 CNS 國家標準與試驗規範	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111127	GreenMaterial_Mat1_TestItems	TEXT		3	1	材料1 試驗項目與檢測數據範疇	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111128	GreenMaterial_Mat1_QualifiedItems	TEXT		3	1	材料1 合格項目與評定結果	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111129	GreenMaterial_Mat2_CNSSpec	TEXT		3	1	材料2 CNS 國家標準與試驗規範	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111130	GreenMaterial_Mat2_TestItems	TEXT		3	1	材料2 試驗項目與檢測數據範疇	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111131	GreenMaterial_Mat2_QualifiedItems	TEXT		3	1	材料2 合格項目與評定結果	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111156	GreenMaterial_Mat4_CNSSpec	TEXT		3	1	材料4 (追加構造層) CNS 國家標準與試驗規範	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111157	GreenMaterial_Mat4_TestItems	TEXT		3	1	材料4 (追加構造層) 試驗項目與檢測數據範疇	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111158	GreenMaterial_Mat4_QualifiedItems	TEXT		3	1	材料4 (追加構造層) 合格項目與評定結果	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111159	GreenMaterial_Mat5_CNSSpec	TEXT		3	1	材料5 (追加構造層) CNS 國家標準與試驗規範	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111160	GreenMaterial_Mat5_TestItems	TEXT		3	1	材料5 (追加構造層) 試驗項目與檢測數據範疇	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111161	GreenMaterial_Mat5_QualifiedItems	TEXT		3	1	材料5 (追加構造層) 合格項目與評定結果	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111162	GreenMaterial_Mat6_CNSSpec	TEXT		3	1	材料6 (追加構造層) CNS 國家標準與試驗規範	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111163	GreenMaterial_Mat6_TestItems	TEXT		3	1	材料6 (追加構造層) 試驗項目與檢測數據範疇	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111164	GreenMaterial_Mat6_QualifiedItems	TEXT		3	1	材料6 (追加構造層) 合格項目與評定結果	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111165	GreenMaterial_Adhesive	TEXT		4	1	附著黏貼之接著劑標章資訊	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111166	GreenMaterial_Sealant	TEXT		4	1	附著填縫之矽利康/密封膠資訊	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111167	GreenMaterial_Waterproofing	TEXT		4	1	附著塗佈之防水膜資訊	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111168	GreenMaterial_Window_ShadingCoefficient	NUMBER		5	1	門窗遮陽係數 Sc（僅 Windows/Curtain Wall 適用）	1	0
+PARAM	a1b2c3d4-e5f6-4a11-8b22-111111111169	GreenMaterial_AcousticRw	NUMBER		5	1	門窗隔音等級 Rw (dB)（Windows 與 Doors 適用）	1	0

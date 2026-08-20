@@ -33,9 +33,9 @@ These counts must be derived from source, not copied by memory.
 
 | Item | Current Count | Source of Truth |
 |---|---:|---|
-| Runtime MCP tools | 173 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 76 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
-| Claude skills | 54 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 185 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 80 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
+| Claude skills | 61 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, `README.zh-TW.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
 
@@ -306,6 +306,10 @@ Read the matching file before applying a workflow or calculation.
 | threshold opening, 門檻開口, 門窗統計, door count, window count, get_room_door_counts, get_room_window_counts | `domain/threshold-opening-takeoff.md` |
 | RC filled region, RC 填充區域, 批次填充, batch fill region, batch_create_rc_filled_region, create_rc_filled_region | `domain/rc-filled-region-workflow.md` |
 | curtain wall elevation, 帷幕立面, 帷幕外立面, curtain elevation, create_curtain_wall_elevations | `domain/curtain-wall-elevation-workflow.md` |
+| green building material, green material, 綠建材, 綠建材標章, TABC, 綠建材採購指南 | `domain/GM_catalog.md` |
+| green material parameter, 綠建材參數, GBM_LicenseNo, 綠建材標註, 綠建材Schema | `domain/GM_parameter-schema.md` |
+| green material search, 綠建材關鍵字, 關鍵字檢索, 牆材料, 地板材料, 同義擴充, DATA Engine | `domain/GM_keyword-search.md` |
+| RFA family injection, 門窗綠建材, 獨立元件, RFA 導入, loadable family, 防音門窗, Low-E玻璃, 遮陽係數, 隔音Rw | `domain/GM_rfa-family-injection.md` |
 | opening candidate, 開孔候選, opening scan, 開孔預掃, scan_opening_candidates, 套管前置檢核, clearanceMm | `domain/mep-opening-candidate-scan.md` |
 | cad 圖塊放置, block 轉族群, 灑水頭建模, 閥件建模, point placement from CAD block, INSERT to FamilyInstance | `domain/cad-block-point-placement.md` |
 | pyRevit, UI API, 按鈕觸發, 觸發按鈕, PostableCommandId, PostCommand, Reload, ribbon 按鈕, 外掛 UI 命令 | `domain/tool-capability-boundary.md` |
@@ -327,7 +331,7 @@ Meta and governance domain files:
 
 ## Skills
 
-The canonical skill catalog is the .claude/skills/ directory itself (54 skills; count table above is the gate).
+The canonical skill catalog is the .claude/skills/ directory itself (61 skills; count table above is the gate).
 
 Use the smallest relevant skill set. If a skill and a domain file conflict on the method, the domain file wins.
 

@@ -1,0 +1,615 @@
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+<meta content="" name="description" />
+<meta content="" name="author" />
+
+<!-- ================== BEGIN core-css ================== -->
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+<link href="./assets/css/vendor.min.css" rel="stylesheet" />
+<link href="./assets/css/default/app.min.css" rel="stylesheet" />
+<!-- ================== END core-css ================== -->
+
+<!-- ================== BEGIN page-css ================== -->
+<link href="./assets/plugins/jvectormap-next/jquery-jvectormap.css" rel="stylesheet" />
+<link href="./assets/plugins/nvd3/build/nv.d3.css" rel="stylesheet" />
+<link href="./assets/plugins/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet" />
+<link href="./assets/plugins/gritter/css/jquery.gritter.css" rel="stylesheet" />
+<!-- ================== END page-css ================== -->
+
+<!-- ================== BEGIN page-css ================== -->
+<link href="./assets/plugins/ionicons/css/ionicons.min.css" rel="stylesheet" />
+<!-- ================== END page-css ================== --><TITLE>財團法人臺灣建築中心綠建材採購指南查詢</TITLE>
+<LINK HREF="/nImgTmp/TABCmgr.css" REL="stylesheet" TYPE="text/css">
+</HEAD>
+<SCRIPT src="/nImgSys/EinsString.js"></SCRIPT>
+<SCRIPT src="/nImgSys/EinsFilter3.js"></SCRIPT>
+<SCRIPT src="/nImgSys/EinsAjaxCommon.js"></SCRIPT>
+<SCRIPT src="/nImgSys/EinsTooltip2.js"></SCRIPT>
+<SCRIPT src="/nImgSys/EinsImgResize.js"></SCRIPT>
+<SCRIPT src="/nImgSys/EinsUTF8Lib.js"></SCRIPT>
+<SCRIPT src="/nImgSys/EinsBase64Lib.js"></SCRIPT>
+<SCRIPT src="/nImgSys/EinsPrivacyEncode.js"></SCRIPT>
+<BODY LEFTMARGIN=0 TOPMARGIN=0 ONUNLOAD="FLT_BodyUnload();">
+<DIV ALIGN="LEFT">
+<TABLE WIDTH="100%" BORDER=0 CELLPADDING=0 CELLSPACING=0><!--  LeftZone & CenterZone & RightZone  -->
+<TR ALIGN="left" VALIGN="top">
+<TD ID="Template_CenterZone">
+<script src="FM7_Common_JS.js?v2" type="text/javascript"></script><TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="100%" ID="wcBottom_Core_JS_0"><!--  wcBottom_Core_JS  -->
+  <TR>
+    <TD WIDTH="100%">
+<!-- ================== BEGIN core-js ================== -->
+<script src="./assets/js/vendor.min.js"></script>
+<script src="./assets/js/app.min.js"></script>
+<!-- ================== END core-js ================== -->    </TD>
+  </TR>
+</TABLE>
+
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="100%" ID="wcBottom_Page_JS_1"><!--  wcBottom_Page_JS  -->
+  <TR>
+    <TD WIDTH="100%">
+<!-- ================== BEGIN page-js ================== -->
+<script src="./assets/plugins/d3/d3.min.js"></script>
+<script src="./assets/plugins/nvd3/build/nv.d3.min.js"></script>
+<script src="./assets/plugins/jvectormap-next/jquery-jvectormap.min.js"></script>
+<script src="./assets/plugins/jvectormap-next/jquery-jvectormap-world-mill.js"></script>
+<script src="./assets/plugins/apexcharts/dist/apexcharts.min.js"></script>
+<script src="./assets/plugins/moment/min/moment.min.js"></script>
+<script src="./assets/plugins/bootstrap-daterangepicker/daterangepicker.js"></script>
+<script src="./assets/js/demo/dashboard-v3.js"></script>
+<!-- ================== END page-js ================== -->    </TD>
+  </TR>
+</TABLE>
+
+
+<!-- BEGIN #loader -->
+<div id="loader" class="app-loader">
+	<span class="spinner"></span>
+</div>
+<!-- END #loader -->
+
+<!-- BEGIN #app -->
+<div id="app" class="app app-header-fixed app-sidebar-fixed">
+	<!-- BEGIN #header -->
+	<div id="header" class="app-header" style="height:50px;">
+		<!-- BEGIN navbar-header -->
+		<div class="navbar-header">
+			<a href="SearchCaseAction.aspx" class="navbar-brand"><img src="./Object/Logo/TABC_Logo_Circle.png?v=2024.01"> <b class="ms-2">財團法人臺灣建築中心綠建材採購指南查詢</b> </a>
+			<button type="button" class="navbar-mobile-toggler" data-toggle="app-sidebar-mobile">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+		</div>
+		<!-- END navbar-header -->
+		<!-- BEGIN header-nav -->
+		<div class="navbar-nav">
+			<div class="navbar-item navbar-form">
+				<!-- 關鍵字查詢 -->
+				<!-- D:\NTWEB\AutoWeb3\Database\Project\TABC\mgr\Component\wcHeader_Search.comp.xmf is invisible -->
+			</div>
+			<div class="navbar-item dropdown">
+				<!-- 通知區塊 -->
+				<!-- D:\NTWEB\AutoWeb3\Database\Project\TABC\mgr\Component\wcHeader_Notifications.comp.xmf is invisible -->  
+			</div>
+			<div class="navbar-item navbar-user dropdown">
+				<!-- 右上角帳號資料 -->
+				<!-- D:\NTWEB\AutoWeb3\Database\Project\TABC\mgr\Component\wcHeader_AccountInfo.comp.xmf is invisible -->  
+			</div>
+		</div>
+		<!-- END header-nav -->
+	</div>
+	<!-- END #header -->
+	
+	<!-- BEGIN #content -->
+	<div id="content" class="me-4 ms-4">
+			<!-- BEGIN breadcrumb -->
+			<ol class="breadcrumb float-xl-end mt-2" style="display:none;">
+				<li class="breadcrumb-item"><a href="javascript:;">首頁</a></li>
+				<li class="breadcrumb-item active"><a href="javascript:;">綠建材採購指南查詢</a></li>
+				<li class="breadcrumb-item active" style="display:none;">機構盤點概況表</li>
+			</ol>
+			<!-- END breadcrumb -->
+			<!-- BEGIN page-header -->
+			<h1 class="page-header mt-3" style="display:none;"><i class="fas fa-lg fa-fw me-10px fa-magnifying-glass"></i> 綠建材採購指南查詢</h1>
+			<!-- END page-header -->
+			
+			<div class='table-responsive mt-4' style='background-color:#fff'>
+				<div style="text-align:center;"><!-- NOT Connection Pool -->
+<SCRIPT language=JavaScript>
+var FLT_Submitted=false;
+function FLT_Check()
+{
+   if (FLT_Submitted)
+   {
+      alert('You have pressed submit button, please wait !');
+      return false;
+   }
+   var thisForm=document.FLT;
+   var Separater="___";
+   var alertStr='';
+   if (alertStr!='')
+   {
+      alert(alertStr);
+      return false;
+   }
+   FLT_Submitted=true;
+   var SubmitButton=document.FLT.FLT_SubmitBtn;
+   if (SubmitButton!=null)
+   {
+      SubmitButton.disabled=true;
+   }
+   PrivacyEncodeSubmit(thisForm,"");
+   return false;
+}
+function FLT_BodyUnload()
+{
+   FLT_Submitted=false;
+   if (navigator.userAgent.indexOf('Firefox')!=-1)
+   {
+      var SubmitButton=document.FLT.FLT_SubmitBtn;
+      if (SubmitButton!=null)
+      {
+         SubmitButton.disabled=false;
+      }
+   }
+}
+</SCRIPT>
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="100%"><!--  WC9V_BLCase_Filter  -->
+  <TR><!--  TopBorderZone  -->
+    <TD WIDTH=1 HEIGHT=10><IMG BORDER=0 SRC="/nImgSys/NT-Spacer.gif" WIDTH=1 HEIGHT=10></TD>
+  </TR>
+  <TR>
+    <TD WIDTH="100%" ALIGN="center" InsideTD=1>
+      <FORM NAME="FLT" ACTION="" METHOD="Get" STYLE="margin-top:0px;margin-bottom:0px;" ONSUBMIT="return FLT_Check();">
+        <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="350"><!--  InsideTable  -->
+          <TR>
+            <TD WIDTH="100%">
+              <TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0>
+                <TR>
+                  <TD NOWRAP ALIGN="left" VALIGN="middle" CLASS="fs-14px">標章類別：</TD>
+                  <TD VALIGN="middle" WIDTH="100%">
+                    <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0>
+                      <TR>
+                        <TD VALIGN="top">
+                          <SELECT NAME="GBMTYPE" CLASS="Default" RootCombo="TRUE" ONCHANGE='MagicFilter3(this,"FLT","GBMTYPE");' STYLE="width:110px;height:26px;margin-right:2px;">
+                            <OPTION VALUE="" SELECTED>全部&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <OPTION VALUE="1">健康&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <OPTION VALUE="2">高性能&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <OPTION VALUE="3">再生&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <OPTION VALUE="4">生態&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                          </SELECT>
+                        </TD>
+                        <TD VALIGN="top">
+                          <SELECT NAME="GBMITEM" CLASS="Default" STYLE="height:26px;width:230px;">
+                            <!--  Values will be set by onchange of parent item  -->
+                            <OPTION VALUE="Written">Written
+                            <OPTION VALUE="by">by
+                            <OPTION VALUE="Einstand">Einstand
+                            <OPTION VALUE="Chen">Chen
+                            <OPTION VALUE="Copywrite">Copywrite
+                            <OPTION VALUE="NewType">NewType
+                            <OPTION VALUE="Inforetech">Inforetech
+                          </SELECT>
+                        </TD>
+                      </TR>
+                    </TABLE>
+                  </TD>
+                </TR>
+                <TR>
+                  <TD NOWRAP ALIGN="left" VALIGN="middle" CLASS="fs-14px">核定編號：GBM</TD>
+                  <TD VALIGN="middle" WIDTH="100%">
+                    <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0>
+                      <TR>
+                        <TD VALIGN="top"><INPUT TYPE="TEXT" AutoComplete="off" MAXLENGTH=80 SIZE=20 NAME="LICNO" CLASS="Default" STYLE="width:110px;height:26px;margin-right:2px;"></TD>
+                        <TD VALIGN="top">
+                          <SELECT NAME="GBMFlag" CLASS="Default" RootCombo="TRUE" STYLE="height:26px;width:230px;">
+                            <OPTION VALUE="" SELECTED>全部&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <OPTION VALUE="1">新申請&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <OPTION VALUE="2">續約&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <OPTION VALUE="3">增項&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <OPTION VALUE="4">變更&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                          </SELECT>
+                        </TD>
+                      </TR>
+                    </TABLE>
+                  </TD>
+                </TR>
+                <TR>
+                  <TD NOWRAP ALIGN="left" VALIGN="middle" CLASS="fs-14px">建材名稱：</TD>
+                  <TD VALIGN="middle" WIDTH="100%"><INPUT TYPE="TEXT" AutoComplete="off" MAXLENGTH=80 SIZE=20 NAME="GBM_Name" VALUE="牆" CLASS="Default" STYLE="width:342px;height:26px;margin-right:2px;"></TD>
+                </TR>
+                <TR>
+                  <TD NOWRAP ALIGN="left" VALIGN="middle" CLASS="fs-14px">公司名稱：</TD>
+                  <TD VALIGN="middle" WIDTH="100%"><INPUT TYPE="TEXT" AutoComplete="off" MAXLENGTH=80 SIZE=20 NAME="Applicant" CLASS="Default" STYLE="width:342px;height:26px;margin-right:2px;"></TD>
+                </TR>
+              </TABLE>
+              <TABLE WIDTH="100%" BORDER=0 CELLPADDING=3 CELLSPACING=0>
+                <TR>
+                  <TD ALIGN="center" COLSPAN=2><INPUT TYPE="SUBMIT" NAME="FLT_SubmitBtn" VALUE="執行篩選"></TD>
+                </TR>
+              </TABLE>
+            </TD>
+          </TR>
+        </TABLE>
+      </FORM>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+EinTxtAry_FLT_GBMTYPE_=new Array("全部                  ","健康                  ","高性能                 ","再生                  ","生態                  ");
+EinValAry_FLT_GBMTYPE_=new Array("","1","2","3","4");
+
+EinTxtAry_FLT_GBMTYPEGBMITEM_001=new Array("全部                  ","地板類                 ","牆壁類                 ","天花板                 ","填縫劑與油灰類             ","塗料類                 ","接著(合)劑              ","門窗類                 ","固定式隔屏或櫥櫃類           ");
+EinValAry_FLT_GBMTYPEGBMITEM_001=new Array("","01","02","03","04","05","06","07","08");
+
+EinTxtAry_FLT_GBMTYPEGBMITEM_002=new Array("全部                  ","隔音(外牆、屋頂板、分戶牆、分間牆)  ","隔音(窗戶)              ","隔音(門扇)              ","隔音(樓板表面材(含緩衝材))     ","吸音(吸音材)             ","透水鋪面(單元透水磚透水鋪面)     ","節能(單層玻璃)            ","節能(LOW-E玻璃)         ","節能(膠合玻璃)            ","節能(複層玻璃)            ","現場整體澆置之剛性透水鋪面       ","隔音(昇降機道與居室相鄰之分間牆)   ","隔音(橡膠緩衝材))          ","透水鋪面(單元高壓磚透水鋪面)     ","透水鋪面(現場整體澆置之柔性透水鋪面) ","透水鋪面(現場整體澆置之剛性透水鋪面) ","透水鋪面(其他型透水鋪面)       ","滲透側溝                ","滲透陰井                ","滲透排水管               ","建築門窗用玻璃貼膜材料         ","建築用隔熱材料             ","外牆系統或構造             ","屋頂系統或構造             ","節能塗料                ","節能窗戶                ");
+EinValAry_FLT_GBMTYPEGBMITEM_002=new Array("","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26");
+
+EinTxtAry_FLT_GBMTYPEGBMITEM_003=new Array("全部                  ","再生纖維水泥板、纖維水泥板、纖維強化水泥板","高壓混凝土地磚             ","混凝土空心磚              ","混凝土粒料               ","陶瓷面磚                ","石膏板                 ","普通磚                 ","輕質混凝土嵌板             ","水硬性混合水泥             ","裝飾用珠狀粒料             ","透水性混凝土地磚            ","橡膠鋪面材料              ","合成石                 ","水泥瓦                 ","綠混凝土                ","瀝青鋪面粒料              ","輕質發泡混凝土磚            ","磨石子板、磨石子地磚          ","木材-塑膠之再生複合材         ","塑膠地磚                ","隔熱混凝土用輕質粒料          ","建築用隔熱材料             ","屋頂隔熱磚               ","控制性低強度材料            ","輕質隔熱建築材料            ");
+EinValAry_FLT_GBMTYPEGBMITEM_003=new Array("","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28");
+
+EinTxtAry_FLT_GBMTYPEGBMITEM_004=new Array("全部                  ","木製建材                ","天然植物建材              ","天然隔熱建材              ","非化學合成管線材            ","非化學合成衛浴             ","木材染色劑               ","外殼粉刷材               ","塗料                  ","窗簾                  ","壁紙                  ","填縫劑                 ","其他天然建材              ","天然石材                ");
+EinValAry_FLT_GBMTYPEGBMITEM_004=new Array("","01","02","03","04","05","06","07","08","09","10","11","12","13");
+
+EinChild_FLT_GBMTYPE=new Array("GBMITEM");
+EinChild_FLT_GBMITEM=null;
+//-->
+</SCRIPT>
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var tempItem;
+tempItem=eval("document.FLT.GBMTYPE");
+tempItem.onchange();
+//-->
+</SCRIPT>
+    </TD>
+  </TR>
+</TABLE>
+</div>
+				<!-- D:\NTWEB\AutoWeb3\Database\Project\TABC\mgr\Component\WC9V_BLCase_Data.comp.xmf is invisible -->
+				<!-- NOT Connection Pool -->
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="100%"><!--  WC9V_BLCase_Data2  -->
+  <TR><!--  InsideMargin.top  -->
+    <TD WIDTH=1 COLSPAN=3 HEIGHT=8><IMG BORDER=0 SRC="/nImgSys/NT-Spacer.gif" WIDTH=1 HEIGHT=8></TD>
+  </TR>
+  <TR>
+    <TD WIDTH=12><IMG BORDER=0 SRC="/nImgSys/NT-Spacer.gif" WIDTH=12 HEIGHT=1></TD>
+    <TD WIDTH="100%">
+      <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=5 WIDTH="100%">
+        <TR>
+          <TD WIDTH="1%" ALIGN="left" VALIGN="middle" NOWRAP>&nbsp;</TD>
+          <TD WIDTH="98%" ALIGN="center" VALIGN="middle">
+            <FONT CLASS="標題">(&nbsp;1&nbsp;)</FONT>
+             &nbsp; 
+            <A CLASS="Default" HREF="/mgr/SearchCaseAction.aspx?EinB64=R0JNX05hbWU9JUU3JTg5JTg2JldDOVZfQkxDYXNlX0RhdGEyZWlucGFnZT0x">2</A>
+             &nbsp; 
+            <A CLASS="Default" HREF="/mgr/SearchCaseAction.aspx?EinB64=R0JNX05hbWU9JUU3JTg5JTg2JldDOVZfQkxDYXNlX0RhdGEyZWlucGFnZT0y">3</A>
+          </TD>
+          <TD WIDTH="1%" ALIGN="right" VALIGN="middle" NOWRAP>
+            <A CLASS="Default" HREF="/mgr/SearchCaseAction.aspx?EinB64=R0JNX05hbWU9JUU3JTg5JTg2JldDOVZfQkxDYXNlX0RhdGEyZWlucGFnZT0x">
+              <FONT CLASS="標題">下一頁</FONT>
+            </A>
+          </TD>
+        </TR>
+      </TABLE>
+      <TABLE BORDER=0 CELLPADDING=5 CELLSPACING=1 WIDTH="100%" CurrentPage=0 SortItem="" SortType="ASC"><!--  Content Start  -->
+        <TR>
+          <TD WIDTH="50px" ALIGN="center" CLASS=""><!--  RowIndex  --><span name='_tag'></span><span class='fs-14ps fw-bolder'>項次</span></TD>
+          <TD WIDTH="40px" ALIGN="center" CLASS=""><!--  PIC  --></TD>
+          <TD CLASS="fs-14px fw-bolder"><!--  LICNO_C  -->核定編號</TD>
+          <TD CLASS="fs-14px fw-bolder"><!--  GBM_NAME_C  -->建材名稱</TD>
+          <TD CLASS="fs-14px fw-bolder"><!--  APPLICANT  -->公司名稱</TD>
+          <TD ALIGN="center" CLASS="fs-14px fw-bolder"><!--  CHECK_DATE_C  -->啟用日期</TD>
+          <TD ALIGN="center" CLASS="fs-14px fw-bolder"><!--  CHECK_LIMIT_C  -->截止日期</TD>
+        </TR>
+        <TR>
+          <TD VALIGN="top" ALIGN="center" CLASS="Default">
+            <span class='fs-14px'>
+            1
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><img src='./Object/ProductImages/115H192/115H192_20260625162834.jpg' class='rounded h-30px w-30px' style='cursor:pointer;' onclick='openImageModal("115","H","192")'></TD>
+          <TD VALIGN="top"><span class='fs-14px'>GBM0104189</span></TD>
+          <TD VALIGN="top"><span class='fs-14px'><a href='#' onclick='openLargeModal("115","H","192")'>複層防火節能外牆LF-1(不沖孔)，代碼:055WX042</a></span></TD>
+          <TD VALIGN="top" CLASS="Default">
+            <span class='fs-14px'>
+            坴賦佳金屬有限公司
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>115/06/23</span></TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>119/06/22</span></TD>
+        </TR>
+        <TR>
+          <TD VALIGN="top" ALIGN="center" CLASS="Default">
+            <span class='fs-14px'>
+            2
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><img src='./Object/ProductImages/115H144/115H144_20260520114317.jpg' class='rounded h-30px w-30px' style='cursor:pointer;' onclick='openImageModal("115","H","144")'></TD>
+          <TD VALIGN="top"><span class='fs-14px'>GBM0104139</span></TD>
+          <TD VALIGN="top"><span class='fs-14px'><a href='#' onclick='openLargeModal("115","H","144")'>鋼筋混凝土內嵌PS板隔熱牆</a></span></TD>
+          <TD VALIGN="top" CLASS="Default">
+            <span class='fs-14px'>
+            齊步綠能科技有限公司
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>115/05/11</span></TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>119/05/10</span></TD>
+        </TR>
+        <TR>
+          <TD VALIGN="top" ALIGN="center" CLASS="Default">
+            <span class='fs-14px'>
+            3
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><img src='./Object/ProductImages/115H020/115H020_20260311093710.jpg' class='rounded h-30px w-30px' style='cursor:pointer;' onclick='openImageModal("115","H","020")'></TD>
+          <TD VALIGN="top"><span class='fs-14px'>GBM0104017</span></TD>
+          <TD VALIGN="top"><span class='fs-14px'><a href='#' onclick='openLargeModal("115","H","020")'>壹東節能岩棉金屬外牆系統</a></span></TD>
+          <TD VALIGN="top" CLASS="Default">
+            <span class='fs-14px'>
+            壹東實業股份有限公司
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>115/01/12</span></TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>119/01/11</span></TD>
+        </TR>
+        <TR>
+          <TD VALIGN="top" ALIGN="center" CLASS="Default">
+            <span class='fs-14px'>
+            4
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><img src='./Object/ProductImages/115H018/115H018_20260311093715.jpg' class='rounded h-30px w-30px' style='cursor:pointer;' onclick='openImageModal("115","H","018")'></TD>
+          <TD VALIGN="top"><span class='fs-14px'>GBM0104016</span></TD>
+          <TD VALIGN="top"><span class='fs-14px'><a href='#' onclick='openLargeModal("115","H","018")'>節能外牆乾掛系統</a></span></TD>
+          <TD VALIGN="top" CLASS="Default">
+            <span class='fs-14px'>
+            中國製釉股份有限公司
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>115/01/08</span></TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>119/01/07</span></TD>
+        </TR>
+        <TR>
+          <TD VALIGN="top" ALIGN="center" CLASS="Default">
+            <span class='fs-14px'>
+            5
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><img src='./Object/ProductImages/114H348/114H348_20260311093710.jpg' class='rounded h-30px w-30px' style='cursor:pointer;' onclick='openImageModal("114","H","348")'></TD>
+          <TD VALIGN="top"><span class='fs-14px'>GBM0103909</span></TD>
+          <TD VALIGN="top"><span class='fs-14px'><a href='#' onclick='openLargeModal("114","H","348")'>複層防火節能外牆KL1(不沖孔)，代碼:055WX042</a></span></TD>
+          <TD VALIGN="top" CLASS="Default">
+            <span class='fs-14px'>
+            坴賦佳金屬有限公司
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>114/10/15</span></TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>118/10/14</span></TD>
+        </TR>
+        <TR>
+          <TD VALIGN="top" ALIGN="center" CLASS="Default">
+            <span class='fs-14px'>
+            6
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><img src='./Object/ProductImages/114H349/114H349_20260311093710.jpg' class='rounded h-30px w-30px' style='cursor:pointer;' onclick='openImageModal("114","H","349")'></TD>
+          <TD VALIGN="top"><span class='fs-14px'>GBM0103910</span></TD>
+          <TD VALIGN="top"><span class='fs-14px'><a href='#' onclick='openLargeModal("114","H","349")'>複層防火節能外牆ZL1(不沖孔)，代碼:055WX042</a></span></TD>
+          <TD VALIGN="top" CLASS="Default">
+            <span class='fs-14px'>
+            坴賦佳金屬有限公司
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>114/10/14</span></TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>118/10/13</span></TD>
+        </TR>
+        <TR>
+          <TD VALIGN="top" ALIGN="center" CLASS="Default">
+            <span class='fs-14px'>
+            7
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><img src='./Object/ProductImages/114H100/114H100_20250408104740.jpg' class='rounded h-30px w-30px' style='cursor:pointer;' onclick='openImageModal("114","H","100")'></TD>
+          <TD VALIGN="top"><span class='fs-14px'>GBM0103667(續)</span></TD>
+          <TD VALIGN="top"><span class='fs-14px'><a href='#' onclick='openLargeModal("114","H","100")'>Fs0牆板用膠黏狀環氧樹脂系接著劑</a></span></TD>
+          <TD VALIGN="top" CLASS="Default">
+            <span class='fs-14px'>
+            永年塗料有限公司
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>114/04/29</span></TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>118/04/28</span></TD>
+        </TR>
+        <TR>
+          <TD VALIGN="top" ALIGN="center" CLASS="Default">
+            <span class='fs-14px'>
+            8
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><img src='./Object/ProductImages/114H006/114H006_20260311093703.jpg' class='rounded h-30px w-30px' style='cursor:pointer;' onclick='openImageModal("114","H","006")'></TD>
+          <TD VALIGN="top"><span class='fs-14px'>GBM0103572</span></TD>
+          <TD VALIGN="top"><span class='fs-14px'><a href='#' onclick='openLargeModal("114","H","006")'>複層防火節能外牆LF-S</a></span></TD>
+          <TD VALIGN="top" CLASS="Default">
+            <span class='fs-14px'>
+            坴賦佳金屬有限公司
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>113/12/30</span></TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>117/12/29</span></TD>
+        </TR>
+        <TR>
+          <TD VALIGN="top" ALIGN="center" CLASS="Default">
+            <span class='fs-14px'>
+            9
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><img src='./Object/ProductImages/113H318/113H318_20241216164003.jpg' class='rounded h-30px w-30px' style='cursor:pointer;' onclick='openImageModal("113","H","318")'></TD>
+          <TD VALIGN="top"><span class='fs-14px'>GBM0103527(續)</span></TD>
+          <TD VALIGN="top"><span class='fs-14px'><a href='#' onclick='openLargeModal("113","H","318")'>隔音分間牆</a></span></TD>
+          <TD VALIGN="top" CLASS="Default">
+            <span class='fs-14px'>
+            吉祥工業股份有限公司
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>113/12/14</span></TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>117/12/13</span></TD>
+        </TR>
+        <TR>
+          <TD VALIGN="top" ALIGN="center" CLASS="Default">
+            <span class='fs-14px'>
+            10
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><img src='./Object/ProductImages/113H322/113H322_20241216164003.jpg' class='rounded h-30px w-30px' style='cursor:pointer;' onclick='openImageModal("113","H","322")'></TD>
+          <TD VALIGN="top"><span class='fs-14px'>GBM0103542</span></TD>
+          <TD VALIGN="top"><span class='fs-14px'><a href='#' onclick='openLargeModal("113","H","322")'>複層防火隔音外牆LF-S</a></span></TD>
+          <TD VALIGN="top" CLASS="Default">
+            <span class='fs-14px'>
+            坴賦佳金屬有限公司
+            </span>
+          </TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>113/12/02</span></TD>
+          <TD VALIGN="top" ALIGN="center"><span class='fs-14px'>117/12/01</span></TD>
+        </TR>
+      </TABLE>
+      <TABLE BORDER=0 CELLPADDING=0 CELLSPACING=5 WIDTH="100%">
+        <TR>
+          <TD WIDTH="1%" ALIGN="left" VALIGN="middle" NOWRAP>&nbsp;</TD>
+          <TD WIDTH="98%" ALIGN="center" VALIGN="middle">
+            <FONT CLASS="標題">(&nbsp;1&nbsp;)</FONT>
+             &nbsp; 
+            <A CLASS="Default" HREF="/mgr/SearchCaseAction.aspx?EinB64=R0JNX05hbWU9JUU3JTg5JTg2JldDOVZfQkxDYXNlX0RhdGEyZWlucGFnZT0x">2</A>
+             &nbsp; 
+            <A CLASS="Default" HREF="/mgr/SearchCaseAction.aspx?EinB64=R0JNX05hbWU9JUU3JTg5JTg2JldDOVZfQkxDYXNlX0RhdGEyZWlucGFnZT0y">3</A>
+          </TD>
+          <TD WIDTH="1%" ALIGN="right" VALIGN="middle" NOWRAP>
+            <A CLASS="Default" HREF="/mgr/SearchCaseAction.aspx?EinB64=R0JNX05hbWU9JUU3JTg5JTg2JldDOVZfQkxDYXNlX0RhdGEyZWlucGFnZT0x">
+              <FONT CLASS="標題">下一頁</FONT>
+            </A>
+          </TD>
+        </TR>
+      </TABLE>
+    </TD>
+    <TD WIDTH=12><IMG BORDER=0 SRC="/nImgSys/NT-Spacer.gif" WIDTH=12 HEIGHT=1></TD>
+  </TR>
+  <TR><!--  InsideMargin.bot  -->
+    <TD WIDTH=1 COLSPAN=3 HEIGHT=8><IMG BORDER=0 SRC="/nImgSys/NT-Spacer.gif" WIDTH=1 HEIGHT=8></TD>
+  </TR>
+</TABLE>
+
+			</div>
+			
+			<!-- #modal-dialog -->
+			<div class="modal fade" id="modal-dialog">
+			  <div class="modal-dialog">
+				 <div class="modal-content">
+					<div class="modal-header">
+					  <h4 class="modal-title">品項圖片</h4>
+					  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true"></button>
+					</div>
+					<div class="modal-body">
+					  <iframe id="imageframe" src="" marginwidth="0" marginheight="0" scrolling="No" frameborder="0" width="100%"></iframe>
+					</div>
+					<div class="modal-footer">
+						<a href="javascript:;" class="btn btn-white" data-bs-dismiss="modal">關閉</a>
+					</div>
+				 </div>
+			  </div>
+			</div>
+			
+			<!-- #modal-message -->
+			<div class="modal modal-message fade" id="modal-message">
+				<div class="modal-dialog modal-fullscreen-xl">
+					<div class="modal-content">
+						<div class="modal-header" style="width:100%">
+							<h4 class="modal-title">上傳明細</h4>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true"></button>
+						</div>
+						<div class="modal-body" style="width:100%">
+							<iframe id="uploadDetailframe" src="" marginwidth="0" marginheight="0" scrolling="No" frameborder="0" width="100%"></iframe>
+						</div>
+						<div class="modal-footer">
+							<a href="javascript:;" class="btn btn-white" data-bs-dismiss="modal">關閉</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<!-- #modal-complex -->
+			<div class="modal fade" id="modal-large">
+				<div class="modal-dialog modal-xl">
+					<div class="modal-content" style='border:1px #999 solid;'>
+						<div class="modal-header" style="">
+							<h4 class="modal-title" id="modalTitle">品項資訊</h4>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-hidden="true"></button>
+						</div>
+						<div class="modal-body" style="">
+							<iframe id="largeframe" src="" marginwidth="0" marginheight="0" scrolling="No" frameborder="0" style="width:100%"></iframe>
+						</div>
+						<div class="modal-footer">
+							<a href="javascript:;" class="btn btn-white" data-bs-dismiss="modal">關閉</a>
+						</div>
+					</div>
+				</div>
+			</div>
+	</div>
+	<!-- END #content -->
+	
+	<!-- BEGIN scroll-top-btn -->
+	<a href="javascript:;" class="btn btn-icon btn-circle btn-success btn-scroll-to-top" data-toggle="scroll-to-top"><i class="fa fa-angle-up"></i></a>
+	<!-- END scroll-top-btn -->
+</div>
+<!-- END #app -->
+
+<script>
+$(function(){
+	setTimeout(function(){
+		changeTable();
+	},200);
+});
+
+function changeTable() 
+{
+	$("[name=_tag]").parent().parent().parent().parent().attr("class", "table table-bordered table-striped table-hover mb-0");
+}
+
+function openImageModal(CaseYear,CaseType,CaseNo)
+{
+	$("#imageframe").prop("src","CaseImage.aspx?CaseYear="+CaseYear+"&CaseType="+CaseType+"&CaseNo="+CaseNo);
+	$(".modal-dialog").draggable({handle: ".modal-header"});  //設定Modal視窗可以移動
+	$("#modal-dialog").modal('show');
+}
+
+function openLargeModal(CaseYear,CaseType,CaseNo)
+{
+	$("#largeframe").prop("src","CaseDataInfo.aspx?CaseYear="+CaseYear+"&CaseType="+CaseType+"&CaseNo="+CaseNo);
+	$(".modal-dialog").draggable({handle: ".modal-header"});  //設定Modal視窗可以移動
+	$("#modal-large").modal('show');
+}
+function closeModal()
+{
+	$("#modal-dialog").modal('toggle');
+} 
+</script></TD>
+</TR>
+</TABLE>
+<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH="100%">
+<TR>
+<TD ID="Template_BottomZone"><!-- D:\NTWEB\AutoWeb3\Database\Project\TABC\mgr\Component\FM7_AccountSwitcher.comp.xmf is invisible --></TD>
+</TR>
+</TABLE>
+</DIV>
+</BODY>
+</HTML>
+<!-- 0.045sec
+ReadProject take 0.000sec
+Create Page take 0.045sec
+ -->
+<!-- 
+All Component Take 0.030 sec
+0.030sec, WC9V_BLCase_Data2.comp(0)
+0.000sec, wcBottom_Page_JS.comp(127)
+0.000sec, WC9V_BLCase_Filter.comp(2)
+0.000sec, wcBottom_Core_JS.comp(127)
+ -->

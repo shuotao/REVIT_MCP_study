@@ -1,0 +1,35 @@
+{
+  "id": "TASK-006",
+  "title": "撰寫 green-material-query SKILL.md（查詢/檢視已注入的綠建材資訊）",
+  "content": "### 2026-08-12 範圍改寫說明\n原範圍「檢討綠建材率」、「匯出綠建材計算書」與 `docs/green-material` 的明細表/Excel 匯出構想是同一件事，已於同日定案不做（見 `log/2026-08.md` 該日條目、`generate_revit_injection_plan.py` 移除 `DecorArea`/`QualifyArea`/`RatioContribution` 佔位欄位）。與使用者確認後改寫本卡範圍為：查詢/檢視已經寫入模型的綠建材資訊（不含算量與 Excel），這是現有 Skill 目錄裡唯一還缺的一塊——`/GMimport`→`/import revit` 負責新增資訊，本卡負責查詢既有資訊。\n\n### 任務說明\n撰寫 `.claude/skills/green-material-query/SKILL.md`，定義 AI 助手在遇到使用者詢問「查詢綠建材」、「這面牆用了什麼綠建材」、「哪些元件有綠建材認證」時的觸發語條件、工作流程與工具呼叫規範：依品類列出候選 Type、用 `get_element_info` 讀取 Type 層 `GreenMaterial_*` 參數、彙整回報、選用上色標記。\n\n### 2026-08-12 實測結果\n在真實 Revit 專案「綠建材導入Revet_模型範例1_vitolin50310」對 Walls 品類完整實測（13 個 Type 全數查詢）：正確找出唯一已寫入綠建材資訊的 `TypeId 263551`（TABC_室內牆與塗料，Mat1+Mat2 完整），其餘 12 個 Type 正確判定為未寫入。過程中發現並修正 SKILL.md 步驟 3 一個錯誤假設——`get_element_info` 只回傳有實際值的參數，無法單靠單一 Type 的回應區分「品類從未綁定共享參數」vs「已綁定但這個 Type 沒填」，已改寫該段判斷邏輯為：同批查詢中若有其他 Type 出現過 `GreenMaterial_*` 欄位即可判定品類已綁定，否則需另外呼叫冪等的 `load_shared_parameters` 確認，不得臆測。上色標記（步驟 5）與 Windows/Doors 路線（步驟 2b）尚未實測。\n\n### Readiness (DOR)\n- [x] problem_clear: 確定 Skill YAML frontmatter 與 markdown 規範，範圍限定查詢/檢視，不含算量\n- [x] scope_defined: 涵蓋品類候選列出、Type 層參數讀取、彙整回報、選用上色標記四步驟\n\n### Sign-off Gates (DOD)\n- [x] architecture: 完成 SKILL.md 寫作，複用既有 `get_types_by_category`/`list_family_symbols`/`get_element_info`/`query_elements_with_filter`/`override_element_graphics` 工具鏈，未新增工具\n- [x] test_passed: Walls 品類 13 個 Type 端到端實測通過（見上）；Ceilings/Windows/Doors 路線與上色標記步驟尚未覆蓋\n- [ ] code_review: 審查自然語言觸發與指令精確度",
+  "stage": "done",
+  "risk": "medium",
+  "owner": "shuotao",
+  "agent": "antigravity",
+  "approvalRequired": false,
+  "createdAt": "2026-07-30",
+  "epic": "Epic-3: 綠建材 Skill 開發與轉譯",
+  "userStory": "US-6: 綠建材 Skill 包裝",
+  "track": "n/a",
+  "dependsOn": [
+    "TASK-004"
+  ],
+  "order": 10,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

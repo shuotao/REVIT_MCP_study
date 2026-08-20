@@ -1,0 +1,36 @@
+{
+  "id": "TASK-013",
+  "title": "檢索平台新增「加入既有 Set」、「另存/開啟專案檔」與可拖曳材料層級設定三項功能，並新增 /GMweb open 指令",
+  "content": "### 任務說明\n於 green-material-showcase.html 新增三項材料 Set 管理功能：\n1. 「加入既有 Set」：儲存材料 Set 彈窗新增目標下拉選單，可選擇建立新 Set 或加入既有 Set（自動去重、略過重複項目）；Set 管理器每張卡片新增「➕ 加入目前勾選」快速按鈕。\n2. 「另存/開啟專案檔」：Set 管理器新增「💾 另存專案檔」「📂 開啟專案檔」，優先使用 File System Access API 讓使用者自選存檔位置，不支援時退回下載/選檔相容模式；開啟時可選擇取代或合併目前的 Set 清單。\n3. 「材料層級設定」：當 Set 勾選 Wall/Floor 且選擇「單一組合」時，彈出視窗讓使用者為每項材料指定 Structure/Substrate/Finish 角色，並可直接拖曳整列調整順序；Core Boundary 分界線改為可拖曳的細欄位列，預設固定放在 Structure 角色材料的正上方與正下方各一條（對應 Revit Edit Assembly 對話框的實際行為），結果存入 Set 的 `layerComposition.sequence` 欄位。\n\n同時新增 `/GMweb open` 指令（`.claude/skills/GMweb/SKILL.md`），提供比 `/GM search` 更精簡的單一動作入口直接開啟檢索平台網頁。\n\n### Readiness (DOR)\n- [x] problem_clear: 使用者需要能疊加勾選材料到既有 Set、跨專案切換不同 Set 收藏、以及明確指定複合構造材料的層級角色\n- [x] scope_defined: 三項功能皆限定在 green-material-showcase.html 前端 JS/HTML，不涉及 Revit 寫入邏輯\n\n### Sign-off Gates (DOD)\n- [x] architecture: 沿用既有 localStorage + exported_material_sets.json 儲存模式，`layerComposition` 為新增欄位、向下相容\n- [x] ui: 三項功能與既有 Set 管理器視覺風格一致（配色、modal 結構）\n- [x] test_passed: Node 語法檢查通過；`verify-qaqc.ps1 -SkipBuild -SkipDeploy` 全數 PASS（多次執行）\n- [ ] code_review: 待使用者最終複審與簽核",
+  "stage": "done",
+  "risk": "low",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": false,
+  "createdAt": "2026-08-06",
+  "epic": "Epic-1: TABC 綠建材資料庫與法規模組化",
+  "userStory": "US-2: 檢索平台介面與操作優化工具",
+  "track": "frontend",
+  "dependsOn": [
+    "TASK-002",
+    "TASK-004"
+  ],
+  "order": 3,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

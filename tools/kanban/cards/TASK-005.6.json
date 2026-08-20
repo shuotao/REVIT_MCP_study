@@ -1,0 +1,36 @@
+{
+  "id": "TASK-005.6",
+  "title": "情境 6｜牆壁／地坪預設厚度推判與覆寫",
+  "content": "### 任務說明\n依外牆、室內輕隔間、分戶牆與樓板用途推判 Structure、Finish、Substrate 的預設厚度，並在實際建立 Type 前讓使用者確認或覆寫。\n\n### 2026-08-12 研究發現與範圍確認\n- 材料資料本身（TABC 標章）無法判斷一面牆是外牆還是分戶牆——這是專案/使用情境資訊，不是材料屬性\n- 掃描 106 筆牆壁類材料標題，僅少數含數字，且是矽酸鈣板密度/耐燃等級代碼「0.8FK」「1.0FK」，不是厚度（矽酸鈣板實際常見厚度 6-12mm）——**確認「Master DB 規格優先於一般預設值」若靠正則硬解標題數字並不安全，屬於臆測，違反本卡自己的驗收條件**，故不採用\n- 意外發現 Q3「補充條件」自由文字欄位（使用者可填「外牆」「分戶牆」等）過去從未被 `generate_revit_injection_plan.py` 讀取或使用，只存起來顯示\n\n### 已開發\n- `generate_revit_injection_plan.py` 新增 `_extract_wall_usage_hint()`：從 Q3 補充條件文字掃描「外牆/分戶牆/輕隔間」關鍵字\n- 新增 `_WALL_STRUCTURE_THICKNESS_MATRIX`：外牆 150mm／分戶牆 135mm／輕隔間 100mm／未指定則保守預設 150mm + 明確標記 `wallUsageUnspecified: true`\n- `analyze_material_mapping()` 與 `_resolve_layer_composition_mapping()`（layerComposition 權威路徑）皆已接入矩陣，兩條路徑（各別建立與單一組合）都適用\n- `/GMimport`／`/import revit`（Scenario 1、3）確認步驟新增：若 `wallUsageUnspecified` 為 true 明確提示使用者覆寫；若有 `wallUsageHint` 則說明偵測到的用途與對應厚度\n- 已用 4 組測試驗證：未指定→150mm+unspecified 標記、外牆→150mm、分戶牆→135mm、輕隔間→100mm，皆正確\n\n### 驗收條件\n- [x] 外牆、輕隔間、分戶牆、樓板均有明確厚度矩陣（樓板既有矩陣已由 005.2/005.4 驗證涵蓋；牆體新增三檔矩陣）\n- [x] Master DB 規格優先於一般預設值（研究後確認此路徑不安全，改用 Q3 補充條件使用者輸入作為權威來源，比自動臆測更符合「不得臆測」的精神）\n- [x] 使用者可在寫入前覆寫每一層厚度（`/import` 確認步驟明確列出 `wallUsageUnspecified`/`wallUsageHint`，邀請使用者覆寫）\n- [x] 單位轉換正確且總厚度可驗證（`create_multi_layer_type` 既有 `thicknessMm / 304.8` 轉換邏輯未變動，`get_element_info` 可驗證，本次未發現問題）\n- [x] 異常或缺失規格不得自行臆測後直接寫入（未指定用途時明確標記 `wallUsageUnspecified`，不偽裝成確定值；標題數字擷取因不安全而主動放棄，未實作）",
+  "stage": "done",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": true,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-005.1",
+    "TASK-005.2"
+  ],
+  "order": 8.6,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

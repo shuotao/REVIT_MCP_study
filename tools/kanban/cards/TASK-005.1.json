@@ -1,0 +1,35 @@
+{
+  "id": "TASK-005.1",
+  "title": "情境 1｜牆體構造與塗料 Set 導入（OST_Walls）",
+  "content": "### 任務說明\n將牆板／石膏板／矽酸鈣板與塗料組成的綠建材 Set 導入 Revit，建立獨立的 TABC Wall Type。板材固定配置於 Structure [1]，塗料配置於 Finish 1 [4]／Finish 2 [5]，並將綠建材履歷寫入 Type Identity Data。\n\n### 已納入既有 TASK-005 技術模組\n- [x] load_shared_parameters：31 個共享參數綁定 Walls Type\n- [x] duplicate_element_type：複製既有含粉刷層 Wall Type，材質名稱參數化\n- [x] set_green_material_type_parameters：Mat1 板材、Mat2 塗料多槽位寫入\n- [x] get_all_materials：建立後回查 Project Materials\n\n### Sign-off Gates (DOD)\n- [x] architecture: 使用正式 MCP Tool＋C# dispatch，不使用 side-channel\n- [x] test_passed: Revit 2024 已完成牆板＋塗料端到端實測\n- [ ] code_review: 待使用者最終複審與簽核",
+  "stage": "done",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": true,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-004"
+  ],
+  "order": 8.1,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

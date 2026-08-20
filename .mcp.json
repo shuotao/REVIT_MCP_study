@@ -7,6 +7,14 @@
         "./MCP-Server/build/index.js"
       ],
       "env": {}
+    },
+    "monstrare": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "./scripts/monstrare_mcp_server.py"
+      ],
+      "env": {}
     }
   }
 }

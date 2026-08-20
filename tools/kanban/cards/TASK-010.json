@@ -1,0 +1,35 @@
+{
+  "id": "TASK-010",
+  "title": "[已併入 TASK-005.10] 新增「各別建立」情境（Scenario 2）：create_single_material_type 工具與地板材料 Set 端到端實測",
+  "content": "### ⚠️ 2026-08-11 看板重整：本卡內容已併入 TASK-005.10\n本卡建立的 create_single_material_type 是跨情境共用的底層工具（每個材料各自複製一個獨立 Type），不單獨對應某一張 005.x 情境卡，但其地板材料 Set 端到端實測是「單一元件多重綠建材」（TASK-005.10）驗收條件之一的落地路徑證據，已在該卡引用。保留本卡作為工具開發歷史紀錄，後續請在 TASK-005.10 追蹤相關簽核狀態。\n\n---\n\n### 任務說明\n新增 create_single_material_type MCP 工具（C#），對應 Set 的「各別建立」組合方式：Set 裡每個材料各自獨立複製一個 ElementType（Wall/Floor/Ceiling 皆可），並把該材料實體鋪滿新 Type 的全部 CompoundStructure 層，Type 名稱與 Material 名稱使用同一組字串（GBM編號_材料名稱，不加 TABC_ 前綴）。與情境一（duplicate_element_type，牆板+塗料兩材料合併一個 Type 的單一組合）互補、共用同一套 GetOrCreatePureMaterial/GetCompoundStructureForElement/SetCompoundStructureForElement 底層邏輯。同時擴充 .claude/skills/import/SKILL.md，新增依 Set 的「組合方式」分流至情境一或情境二的判斷流程。\n\n### Readiness (DOR)\n- [x] problem_clear: 定義「各別建立」與「單一組合」的差異（N 個材料各自建 Type vs 2 個材料合併一個 Type）\n- [x] scope_defined: 工具不限品類，Wall/Floor/Ceiling 皆可透過同一個 sourceTypeId 判斷 CompoundStructure 型態\n\n### Sign-off Gates (DOD)\n- [x] architecture: CreateSingleMaterialType 複用既有 GetCompoundStructureForElement / SetCompoundStructureForElement / GetOrCreatePureMaterial 私有方法（CommandExecutor 為 partial class），未重新實作重複邏輯\n- [x] test_passed: 2026-08-03 端到端實測 Set【地板材料set】（GBM0104038/034/006/005，品類 Floor + 各別建立），複製來源型別「通用 - 15cm」建立 4 個獨立 FloorType，材質全部指派成功，31 個共享參數綁定至 Floors 品類，每個 Type 各 10 個 Mat1 欄位全數寫入、0 缺漏，get_element_info 抽查驗證中文內容正確\n- [ ] code_review: 待使用者最終複審與簽核",
+  "stage": "done",
+  "risk": "medium",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": false,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-009"
+  ],
+  "order": 8.955,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

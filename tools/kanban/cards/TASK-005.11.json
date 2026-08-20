@@ -1,0 +1,37 @@
+{
+  "id": "TASK-005.11",
+  "title": "情境 11｜新建 Type 與覆蓋既有材質雙路徑",
+  "content": "### 任務說明\nSet 寫入前提供兩條明確策略：路徑 A 複製並建立新的 TABC Type，不影響既有模型；路徑 B 批次覆蓋既有 Material／Type 參數，適用施工階段更新。\n\n### 2026-08-12 端到端實測（路徑 A + 路徑 B 各一次）\n雙路徑機制建立於 TASK-005.5（Scenario 5 純材料附掛），本卡專責把兩條路徑都實際跑過一次並補齊「舊值/新值摘要」這條原本沒做的驗收條件：\n\n- **路徑 A（新建，005.5 已測過）**：Set【填縫劑】GBM0104172 → 複製 TypeId 339「通用 - 15cm」為新 Type「通用 - 15cm_TABC_GBM0104172」(Element ID 264386)，原 Type 完全未受影響。\n- **路徑 B（覆蓋既有，本卡新測）**：Set【玻璃棉吸音板覆蓋測試】GBM0103862「Ecophon玻璃棉吸音板」，寫入前先 `get_element_info` 讀一次既有 TypeId 19848「玻纖天花板 600x600mmx20mm」的舊值（無任何 GreenMaterial 欄位），直接覆蓋（不建立新 Type），寫入後再讀一次新值：11 個 `GreenMaterial_*` 欄位從無到有、含真實 CertNo/AcousticNRC 0.75 等資料，新舊值對比清楚。\n- `.claude/skills/import/SKILL.md` Scenario 5 路徑 B 步驟已補上「寫入前先 snapshot 舊值」的明文要求，並註明每次寫入都在 C# 工具自己的單一 Transaction 內、可用 Revit 內建 Undo 回復，不需額外的 TransactionGroup 包裝。\n\n### 範圍說明\n雙路徑選擇目前只在 Scenario 5（純材料附掛既有 Type）實作並驗證；Scenario 1/2/3（Wall/Floor/Ceiling 幾何組合）目前一律建立新 Type，未提供「覆蓋既有 Type」選項——這不在本卡驗收條件的字面要求內（AC 沒有要求每個情境都要有雙路徑，只要求雙路徑機制本身兩條都端到端測過），但如果之後要把覆蓋路徑擴展到 Scenario 1/2/3，屬於另一項工作。\n\n### 驗收條件\n- [x] 預設採路徑 A，路徑 B 必須取得使用者明確確認（`/import` Scenario 5 步驟 4 明文要求，本次路徑 B 測試前也實際跟使用者確認過）\n- [x] 寫入前列出受影響 Type、Material 與元件數量（路徑 B 寫入前列出 `pureMaterialTarget.instanceCount`；本次測試對象 0 個 instance）\n- [x] 每次異動在單一 Transaction／TransactionGroup 中可回復（C# 工具皆用單一 `Transaction`，Revit Undo 可直接回復，已在 skill 文件中明文記錄）\n- [x] 產出 Element ID、Type、Material、舊值與新值摘要（路徑 B 測試完整記錄：TypeId 19848，舊值全空 → 新值 11 個真實欄位）\n- [x] 新建與覆蓋路徑各完成一個端到端測試（路徑 A：264386；路徑 B：19848，兩者皆有 `get_element_info` 驗證證據）",
+  "stage": "done",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": true,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-005.1",
+    "TASK-005.3",
+    "TASK-005.10"
+  ],
+  "order": 8.96,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "TASK-011",
+  "title": "[已併入 TASK-005.10] 新增「情境三：通用多層構造」create_multi_layer_type 工具，並修正 Core Boundary／Shell Layer 判斷",
+  "content": "### ⚠️ 2026-08-11 看板重整：本卡內容已併入 TASK-005.10\n本卡建立的 create_multi_layer_type 工具與 Core Boundary 修正是跨情境共用的底層能力（Wall/Floor/Ceiling 任意品類、任意層數）。塑膠地板set 端到端實測（Finish1 塑膠地磚 + Substrate 隔音緩衝墊 + Structure 混凝土）是「情境10｜單一元件多重綠建材」的 Floors Multi-Material 路徑佐證，已在該卡引用。這個工具本身也是我之後做 TASK-005.2（地磚 Set）的基礎。\n\n（原本這裡也提到「情境9｜隔熱/防音底層」——2026-08-11 該卡已刪除：Substrate/Insulation 層的處理本來就是 create_multi_layer_type 的通用能力，跟 Structure/Finish 一樣只是 layerFunction 的一種選項，不需要為它另開一張獨立情境卡追蹤。）\n\n保留本卡作為工具開發歷史紀錄，後續請在 TASK-005.10 追蹤相關簽核狀態。\n\n---\n\n### 任務說明\n新增 create_multi_layer_type MCP 工具（C#），對應 Set 的「單一組合」但材料數超過 2 個、或非 Wall 品類的情境（例如地板：飾面塑膠地磚 + 隔音緩衝墊 + 結構混凝土三層）。跟 duplicate_element_type（情境一，寫死 2 個材料的Finish1/Structure/Finish2 牆體三明治）不同，這裡層數、材料、layerFunction 完全由呼叫端指定，任意品類（Wall/Floor/Ceiling）皆可透過同一個 sourceTypeId 複用既有的 GetCompoundStructureForElement/SetCompoundStructureForElement 通用邏輯。\n\n第一版實作只呼叫 cs.SetLayers()，沒有設定 Core Boundary（哪些層在結構核心內、哪些在核心外的 Shell 層），導致所有層預設都落在 core 裡面，Finish 層應該要在 core boundary 外側卻沒有被正確標記。修正後依 layerFunction 自動判斷：開頭連續的 Finish1/Membrane 層視為外側 Shell（ExteriorShellLayers），結尾連續的 Finish2/Membrane 層視為內側 Shell（InteriorShellLayers），中間的 Structure/Substrate/Insulation 留在核心內，呼叫 cs.SetNumberOfShellLayers() 寫入。這是通用規則，不是針對單一 Set 的特例處理。\n\n同時擴充 `.claude/skills/import/SKILL.md`，新增情境三的完整流程（layer 順序需向使用者確認，不可比照情境一假設板材=Structure/塗料=Finish；材料數超過 3 個時要明講哪些材料進不了 Mat1/Mat2/Mat3 共享參數欄位）。\n\n### Readiness (DOR)\n- [x] problem_clear: 定義情境一（固定 2 材料牆體三明治）與情境三（任意數量材料、任意品類的通用多層構造）的差異\n- [x] scope_defined: layerFunction 對應 Revit MaterialFunctionAssignment 六種值；Core Boundary 依 Finish1/Finish2/Membrane 是否在頭尾連續出現自動判斷\n\n### Sign-off Gates (DOD)\n- [x] architecture: CreateMultiLayerType 複用既有 GetCompoundStructureForElement/SetCompoundStructureForElement/GetOrCreatePureMaterial，Shell Layer 判斷抽成獨立的 IsShellFunction() 通用規則\n- [x] test_passed: 2026-08-04 端到端實測 Set【塑膠地板set】（GBM0104167 Finish1 + GBM0103751(續) Substrate + GBM0104181 Structure，1 層來源型別「通用 - 15cm」擴充為 3 層），修正前 ExteriorShellLayers 未設定，修正後回傳 ExteriorShellLayers=1／InteriorShellLayers=0 正確反映 Finish1 在核心外側；25 個共享參數（Mat1=混凝土/Mat2=塑膠地磚/Mat3=隔音緩衝墊）全數寫入、get_element_info 驗證中文內容正確\n- [ ] code_review: 待使用者最終複審與簽核",
+  "stage": "done",
+  "risk": "medium",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": false,
+  "createdAt": "2026-08-04",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-009",
+    "TASK-010"
+  ],
+  "order": 8.91,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "TASK-014",
+  "title": "計畫引擎新增 layerComposition 覆寫解析與確定性 Mat 槽位分配規則，取代 AI 臨場判斷",
+  "content": "### 任務說明\n`generate_revit_injection_plan.py` 新增兩項確定性邏輯，取代先前由 AI Agent 在對話當下臨場判斷的做法：\n\n1. **layerComposition 覆寫解析**：`/GMimport` 產出計畫時，若 Set 帶有 layerComposition.sequence（來自 TASK-013 的材料層級設定），優先採用其角色與順序覆寫關鍵字啟發式判斷（`analyze_material_mapping`）與品類覆寫（`_CATEGORY_HINT_FALLBACK`）的結果，並依此順序重排 `materialsMapping`，使其真實反映 Revit CompoundStructure 的物理層序。\n2. **Mat 槽位分配規則**（`_assign_material_slots`）：材料數超過共享參數槽位上限時，依 `Structure > Finish > Substrate > Other` 固定優先序、同優先序依構造順序決定，寫入 `plan['materialSlotAssignment']` 與每個 materialsMapping 項目的 `assignedSlot`，取代先前的臨場判斷。\n\n已用「材料Set_86_4項」/「室內防水隔音地坪」兩個實際 Set（4 種材料：綠混凝土/INOVAR木質地板/台達玻璃棉/建築防水用聚胺酯）反覆重跑驗證，結果與已寫入 Revit 的資料一致。\n\n### Readiness (DOR)\n- [x] problem_clear: 舊有的 Mat1=Structure/Mat2=Finish 固定假設與槽位選擇邏輯無法處理 3 種以上材料或使用者自訂層級的情境\n- [x] scope_defined: 純 Python 計畫引擎邏輯變更，不涉及 Revit 寫入\n\n### Sign-off Gates (DOD)\n- [x] architecture: 新增函式（`_load_layer_composition`/`_resolve_layer_composition_mapping`/`_assign_material_slots` 等）不影響既有無 layerComposition Set 的行為（回歸測試確認一致）\n- [x] test_passed: py_compile 通過；針對 4 材料與合成 7 材料情境跑過 `_assign_material_slots` 單元驗證，結果符合預期優先序\n- [ ] code_review: 待使用者最終複審與簽核",
+  "stage": "done",
+  "risk": "low",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": false,
+  "createdAt": "2026-08-06",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-4: 推動至 Revit 內容計畫與需求對齊",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-004",
+    "TASK-013"
+  ],
+  "order": 6,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

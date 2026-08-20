@@ -86,6 +86,30 @@ export const baseTools: Tool[] = [
         },
     },
     {
+        name: "load_shared_parameters",
+        description: "載入共享參數檔 (Shared Parameter File) 並將參數綁定至指定品類的 Type 或 Instance 層級。用於在寫入自訂參數前，先確保專案已載入參數定義。例如載入 GreenMaterial_SharedParams.txt 的 64 個綠建材參數（Mat1~Mat6 六槽位）至 Walls/Floors/Ceilings，之後用 set_green_material_type_parameters 寫值。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                filePath: {
+                    type: "string",
+                    description: "共享參數檔的絕對路徑 (如 C:/path/to/GreenMaterial_SharedParams.txt)",
+                },
+                categories: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "要綁定的品類名稱清單: Walls, Floors, Ceilings, Windows, Doors, Materials, Roofs, CurtainPanels, Columns（同時綁 OST_Columns 與 OST_StructuralColumns）, StructuralFraming（樑）",
+                },
+                bindToInstance: {
+                    type: "boolean",
+                    description: "true = 綁定至 Instance 參數, false = 綁定至 Type 參數 (預設 false)",
+                    default: false,
+                },
+            },
+            required: ["filePath", "categories"],
+        },
+    },
+    {
         name: "get_selected_elements",
         description: "取得使用者目前在 Revit 中選取的所有元素的基本資訊（ID、名稱、品類）。若是視圖或剖面標記，會一併回傳 Origin (X,Y,Z) 供空間排序使用。",
         inputSchema: { type: "object", properties: {} },

@@ -1,0 +1,35 @@
+{
+  "id": "TASK-005.5",
+  "title": "情境 5｜單選非模型綠建材互動式套用",
+  "content": "### 任務說明\n當 Set 僅包含填縫劑、膠類或其他非模型材料時，先詢問套用位置與目標 Type，再提供新建 Type 或覆蓋既有 Type 兩種路徑。\n\n### 2026-08-12 已開發並端到端實測\n- `assets/green-material-showcase.html`：Q2 選「Material (純材料)」時彈出「掛載品類」子問題（Wall/Floor/Ceiling），選完才回傳給 Agent（`materialAttachCategoryModal`）\n- `generate_revit_injection_plan.py`：解析「掛載類別」欄位，plan 新增 `pureMaterialAttachCategory`\n- `/GMimport`：純材料 Set 額外執行唯讀 `get_types_by_category` 查詢，編號表格請使用者於對話中挑選目標 Type，選擇寫回 `exported_material_sets.json` 的 `pureMaterialTarget`\n- 新增 MCP 工具 `duplicate_type_only`（C# `DuplicateTypeOnly` + TS schema）：單純複製 ElementType，不動材質/構造層，供路徑 A 使用\n- `/import revit` 新增情境 5：讀取 `pureMaterialTarget`，詢問路徑 A（新建，預設）或路徑 B（覆蓋既有，需明確確認），寫入 `adhesive`/`sealant`/`waterproofing` 等 Construction 欄位\n- **端到端實測**：Set【填縫劑】(GBM0104172) 選擇 Floor 品類、選定既有 Type「通用 - 15cm」(TypeId 339) 後，走路徑 A 建立新 Type「通用 - 15cm_TABC_GBM0104172」(Element ID 264386)；`get_element_info` 核對 `GreenMaterial_Sealant` 與 Mat1 欄位皆正確、來源 Type 339 完全未受影響（厚度仍 15cm）\n\n### 驗收條件\n- [x] 無 Parent Type 時必須停止並要求使用者選擇（`get_types_by_category` 查無 Type 時回報，見 `/GMimport` 錯誤處理表）\n- [x] 路徑 A 複製新 Type，不影響既有元件（`duplicate_type_only` 實測：來源 Type 339 未變動）\n- [x] 路徑 B 覆蓋既有 Type 前必須取得明確確認（`/import` skill 明文要求，未在此次實測中觸發，機制已在 Scenario 5 步驟 4b 寫明）\n- [x] 材料資訊寫入 Construction 自訂欄位（`GreenMaterial_Sealant` 寫入成功並經 `get_element_info` 驗證）\n- [x] 回報目標 Type、寫入欄位及受影響元件範圍（回報 TypeId 264386、11 個欄位、0 個既有 instance 受影響）",
+  "stage": "done",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": true,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-005.4"
+  ],
+  "order": 8.5,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "TASK-005.7",
+  "title": "情境 7｜門窗／獨立元件 RFA 綠建材導入",
+  "content": "### 任務說明\n針對門、窗、玻璃與幕牆等載入式 Family，採用既有相似元件另存 .rfa、注入 Family Type 綠建材參數、再載回專案的標準路徑。\n\n### 驗收條件\n- [x] 使用者選定相似基底 Family，禁止無型錄依據從零生成 — 2026-08-12 由使用者親自從 list_family_symbols 候選清單挑選（窗：雙開落地窗-(2) 180x210cm ID 168921；門：單開-矩形-(1) 90x210cm Type Id 166496）\n- [x] 原始 .rfa 建立可復原備份 — 兩案例皆確認 BackupPath 存在於 `_rfa_backup/`\n- [x] Type Identity Data、遮陽與隔音等適用欄位正確寫入 — Window/Door 案例 GreenMaterial_Mat1_*、GreenMaterial_AcousticRw 皆以 get_element_info 驗證正確；Window 案例因型錄無遮陽係數數據，依規則正確留空未杜撰\n- [x] 載回專案時避免覆蓋非目標 Family Type — 兩案例回傳 AffectedExistingTypes: 0，並以 get_element_info 核對原始門實例（Type Id 166496）未被異動\n- [x] 完成至少一個 Window 與一個 Door 案例驗證 — 2026-08-12 於真實 Revit 專案「綠建材導入Revet_模型範例1_vitolin50310」完成兩案例，見 log/2026-08.md\n\n### 2026-08-12 verify 階段 code review：3 項發現已修正並實機驗證\n審查報告 `verify-stage-code-review-2026-08-12.md` 發現 3 項問題（1 高風險、2 中風險），全數修正並在真實 Revit 連線上驗證，詳見 log/2026-08.md：\n- [x] 高風險：RFA 覆寫防護不足（SaveAs 用 OverwriteExistingFile=true，安全比對無法偵測幾何/公式/巢狀元件變更）— 改為 SaveAs 前檢查目標檔案是否已存在，存在則中止並提示換檔名，不再靜默覆寫。實機重跑 Window 案例（同 sourceTypeId 168921 + certNo GBM0104092）確認被正確攔截。\n- [x] 中風險：共享參數檔設定未完整還原（finally 只在原值非空時才還原，若執行前為空會永久竄改 Revit 全域設定）— 改為無條件還原。同一 bug 也存在於 `LoadSharedParameters`（不在原報告 3 項內，發現後一併修正）。\n- [x] 中風險：Category 綁定擴充未檢查 `BindingMap.ReInsert()` 回傳值，失敗仍誤報成功 — 新增 TotalFailed 計數與失敗分支。實機呼叫 load_shared_parameters（Walls/Floors/Ceilings/Windows/Doors）確認 TotalFailed: 0、69 個參數正確分流至「已擴充綁定」與「綁定成功」。\n\nRelease.R24 重新 build 兩輪皆 0 errors，部署後於使用者確認 Revit 已關閉/重開的情況下完成上述實機驗證。",
+  "stage": "done",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": true,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-005.3"
+  ],
+  "order": 8.7,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

@@ -14,7 +14,7 @@ Revit MCP 透過 Model Context Protocol (MCP) 讓 AI Client 呼叫 Revit 工具�
 
 ## 這是什麼？
 
-用講人話的方式操作 Revit。跟你的 AI Client 說「幫這個視圖的牆全部標尺寸」或「檢查帷幕牆立面」，Revit 就會做——背後是 **173 個 MCP 工具**，由 **76 份專業 BIM SOP**（建築法規、數量計算、法規檢核）支撐。
+用講人話的方式操作 Revit。跟你的 AI Client 說「幫這個視圖的牆全部標尺寸」或「檢查帷幕牆立面」，Revit 就會做——背後是 **185 個 MCP 工具**，由 **80 份專業 BIM SOP**（建築法規、數量計算、法規檢核）支撐。
 
 **給誰用：** 使用 Revit、想要 AI 輔助且符合規範的 BIM 工程師與建築師。你需要 Windows 上的 Revit（2022–2026），並願意安裝一個 add-in。
 
@@ -33,9 +33,9 @@ Revit MCP 透過 Model Context Protocol (MCP) 讓 AI Client 呼叫 Revit 工具�
 
 | 項目 | 數量 | 來源 |
 |---|---:|---|
-| Runtime MCP tools | 173 | `MCP-Server/src/tools/index.ts` 的 `registerRevitTools()` |
-| Domain SOP files | 76 | `domain/*.md` 扣除 `README.md`，加上 `domain/references/*.md` |
-| Claude skills | 54 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 185 | `MCP-Server/src/tools/index.ts` 的 `registerRevitTools()` |
+| Domain SOP files | 80 | `domain/*.md` 扣除 `README.md`，加上 `domain/references/*.md` |
+| Claude skills | 61 | `.claude/skills/*/SKILL.md` |
 
 如果這些數字改變，請同步更新 `CLAUDE.md`、本 README、`README.md`、`docs/DOCUMENT_AUDIENCE_INVENTORY.md`，並執行：
 
@@ -245,6 +245,8 @@ Revit 端的 WebSocket 服務採「獨占鎖」機制：同一時間只有一個
 如果 `localhost:8964` 連不上，通常代表 Revit 沒開、MCP 服務沒開、port 被佔用，或 AI Client 的 `REVIT_MCP_PORT` 與 Revit 端設定不一致。
 
 ## 專案結構
+
+綠建材導入 Revit 的正式程式、歷史腳本、資料與文件，請由[綠建材開發歸檔索引](./tools/green-material/README.md)及[綠建材文件索引](./docs/green-material/README.md)進入。
 
 ```text
 REVIT_MCP/
