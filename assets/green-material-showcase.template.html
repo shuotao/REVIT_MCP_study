@@ -642,7 +642,7 @@
       📁 材料組合管理 (<span id="setHeaderCount">0</span>)
     </button>
     <div class="status-tag">
-      <span class="status-dot"></span>地端 Master 庫：1141 項建材
+      <span class="status-dot"></span>地端 Master 庫：<span id="masterDbCount">0</span> 項建材
     </div>
   </div>
 </header>
@@ -657,7 +657,7 @@
 
   <div class="hero-section">
     <h1 class="hero-title">TABC 全量綠建材地端檢索與 Revit BIM 對接平台</h1>
-    <p class="hero-sub">已將 TABC 官方採購指南 1,141 筆全量建材預載至地端 Master 快取。支援將多項勾選綠建材打包為「專案材料組合 (Material Set)」，可自訂 Set 名稱並一鍵批次推送到 Revit 模型與共享參數。</p>
+    <p class="hero-sub">已將 TABC 官方採購指南 <span id="masterDbCountHero">0</span> 筆全量建材預載至地端 Master 快取。支援將多項勾選綠建材打包為「專案材料組合 (Material Set)」，可自訂 Set 名稱並一鍵批次推送到 Revit 模型與共享參數。</p>
   </div>
 
   <div class="search-filter-bar">
@@ -672,7 +672,7 @@
       <button class="pill-btn" onclick="setSearch('隔音')">🔇 隔音緩衝</button>
       <button class="pill-btn" onclick="setSearch('透水')">💧 透水鋪面</button>
       <button class="pill-btn" onclick="setSearch('混凝土')">🏗️ 綠混凝土</button>
-      <button class="pill-btn active" onclick="setSearch('')">🌐 全部 1141 項建材</button>
+      <button class="pill-btn active" onclick="setSearch('')">🌐 全部 <span id="masterDbCountAll">0</span> 項建材</button>
     </div>
   </div>
 
@@ -1003,9 +1003,14 @@
 </div>
 
 <script>
-  // 【從 TABC 官方原網頁 tabcmgr.hopto.org 100% 全量離線快取之 1,141 筆 Master 資料庫】
+  // 【從 TABC 官方原網頁 tabcmgr.hopto.org 100% 全量離線快取之 Master 資料庫，筆數依 /GM_update 最新結果動態帶入】
   const tabcDatabase = [
 ];
+
+  const masterDbCount = tabcDatabase.length;
+  document.getElementById('masterDbCount').innerText = masterDbCount;
+  document.getElementById('masterDbCountHero').innerText = masterDbCount.toLocaleString('en-US');
+  document.getElementById('masterDbCountAll').innerText = masterDbCount;
 
   const selectedItems = new Set();
   let showOnlySelected = false;
