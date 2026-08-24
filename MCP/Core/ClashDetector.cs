@@ -461,22 +461,6 @@ namespace RevitMCP.Core
                     }));
                 }
 
-                // 套用過濾
-                if (filters != null && filters.Count > 0)
-                {
-                    result = result.Where(ctx =>
-                    {
-                        foreach (var f in filters)
-                        {
-                            string field = f["field"]?.Value<string>();
-                            string op = f["operator"]?.Value<string>();
-                            string val = f["value"]?.Value<string>();
-                            string actual = GetParamValue(ctx.Element, ctx.Doc, field);
-                            if (!MatchFilterValue(actual, op, val)) return false;
-                        }
-                        return true;
-                    }).ToList();
-                }
             }
             else
             {
@@ -496,6 +480,23 @@ namespace RevitMCP.Core
                         Transform = Transform.Identity
                     }));
                 }
+            }
+
+            // Main-model and linked-model sources must honor the same filter contract.
+            if (filters != null && filters.Count > 0)
+            {
+                result = result.Where(ctx =>
+                {
+                    foreach (var f in filters)
+                    {
+                        string field = f["field"]?.Value<string>();
+                        string op = f["operator"]?.Value<string>();
+                        string val = f["value"]?.Value<string>();
+                        string actual = GetParamValue(ctx.Element, ctx.Doc, field);
+                        if (!MatchFilterValue(actual, op, val)) return false;
+                    }
+                    return true;
+                }).ToList();
             }
 
             return result;

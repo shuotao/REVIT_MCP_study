@@ -614,6 +614,9 @@ namespace RevitMCP.Core
                     case "detect_clashes":
                         result = DetectClashes(parameters);
                         break;
+                    case "scan_opening_candidates":
+                        result = ScanOpeningCandidates(parameters);
+                        break;
                     case "colorize_clashes":
                         result = ColorizeClashes(parameters);
                         break;
@@ -4373,6 +4376,12 @@ namespace RevitMCP.Core
         {
             var linkHelper = new LinkedModelHelper(_uiApp);
             return new ClashDetector(_uiApp, linkHelper).DetectClashes(parameters);
+        }
+
+        private object ScanOpeningCandidates(JObject parameters)
+        {
+            var linkHelper = new LinkedModelHelper(_uiApp);
+            return new OpeningCandidateScanner(_uiApp, linkHelper).Scan(parameters);
         }
 
         private object ColorizeClashes(JObject parameters)

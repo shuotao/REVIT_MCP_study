@@ -2,8 +2,8 @@
 name: mep-opening-candidate-scan
 description: "MEP 開孔候選掃描 SOP（scan_opening_candidates）：在 detect_clashes 幾何核心之上，唯讀推導管線穿越結構的開孔候選清單，含建議尺寸、candidate/review_required 狀態與 warningCodes。第一版邊界為掃描專用，不建套管、不建開孔族群、不放預覽標記。當使用者提到開孔候選、開孔預掃、opening candidate、預留孔洞、套管前置檢核、scan opening 時觸發。"
 metadata:
-  version: "1.0"
-  updated: "2026-08-10"
+  version: "1.1"
+  updated: "2026-08-24"
   created: "2026-07-28"
   contributors:
     - "NicheSam (SC REVIT, 待確認真名)"
@@ -20,7 +20,7 @@ metadata:
 
 # MEP 開孔候選掃描 SOP (scan_opening_candidates)
 
-> **狀態：v1 規格已補齊。** 尺寸公式常數、回傳 schema、狀態判定門檻等工程細節已由 @NicheSam（SC REVIT）於 2026-07-30 在 Issue #99 留言（comment id `5128684040`）補值，並回寫本檔。`scan_opening_candidates` 工具本身**尚未**在 `MCP-Server/src/tools/*.ts` 落地實作（見〈已知缺口與後續流程〉）——實作前，任何 AI 代理仍不得對外宣稱此工具已可用於自動建模或自動建套管。
+> **狀態：v1 已實作，並完成 Revit 2024 runtime smoke 驗證。** 尺寸公式常數、回傳 schema、狀態判定門檻等工程細節由 @NicheSam（SC REVIT）於 2026-07-30 在 Issue #99 留言（comment id `5128684040`）補值；MCP 工具定義位於 `MCP-Server/src/tools/clash-tools.ts`，Revit 端候選映射位於 `MCP/Core/OpeningCandidateScanner.cs`。此狀態不等於可自動建模或自動建套管。
 
 ## 目的與第一版邊界
 
@@ -235,4 +235,4 @@ Tool: scan_opening_candidates
 * `domain/sleeve-classification-protocol.md` —— 套管身分識別協議，候選清單下游銜接。
 * `domain/beam-penetration-base.md` —— 梁穿孔檢核基礎協議，`review_required` 中穿樑柱候選的正式檢核依據。
 
-> 註：`scan_opening_candidates` 本身尚未在 `MCP-Server/src/tools/*.ts` 中找到對應實作（已 grep 全目錄確認不存在）。本檔為該工具的**設計契約（v1 規格已補齊，實作尚未串接）**，供實作前對齊 I/O 與狀態機語意；工具落地後，需回頭在本節補上實際檔案位置與 `inputSchema` 對照，並移除本註記。
+> 實作對照：公開 `inputSchema` 與唯讀標註在 `MCP-Server/src/tools/clash-tools.ts`；命令由 `MCP/Core/CommandExecutor.cs` 派發至 `MCP/Core/OpeningCandidateScanner.cs`，後者呼叫既有 `ClashDetector.DetectClashes`，不維護第二套碰撞演算法。2026-08-24 Revit 2024 runtime smoke：`大甲分局_MEP_sc168jobim.rvt`，MEP 主模型、結構 link `13291389`，`clearanceMm=25`、`maxCount=10`，回傳 `totalCandidates=10`、`candidateCount=10`、`reviewRequiredCount=0`、`failedCount=0`，且缺少 `clearanceMm` 時正確拒絕。
