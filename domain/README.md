@@ -32,7 +32,7 @@
 | `wall-check.md` | wall-orientation-check | 牆壁方向、內外側 |
 | `dependent-view-crop-workflow.md` | dependent-view-crop | 從屬視圖、分區出圖 |
 
-### 不需要成為 Skill 的 Domain（18 個，含 README）
+### 不需要成為 Skill 的 Domain（21 個，含 README）
 
 | Domain 文件 | 類型 | 不成為 Skill 的原因 |
 |------------|------|-------------------|
@@ -55,6 +55,9 @@
 | `matchline-automation.md` | 輔助工作流程 | 銜接線自動標註邏輯，屬從屬視圖出圖流程背景知識，無專屬 Skill |
 | `viewport-type-scale-sync.md` | 輔助工作流程 | 視埠標題類型依比例同步邏輯，屬圖紙管理背景知識，無專屬 Skill |
 | `mep-space-demand-matrix.md` | 前期方法論（Skill 待補） | MEP 前期容量與空間收斂方法。核心載體 Space 目前無 MCP 工具支援（見 `tool-capability-boundary.md` L12），須先實機驗證 `create_view_schedule` 能否建立 Space 明細表，確認自動化程度後才產生對應 Skill |
+| `archicad-adapter-boundary.md` | 轉譯邊界定義 | 定義 Archicad backend 的架構原則、執行前提與能力降級策略，是 opt-in Archicad 路線的 meta-reference，不由使用者直接觸發 |
+| `archicad-terminology-map.md` | 名詞對照與單位合約 | Revit↔Archicad 名詞的中文導讀，以及讀取數值前的單位鐵律；權威正本在 `.claude/skills/archicad-skill-adapter/references/revit-archicad-terminology.md` |
+| `archicad-portability-matrix.md` | 可攜性分級與進度 | A/B/C 分級判準與各 Wave 驗證狀態的中文速查；權威正本在 `docs/integrations/archicad-skill-portability.md` |
 | `README.md` | 目錄導航 | 本檔案，不是工作流程 |
 
 ---
