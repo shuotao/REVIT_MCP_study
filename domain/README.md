@@ -40,7 +40,7 @@
 | `anti-lessons.md` | 負面教材庫（lessons.md 鏡像） | 記錄「看起來對、實際不能用」的誤判／誤導／中途資料型態與偵錯方法，append-only、去識別化，供其他 Domain/Skill 除錯參考，不由使用者直接觸發成 Skill |
 | `room-boundary.md` | 技術概念文件 | 說明 Room 邊界處理的兩種方案（Area Scheme / Offset），是 `building-compliance` Skill 的背景知識，非獨立工作流程 |
 | `session-context-guard.md` | AI 內部守衛 | 定義 AI 互動安全等級（L1-L3），是所有 Skill 的通用行為規範，不由使用者觸發 |
-| `tool-capability-boundary.md` | 工具邊界定義 | 定義 MCP 工具「不能做的事」（L1-L5 能力等級），防止 AI 嘗試超出能力的操作，是 meta-reference |
+| `tool-capability-boundary.md` | 工具邊界定義 | 定義 MCP 工具能力與限制，防止 AI 嘗試超出能力的操作；[L11 的 ArchwizPF Lite 接入與能力邊界](tool-capability-boundary.md#archwizpf-lite)整理商品入口、Archicad 25／26／27／28、26 個工具及知識編排路徑，是 meta-reference |
 | `path-maintenance-qa.md` | 內部維護指南 | 目錄重構後的路徑交叉參照檢查清單，是開發者維護用文件 |
 | `core-reload-boundary.md` | 開發流程知識（opt-in） | 定義 Loader/Core 熱重載邊界、重啟條件與效率估算；對應 opt-in 開發分支，非 main 單一 csproj 架構，供進階開發者引用 |
 | `skill-authoring-standard.md` | Skill 品質規範 | 定義 Skill 編寫標準與品質要求，是 meta-reference |

@@ -1,9 +1,9 @@
 ---
 name: tool-capability-boundary
-description: "MCP 工具能力邊界定義表：定義目前 MCP 工具的不可達邊界（如連結模型元素不可查詢、Revit UI API／第三方外掛按鈕觸發不可達、Space 品類無工具支援等），讓 AI 在收到相關請求時立即告知使用者限制而非反覆嘗試。當使用者提到連結模型、linked model、結構、能力邊界、boundary、找不到元素、0 結果、pyRevit、UI API、按鈕觸發、PostableCommandId、Reload、Space、機電空間、明細表公式、條件格式時觸發。"
+description: "MCP 工具能力邊界定義表：定義目前 MCP 工具的不可達邊界（如連結模型元素不可查詢、Revit UI API／第三方外掛按鈕觸發不可達、Space 品類無工具支援等），讓 AI 在收到相關請求時立即告知使用者限制而非反覆嘗試。當使用者提到連結模型、linked model、結構、能力邊界、boundary、找不到元素、0 結果、pyRevit、UI API、按鈕觸發、PostableCommandId、Reload、Space、機電空間、明細表公式、條件格式、ArchwizPF、整合平台 Lite、Archicad MCP 接入時觸發。"
 metadata:
-  version: "1.3"
-  updated: "2026-08-11"
+  version: "1.4"
+  updated: "2026-10-10"
   created: "2026-03-10"
   contributors:
     - "Admin"
@@ -11,13 +11,14 @@ metadata:
     - "https://github.com/shuotao/REVIT_MCP_study/issues/110"
     - "https://github.com/shuotao/REVIT_MCP_study/issues/98"
     - "MCP/Core/CommandExecutor.cs:4119（create_view_schedule 品類名稱解析）"
+    - "https://archwiz.net/store（Archwiz 整合平台 Lite 商品/下載入口；非 MCP endpoint）"
   related:
     - mep-extension-guide.md
     - mep-space-demand-matrix.md
   referenced_by:
     - element-coloring
     - archicad-skill-adapter
-  tags: [連結模型, linked model, 結構, structural, 邊界, 能力, boundary, 找不到元素, pyRevit, UI API, PostableCommandId, 按鈕觸發, Reload, Archicad, backend, namespace, Space, MEPSpaces, 機電空間, schedule, 明細表, Calculated Value, Conditional Format]
+  tags: [連結模型, linked model, 結構, structural, 邊界, 能力, boundary, 找不到元素, pyRevit, UI API, PostableCommandId, 按鈕觸發, Reload, Archicad, ArchwizPF, Lite, MCP, backend, namespace, Space, MEPSpaces, 機電空間, schedule, 明細表, Calculated Value, Conditional Format]
 ---
 
 # MCP 工具能力邊界定義表
@@ -155,6 +156,84 @@ metadata:
 | **安裝邊界** | Repository 預設 config 維持 Revit-only。只有使用者主動 opt in 才加入獨立的 `archicad-mcp` entry；停用時只移除該 entry。 |
 
 **lesson 起源**：issue #98（Archwiz-boss，fork `Archwiz-boss/BIM_MCP_study`，commit `998adce8`）。原編號在 fork 分支上是 `L10`，但該分支自 2026-07-22 起未再更新，同一時段本檔已把 `L10` 用於 issue #110（Revit UI API／第三方外掛 UI 命令觸發不可達）。維護者裁決 2026-08 全數收編 issue #98 的 Skill／Domain 內容，此節在收編時重編號為 `L11` 以避免覆蓋既有 L10，內容本身逐字保留 fork 原文。收編僅涵蓋 Domain 知識與 Skill 編排文件，不含 fork 的 `.mcp.json`／`.vscode/mcp.json`／setup 腳本；相關的可攜性狀態與零實測證據說明見 `docs/integrations/archicad-skill-portability.md`。
+
+<a id="archwizpf-lite"></a>
+
+#### ArchwizPF Lite：獨立 MCP 的接入與能力邊界
+
+**Archwiz 整合平台 Lite（ArchwizPF）**是 Archicad 的中文面板與內建 MCP 伺服器，與本 repo 的 Revit bridge、Tapir Add-On 及其 MCP provider 分別獨立。它不依賴 Tapir；不能把 Tapir 的 discovery/call 工具當作 `archwizpf_` 工具入口。既有 Skill 的工具流程可能綁定 Tapir，使用 Lite 時應明確指定本節與 `archwizpf` provider，再依已安裝 schema 映射。本節補充知識與編排路徑，沒有修改 Skill、實作 MCP、設定用戶端或操作模型，也不是實機驗證紀錄。載入本節或 `archicad-skill-adapter` 不表示所有 Domain／Skill 方法已在 Lite 執行或全部工具已自動載入。
+
+##### 四個開發版本與驗證範圍（2026-10-10 快照）
+
+目前產品版本為 `0.1.0`，平台為 `windows-x64`，仍在開發中、尚未發行。範圍為 **Archicad 25、26、27、28 四個版本**；不承諾 29 或 macOS。下表依產品版本紀錄與維護者回報整理，編譯、載入與完整功能驗收是不同層次。
+
+| Archicad | 已知建置／實機證據 | 使用限制 |
+|---|---|---|
+| 25 | DevKit 25.3002 編譯；舊側邊欄建置在 Archicad 25 build 4013 載入、連線測試與面板通過 | 內建 `API.GetSelectedElements` 不支援，故 `archwizpf_get_selected_elements` 不可用；暫態高亮不可用 |
+| 26 | DevKit 26.7000 編譯；更早單頁面板在 build 4019 載入與指令往返通過；側邊欄版尚未重新載入驗證 | 暫態高亮的 API 版本門檻符合，但不代表新工具已實機通過；Keynote 不支援 |
+| 27 | DevKit 27.6003 編譯；更早單頁面板在 build 3001 載入與指令往返通過；側邊欄版尚未重新載入驗證 | 新功能仍待移植／驗證；Keynote 不支援 |
+| 28 | DevKit 28.4001／28.3001 編譯；舊側邊欄建置在 build 3001 載入、連線測試與面板通過 | 本範圍唯一有 Keynote API 的版本；其工具仍待實機驗證 |
+
+完整工具與新增功能頁目前先在 28 開發，25–27 保留較早建置；**四版不保證同等完整功能**。28 的實機驗證逐項進行中，已有部分面板／連線／寫入開關／圖庫項目通過；面板驗證與 MCP 工具呼叫驗證須分別看待。25、28 的上述面板證據不能套用到後續所有功能頁或 26 個工具，有工具卡片也不證明該工具已呼叫通過。
+
+##### 商品入口與使用者接入
+
+[商品/下載入口：Archwiz 商店](https://archwiz.net/store)。這是商店頁面，不是直接 ZIP 連結、遠端 MCP endpoint，也不表示已確認商品上架、購買或下載成功。
+
+取得對應版本的發行 APX 後，由使用者關閉 Archicad、手動放入該版本的 `Add-Ons` 資料夾，或透過 Add-On Manager 載入；重新開啟後從「ArchwizPF → 整合平台 Lite」進入面板。APX 內含本機 stdio MCP server `archwizpf`，開啟面板時解出 `%LOCALAPPDATA%\ArchwizPF\archwizpf-mcp.exe`，再透過本機 Archicad JSON API 溝通。使用發行包不需另裝 Tapir、uv 或 Python。
+
+安裝 APX 與註冊 AI 用戶端是兩步。使用者另在「MCP 連線設置」選用戶端、按「一鍵安裝」才修改其設定；Claude Code 依面板提供的命令自行註冊。之後重啟用戶端，查看 MCP 工具清單並測試連線。閱讀知識文件不授權 AI 自動改設定，也不保證當前 client 已連線。
+
+##### 工具盤點：24 個讀取／暫態工具與 2 個模型寫入工具
+
+以下是原始工具登錄的名稱；實際可呼叫範圍仍以已安裝版本的 MCP 工具清單、schema 與狀態為準。除下列兩個建立 Zone 工具外，不修改專案資料；選取、視圖與高亮仍有暫態副作用。
+
+| 群組 | 工具名稱 | 效果與邊界 |
+|---|---|---|
+| 狀態與 instance（3） | `archwizpf_get_status`、`archwizpf_list_instances`、`archwizpf_select_instance` | 取得版本／build／port／APX 相容性；列出本機 instance；選定本次 server 連線目標，非模型寫入 |
+| 專案、元素、Property（6） | `archwizpf_get_project_info`、`archwizpf_count_elements`、`archwizpf_get_elements`、`archwizpf_get_selected_elements`、`archwizpf_list_properties`、`archwizpf_get_property_values` | 基本專案資訊（非完整「專案資料」頁）、類型數量、GUID 與屬性；選取 GUID 工具在 25 不支援；專案資訊需 APX |
+| 暫態視覺回饋（6） | `archwizpf_change_selection`、`archwizpf_highlight_elements`、`archwizpf_clear_highlight`、`archwizpf_focus_elements`、`archwizpf_restore_view`、`archwizpf_clear_feedback` | 需 APX；選取、聚焦與還原視圖，26–28 可暫態高亮；高亮非持久圖形覆寫。聚焦可切換視窗／樓層，`show_selection_in_3d` 會改選取 |
+| 模型資料查詢（6） | `archwizpf_get_bounding_boxes`、`archwizpf_find_collisions`、`archwizpf_get_selected_zones`、`archwizpf_get_selected_polylines`、`archwizpf_get_selected_openings`、`archwizpf_get_structural_elements` | 需 APX；外接範圍、兩組碰撞、選取的 Zone／折線／門與開口、柱梁板資料；openings 不含窗。各工具有範圍、截斷與幾何限制 |
+| Keynote（3） | `archwizpf_list_keynotes`、`archwizpf_find_keynotes`、`archwizpf_get_keynote_autotext` | 本四版範圍僅 28，需 APX；讀取／搜尋／取得 autotext token，不建立或修改 Keynote，不放置文字或標籤 |
+| 建立 Zone（2） | `archwizpf_create_zone`、`archwizpf_create_polygon_zone` | **修改專案**：目前樓層／平面圖建立矩形或多邊形 Zone，可附既有自訂文字屬性；不修改既有 Zone |
+
+寫入工具會出現在 MCP 清單，但 APX 面板的寫入開關**預設關閉**；只能由使用者在面板開啟並確認，AI 參數與環境變數不能繞過。`write_disabled` 要告知使用者並停止重試。建立行為有一步 Undo 與本機稽核；仍須在使用者授權範圍內操作並回讀。Lite 沒有既有 Zone 重新編號／通用 Property 寫入工具，不能直接執行 Revit 的房間編號方法。
+
+「專案資料」「電子申請書」及其匯入／匯出是面板功能，沒有對應 MCP 工具；不能自動驅動面板按鈕。這些頁面的個資不進 MCP 工具輸出。模型與屬性讀取仍應限定當次需求；本機連線不表示 AI 用戶端不會把工具結果送給所選 AI 服務。
+
+##### 可執行的知識路徑
+
+1. 起始呼叫 `archwizpf_get_status`，確認 server、Archicad version/build/port、APX loaded/compatible；`ok=true` 本身不代表 APX 相容。多 instance 或目標不明時才用 `archwizpf_list_instances` → `archwizpf_select_instance` → 再確認 status。重開 Archicad 後重新錨定，不沿用舊 port。
+2. 查看**當前 MCP provider 的工具清單與 input schema**，確認所需 `archwizpf_` 工具、參數、單位與限制。Tapir provider 的 discovery/call 不適用於 Lite；不能猜 raw JSON API 或用另一個 backend 補做。每一份 GUID、Property 與結果保留 provider + instance 來源。
+3. 先讀對應 Domain 的方法，再取該步需要的最少資料。保持同一 provider、同一 instance 與一致選取／樓層範圍；缺工具或必要欄位時標示該步 unsupported／資料不足，停止依賴該步的計算或寫入。
+
+三個小型工作流建議（均不寫入模型；視覺回饋另有暫態變更）：
+
+| 需求 | Lite 路徑 | 完成界線 |
+|---|---|---|
+| 元素與屬性盤點 | status → 按類型 `get_elements` 或在支援版本用 `get_selected_elements` → `list_properties` → `get_property_values`（工具名均加 `archwizpf_`） | 用回傳的 nonLocalizedName 或 `[群組, 名稱]`，不猜 Revit 參數名；列出未知屬性／不可讀 cells，不把缺值當 0 |
+| 選取 Zone 的幾何與面積資料 | status → `archwizpf_get_selected_zones` → 按回傳 GUID 與已查得屬性名讀 `archwizpf_get_property_values` | `outline_area` 是外框直線多邊形面積，非 Archicad 量測 Zone 面積；`has_holes`／`has_arcs` 表示資料不能完整重建。若進入容積檢討，回到 [floor-area-review.md](floor-area-review.md) 的分類／計算方法，先確認所需資料與本案法規，Revit 工具步驟須另映射，不能宣稱整個方法已執行 |
+| 碰撞與暫時定位 | status → 明確兩組 GUID → `archwizpf_find_collisions` → 按需求 `archwizpf_focus_elements`／26–28 `archwizpf_highlight_elements` → `archwizpf_clear_feedback` | 回報兩組範圍、容許值、本體／淨空結果；結束時清除高亮並還原視圖。預設不清選取，需恢復原選取時先取得可回讀的原 GUID，不能宣稱 clear_feedback 已自動恢復選取 |
+
+##### 結果完整性與單位
+
+- `archwizpf_get_elements`：`offset` + `returned` 是下一頁起點，`truncated=true` 表示尚有頁；沒有 `next_offset`。`archwizpf_get_structural_elements` 才使用 `next_offset`，**`-1` 表示末頁**。選取 GUID 工具與其他截斷結果沒有通用續頁規則，須按各 schema 縮小範圍，不把單頁當全案。
+- Property 回傳保留 Archicad JSON 的型別／值，工具契約標示長度為公尺；依屬性的物理量確認面積、體積等語義，不套 Revit internal feet、不把文字或 enum 當幾何量。幾何查詢的長度／座標為公尺、專案座標，結構角度為弧度；碰撞 `volume_tolerance_m3` 為 m³、`surface_tolerance_m` 為 m。Zone 外框面積與量測面積不得混用。
+- 檢查 `ok`、`error`、`unknown_properties`、cell `status`、`failures`／`failed_guids`、`unsupported`、`truncated`。碰撞上限截斷、Zone 孔洞／弧線省略、折線弧線資訊省略與結構不支援形態均須列明；部分成功不是完整驗收。不支援時停止該路徑，錯誤時轉述回傳 message／next_step，不反覆猜工具。
+- 視覺回饋以回傳的成功／失敗與 cleanup 每一步結果判定。`restore_view` 沒有已儲存視圖可回復時可成功但 `restored=false`；不能據此宣稱已恢復。臨時選取／視角不等於模型內容變更或持久上色。
+
+當次驗證可用下列空白紀錄；它是模板，**沒有已執行的結果**，不要填入虛構 GUID 或專案資料：
+
+```text
+provider / server version:
+Archicad version / build / port:
+APX loaded / compatible:
+Domain 方法與實際完成步驟:
+工具 / 參數範圍 / 單位:
+回應 ok / 頁數與完整性 / unsupported 或 errors:
+暫態變更 / cleanup 與 read-back 結果（未執行則明記）:
+未完成項目 / 尚待實機驗證:
+```
 
 ### L12: Space（機電空間）無**專用**工具，但通用工具可用（2026-08-11 新增，同日經實測大幅更正）
 
