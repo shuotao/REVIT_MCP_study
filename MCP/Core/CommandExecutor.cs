@@ -296,6 +296,10 @@ namespace RevitMCP.Core
                         result = SetMaterialGraphics(parameters);
                         break;
 
+                    case "relink_material_images":
+                        result = RelinkMaterialImages(parameters);
+                        break;
+
                     case "set_view_range":
                         result = SetViewRange(parameters);
                         break;

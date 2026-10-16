@@ -47,5 +47,24 @@ export const materialGraphicsTools: Tool[] = [
             },
             required: []
         }
+    },
+    {
+        name: "relink_material_images",
+        description: "遞迴搜尋新的材料影像資料夾，依完整檔名（含副檔名、不分大小寫）重新連結目前作用中 Revit 文件內遺失的 Appearance Asset 貼圖。呼叫前必須取得使用者提供的資料夾路徑；若使用者尚未提供，請先要求使用者貼上新的材料影像根資料夾路徑，不要猜測或自行挑選。有效連結保持不變；同名多檔只回報衝突，不自動選擇。dryRun=true 只預覽，不修改模型。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                folderPath: {
+                    type: "string",
+                    description: "執行 Revit Add-in 的 Windows 電腦可存取之材料影像根資料夾絕對路徑；會遞迴搜尋所有子資料夾。"
+                },
+                dryRun: {
+                    type: "boolean",
+                    description: "true = 完整掃描並回報預計重連結果，但不修改模型。",
+                    default: false
+                }
+            },
+            required: ["folderPath"]
+        }
     }
 ];
