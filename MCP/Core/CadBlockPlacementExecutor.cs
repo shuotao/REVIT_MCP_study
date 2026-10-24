@@ -35,6 +35,7 @@ namespace RevitMCP
             public Transform TotalTransform;
             public XYZ ResolvedPoint;
             public double RotationRadians;
+            public string NameSource;
         }
 
         static string BuildIdentity(string importInstanceUniqueId, int pathIndex, string blockName)
@@ -76,13 +77,25 @@ namespace RevitMCP
         static List<BlockCandidate> CollectBlockCandidates(ImportInstance cad, ViewPlan vp)
         {
             var result = new List<BlockCandidate>();
-            var opt = new Options { ComputeReferences = true, IncludeNonVisibleObjects = true, View = vp };
+            // 2026-10-24 Revit 2024.3 真機實測（issue #113）：帶 View 的 Options 以及根節點的
+            // GetInstanceGeometry() 都會把 Linked DWG 的 block 攤平成線/弧，巢狀 GeometryInstance 為 0；
+            // 只有不綁視圖的幾何 + 根節點 GetSymbolGeometry() 保留每個 INSERT 的 GeometryInstance。
+            // 根節點本身是整份 DWG，不算 block，從 depth 1 起算。
+            var opt = new Options { IncludeNonVisibleObjects = true, DetailLevel = ViewDetailLevel.Fine };
             var geomElem = cad.get_Geometry(opt);
             if (geomElem == null) return result;
 
             var totalTransform = cad.GetTotalTransform();
+            string linkName = (cad.Document.GetElement(cad.GetTypeId()) as CADLinkType)?.Name ?? cad.Category?.Name;
             int pathIndex = 0;
-            WalkGeometry(cad.Document, geomElem, cad.UniqueId, totalTransform, ref pathIndex, result, 0);
+            foreach (var obj in geomElem)
+            {
+                var root = obj as GeometryInstance;
+                if (root == null) continue;
+                var sym = root.GetSymbolGeometry();
+                if (sym != null)
+                    WalkGeometry(cad.Document, sym, cad.UniqueId, linkName, totalTransform, ref pathIndex, result, 1);
+            }
             return result;
         }
 
@@ -90,6 +103,7 @@ namespace RevitMCP
             Document doc,
             GeometryElement geomElem,
             string importInstanceUniqueId,
+            string linkName,
             Transform totalTransform,
             ref int pathIndex,
             List<BlockCandidate> result,
@@ -102,11 +116,13 @@ namespace RevitMCP
                 var gi = obj as GeometryInstance;
                 if (gi == null) continue;
 
-                string blockName = TryGetBlockDisplayName(doc, gi, pathIndex);
+                string nameSource;
+                string blockName = TryGetBlockDisplayName(doc, gi, linkName, pathIndex, out nameSource);
                 var candidate = new BlockCandidate
                 {
                     Identity = BuildIdentity(importInstanceUniqueId, pathIndex, blockName),
                     DisplayName = blockName,
+                    NameSource = nameSource,
                     InsertionPoint = gi.Transform.Origin,
                     BlockTransform = gi.Transform,
                     TotalTransform = totalTransform,
@@ -118,31 +134,66 @@ namespace RevitMCP
 
                 var nested = gi.GetInstanceGeometry();
                 if (nested != null)
-                    WalkGeometry(doc, nested, importInstanceUniqueId, totalTransform, ref pathIndex, result, depth + 1);
+                    WalkGeometry(doc, nested, importInstanceUniqueId, linkName, totalTransform, ref pathIndex, result, depth + 1);
             }
         }
 
         /// <summary>
-        /// KNOWN UNCERTAINTY（見 plan「Known Revit-API Uncertainties」#1）：
-        /// GeometryInstance 不保證暴露 CAD block 定義名稱字串（issue #100 的 A$C87ebd845 式
-        /// 名稱來自 AutoCAD 自動命名）。此處以 GraphicsStyleCategory 名稱（比照
-        /// DwgColumnExecutor 的圖層名解析慣例）作 best-effort 顯示名，取不到時
-        /// fallback 為合成序號標籤；呼叫端從 nameSource 欄位得知來源。
-        /// 需以真實連結 DWG 實測是否能取得更精確的 block 名稱來源。
+        /// Block 顯示名來源（2026-10-24 Revit 2024.3 實測定案，issue #113 第 2 項）：
+        /// 巢狀 INSERT 的 GetSymbolGeometryId().SymbolId 指向名稱為「連結名.BLOCK」的 ElementType
+        /// （例：blocks_main.SPK、blocks_main.撒水頭），去掉連結名前綴即 CAD block 名；
+        /// nameSource="symbol"。GraphicsStyleCategory 只會拿到連結名（檔名），分不出 block，
+        /// 僅作 2022 以前或取不到 symbol 時的退路；最後才合成序號標籤。
         /// </summary>
-        static string TryGetBlockDisplayName(Document doc, GeometryInstance gi, int pathIndex)
+        static string TryGetBlockDisplayName(Document doc, GeometryInstance gi, string linkName, int pathIndex, out string nameSource)
         {
+#if REVIT2023_OR_GREATER
+            try
+            {
+                // Revit 2023+：GeometryInstance.Symbol 已移除，改走 GetSymbolGeometryId().SymbolId。
+                // 若 SymbolId 指回整份 DWG 的 CADLinkType（名稱=連結名），不是 block 名，略過。
+                var symId = gi.GetSymbolGeometryId();
+                var symElem = symId == null ? null : doc.GetElement(symId.SymbolId);
+                var symName = symElem?.Name;
+                if (!string.IsNullOrEmpty(symName) && !(symElem is CADLinkType))
+                {
+                    nameSource = "symbol";
+                    return StripLinkPrefix(symName, linkName);
+                }
+            }
+            catch { }
+#endif
             try
             {
                 if (gi.GraphicsStyleId != null && gi.GraphicsStyleId != ElementId.InvalidElementId)
                 {
                     var gs = doc.GetElement(gi.GraphicsStyleId) as GraphicsStyle;
                     var name = gs?.GraphicsStyleCategory?.Name;
-                    if (!string.IsNullOrEmpty(name)) return name;
+                    if (!string.IsNullOrEmpty(name))
+                    {
+                        nameSource = "graphics-style";
+                        return name;
+                    }
                 }
             }
             catch { }
+            nameSource = "fallback";
             return "Block#" + pathIndex;
+        }
+
+        /// <summary>「連結名.BLOCK」→「BLOCK」；連結名未知時退而找 .dwg./.dxf. 分隔；都沒有就原樣回傳。</summary>
+        static string StripLinkPrefix(string symbolName, string linkName)
+        {
+            if (!string.IsNullOrEmpty(linkName)
+                && symbolName.Length > linkName.Length + 1
+                && symbolName.StartsWith(linkName + ".", StringComparison.OrdinalIgnoreCase))
+                return symbolName.Substring(linkName.Length + 1);
+            foreach (var ext in new[] { ".dwg.", ".dxf." })
+            {
+                int i = symbolName.IndexOf(ext, StringComparison.OrdinalIgnoreCase);
+                if (i >= 0) return symbolName.Substring(i + ext.Length);
+            }
+            return symbolName;
         }
 
         public static object GetDwgBlockInstances(Document doc, JObject p)
@@ -160,7 +211,7 @@ namespace RevitMCP
                 .Select(g => new JObject
                 {
                     ["blockName"] = g.Key,
-                    ["nameSource"] = g.Key.StartsWith("Block#") ? "fallback" : "graphics-style",
+                    ["nameSource"] = g.First().NameSource,
                     ["count"] = g.Count(),
                     ["sample"] = new JArray(g.Take(3).Select(c => new JObject
                     {
@@ -461,10 +512,9 @@ namespace RevitMCP
                                 resolvedMm.Value<double>("y") * MmFt,
                                 resolvedMm.Value<double>("z") * MmFt);
 
-                            // KNOWN UNCERTAINTY（見 plan「Known Revit-API Uncertainties」#2）：
-                            // OneLevelBased 族群以含 offset 的 Z 傳入 NewFamilyInstance，
-                            // 依 Revit 自身的 level-instance offset 記帳；Offset 參數實際落值
-                            // 需真機放置後 read-back 驗證。
+                            // 2026-10-24 Revit 2024.3 實測（issue #113 第 3 項）：以 level.Elevation + offset 的 Z
+                            // 傳入 NewFamilyInstance，Revit 將差值記成實例「距離主體的偏移／距離樓層的高程」，
+                            // LocationPoint 與 resolvedPoint 一致；SubTransaction 單筆失敗隔離亦已實測成立。
                             var instance = doc.Create.NewFamilyInstance(
                                 point, symbol, level,
                                 Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
@@ -487,6 +537,7 @@ namespace RevitMCP
                                 ["identity"] = identity,
                                 ["outcome"] = "failed",
                                 ["error"] = ex.Message,
+                                ["resolvedPointMm"] = ((JObject)candidate["coordinateChain"])["resolvedPointMm"],
                             });
                         }
                     }
