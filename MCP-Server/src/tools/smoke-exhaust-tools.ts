@@ -1,7 +1,7 @@
 /**
  * 排煙窗法規檢討工具 — mep, fire-safety Profile
  * 來源：PR#12 (@7alexhuang-ux)，經跨版本修正後整合
- * 法規：建技規§101① + 消防§188
+ * 法規：建技規§101① + 消防設置標準§188
  */
 
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
@@ -9,7 +9,7 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 export const smokeExhaustTools: Tool[] = [
     {
         name: "check_smoke_exhaust_windows",
-        description: "排煙窗檢討：檢查天花板下 80cm 內可開啟窗面積是否 ≥ 區劃面積 2%。窗型採推射/外推、推開/平開、橫拉、固定的明確分類，並可傳入專案係數與未知窗型假設；假設值會保留人工確認標記。法源：建技規§101① + 消防§188。",
+        description: "排煙窗檢討：檢查天花板下 80cm 內可開啟窗面積是否 ≥ 區劃面積 2%。窗型採推射/外推、推開/平開、橫拉、固定的明確分類，並可傳入專案係數與未知窗型假設；假設值會保留人工確認標記。法源：建技規§101① + 消防設置標準§188。",
         inputSchema: {
             type: "object",
             properties: {
@@ -28,7 +28,7 @@ export const smokeExhaustTools: Tool[] = [
     },
     {
         name: "check_floor_effective_openings",
-        description: "無開口樓層判定：檢查樓層外牆有效開口面積是否 ≥ 樓地板面積 1/30。法源：消防§4 + §28③。",
+        description: "無開口樓層判定：檢查樓層外牆有效開口面積是否 ≥ 樓地板面積 1/30。法源：消防設置標準§4 + §28第1項第3款。",
         inputSchema: {
             type: "object",
             properties: {

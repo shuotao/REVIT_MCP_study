@@ -8,8 +8,9 @@ namespace RevitMCP.Core
     /// <summary>
     /// set_project_units — 一次把整個專案的顯示單位切到指定系統/模式。
     ///
-    /// mode=taiwan          ：公制底 + Air Flow=m³/h（建築技術規則 §102 通風量單位）
-    /// mode=taiwan-plumbing ：taiwan + 給排水管路側六格（建築設備編 §43/§46、給排水技術規範）
+    /// mode=taiwan          ：公制底 + Air Flow=m³/h（建築設備編 §102 通風量單位）
+    /// mode=taiwan-plumbing ：taiwan + 給排水管路側六格（給水排水設備設計技術規範；
+    ///                        單位慣例參考設備編 §43/§46——該兩條為消防栓立管，非給排水條文）
     ///
     /// 兩個 taiwan 模式都會把 Length 補上單位符號——Revit 公制預設「不」帶 Length 符號，
     /// 會讓標高與長度顯示成裸數字（673 / 690 / 35221），而管徑類卻有 "25 mm"，
@@ -74,7 +75,7 @@ namespace RevitMCP.Core
 
         // 台灣法規用 kgf/cm²，但 Revit 2026 的 305 個 UnitTypeId 裡「沒有」這個單位
         // （只有 KilogramsForcePerSquareMeter，差 10000 倍）。故以 mH2O 代用：
-        // 1 kgf/cm² = 10.0 mH2O（整數換算）。設備編 §46「≥1.7」→ 讀作「≥17.0 mH2O」。
+        // 1 kgf/cm² = 10.0 mH2O（整數換算）。設備編 §46（消防栓瞄子放水水壓）「≥1.7」→ 讀作「≥17.0 mH2O」。
         private static readonly Dictionary<string, ForgeTypeId> _pipePressureUnitMap = new Dictionary<string, ForgeTypeId>(StringComparer.OrdinalIgnoreCase)
         {
             { "mh2o", UnitTypeId.MetersOfWaterColumn }, { "m-h2o", UnitTypeId.MetersOfWaterColumn }, { "mwc", UnitTypeId.MetersOfWaterColumn },
@@ -125,7 +126,7 @@ namespace RevitMCP.Core
             // 2) 模式預設覆寫（在個別覆寫之前）
             if (isTaiwan)
             {
-                // §102 通風量單位
+                // 設備編 §102 通風量單位
                 ApplyFormat(units, SpecTypeId.AirFlow, "airFlow",
                     UnitTypeId.CubicMetersPerHour, null, 0.1, applied, "mode=" + mode);
 
@@ -136,7 +137,7 @@ namespace RevitMCP.Core
 
             if (isTaiwanPlumbing)
             {
-                // 管徑：設備編 §43／§46（條文以公厘為主，並列英吋）
+                // 管徑：單位慣例參考設備編 §43／§46（消防栓立管條文，以公厘為主並列英吋；非給排水條文）
                 ApplyFormat(units, SpecTypeId.PipeSize, "pipeSize",
                     UnitTypeId.Millimeters, SymbolTypeId.Mm, 1.0, applied, "mode=" + mode);
 
@@ -149,7 +150,7 @@ namespace RevitMCP.Core
                 ApplyFormat(units, SpecTypeId.PipingVelocity, "velocity",
                     UnitTypeId.MetersPerSecond, SymbolTypeId.MPerS, 0.01, applied, "mode=" + mode);
 
-                // 壓力：§46 的 kgf/cm² 在 Revit 不存在 → mH2O 代用（1 kgf/cm² = 10.0 mH2O）
+                // 壓力：設備編 §46（消防栓瞄子放水水壓）的 kgf/cm² 在 Revit 不存在 → mH2O 代用（1 kgf/cm² = 10.0 mH2O）
                 ApplyFormat(units, SpecTypeId.PipingPressure, "pressure",
                     UnitTypeId.MetersOfWaterColumn, SymbolTypeId.MH2O, 0.01, applied, "mode=" + mode);
 
@@ -205,7 +206,7 @@ namespace RevitMCP.Core
                     Slope = ReportFormat(after, SpecTypeId.PipingSlope),
                 },
                 Note = isTaiwanPlumbing
-                    ? "壓力為 mH2O 代用（Revit 2026 無 kgf/cm²）：1 kgf/cm² = 10.0 mH2O，設備編 §46 的「≥1.7」讀作「≥17.0 mH2O」。另注意坡度 1:ratio 的零坡度會顯示 1:0.00，字面語意相反（那是平的，不是無限陡）。"
+                    ? "壓力為 mH2O 代用（Revit 2026 無 kgf/cm²）：1 kgf/cm² = 10.0 mH2O，設備編 §46（消防栓瞄子放水水壓）的「≥1.7」讀作「≥17.0 mH2O」。另注意坡度 1:ratio 的零坡度會顯示 1:0.00，字面語意相反（那是平的，不是無限陡）。"
                     : null,
                 Message = "已套用專案單位（可用 Ctrl+Z 還原）。Result 為套用後從 Document 回讀的實際值，非參數回聲。"
             };

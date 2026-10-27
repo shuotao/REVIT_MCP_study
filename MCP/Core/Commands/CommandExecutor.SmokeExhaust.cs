@@ -18,7 +18,7 @@ namespace RevitMCP.Core
     /// <summary>
     /// 排煙窗法規檢討命令
     /// 來源：PR#12 (@7alexhuang-ux)，經跨版本修正後整合
-    /// 法規：建技規§101① + 消防§188
+    /// 法規：建技規§101① + 消防設置標準§188
     /// 依賴：ClosedXML (Excel 匯出)
     /// </summary>
     public partial class CommandExecutor
@@ -195,7 +195,7 @@ namespace RevitMCP.Core
         /// <summary>
         /// 排煙窗檢討（Step 2+5 合併）
         /// 檢查天花板下 80cm 內可開啟窗面積是否 ≥ 區劃面積 2%
-        /// 法源：建技規§101① + 消防§188③⑦
+        /// 法源：建技規§101① + 消防設置標準§188③⑦
         /// </summary>
         private object CheckSmokeExhaustWindows(JObject parameters)
         {
@@ -483,7 +483,7 @@ namespace RevitMCP.Core
                 // 無窗居室判定（建技規§1第35款第三目）
                 bool isWindowlessRoom = totalEffectiveArea < requiredArea;
 
-                // 防煙區劃警告（§101① / §188①）
+                // 防煙區劃警告（建技規§101① / 消防設置標準§188①）
                 bool exceedsCompartment = roomAreaSqM > 500;
 
                 // 改善建議（具體到每扇窗）
@@ -905,10 +905,10 @@ namespace RevitMCP.Core
                 AnnotatedViews = createdViewIds,
                 LegalBasis = new
                 {
-                    WindowlessRoom = "建技規§1第35款第三目 + §100②：>50m²居室，天花板下80cm通風面積<2%",
-                    SmokeExhaust = "建技規§101① + 消防§188③⑦：排煙口面積≥防煙區劃2%，設於天花板下80cm內",
-                    Compartment = "建技規§101① + 消防§188①：每500m²以防煙壁區劃",
-                    HorizontalDistance = "消防§188③：任一位置至排煙口水平距離≤30m"
+                    WindowlessRoom = "建技規§1第35款第三目 + §100第1項第2款：>50m²居室，天花板下80cm通風面積<2%",
+                    SmokeExhaust = "建技規§101① + 消防設置標準§188③⑦：排煙口面積≥防煙區劃2%，設於天花板下80cm內",
+                    Compartment = "建技規§101① + 消防設置標準§188①：每500m²以防煙壁區劃",
+                    HorizontalDistance = "消防設置標準§188③：任一位置至排煙口水平距離≤30m"
                 },
                 Rooms = roomResults,
                 LevelSummary = new
@@ -1738,7 +1738,7 @@ namespace RevitMCP.Core
                 r++;
                 ws1.Cell(r, 1).Value = "排煙觸發：消防設置標準§28③（≥1000m² 無開口樓層須設排煙）";
                 r++;
-                ws1.Cell(r, 1).Value = "排煙窗：建技規§101① + 消防§188（天花板下80cm，≥區劃面積2%）";
+                ws1.Cell(r, 1).Value = "排煙窗：建技規§101① + 消防設置標準§188（天花板下80cm，≥區劃面積2%）";
                 r++;
                 ws1.Cell(r, 1).Value = "無窗居室：建技規§1第35款第三目（>50m²居室，通風面積<2%）";
 

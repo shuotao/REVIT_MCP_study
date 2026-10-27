@@ -14,7 +14,7 @@ export const baseTools: Tool[] = [
     },
     {
         name: "set_project_units",
-        description: "一次把整個專案的顯示單位切換到指定系統/模式（全案性動作，單一 Transaction 可 Ctrl+Z 還原）。mode='taiwan' = 公制底 + Air Flow m³/h（建築技術規則 §102 通風量單位）+ Length 補單位符號；mode='taiwan-plumbing' = taiwan 再加給排水管路側六格（管徑 mm、流量 L/min、流速 m/s、壓力 mH2O、摩擦 mmH2O/m、坡度 1:ratio），對齊建築設備編 §43/§46 與給水排水設備設計技術規範；'metric' / 'imperial' 為純公制/英制預設。每個 spec 都會連同「精度」與「單位符號」一起設定——只設單位會讓 Length 顯示成裸數字（673 而非 673 mm），且流速精度 0.1 位會讓 2.98 與 3.05 看起來相同而產生假綠燈。可再用 length/area/volume/airFlow/pipeSize/flow/velocity/pressure/friction/slope 個別覆寫。⚠️ 台灣法規的壓力單位 kgf/cm² 在 Revit 2026 不存在（305 個 UnitTypeId 逐一反射確認），故以 mH2O 代用：1 kgf/cm² = 10.0 mH2O。回傳的 Result 是套用後從 Document 回讀的實際單位/符號/精度，不是參數回聲。",
+        description: "一次把整個專案的顯示單位切換到指定系統/模式（全案性動作，單一 Transaction 可 Ctrl+Z 還原）。mode='taiwan' = 公制底 + Air Flow m³/h（建築設備編 §102 通風量單位）+ Length 補單位符號；mode='taiwan-plumbing' = taiwan 再加給排水管路側六格（管徑 mm、流量 L/min、流速 m/s、壓力 mH2O、摩擦 mmH2O/m、坡度 1:ratio），對齊給水排水設備設計技術規範（單位慣例參考建築設備編 §43/§46——該兩條為消防栓立管，非給排水條文）；'metric' / 'imperial' 為純公制/英制預設。每個 spec 都會連同「精度」與「單位符號」一起設定——只設單位會讓 Length 顯示成裸數字（673 而非 673 mm），且流速精度 0.1 位會讓 2.98 與 3.05 看起來相同而產生假綠燈。可再用 length/area/volume/airFlow/pipeSize/flow/velocity/pressure/friction/slope 個別覆寫。⚠️ 台灣法規的壓力單位 kgf/cm² 在 Revit 2026 不存在（305 個 UnitTypeId 逐一反射確認），故以 mH2O 代用：1 kgf/cm² = 10.0 mH2O。回傳的 Result 是套用後從 Document 回讀的實際單位/符號/精度，不是參數回聲。",
         inputSchema: {
             type: "object",
             properties: {
