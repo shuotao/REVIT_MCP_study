@@ -92,7 +92,7 @@ A `vault/` directory at the repo root, if present, is a user's personal knowledg
 
 ## Build Commands
 
-Build via the `/build-revit` skill. Full commands (MCP Server npm build; `dotnet build -c Release.R{22,23,24,25,26} RevitMCP.csproj`) are in README.md's Build section.
+Build via the `/build-revit` skill. Full commands (MCP Server npm build; `dotnet build -c Release.R{22,23,24,25,26,27} RevitMCP.csproj`) are in README.md's Build section.
 
 Expected output path stays `MCP/bin/Release.R{YY}/RevitMCP.dll`. Do not rely on old `bin/Release/RevitMCP.dll` instructions.
 
@@ -170,7 +170,7 @@ Required:
 - One csproj: `MCP/RevitMCP.csproj`.
 - One add-in manifest: `MCP/RevitMCP.addin`.
 - One primary installer: `scripts/install-addon.ps1`.
-- Build configs: `Release.R22`, `Release.R23`, `Release.R24`, `Release.R25`, `Release.R26`.
+- Build configs: `Release.R22`, `Release.R23`, `Release.R24`, `Release.R25`, `Release.R26`, `Release.R27`.
 - Add-in assembly path remains relative: `RevitMCP\RevitMCP.dll`.
 
 ## AI Guard Rails

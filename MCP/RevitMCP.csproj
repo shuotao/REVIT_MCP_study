@@ -1,4 +1,4 @@
-<Project Sdk="Nice3point.Revit.Sdk/6.1.0">
+<Project Sdk="Nice3point.Revit.Sdk/6.3.2">
 
   <PropertyGroup>
     <RootNamespace>RevitMCP</RootNamespace>
@@ -10,8 +10,8 @@
     <DeployAddin>false</DeployAddin>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <Configurations>
-      Debug.R22;Debug.R23;Debug.R24;Debug.R25;Debug.R26;
-      Release.R22;Release.R23;Release.R24;Release.R25;Release.R26
+      Debug.R22;Debug.R23;Debug.R24;Debug.R25;Debug.R26;Debug.R27;
+      Release.R22;Release.R23;Release.R24;Release.R25;Release.R26;Release.R27
     </Configurations>
   </PropertyGroup>
 

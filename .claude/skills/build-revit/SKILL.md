@@ -1,6 +1,6 @@
 ---
 name: build-revit
-description: Build the RevitMCP Revit add-in for one or all Revit versions (2022-2026) using the unified RevitMCP.csproj
+description: Build the RevitMCP Revit add-in for one or all Revit versions (2022-2027) using the unified RevitMCP.csproj
 user-invocable: true
 ---
 
@@ -15,12 +15,13 @@ Build the RevitMCP Revit add-in using the unified `RevitMCP.csproj` and `Nice3po
 | 2024    | Release.R24  | Framework 4.8 |
 | 2025    | Release.R25  | .NET 8       |
 | 2026    | Release.R26  | .NET 8       |
+| 2027    | Release.R27  | .NET 10      |
 
 ## Usage
 
 - **No args** → Display the version matrix above as a numbered menu, ask user to choose
 - **`--version {year}`** → Build that specific version directly (e.g. `--version 2024`)
-- **`--all`** → Build all 5 versions sequentially, report pass/fail for each
+- **`--all`** → Build all 6 versions sequentially, report pass/fail for each
 - **`--list`** → Print the version matrix and exit
 
 ## Steps
@@ -33,7 +34,7 @@ Build the RevitMCP Revit add-in using the unified `RevitMCP.csproj` and `Nice3po
 
 ## When Using `--all`
 
-Build all versions in order: 2022 → 2023 → 2024 → 2025 → 2026.
+Build all versions in order: 2022 → 2023 → 2024 → 2025 → 2026 → 2027.
 Continue even if one fails (do not stop on failure).
 Show a summary table at the end:
 
@@ -43,6 +44,7 @@ Show a summary table at the end:
 ✅ 2024 (Release.R24) — succeeded
 ❌ 2025 (Release.R25) — FAILED
 ✅ 2026 (Release.R26) — succeeded
+✅ 2027 (Release.R27) — succeeded
 ```
 
 ## Error Handling

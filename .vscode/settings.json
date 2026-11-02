@@ -4,5 +4,5 @@
     "git.autorefresh": true,
     "git.autofetch": true,
     "scm.defaultViewMode": "tree",
-    "workbench.colorTheme": "Light+"
+    "workbench.colorTheme": "Dark 2026"
 }

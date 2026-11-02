@@ -16,7 +16,7 @@ Revit MCP 透過 Model Context Protocol (MCP) 讓 AI Client 呼叫 Revit 工具�
 
 用講人話的方式操作 Revit。跟你的 AI Client 說「幫這個視圖的牆全部標尺寸」或「檢查帷幕牆立面」，Revit 就會做——背後是 **239 個 MCP 工具**，由 **94 份專業 BIM SOP**（建築法規、數量計算、法規檢核）支撐。
 
-**給誰用：** 使用 Revit、想要 AI 輔助且符合規範的 BIM 工程師與建築師。你需要 Windows 上的 Revit（2022–2026），並願意安裝一個 add-in。
+**給誰用：** 使用 Revit、想要 AI 輔助且符合規範的 BIM 工程師與建築師。你需要 Windows 上的 Revit（2022–2027），並願意安裝一個 add-in。
 
 ## 三步開始
 
@@ -84,8 +84,8 @@ Autodesk Revit
 | 項目 | 需求 |
 |---|---|
 | OS | Windows 10 或更新版本 |
-| Revit | Autodesk Revit 2022、2023、2024、2025、2026 |
-| .NET | Revit 2022-2024 使用 .NET Framework 4.8；Revit 2025-2026 使用 .NET 8 |
+| Revit | Autodesk Revit 2022、2023、2024、2025、2026、2027 |
+| .NET | Revit 2022-2024 使用 .NET Framework 4.8；Revit 2025-2026 使用 .NET 8；Revit 2027 使用 .NET 10 |
 | Node.js | LTS，建議 20.x 或更新版本 |
 
 ## 一鍵安裝
@@ -141,7 +141,10 @@ dotnet build -c Release.R23 RevitMCP.csproj   # Revit 2023
 dotnet build -c Release.R24 RevitMCP.csproj   # Revit 2024
 dotnet build -c Release.R25 RevitMCP.csproj   # Revit 2025
 dotnet build -c Release.R26 RevitMCP.csproj   # Revit 2026
+dotnet build -c Release.R27 RevitMCP.csproj   # Revit 2027 (.NET 10 SDK)
 ```
+
+Revit 2027 使用 .NET 10（[Autodesk 遷移說明](https://blog.autodesk.io/revit-2027-sdk-net-10-api-changes-and-additions/)）。請安裝 .NET 10 SDK 並建置 `Release.R27`，不可直接沿用 R25/R26 DLL。安裝指令：`powershell -ExecutionPolicy Bypass -File scripts/install-addon.ps1 -Version 2027 -NonInteractive`，安裝位置為使用者的 Addins 目錄。已通過編譯與隔離目錄安裝測試；Revit 2027 內載入與工具操作仍待實機驗證。
 
 輸出路徑是：
 
@@ -257,7 +260,7 @@ REVIT_MCP/
     Core/
       SocketService.cs         Revit-side WebSocket server
       ExternalEventManager.cs  UI-thread execution bridge
-      RevitCompatibility.cs    Revit 2022-2026 compatibility helpers
+      RevitCompatibility.cs    Revit 2022-2027 compatibility helpers
       CommandExecutor.cs       Main command dispatcher
       Commands/*.cs            Command modules
   MCP-Server/                  MCP Server (Node.js / TypeScript)

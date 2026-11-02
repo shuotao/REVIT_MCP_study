@@ -24,7 +24,7 @@ Then stop.
 
 ## Usage
 
-- **No args** → Show numbered version menu (2022-2026), ask user to choose
+- **No args** → Show numbered version menu (2022-2027), ask user to choose
 - **`--version {year}`** → Deploy directly to that version's directory
 
 ## Target Paths
@@ -36,6 +36,7 @@ Then stop.
 | 2024    | `%APPDATA%\Autodesk\Revit\Addins\2024\RevitMCP\` |
 | 2025    | `%APPDATA%\Autodesk\Revit\Addins\2025\RevitMCP\` |
 | 2026    | `%APPDATA%\Autodesk\Revit\Addins\2026\RevitMCP\` |
+| 2027    | `%APPDATA%\Autodesk\Revit\Addins\2027\RevitMCP\` |
 
 ## Steps
 
