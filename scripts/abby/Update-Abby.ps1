@@ -11,7 +11,7 @@ try{
  if(!$Package){
   Test-AbbyRepo $Repo;[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12
   $headers=@{'User-Agent'='Abby-MCP-Updater';'Accept'='application/vnd.github+json'}
-  $releases=@(Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases?per_page=100" -Headers $headers)
+  $releases=Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases?per_page=100" -Headers $headers
   $release=$releases|Where-Object{!$_.draft -and !$_.prerelease -and $_.tag_name.StartsWith($channel.ReleasePrefix,[StringComparison]::Ordinal)}|Sort-Object published_at -Descending|Select-Object -First 1
   if(!$release){throw 'No stable my-revit-tool release is available yet.'}
   $assets=@($release.assets|Where-Object{$_.name -like 'Abby-MCP-*.zip' -or $_.name -like 'Abby-MCP-*.zip.sha256'})
