@@ -1,0 +1,12 @@
+{
+  "Source": "https://github.com/shuotao/REVIT_MCP_study/tree/93365e7ba5c2a7fd71446894aa3754e7d6eb5efb",
+  "Reason": "Unchanged public historical documentation contains its original authors example profile paths. Exceptions apply only to exactly these audited bytes, never credentials or excluded files.",
+  "Files": {
+    "Antigravity_MCP_Complete_Guide.md": "34a315bfa1a182e3eea7b7bd1f230f2a153b6bc5c9df90b5521baf5eb10ac6c6",
+    "docs/0425-presentation.html": "b82341c3e7cb56100fc30b24d728f7f2fe22a97f859adf135107cdb774a06ca3",
+    "docs/0523-presentation.html": "18a69e6f1bf4718433a54b3d986b607323ee96623a429444d3df38d8ed5c2b93",
+    "docs/_archive/2026-q2/0328的課程討論.md": "1e5422bb7f17748a7806fb977888b4b630d6cdcbbf94d9e762d6f99f460ccd01",
+    "docs/troubleshoot-first-install.md": "5aa0f6ec2ba9ee50ceea870a1a83d7eaf477235060b26d58f3f5b05083d16e9b",
+    "scripts/scratch/verify-pr42-pr43.ps1": "01e196c806052b3bedb697ce2142d760a3a92e3eb929160f614e7f11465c1e0a"
+  }
+}

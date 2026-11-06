@@ -1,0 +1,6 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),cp=require('node:child_process');
+test('stable launcher selects the recorded version and preserves a clean stdio channel',()=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'abby-launcher-')),dir=path.join(root,'releases','test-1','server');fs.mkdirSync(path.join(dir,'build'),{recursive:true});fs.copyFileSync(path.join(__dirname,'../scripts/abby/start-mcp.cjs'),path.join(root,'start-mcp.cjs'));fs.writeFileSync(path.join(root,'current.json'),JSON.stringify({Version:'test-1'}));fs.writeFileSync(path.join(dir,'package.json'),'{}');
+ fs.writeFileSync(path.join(dir,'build/index.js'),"console.log(JSON.stringify({cwd:process.cwd(),profile:process.env.MCP_PROFILE}));");const r=cp.spawnSync(process.execPath,[path.join(root,'start-mcp.cjs')],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);const actual=JSON.parse(r.stdout);assert.equal(actual.cwd,dir);assert.equal(actual.profile,'full');
+ fs.writeFileSync(path.join(root,'current.json'),JSON.stringify({Version:'../../escape'}));const bad=cp.spawnSync(process.execPath,[path.join(root,'start-mcp.cjs')],{encoding:'utf8'});assert.equal(bad.status,1);assert.equal(bad.stdout,'');assert.match(bad.stderr,/Invalid installed version/);
+});

@@ -178,6 +178,99 @@ export const mepTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
+                replaceGreenFence: {
+                    type: "object", description: "Batch replace explicit selected fence IDs along measured collinear runs with tight-joint green-fence modules. Preserve explicit gate IDs/transforms; preview/project token required for apply. Duplicate width/height types, never edit existing types. Selected nested warning lights follow source deletion. Single reversible transaction group with post-commit gate/placement verification.",
+                    properties: {
+                        sourceIds: { type: "array", items: { type: "integer" } },
+                        lightIds: { type: "array", items: { type: "integer" } },
+                        gateIds: { type: "array", items: { type: "integer" }, minItems: 2, maxItems: 2 },
+                        familyFile: { type: "string" },
+                        fillerFile: { type: "string", description: "Verified narrow closure RFA without planters." },
+                        standardWidth: { type: "boolean", default: false, description: "1100mm modules; only the last module uses the remainder. Remainders below300mm use planter-free filler." },
+                        reflowExisting: { type: "boolean", default: false, description: "Reflow only Abby-owned green fence instances, preserving measured endpoints and gates." },
+                        expectedProjectId: { type: "string" }, previewToken: { type: "string" },
+                        allowedDependentIds: { type: "array", items: { type: "integer" }, description: "Only explicitly reviewed additional IDs from DeletionPreview.Unexpected; never protected gates. Automatic owned sketch/hidden constraints are classified separately." },
+                    }, required: ["sourceIds", "gateIds", "familyFile"], additionalProperties: false,
+                },
+                familyConstraints: {
+                    type: "object",
+                    description: "Inspect or repair native RFA constraints on an isolated copy; never edits the active project/source RFA. Inspect without sourcePath reads the active family. Repair requires explicit declarative steps plus at least two different expected-width flex tests. apply=true/dryRun=false exports only after all tests pass before and after reopening. Existing output is never overwritten. Coordinates mm; raw inspected double parameter values are Revit internal feet.",
+                    properties: {
+                        mode: { type: "string", enum: ["inspect", "repair"], default: "inspect" },
+                        sourcePath: { type: "string", description: "Existing absolute RFA path. Required for repair; omitted inspect reads the active family." },
+                        fileName: { type: "string", description: "New output RFA filename only, no directory. Required for repair." },
+                        familyPath: { type: "array", items: { type: "string" }, description: "For inspect: exact nested family names from source root." },
+                        steps: {
+                            type: "array", items: {
+                                type: "object", properties: {
+                                    familyPath: { type: "array", items: { type: "string" } },
+                                    typeName: { type: "string" },
+                                    actions: { type: "array", items: {
+                                        type: "object", properties: {
+                                            kind: { type: "string", enum: ["parameter", "associate", "dimension", "align", "plane", "move", "curve", "removeDimension", "compactSiteGateParameters"] },
+                                            parameter: { type: "string" }, create: { type: "boolean" }, instance: { type: "boolean" },
+                                            dataType: { type: "string", enum: ["length", "yesNo"] },
+                                            formula: { type: ["string", "null"] }, valueMm: { type: "number" }, valueBool: { type: "boolean" },
+                                            elementId: { type: "integer" }, elementParameter: { type: "string" }, viewId: { type: "integer" },
+                                            references: { type: "array", description: "Two stable-reference strings or objects {elementId,kind,end}. kind=end for curve endpoint; FamilyInstanceReferenceType names for instance; reference planes need only elementId.", items: { type: ["string", "object"] } },
+                                            first: { type: ["string", "object"] }, second: { type: ["string", "object"] },
+                                            startMm: { type: "array", items: { type: "number" }, minItems: 3, maxItems: 3 },
+                                            endMm: { type: "array", items: { type: "number" }, minItems: 3, maxItems: 3 },
+                                            offsetMm: { type: "array", items: { type: "number" }, minItems: 3, maxItems: 3 },
+                                            normalMm: { type: "array", items: { type: "number" }, minItems: 3, maxItems: 3 }, name: { type: "string" },
+                                        }, required: ["kind"], additionalProperties: false,
+                                    } },
+                                    flexCases: { type: "array", items: { type: "object" }, description: "Optional local-family tests, same shape as root flexCases." },
+                                }, required: ["actions"], additionalProperties: false,
+                            },
+                        },
+                        flexCases: { type: "array", items: {
+                            type: "object", properties: {
+                                name: { type: "string" },
+                                parameters: { type: "array", items: { type: "object", properties: {
+                                    parameter: { type: "string" }, valueMm: { type: "number" }, valueBool: { type: "boolean" },
+                                }, required: ["parameter"], additionalProperties: false } },
+                                expectedWidthMm: { type: "number", exclusiveMinimum: 0 }, expectedHeightMm: { type: "number", exclusiveMinimum: 0 },
+                                toleranceMm: { type: "number", exclusiveMinimum: 0, maximum: 2, default: 0.5 },
+                                elementChecks: { type: "array", items: { type: "object", properties: {
+                                    elementId: { type: "integer" },
+                                    minMm: { type: "array", items: { type: ["number", "null"] }, minItems: 3, maxItems: 3 },
+                                    maxMm: { type: "array", items: { type: ["number", "null"] }, minItems: 3, maxItems: 3 },
+                                }, required: ["elementId"], additionalProperties: false } },
+                            }, required: ["parameters"], additionalProperties: false,
+                        } },
+                    }, additionalProperties: false,
+                },
+                constructionFence: {
+                    type: "object",
+                    description: "Create a parametric Taichung fixed sheet-metal fence RFA in Revit 2024. Type parameters drive width, height and sheet thickness; optional centered pedestrian door. Flexes native geometry before saving and after reopening; no host-project placement. Frame sizes are modeling assumptions, not structural design. Never overwrites an existing file.",
+                    properties: {
+                        templatePath: { type: "string", description: "Absolute Revit 2024 unhosted metric Generic Model .rft path." },
+                        curtainLouver: { type: "boolean", default: false, description: "Generate parametric louver core plus curtain-window adapter in Revit 2024. Width/height mm; default1125x3650,24 equal-spaced blades at45 degrees. Tests core flex and curtain-host resizing in an isolated temporary project before exporting." },
+                        greenFence: { type: "boolean", default: false, description: "Generate parametric construction green fence in Revit2024, default1100x2400mm above ground. Six rows/eight columns of shared pots, true150mm mesh arrays, catch trough, concrete base/foundation, irrigation and rear braces. Width-height flex verified before/after save; leaves/unmarked details schematic." },
+                        tightJoints: { type: "boolean", default: false, description: "greenFence=true: move brace centers to module end planes so adjacent modules share overlapping brace geometry; creates a separate family." },
+                        adaptivePlanters: { type: "boolean", default: false, description: "Green fence with planter count adapting to width300..2200mm, 125mm pitch." },
+                        fillerOnly: { type: "boolean", default: false, description: "Narrow closure10..299mm without planters or braces." },
+                        curtainTemplatePath: { type: "string", description: "curtainLouver: absolute Revit curtain-window .rft template path." },
+                        sharedUnits: { type: "boolean", default: false, description: "siteGate=true: rebuild with shared nested panel/diagonal units, equal spacing and 15 host size/formula parameters; component flex and reopened tests required before publishing." },
+                        drawingStyle: { type: "boolean", default: false, description: "siteGate=true: drawing-style gate with H250x125 posts, C125x50x20x2.3 chords, 16 ribbed/grille panels, tracks and shared truss units; default10000x6000mm. Unspecified details schematic; width-height flex verified." },
+                        siteGate: { type: "boolean", default: false, description: "重建工地大門關閉外觀；原生寬高連動門柱、29格門片、頂部桁架，不含折疊動作。" },
+                        widthMm: { type: "number", minimum: 10, maximum: 16000, description: "單位mm；各模式由後端檢核範圍。綠籬收邊10..299、可調盆數綠籬300..2200；百葉窗500..3000。" },
+                        heightMm: { type: "number", minimum: 1200, maximum: 6000, description: "圍籬2400..4500；大門3000..6000；百葉窗1200..6000，預設3650。單位mm。" },
+                        sheetThicknessMm: { type: "number", minimum: 1.2, maximum: 3, default: 1.2 },
+                        door: {
+                            type: "object", description: "Optional centered door opening from ground, closed leaf with 5mm perimeter gap; plinth and low rails stop at door jambs.",
+                            properties: {
+                                widthMm: { type: "number", minimum: 600, default: 1000 },
+                                heightMm: { type: "number", minimum: 800, default: 1200 },
+                            }, additionalProperties: false,
+                        },
+                    },
+                    required: ["templatePath"],
+                    additionalProperties: false,
+                },
+                dryRun: { type: "boolean", default: true, description: "constructionFence/familyConstraints: preview without publishing an output RFA. Constraint repair uses a temporary isolated copy and real flex tests." },
+                apply: { type: "boolean", default: false, description: "constructionFence/familyConstraints requires apply=true and dryRun=false to create output RFA." },
                 outputFolder: { type: "string", description: "輸出根資料夾絕對路徑,例如 C:\\Users\\xxx\\Desktop\\MEP管元件庫。不存在會自動建立。" },
                 categories: {
                     type: "array",

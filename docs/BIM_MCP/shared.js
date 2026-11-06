@@ -12,7 +12,7 @@
   // QA 7-17 會實際執行本檔，只信 window.__meetupSignupEffective() 回傳的 url / eventDate（即訪客實際看到的設定），並要求上面那一行原文含有同樣的純字串。
   // 舊的八月表單連結可從 git 歷史 e805fac 找回，不要再填回來。
   // ============================================================
-  var MEETUP_SIGNUP = { url: "https://forms.gle/B27MLgRv5EWYdp5s6", eventDate: "2026-10-24" };  // url = 報名表單；eventDate = 活動日期 YYYY-MM-DD（台北時間），活動當天結束後自動停用
+  var MEETUP_SIGNUP = { url: "", eventDate: "" };  // 上一期已結束；下一場尚未提供，保持關閉。
   // 唯讀 getter：執行期與 QA 7-17 都讀這個物件，所以閘門檢查的就是訪客實際看到的設定。
   window.__meetupSignupEffective = function () { return { url: MEETUP_SIGNUP.url, eventDate: MEETUP_SIGNUP.eventDate }; };
 
@@ -194,7 +194,7 @@
     "reference/spectrum-decision": { title: "光譜決策框架", desc: "FAIL 之後的 A/B/C/D 四條路線。" },
     "reference/skills-index": { title: "Skills 索引（61）", desc: "編排層：何時觸發 / 什麼順序。" },
     "reference/mep-playbook": { title: "機電教戰手冊", desc: "domain/mep-space-demand-matrix 的教學版，三章 + 配套模型導覽。" },
-    "reference/tools-index": { title: "Tools 索引", desc: "239 個執行層工具，依用途分八類。" },
+    "reference/tools-index": { title: "Tools 索引", desc: "253 個執行層工具，依用途分八類。" },
     "reference/domain-index": { title: "Domain 索引（94）", desc: "知識層：法規 / SOP / lessons。" },
     "reference/deployment-guide": { title: "部署指南", desc: "安裝到你的 Revit，完成第一次唯讀查詢。" },
     "reference/troubleshooting": { title: "排錯指南", desc: "三種症狀分流：看不到外掛、無法連線、結果不符預期。" },

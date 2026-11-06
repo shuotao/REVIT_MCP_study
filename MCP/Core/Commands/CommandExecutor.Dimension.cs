@@ -23,6 +23,7 @@ namespace RevitMCP.Core
         /// </summary>
         private object CreateDimensionByRay(JObject parameters)
         {
+            if (parameters["wallIds"] != null || parameters["elementIds"] != null) return CreateWallFaceChain(parameters);
             Document doc = _uiApp.ActiveUIDocument.Document;
 
             IdType viewId = parameters["viewId"]?.Value<IdType>() ?? 0;

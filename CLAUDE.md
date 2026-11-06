@@ -8,6 +8,14 @@ AI-only operating instructions belong here and should be written in English to a
 
 ## Project Overview
 
+## Abby column creation workflow
+
+For CAD column creation requests, follow `docs/ABBY-COLUMN-WORKFLOW.md` (user-defined workflow, 2026-10-24). Ask together for the outline layer, base level and top level unless already supplied. The user's response authorizes the complete batch: read CAD outlines and numbers, match/create size types, place columns, fill Text-group number and Floor, then verify. Do not omit metadata or revert to per-element confirmation loops. Confirm deployed tool capability before starting; avoid repeated compilation for routine modeling. Keep protected skills/config untouched.
+
+## Project architecture
+
+For elevation CAD steel beams, follow `docs/ABBY-ELEVATION-STEEL.md`. Use the existing `create_beams_from_dwg` tool's `elevationSteel` mode: CAD top lines provide Z, the named plan grid provides the center plane, and exact schedule dimensions determine the type. Write both Constraints/編號 and Text/編號. BOX thickness uses 牆標稱厚度. Preview before apply; do not treat a build as live validation.
+
 Revit MCP bridges AI language models and Autodesk Revit through the Model Context Protocol (MCP). It enables AI-assisted BIM workflows through natural-language tool calls.
 
 The project has two main runtime components:
@@ -37,7 +45,7 @@ These counts must be derived from source, not copied by memory.
 
 | Item | Current Count | Source of Truth |
 |---|---:|---|
-| Runtime MCP tools | 239 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
+| Runtime MCP tools | 253 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
 | Domain SOP files | 94 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
 | Claude skills | 61 | `.claude/skills/*/SKILL.md` |
 
@@ -545,3 +553,45 @@ Before answering with project-specific facts:
 3. If a domain method applies, did I read and follow the domain file?
 4. If active view/level/selection matters, did I re-anchor in this turn?
 5. If I changed docs or counts, did I run QA/QC or state why I could not?
+
+## Abby wall-floor join preference
+For parameter filling across multiple elements, always use a real batch tool with one apply call and one reversible transaction. Never loop over single-element write calls or request approval per element. For copying full type names to an instance text field, use modify_element_parameter with copyTypeNameBatch=true, explicit elementIds, the requested parameterName, and value="". Preview, apply once, and verify. If the loaded add-in lacks batch support, prepare the update and explain the restart requirement instead of reverting to individual writes.
+
+When the user requests wall-floor joining, use join_wall_tops with floorCutsWall=true. Floors must cut walls. Default scope is the whole current project unless the user narrows it. Preview first; apply only with dryRun=false and apply=true, then verify. Never substitute legacy mixed-category joining. This preference does not change beam-wall rules.
+
+
+The framing-region floor creation tool automatically joins each newly created floor to intersecting walls, enforcing floors cut walls. Report WallJoinFailed separately from floor creation failures. This automation is limited to floors created by that tool, not manual Revit floor creation.
+
+
+For beam-wall joining, use join_wall_tops with beamCutsWall=true: beams cut walls. Preview, apply and verify final committed state. Do not enable floorCutsWall simultaneously. Keep this rule alongside floors-cut-walls; report unresolved pairs rather than claiming complete success.
+
+
+Join priority is beams > floors > walls. For beam-floor inspection use join_wall_tops with auditBeamFloor=true, dryRun=true, apply=false (read-only). Do not infer cutting order from bounding boxes. This mode reports existing join order and intersecting unjoined pairs; it does not apply beam-floor joins.
+
+
+To apply the authorized beam > floor rule, use join_wall_tops with beamCutsFloor=true,dryRun=false,apply=true after preview. auditBeamFloor remains read-only. Report Verification (post-commit) as authoritative; failed pairs stay reported.
+
+
+
+For custom tool fixes, identify the user's active Revit version and compile/deploy/test only that version first. Validate on the actual model (preview, authorized apply, readback) before compiling other Revit versions. Distinguish compilation from live validation. Current active version confirmed 2024 on 2026-10-07.
+
+
+For selected RC-wall structural enabling, use modify_element_parameter with rcWallsStructuralBatch=true and explicit captured elementIds, parameterName=結構,value=1. Preview first; one batch apply with dryRun=false,apply=true. Do not issue one approval per element. The backend rechecks Wall type names contain RC and uses WALL_STRUCTURAL_SIGNIFICANT. Preserve non-RC walls and report skipped/read-only/grouped elements.
+
+
+For beam-tag centering, never read IndependentTag.TagText: native AccessViolationException was confirmed in Revit 2025 crash events on 2026-10-11. Resolve tag targets using GetTaggedElementIds and position via TagHeadPosition. Null tag text with TextReadStatus=SkippedNativeCrashRisk is unavailable, not empty. If a command timeout coincides with Revit exiting, inspect Windows Application crash events before retrying; do not assume a confirmation dialog.
+
+## Local drawing lookup preference
+For drawing-index lookup requests, read `vault/drawing-index.md` when present. It is user-authorized local-only reference memory and identifies the preferred source index. Verify requested entries against that source. Never copy its project-identifying contents into tracked files or logs.
+
+## Floor number correction by thickness
+- `modify_element_parameter.floorNumberRules` is an opt-in batch mode. Require current `viewId`, explicit visible floor `elementIds`, `parameterName=編號`, and empty `value`.
+- Rules use actual instance thickness in mm, with 0.1 mm tolerance. Match only the unique Text-group 編號 using `Definition.GetGroupTypeId()`; never select a same-named parameter by order.
+- Default dry run; require `apply=true` and `dryRun=false`. Use one transaction with post-commit verification and group rollback. Other thicknesses, missing/ambiguous parameters, read-only and grouped instances are skipped.
+
+## Multi-version update deployment preference (2026-10-14)
+For source synchronization and release updates, the user requires Revit 2024, 2025 and 2026 to be built and deployed together. This supersedes active-version-only deployment for those updates. Fix compatibility issues before deploying; verify each version's full dependency set and manifest. Live model validation remains distinct from successful builds/deployment.
+
+## Door tag clearance
+- Use move_element with avoidDoorTagOverlap=true, current plan viewId, explicit DoorTags elementIds, dryRun/apply. Uses view-specific projected door and tag bounding boxes, preserves orientation/depth, and never reads TagText.
+- Only tags overlapping measured door boxes are moved; candidates must clear all measured doors and other independent tags. Pinned/orphaned/leader/grouped or ambiguous/local-host failures skip. Missing boxes and unresolved positions are reported, not claimed clear. Single transaction with regenerated position/overlap verification and rollback group.

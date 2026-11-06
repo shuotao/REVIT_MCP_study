@@ -188,7 +188,7 @@ $excludedFiles = @(
 )
 
 $mdFiles = Get-ChildItem -Path $projectRoot -Filter "*.md" -Recurse -ErrorAction SilentlyContinue |
-    Where-Object { $_.FullName -notmatch "node_modules|\.claude[\\/]plugins|docs[\\/]_archive|docs[\\/]fork-audit|[\\/]log[\\/]" }
+    Where-Object { $_.FullName -notmatch "node_modules|\.claude[\\/]plugins|[\\/]\.(agents|codex)[\\/]|docs[\\/]_archive|docs[\\/]fork-audit|[\\/](log|tmp|output)[\\/]" }
     # log/ 為 append-only 事件日誌、docs/fork-audit/ 為 fork 盤點報告（gitignored）：
     # 兩者屬敘事性歷史文件，描述修正/外部 fork 時合法引用禁用檔名，非規範性指引，排除於 stale-ref 掃描。
 
@@ -906,13 +906,14 @@ function Get-ToolDescriptions {
     # break and the comparison would then "pass" on a prefix.
     # Returns $null when the map cannot be read, so the caller can distinguish "cannot verify"
     # from "verified clean" - those are not the same result.
-    $nodeScript = "import('./MCP-Server/build/tools/index.js').then(m=>{const o={};for(const t of m.registerRevitTools()){o[t.name]=(typeof t.description==='string')?t.description:null;}console.log(JSON.stringify(o));}).catch(()=>process.exit(2))"
-    Push-Location $projectRoot
-    $result = & node --input-type=module -e $nodeScript 2>$null
-    $exit = $LASTEXITCODE
-    Pop-Location
-    if ($exit -ne 0 -or -not $result) { return $null }
-    try { $obj = (($result -join '') | ConvertFrom-Json) } catch { return $null }
+    # A UTF-8 file avoids Windows PowerShell native-argument quoting and console encoding loss.
+    $jsonPath = [System.IO.Path]::GetTempFileName()
+    try {
+        & node (Join-Path $projectRoot 'MCP-Server\scripts\tool-descriptions.mjs') $jsonPath 2>$null
+        if ($LASTEXITCODE -ne 0) { return $null }
+        $obj = ([System.IO.File]::ReadAllText($jsonPath, [System.Text.Encoding]::UTF8) | ConvertFrom-Json)
+    } catch { return $null }
+    finally { Remove-Item -LiteralPath $jsonPath -Force -ErrorAction SilentlyContinue }
     if (-not $obj) { return $null }
     $map = @{}
     foreach ($p in $obj.PSObject.Properties) { $map[$p.Name] = $p.Value }

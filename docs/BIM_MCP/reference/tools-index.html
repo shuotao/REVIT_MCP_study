@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script>try{if(localStorage.getItem("bim-theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}</script>
-<title>Tools 索引（239 個）· BIM_MCP</title>
-<meta property="og:title" content="RevitMCP Tools 索引：239 個執行層工具">
-<meta property="og:description" content="239 個 MCP 工具 × 唯讀/寫入標註 × 來源模組。Tool 是執行層，方法在 Domain、編排在 Skill。">
+<title>Tools 索引（253 個）· BIM_MCP</title>
+<meta property="og:title" content="RevitMCP Tools 索引：253 個執行層工具">
+<meta property="og:description" content="253 個 MCP 工具 × 唯讀/寫入標註 × 來源模組。Tool 是執行層，方法在 Domain、編排在 Skill。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
@@ -88,9 +88,9 @@
 </nav>
 
 <header class="bim-hero">
-  <div class="bim-hero-eyebrow">TOOLS INDEX <span class="accent">239 個</span></div>
+  <div class="bim-hero-eyebrow">TOOLS INDEX <span class="accent">253 個</span></div>
   <h1 class="bim-hero-title">Tools · <span class="accent">執行層</span><br>模型上真正被動到的那一下</h1>
-  <p class="bim-hero-sub">Tool 是<strong>執行</strong>。它不決定方法，也不決定順序——方法在 <a href="domain-index.html">Domain</a>，順序在 <a href="skills-index.html">Skill</a>。這一頁把 239 個工具攤開，讓你看得到「有什麼」以及「哪些會動到模型」。</p>
+  <p class="bim-hero-sub">Tool 是<strong>執行</strong>。它不決定方法，也不決定順序——方法在 <a href="domain-index.html">Domain</a>，順序在 <a href="skills-index.html">Skill</a>。這一頁把 253 個工具攤開，讓你看得到「有什麼」以及「哪些會動到模型」。</p>
 </header>
 
 <section class="bim-section">
@@ -98,7 +98,7 @@
   <p>每張卡右上角的標記來自 <code>annotations.ts</code> 集中產生的 <code>annotations</code>，不是這一頁另外標的。</p>
   <ul>
     <li><strong>唯讀</strong>（95 個）——設計上不寫入 Revit 模型（<code>export_*</code> 與 <code>capture_view_image</code> 會另外寫出外部或暫存檔案）。</li>
-    <li><strong>會寫入</strong>（140 個）——會在 Transaction 裡改模型，但不刪除既有內容。可以 Undo，但會進 Revit 的復原堆疊。</li>
+    <li><strong>會寫入</strong>（154 個）——會在 Transaction 裡改模型，但不刪除既有內容。可以 Undo，但會進 Revit 的復原堆疊。</li>
     <li><strong>破壞性</strong>（4 個）——刪除或不可逆地取代既有內容：<code>curate_mep_sizes · dedup_detail_elements_in_view · delete_element · import_excel_to_drafting_views</code>。這份名單是白名單，程式碼裡多一個就會被閘門擋下。</li>
   </ul>
   <p style="color:var(--text-muted);font-size:13px;">「唯讀」是工具作者的宣告，不是執行時的沙箱。它告訴你這支工具<em>設計上</em>不寫入，不是保證它<em>不可能</em>寫入。</p>
@@ -121,11 +121,11 @@
         <tr><td><strong><a href="#cat-H">H</a></strong></td><td>視覺化</td><td class="num">31</td><td>上色、覆寫、隱藏顯示，也含材質與 Type 建構。</td></tr>
     </tbody>
   </table>
-  <p style="color:var(--text-muted);font-size:13px;">分類是 54 個來源模組的一個分割——每個模組恰好屬於一類，八類加總等於 239。這一頁由 <code>scripts/gen-tools-index.py</code> 從 <code>registerRevitTools()</code> 產生，不是手寫的。</p>
+  <p style="color:var(--text-muted);font-size:13px;">分類是 54 個來源模組的一個分割——每個模組恰好屬於一類，八類加總等於 253。這一頁由 <code>scripts/gen-tools-index.py</code> 從 <code>registerRevitTools()</code> 產生，不是手寫的。</p>
 </section>
 
 <section class="bim-section" data-search-root>
-  <h2 class="bim-section-title">239 個工具 · 依用途分組</h2>
+  <h2 class="bim-section-title">253 個工具 · 依用途分組</h2>
   <div class="bim-search">
     <label for="tool-search">搜尋工具名稱或描述</label>
     <input type="search" id="tool-search" data-search-input placeholder="例如：採光、牆、sheet">
@@ -139,9 +139,8 @@
   </div>
 
     <div data-search-group="A">
-    <h3 id="cat-A" class="cat-header">A · 基礎與查詢（32 個）</h3>
+    <h3 id="cat-A" class="cat-header">A · 基礎與查詢（34 個）</h3>
     <p class="cat-blurb">讀模型、找元素、問參數，多數工作的第一步；也包含少數寫入型前置工具（如載入共用參數檔 load_shared_parameters）。</p>
-    </div>
     <div class="tool-card" id="adjust_section_datums" data-tool="adjust_section_datums" data-search-item data-effect="write" data-search-in="A">
       <div>
         <div class="tool-name">adjust_section_datums</div>
@@ -150,6 +149,16 @@
       </div>
       <div>
         <div class="tool-desc">自動調整剖面視圖的網格線 (Grids) 與樓層線 (Levels) 2D 範圍與氣泡顯示。</div>
+      </div>
+    </div>
+    <div class="tool-card" id="align_coordinate_points_to_grids" data-tool="align_coordinate_points_to_grids" data-search-item data-effect="write" data-search-in="A">
+      <div>
+        <div class="tool-name">align_coordinate_points_to_grids</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">coordinate-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">將專案基準點與未夾住的測量點移到兩條直線軸網的平面交點，保留基準點內部 Z，將該處共用 XYZ 設為 0，真北角度不變。只操作目前主文件，模型與 CAD/Revit 連結不移動。預設為實際試作後整組回滾；apply=true、dryRun=false 及最新 previewToken 才正式提交。任何非座標元素異動或位置驗證失敗全部回滾。不儲存文件、不發佈至連結。</div>
       </div>
     </div>
     <div class="tool-card" id="analyze_floor_slopes" data-tool="analyze_floor_slopes" data-search-item data-effect="write" data-search-in="A">
@@ -170,6 +179,16 @@
       </div>
       <div>
         <div class="tool-desc">關閉目前 Revit 進程中已開啟的非連結文件（依標題比對）。常見情境：某個連結檔被獨立開啟以編輯，編輯完須先關閉才能讓宿主文件正常載入該連結。文件為目前作用文件時，Revit API 無法程式關閉作用文件，會回傳明確錯誤，需使用者先切換或開啟其他文件；連結文件與家族文件不受此限（家族文件可關閉，連結文件會被拒絕，須改由宿主文件的連結管理處理）。文件已修改時，預設拒絕關閉，除非指定 save 先儲存，或 discardChanges 放棄變更。</div>
+      </div>
+    </div>
+    <div class="tool-card" id="copy_parameter_by_group" data-tool="copy_parameter_by_group" data-search-item data-effect="write" data-search-in="A">
+      <div>
+        <div class="tool-name">copy_parameter_by_group</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">parameter-copy-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">依名稱與 Definition.GetGroupTypeId 精確配對並複製實例參數。必須 apply=true 且 dryRun=false 才寫入。空值、缺少或重複配對、唯讀與不相容參數會跳過。預設覆寫，單一交易失敗全部回復。回傳 Scanned/Planned/Updated/Unchanged/Skipped/Failed、分類統計與原值/新值統計。預設僅掃描 Walls，從約束／頂部約束複製到文字／牆頂至。預設 afterColon 從來源顯示文字取第一個半形或全形冒號後文字並去除前後空白，僅寫入字串目標；沒有冒號或擷取後空值會跳過。raw 模式保留原儲存類型及內部單位。</div>
       </div>
     </div>
     <div class="tool-card" id="create_level" data-tool="create_level" data-search-item data-effect="write" data-search-in="A">
@@ -249,7 +268,7 @@
         <div class="tool-module">base-tools</div>
       </div>
       <div>
-        <div class="tool-desc">[Phase 2: Alignment] Get all parameter names for a specific category. MANDATORY: Run this before &#x27;query_elements_with_filter&#x27; to identify exact localized parameter names.</div>
+        <div class="tool-desc">[Phase 2: Alignment] Get all parameter names for a specific category. MANDATORY: Run this before &#39;query_elements_with_filter&#39; to identify exact localized parameter names.</div>
       </div>
     </div>
     <div class="tool-card" id="get_door_window_coordinates" data-tool="get_door_window_coordinates" data-search-item data-effect="readonly" data-search-in="A">
@@ -269,7 +288,7 @@
         <div class="tool-module">base-tools</div>
       </div>
       <div>
-        <div class="tool-desc">取得指定元素的詳細資訊，包括參數、幾何資訊等。</div>
+        <div class="tool-desc">取得指定元素的詳細資訊與參數。IndependentTag 另回傳 OwnerViewId、IsOrphaned 與 TaggedElements（本機／連結元素 ID；無效 ID 為 -1）。僅非孤立柱標籤讀取 Tag.Text；其他標籤 Text=null、TextReadStatus=SkippedNativeCrashRisk，避免 Revit 原生 TagText 存取崩潰。不可將 null 當作空白標籤。</div>
       </div>
     </div>
     <div class="tool-card" id="get_field_values" data-tool="get_field_values" data-search-item data-effect="readonly" data-search-in="A">
@@ -349,7 +368,7 @@
         <div class="tool-module">base-tools</div>
       </div>
       <div>
-        <div class="tool-desc">修改 Revit 元素的參數值。</div>
+        <div class="tool-desc">修改 Revit 元素的唯一同名參數值。Double 使用 Revit 內部單位（長度為英尺）。梁參考樓層支援 ElementId，value 傳目前文件的 Level ID 字串；其他 ElementId 欄位不支援。</div>
       </div>
     </div>
     <div class="tool-card" id="move_element" data-tool="move_element" data-search-item data-effect="write" data-search-in="A">
@@ -359,7 +378,7 @@
         <div class="tool-module">base-tools</div>
       </div>
       <div>
-        <div class="tool-desc">移動指定的 Revit 元素（依 dx, dy, dz 指定位移量）。</div>
+        <div class="tool-desc">移動指定元素（dx/dy/dz，mm）；centerBeamTags=true 可批次將目前視圖梁標籤移到實際對應梁中心線中點的視圖投影，保留文字方向與引線。此模式需 viewId 與明確 elementIds，預設 dryRun=true，只有 dryRun=false 且 apply=true 才寫入。孤立、多目標、連結、釘選、群組或非梁標籤跳過。</div>
       </div>
     </div>
     <div class="tool-card" id="open_document" data-tool="open_document" data-search-item data-effect="write" data-search-in="A">
@@ -389,7 +408,7 @@
         <div class="tool-module">base-tools</div>
       </div>
       <div>
-        <div class="tool-desc">[Phase 3: Retrieval] Query elements with multi-filter support. NOTE: The &#x27;field&#x27; name MUST match names from &#x27;get_category_fields&#x27;.</div>
+        <div class="tool-desc">[Phase 3: Retrieval] Query elements with multi-filter support. NOTE: The &#39;field&#39; name MUST match names from &#39;get_category_fields&#39;.</div>
       </div>
     </div>
     <div class="tool-card" id="reload_links" data-tool="reload_links" data-search-item data-effect="write" data-search-in="A">
@@ -449,7 +468,7 @@
         <div class="tool-module">base-tools</div>
       </div>
       <div>
-        <div class="tool-desc">一次把整個專案的顯示單位切換到指定系統/模式（全案性動作，單一 Transaction 可 Ctrl+Z 還原）。mode=&#x27;taiwan&#x27; = 公制底 + Air Flow m³/h（建築技術規則 §102 通風量單位）+ Length 補單位符號；mode=&#x27;taiwan-plumbing&#x27; = taiwan 再加給排水管路側六格（管徑 mm、流量 L/min、流速 m/s、壓力 mH2O、摩擦 mmH2O/m、坡度 1:ratio），對齊建築設備編 §43/§46 與給水排水設備設計技術規範；&#x27;metric&#x27; / &#x27;imperial&#x27; 為純公制/英制預設。每個 spec 都會連同「精度」與「單位符號」一起設定——只設單位會讓 Length 顯示成裸數字（673 而非 673 mm），且流速精度 0.1 位會讓 2.98 與 3.05 看起來相同而產生假綠燈。可再用 length/area/volume/airFlow/pipeSize/flow/velocity/pressure/friction/slope 個別覆寫。⚠️ 台灣法規的壓力單位 kgf/cm² 在 Revit 2026 不存在（305 個 UnitTypeId 逐一反射確認），故以 mH2O 代用：1 kgf/cm² = 10.0 mH2O。回傳的 Result 是套用後從 Document 回讀的實際單位/符號/精度，不是參數回聲。</div>
+        <div class="tool-desc">一次把整個專案的顯示單位切換到指定系統/模式（全案性動作，單一 Transaction 可 Ctrl+Z 還原）。mode=&#39;taiwan&#39; = 公制底 + Air Flow m³/h（建築技術規則 §102 通風量單位）+ Length 補單位符號；mode=&#39;taiwan-plumbing&#39; = taiwan 再加給排水管路側六格（管徑 mm、流量 L/min、流速 m/s、壓力 mH2O、摩擦 mmH2O/m、坡度 1:ratio），對齊建築設備編 §43/§46 與給水排水設備設計技術規範；&#39;metric&#39; / &#39;imperial&#39; 為純公制/英制預設。每個 spec 都會連同「精度」與「單位符號」一起設定——只設單位會讓 Length 顯示成裸數字（673 而非 673 mm），且流速精度 0.1 位會讓 2.98 與 3.05 看起來相同而產生假綠燈。可再用 length/area/volume/airFlow/pipeSize/flow/velocity/pressure/friction/slope 個別覆寫。⚠️ 台灣法規的壓力單位 kgf/cm² 在 Revit 2026 不存在（305 個 UnitTypeId 逐一反射確認），故以 mH2O 代用：1 kgf/cm² = 10.0 mH2O。回傳的 Result 是套用後從 Document 回讀的實際單位/符號/精度，不是參數回聲。</div>
       </div>
     </div>
     <div class="tool-card" id="zoom_to_element" data-tool="zoom_to_element" data-search-item data-effect="readonly" data-search-in="A">
@@ -462,10 +481,10 @@
         <div class="tool-desc">將視圖縮放至指定元素，讓使用者可以快速定位。</div>
       </div>
     </div>
-    <div data-search-group="B">
-    <h3 id="cat-B" class="cat-header">B · 建模與構件（51 個）</h3>
+
+
+    <h3 id="cat-B" class="cat-header">B · 建模與構件（63 個）</h3>
     <p class="cat-blurb">產生或修改實體構件：牆、柱、樑、帷幕、地形、IFC 同步。</p>
-    </div>
     <div class="tool-card" id="align_structural_framing" data-tool="align_structural_framing" data-search-item data-effect="write" data-search-in="B">
       <div>
         <div class="tool-name">align_structural_framing</div>
@@ -506,6 +525,16 @@
         <div class="tool-desc">變更 Revit 元素的類型（例如將牆從 Type A 改為 Type B）。</div>
       </div>
     </div>
+    <div class="tool-card" id="create_beam_additions" data-tool="create_beam_additions" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">create_beam_additions</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">structure-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">rectangular 模式呼叫前必須依序詢問：先確認增築厚度（作為新梁深），再確認參考樓層與含正負號的 Z 偏移值，單位明確後換算為 mm。使用者本次已提供的設定不重複詢問；缺少資料不得預覽或寫入，不沿用其他批次設定。資料齊全後先預覽，檢查指定高程與類型，再在已授權範圍內正式執行。 依明確指定的既有水平直梁，在原平面位置建立同寬指定深度的增築梁。保留 Y 對正與偏移，頂部對正，參考樓層與 Z 偏移明確指定。高程只依指定參考樓層及 Z 偏移，不要求與原梁頂銜接；缺類型時同族群複製建立，以公分類型命名。文字群組編號精確寫入，單一交易驗證實體體積與高程，錯誤回滾。先預覽，再以相同 token 正式寫入。 slopedSolid 模式改以 sourceBeamIds（限一支）、floorId 及明確同意的 extendFloorPlane 決定幾何，不需 depthMm/referenceLevelId/zOffsetMm；不得宣稱為一般梁族群。</div>
+      </div>
+    </div>
     <div class="tool-card" id="create_beams_from_dwg" data-tool="create_beams_from_dwg" data-search-item data-effect="write" data-search-in="B">
       <div>
         <div class="tool-name">create_beams_from_dwg</div>
@@ -514,9 +543,9 @@
       </div>
       <div>
         <div class="tool-desc">從 CAD 指定圖層建立 Revit 結構樑（必須搭配文字標注圖層）。
-重要：建議按類型分批執行（先大樑、再次樑、再地樑），
-每批只處理一個線條圖層與對應的文字圖層。
-使用 beamRole 參數標示目前處理的批次。</div>
+可用 textLayerNames 合併大小梁文字圖層，並以 scheduleRules 指定個別梁號尺寸與角色；
+每批處理一個線條圖層；自訂尺寸表模式需要預覽 token 且跳過既有梁重疊。
+使用 beamRole 參數標示目前處理的批次。numericSchedule 模式依大小寫敏感的數字梁號規則選既有尺寸類型；預設唯讀，需 apply=true 且 dryRun=false 才建立。elevationSteel 模式讀立面CAD水平梁頂線，梁心投影至centerGridName軸網；讀textLayerNameX鋼梁號，依steelRules完整尺寸配型/新建型，並寫約束及文字群組編號。先預覽token才寫入；斜線及歧義跳過。BOX板厚用牆標稱厚度。</div>
       </div>
     </div>
     <div class="tool-card" id="create_column" data-tool="create_column" data-search-item data-effect="write" data-search-in="B">
@@ -526,7 +555,7 @@
         <div class="tool-module">wall-tools</div>
       </div>
       <div>
-        <div class="tool-desc">在指定位置建立柱子。</div>
+        <div class="tool-desc">在指定位置建立柱子。placements 可單次批次建立結構柱，使用明確類型ID及上下樓層；預設預覽，apply=true且dryRun=false才以單一交易寫入。相同位置及樓層既有柱跳過，不逐筆核准。</div>
       </div>
     </div>
     <div class="tool-card" id="create_columns_from_dwg" data-tool="create_columns_from_dwg" data-search-item data-effect="write" data-search-in="B">
@@ -536,7 +565,7 @@
         <div class="tool-module">dwg-column-tools</div>
       </div>
       <div>
-        <div class="tool-desc">從 CAD 指定圖層自動建立 Revit 結構柱或建築柱。會自動：辨識矩形輪廓、建立對應尺寸的族群類型、設定底頂樓層、套用旋轉角度。若指定 familyName，會從該族群的現有類型中依尺寸比對，直接使用原有柱名稱（如 C1、C2）；未指定時自動挑選最適族群並按尺寸建立新類型。執行前建議先呼叫 preview_dwg_columns 確認識別結果。此操作會修改 Revit 模型，無法自動復原，請謹慎使用。</div>
+        <div class="tool-desc">從 CAD 指定圖層自動建立 Revit 結構柱或建築柱。會自動：辨識矩形輪廓、建立對應尺寸的族群類型、設定底頂樓層、套用旋轉角度。topLevelId 可指定柱頂樓層，回傳 createdElementIds 供後續填號。若指定 familyName，會從該族群的現有類型中依尺寸比對，直接使用原有柱名稱（如 C1、C2）；未指定時自動挑選最適族群並按尺寸建立新類型。執行前建議先呼叫 preview_dwg_columns 確認識別結果。此操作會修改 Revit 模型，無法自動復原，請謹慎使用。</div>
       </div>
     </div>
     <div class="tool-card" id="create_corridor_dimension" data-tool="create_corridor_dimension" data-search-item data-effect="write" data-search-in="B">
@@ -629,6 +658,16 @@
         <div class="tool-desc">在 Revit 中建立樓板。需要指定邊界點座標。回傳值會揭露實際採用的樓層與樓板類型。</div>
       </div>
     </div>
+    <div class="tool-card" id="create_floors_from_framing_regions" data-tool="create_floors_from_framing_regions" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">create_floors_from_framing_regions</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">framing-floor-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">依指定樓層既有梁，或梁加柱的實體平面輪廓辨識封閉淨空區域，批次建立同一種樓板。新樓板建立後自動接合相交牆，強制樓板切割牆；逐組接合失敗記入 WallJoins 與 WallJoinFailed，保留可成功建立的樓板。沿梁柱內側，不伸入梁柱；扣除區內柱洞，不自動補缺口。僅目前文件與目前平面視圖階段，不含連結。無法解析的梁柱／既有樓板自動以保守包圍範圍隔離，其相鄰整區跳過並列出元素 ID 與原因；不支援可變厚板。採樓板厚度範圍內投影；跳過過小區域、短邊與既有樓板重疊。預設 dryRun=true，回傳多邊形、面積、regionKeys 與 previewToken。正式寫入須 apply=true、dryRun=false 及相同設定的 previewToken；每區獨立交易，失敗僅回滾該區並繼續其他區；致命文件錯誤才整批回滾。回傳 ExcludedItems、Created、Skipped、Failed、PartialSuccess。請先讓使用者選擇 list_floor_types 回傳的 floorTypeId，再預覽並確認要建的區域。</div>
+      </div>
+    </div>
     <div class="tool-card" id="create_grids" data-tool="create_grids" data-search-item data-effect="write" data-search-in="B">
       <div>
         <div class="tool-name">create_grids</div>
@@ -659,6 +698,26 @@
         <div class="tool-desc">批次建立門/窗『型別』（FamilySymbol）：複製指定的種子型別（seed）→ 命名 → 設定寬×高。輸入寬高單位為公分（cm），內部自動換算為 Revit 英尺。**只建立型別，絕不在模型中放置任何門窗實體**。可重複執行（idempotent）：同一族群中已存在同名型別則略過。適合把 CAD 門窗表的『編號→寬×高』一次生成整套型別，供後續 door-window-legend-tools 產生門窗圖例使用。寬或高任一參數設定不到即回滾該筆並列入 failed（不留尺寸錯一半的型別）。回傳 created / skipped / failed 三個清單。</div>
       </div>
     </div>
+    <div class="tool-card" id="create_structural_beam_types" data-tool="create_structural_beam_types" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">create_structural_beam_types</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">structure-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">批次複製 Structural Framing FamilySymbol，不放置梁實體。同族群既有同名類型跳過、不覆寫；同批重複名稱採第一筆。單一 Transaction，任一失敗整批回滾。回傳 Success、Created、Skipped、Failed、Error；回滾項目列入 Failed。</div>
+      </div>
+    </div>
+    <div class="tool-card" id="create_toposolid_from_cad" data-tool="create_toposolid_from_cad" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">create_toposolid_from_cad</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">grading-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">從 CAD 指定三維等高線圖層建立地形實體（Revit 2024+）。保留實例定位，每點 Z 減 surveyZeroMeters，再加基準樓層高程；不修改 CAD。預覽回傳 token，apply=true 且 dryRun=false 才建立。依 CAD 防重複，錯誤與驗證失敗回復。邊界為點雲包絡，不代表地界。</div>
+      </div>
+    </div>
     <div class="tool-card" id="create_wall" data-tool="create_wall" data-search-item data-effect="write" data-search-in="B">
       <div>
         <div class="tool-name">create_wall</div>
@@ -677,6 +736,16 @@
       </div>
       <div>
         <div class="tool-desc">在指定牆上用牆飾條（Wall Sweep）或分隔縫（Reveal）把牆等分：垂直方向沿牆長、水平方向沿牆高，divisions 等分會建立 divisions-1 條。可指定既有輪廓，或給 profileWidth/profileDepth 自動新建矩形輪廓族群。先用 listOnly 查專案有哪些飾條類型與輪廓，或用 dryRun 預覽等分位置。</div>
+      </div>
+    </div>
+    <div class="tool-card" id="create_walls_from_dwg" data-tool="create_walls_from_dwg" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">create_walls_from_dwg</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">cad-wall-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">可使用 lining 指定複壁類型，固定室內面並朝參考牆側增加厚度。未使用 lining 時，依目前平面 CAD WALL 雙線量測牆厚，自動對應 RC- 基本牆類型的實際寬度。名稱尺寸與實際寬度不一致的類型排除並回傳 TypeWarnings、影響牆數及修改確認提醒，絕不自動修改類型。相同中心線與厚度的牆段，僅在門窗圖層幾何覆蓋缺口時接續為完整牆，不建立門窗或洞口。支援直線及斜牆；歧義、無類型與既有牆重疊跳過。明確指定底部與頂部樓層，偏移預設 0。先 dryRun 預覽，正式寫入需 apply=true、dryRun=false、最新 previewToken。逐牆交易、整批單一復原群組；致命錯誤整批回滾。</div>
       </div>
     </div>
     <div class="tool-card" id="create_window" data-tool="create_window" data-search-item data-effect="write" data-search-in="B">
@@ -717,6 +786,36 @@
       </div>
       <div>
         <div class="tool-desc">Batch, non-destructive curtain wall elevation direction diagnostic. Compares wall.Orientation and -wall.Orientation candidate sides for selected or all curtain walls; temporary markers/views are created inside rollback transactions.</div>
+      </div>
+    </div>
+    <div class="tool-card" id="fill_beam_marks_from_dwg" data-tool="fill_beam_marks_from_dwg" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">fill_beam_marks_from_dwg</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">beam-mark-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">讀取指定連結 CAD 文字圖層，依 梁中心點 XY 最近距離配對指定既有結構梁，填入內建編號 ALL_MODEL_MARK。不建立梁。必須明確指定梁 ID、CAD UniqueId 與原圖單位。預設 dryRun=true；apply=true 且 dryRun=false 才寫入，單一交易失敗回復。距離超限、相近候選或共用標注跳過。只接受英文字母起首加數字的梁號，可去除尾端括號尺寸；大小寫保留；不支援文字旋轉或引線關係推理。大梁與小梁應分批指定各自文字圖層及明確 ID。回傳原值、新值、距離及分類統計。</div>
+      </div>
+    </div>
+    <div class="tool-card" id="fill_column_marks_from_dwg" data-tool="fill_column_marks_from_dwg" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">fill_column_marks_from_dwg</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">column-mark-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">讀取指定連結 CAD 文字圖層，依 XY 最近距離配對指定既有結構柱，填入內建編號 ALL_MODEL_MARK。不建立柱。必須明確指定柱 ID、CAD UniqueId 與原圖單位。預設 dryRun=true；apply=true 且 dryRun=false 才寫入，單一交易失敗回復。距離超限、相近候選或共用標注跳過。只接受英文字母起首加數字的柱號，可去除尾端括號尺寸；不支援引線關係推理。回傳原值、新值、距離及分類統計。</div>
+      </div>
+    </div>
+    <div class="tool-card" id="fit_beam_to_floor" data-tool="fit_beam_to_floor" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">fit_beam_to_floor</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">structure-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">將指定直梁頂面貼齊指定車道板底或板頂（targetSurface），沿原XY軸調整兩端坡度；板底全寬取樣非單一縱坡則拒絕。預設回滾預覽，正式寫入需previewToken及apply=true/dryRun=false。移除該梁既有接合並停用梁端接合；保留尺寸及平面位置。</div>
       </div>
     </div>
     <div class="tool-card" id="get_all_grids" data-tool="get_all_grids" data-search-item data-effect="readonly" data-search-in="B">
@@ -766,7 +865,7 @@
         <div class="tool-module">dwg-beam-tools</div>
       </div>
       <div>
-        <div class="tool-desc">掃描目前 Revit 平面視圖中所有 CAD 匯入/連結的圖層名稱，回傳圖層清單並自動推薦可能包含樑、標註文字的圖層。使用前請確認 Revit 已開啟平面視圖且已匯入 CAD 檔案。</div>
+        <div class="tool-desc">掃描目前 Revit 平面或立剖面視圖中所有 CAD 匯入/連結的圖層名稱，回傳圖層清單並自動推薦可能包含樑、標註文字的圖層。使用前請確認 Revit 已開啟平面或立剖面視圖且已匯入 CAD 檔案。</div>
       </div>
     </div>
     <div class="tool-card" id="get_dwg_block_instances" data-tool="get_dwg_block_instances" data-search-item data-effect="readonly" data-search-in="B">
@@ -869,6 +968,16 @@
         <div class="tool-desc">批次將多個 CAD 檔連結到對應樓層的平面視圖，並把每個 CAD 平移對齊到指定的 Revit Grid 交點。自動從 CAD 檔名抽樓層代碼（支援 FL1/FL2、B1/B1F、RF、1F/2F、地下1樓、3樓 等格式）→ 找名稱含該代碼的 FloorPlan。對齊方式：Link 後做 ElementTransformUtils.MoveElement，translation = (Revit Grid 交點 − CAD 錨點)。強制 Placement=Origin、不旋轉、不支援自訂 referencePoint / orientToView / customScale（會干擾對齊）。全部在單一 Transaction 內，失敗會 commit 已成功的部分並回報每筆狀態。</div>
       </div>
     </div>
+    <div class="tool-card" id="list_floor_types" data-tool="list_floor_types" data-search-item data-effect="readonly" data-search-in="B">
+      <div>
+        <div class="tool-name">list_floor_types</div>
+        <div class="tool-flags"><span class="tool-badge readonly">唯讀</span></div>
+        <div class="tool-module">framing-floor-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">列出目前 Revit 專案樓板類型 ID、名稱、厚度、基礎板與可變厚度旗標，供使用者選擇批次建板類型。</div>
+      </div>
+    </div>
     <div class="tool-card" id="place_furniture" data-tool="place_furniture" data-search-item data-effect="write" data-search-in="B">
       <div>
         <div class="tool-name">place_furniture</div>
@@ -949,6 +1058,16 @@
         <div class="tool-desc">掃描目前視圖中所有被套管（Sleeves）穿過的結構梁。回傳包含梁 ID、連結模型 ID 及穿過該梁的套管數量的清單。</div>
       </div>
     </div>
+    <div class="tool-card" id="shape_floor_ramp" data-tool="shape_floor_ramp" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">shape_floor_ramp</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">framing-floor-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">沿平面模型線或相切圓弧路徑修改指定平坦樓板，右側端點為低端。每隔指定水平里程畫橫向分割線，以低高端高程線性插值所有形狀頂點。保留同高既有形狀頂點與分割線；拒絕既有非平坦形狀、分割線交叉與不明確路徑。預覽後需 token、apply=true 與 dryRun=false；單一交易驗證失敗回滾。</div>
+      </div>
+    </div>
     <div class="tool-card" id="sync_ifc_structural_to_native" data-tool="sync_ifc_structural_to_native" data-search-item data-effect="write" data-search-in="B">
       <div>
         <div class="tool-name">sync_ifc_structural_to_native</div>
@@ -969,6 +1088,16 @@
         <div class="tool-desc">自動分析視圖中的樓梯幾何，偵測被牆、版等物件遮擋的邊緣線段，回傳座標以供後續繪製虛線。</div>
       </div>
     </div>
+    <div class="tool-card" id="unjoin_column_joins" data-tool="unjoin_column_joins" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">unjoin_column_joins</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">wall-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">以柱子為中心解除其與鄰近元素的幾何接合，涵蓋牆、樓板、結構樑。未指定 columnIds 時預設整個專案所有柱（或 viewId 內的柱）。可用 rejoin_wall_joins 還原（限同一 Revit session）。</div>
+      </div>
+    </div>
     <div class="tool-card" id="unjoin_element_joins" data-tool="unjoin_element_joins" data-search-item data-effect="write" data-search-in="B">
       <div>
         <div class="tool-name">unjoin_element_joins</div>
@@ -979,10 +1108,20 @@
         <div class="tool-desc">以指定來源類別為中心，解除其與鄰近 target 類別元素的幾何接合（BoundingBox 外擴 1 ft 搜尋）。預設 target 為 8 類（Walls、Floors、Columns、StructuralColumns、StructuralFraming、StructuralFoundation、Roofs、Ceilings）。常見用法：牆-柱（上色前置）＝ sourceCategory: Walls、targetCategories: [Columns, StructuralColumns]；柱本位 ＝ sourceCategories: [Columns, StructuralColumns]、targetCategories: [Walls, Floors, StructuralFraming]。解除的配對存在同一份 session 儲存，可用 rejoin_wall_joins 還原（限同一 Revit session）。</div>
       </div>
     </div>
-    <div data-search-group="C">
+    <div class="tool-card" id="unjoin_wall_joins" data-tool="unjoin_wall_joins" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">unjoin_wall_joins</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">wall-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">取消牆體與柱子等元素的幾何接合關係。常用於元素上色前的前置作業。</div>
+      </div>
+    </div>
+
+
     <h3 id="cat-C" class="cat-header">C · 房間與空間（19 個）</h3>
     <p class="cat-blurb">房間邊界、編號、面積、走廊、施工架周長。</p>
-    </div>
     <div class="tool-card" id="analyze_corridor_width" data-tool="analyze_corridor_width" data-search-item data-effect="readonly" data-search-in="C">
       <div>
         <div class="tool-name">analyze_corridor_width</div>
@@ -1150,7 +1289,7 @@
         <div class="tool-module">room-tools</div>
       </div>
       <div>
-        <div class="tool-desc">Batch-remap room finish code parameters in one Revit transaction. Designed for painting/finish schedules: split values by &#x27;+&#x27;, replace exact code tokens such as F11 -&gt; F10 without touching F1 inside F11, and let room schedules update from the changed room parameters. Defaults to dryRun=true.</div>
+        <div class="tool-desc">Batch-remap room finish code parameters in one Revit transaction. Designed for painting/finish schedules: split values by &#39;+&#39;, replace exact code tokens such as F11 -&gt; F10 without touching F1 inside F11, and let room schedules update from the changed room parameters. Defaults to dryRun=true.</div>
       </div>
     </div>
     <div class="tool-card" id="renumber_rooms_by_level" data-tool="renumber_rooms_by_level" data-search-item data-effect="write" data-search-in="C">
@@ -1173,10 +1312,10 @@
         <div class="tool-desc">依房間範圍偵測同樓層天花板，讀取天花板類型標記，預覽或寫回房間參數（預設：天花板塗層）以更新粉刷明細表。</div>
       </div>
     </div>
-    <div data-search-group="D">
+
+
     <h3 id="cat-D" class="cat-header">D · MEP 與碰撞（25 個）</h3>
     <p class="cat-blurb">風管系統、空間代表點、套管開孔、CSA 干涉；也含模型檢討工具組（梁下淨高、管線淨距、模型快照與警告、安全批次編輯）。</p>
-    </div>
     <div class="tool-card" id="add_pipe_cap" data-tool="add_pipe_cap" data-search-item data-effect="write" data-search-in="D">
       <div>
         <div class="tool-name">add_pipe_cap</div>
@@ -1244,7 +1383,7 @@
         <div class="tool-module">mep-tools</div>
       </div>
       <div>
-        <div class="tool-desc">把一組風口與一台設備組成 Revit 風管系統（MechanicalSystem）。equipmentId 可省略，用於建立「已決定獨立成系統但設備尚未選定」的中間狀態（端點未歸屬任何系統代表還沒決定，已建系統但設備欄空白代表已決定獨立、設備待補）——省略時會把 baseConnector 傳 null 呼叫 Revit API；Revit API 文件明載 baseEquipmentConnector 為選填、允許傳 null（&quot;The base equipment is optional for the system, so this argument may be null.&quot;），但此路徑目前僅為文件契約推導，執行期尚未實測，若實測發現與文件不符，例外訊息會原樣往上拋，不做替代方案。equipmentId、equipmentConnectorIndex、equipmentConnectorId 顯式傳 null 等同省略該參數。terminalIds 每筆若解析失敗（找不到元素、非 FamilyInstance、非整數 ElementId、該風口沒有任何 Connector、與 equipmentId 重複、在 terminalIds 內重複、Connector 已隸屬其他系統、方向或 Domain 不符、該風口有多於一個 HVAC Connector（本工具假設風口只有單一風管接頭，不自動挑選））都只記入該筆 TerminalResults 的 Error，不中止其餘風口；但全部風口都失敗時不建立系統，直接整體報錯。TerminalResults 陣列每筆對齊輸入 terminalIds 的同一位置，附 Index（輸入陣列位置，從 0 起算）、ElementId（terminalIds 該筆解析出的整數值；只有當這筆輸入本身不是合法整數時才為 null，一旦成功解析出整數，即使後續驗證失敗——與 equipmentId 重複、terminalIds 內重複、找不到元素、非 FamilyInstance、Connector 已隸屬其他系統等——ElementId 仍會回填該值方便對應是哪一筆，不會因為失敗就抹成 null，也不會用 0 這種本身合法的 ElementId 當失敗標記）、Success、Error、ConnectorIndex（該風口採用的 HVAC connector 在排序後清單中的位置索引，只有 Success=true 時才有值，其餘為 null）；另有 SystemNameAfter，只在該筆 Success=true 且整體 CommitStatus=&#x27;Committed&#x27; 時才有值，其餘情況為 null；其值即頂層 SystemName 的逐筆複本。設備上常有多個 Connector（送風/回風/排風/水路/電源），選錯不會報錯、只會接成錯的系統類型：本工具依 systemType 篩選 Domain.DomainHvac 且 DuctSystemType 或 Direction 相符者，剛好 1 個才自動採用並在 EquipmentConnector 完整回報其 Index/ConnectorId/DuctSystemType/Direction/Shape/Origin（部分族群的非流體 Connector 讀取 Direction/Shape/Origin 會拋例外，已包 try/catch，讀不到回 &quot;N/A&quot;）；未帶 equipmentId 時 EquipmentConnector 為 null；找到 0 個或多於 1 個一律拋例外並在訊息列出全部候選，多於 1 個時請改用 equipmentConnectorIndex（清單位置索引，本工具已先依 Connector.Id 排序才建立索引，故同一族群在接頭數不變時穩定；但族群重載後若接頭增減，索引會位移且不會報錯，需跨次呼叫穩定指定同一接頭時請用 equipmentConnectorId）或 equipmentConnectorId（Connector.Id，穩定識別）明確指定，不會靜默取第一個；equipmentConnectorIndex/equipmentConnectorId 指定的 Connector 仍會驗證 DuctSystemType/Direction 是否與 systemType 相符，不符會拋例外（不會只驗 Domain 就放行）。設備或風口的 Connector 若已隸屬其他系統，Revit 不允許加入第二個系統，本工具會在對應的錯誤訊息中列出既有系統的 ElementId 與名稱。回傳的 SystemId 是新建立的 MechanicalSystem 的 ElementId，讀取時機在 trans.Commit() 之後——CommitStatus 非 &#x27;Committed&#x27;（交易未成功提交）或讀取本身失敗時為 null，此時沒有系統可供後續工具引用。SystemType 是實際採用的系統類型（即 systemType 參數解析後的值），恆有值、不受 CommitStatus 影響。EquipmentId 是實際採用的設備 ElementId，在設備 Connector 解析成功時（早於交易 Commit）就已決定；未帶 equipmentId 時為 null。SystemName 是實際生效的系統名稱，於 Commit 之後讀回；CommitStatus 非 Committed 或讀取失敗時為 null、不補值。SystemFlowReadBack 是建立後從系統本身讀回的總流量，不是呼叫端寫進去的，是 Revit 依系統成員實際計算的結果——但只有在回傳的 IsWellConnected=true 時才是有效計算值；IsWellConnected=false（例如風口已放置但風管尚未繪製，系統未良好連接）時 Revit 文件明載該計算參數無效，請勿用於驗算，回傳的 Note 會註明原因。IsWellConnected 讀 MechanicalSystem.IsWellConnected，CommitStatus 非 Committed 或讀取失敗時為 null。回傳同時附 SystemIsEmpty（讀 MEPSystem.IsEmpty），CommitStatus 非 Committed 或讀取失敗時同樣為 null、不補值。若有設備，一併讀回其 Air Flow 參數放進 EquipmentAirFlowReadBack（附 IsReadOnly 供核對是否唯讀；若該族群同名參數有多個，Ambiguous=true 且讀取的是 Revit GetParameters() 回傳的第一筆，比對結果依 Revit 文件為隨機且可能變動）。兩者都拆成 Found/DisplayValue（顯示值）/RawValue（內部值）/CalculationValid/IsReadOnly/Ambiguous/Note 欄位，互不補值。回傳另附 ActualMemberCount（系統實際成員數，讀不到為 null）與 ExpectedMemberCount（= SuccessCount；Revit API 文件明載 MEPSystem.Elements 不含 base equipment 或 panel，故預期成員數只算風口成功筆數、不含設備）供交叉比對，不一致時 MemberCountMismatch=true。設備是否已掛上系統由獨立欄位 BaseEquipmentAttached 回報（true/false；交易非 Committed 或讀取失敗時為 null，不補值），不混進成員數比對。整批在單一 Transaction 內完成；systemName 有給時嘗試命名，但 Revit 要求系統名稱在專案內唯一，撞名時系統仍會建立並保留 Revit 自動產生的名稱，命名失敗的原因放在 SystemNameError（不會整批 rollback），你要求的原始名稱回報在 SystemNameRequested。回傳的 CommitStatus 是 Transaction.Commit() 的實際回傳狀態，Success 欄位同時要求 CommitStatus=&#x27;Committed&#x27; 且所有風口都成功；CommitStatus 非 Committed 時 CommitError 會說明、且不會讀回任何流量或系統成員資訊（避免對已回滾的元素讀值）。TerminalCount 是輸入 terminalIds 的總筆數（不論成敗）；SuccessCount／FailureCount 分別是成功／失敗筆數，兩者相加等於 TerminalCount。FailureCount=0 不等於整體 Success=true——即使所有風口都解析成功，只要 CommitStatus 不是 &#x27;Committed&#x27;，Success 仍為 false，請兩個欄位一起看。本工具的 MCP timeout 為 30 秒且逾時不會回滾——若逾時，Revit 端交易仍可能已提交，請務必用 query_elements_with_filter 或 get_element_info 核對模型實際狀態後再重試。直接重試會失敗——第一次已提交時，設備與風口的 Connector 已隸屬該系統，本工具會在設備端直接中止、或全部風口都記為失敗後因無可用成員而整體報錯（與 systemName 是否重複無關；名稱撞名本身不會讓呼叫失敗，只會填 SystemNameError）。作用視圖為明細表時，Revit 會在每次模型變更後重算整張表，依 domain/tool-capability-boundary.md L17 實測這會顯著提高逾時機率，回傳的 PerformanceWarning 會提醒（不擋執行），建議先用 set_active_view 切到一般平面圖再執行；回傳附 ElapsedMs 供核對耗時。</div>
+        <div class="tool-desc">把一組風口與一台設備組成 Revit 風管系統（MechanicalSystem）。equipmentId 可省略，用於建立「已決定獨立成系統但設備尚未選定」的中間狀態（端點未歸屬任何系統代表還沒決定，已建系統但設備欄空白代表已決定獨立、設備待補）——省略時會把 baseConnector 傳 null 呼叫 Revit API；Revit API 文件明載 baseEquipmentConnector 為選填、允許傳 null（&quot;The base equipment is optional for the system, so this argument may be null.&quot;），但此路徑目前僅為文件契約推導，執行期尚未實測，若實測發現與文件不符，例外訊息會原樣往上拋，不做替代方案。equipmentId、equipmentConnectorIndex、equipmentConnectorId 顯式傳 null 等同省略該參數。terminalIds 每筆若解析失敗（找不到元素、非 FamilyInstance、非整數 ElementId、該風口沒有任何 Connector、與 equipmentId 重複、在 terminalIds 內重複、Connector 已隸屬其他系統、方向或 Domain 不符、該風口有多於一個 HVAC Connector（本工具假設風口只有單一風管接頭，不自動挑選））都只記入該筆 TerminalResults 的 Error，不中止其餘風口；但全部風口都失敗時不建立系統，直接整體報錯。TerminalResults 陣列每筆對齊輸入 terminalIds 的同一位置，附 Index（輸入陣列位置，從 0 起算）、ElementId（terminalIds 該筆解析出的整數值；只有當這筆輸入本身不是合法整數時才為 null，一旦成功解析出整數，即使後續驗證失敗——與 equipmentId 重複、terminalIds 內重複、找不到元素、非 FamilyInstance、Connector 已隸屬其他系統等——ElementId 仍會回填該值方便對應是哪一筆，不會因為失敗就抹成 null，也不會用 0 這種本身合法的 ElementId 當失敗標記）、Success、Error、ConnectorIndex（該風口採用的 HVAC connector 在排序後清單中的位置索引，只有 Success=true 時才有值，其餘為 null）；另有 SystemNameAfter，只在該筆 Success=true 且整體 CommitStatus=&#39;Committed&#39; 時才有值，其餘情況為 null；其值即頂層 SystemName 的逐筆複本。設備上常有多個 Connector（送風/回風/排風/水路/電源），選錯不會報錯、只會接成錯的系統類型：本工具依 systemType 篩選 Domain.DomainHvac 且 DuctSystemType 或 Direction 相符者，剛好 1 個才自動採用並在 EquipmentConnector 完整回報其 Index/ConnectorId/DuctSystemType/Direction/Shape/Origin（部分族群的非流體 Connector 讀取 Direction/Shape/Origin 會拋例外，已包 try/catch，讀不到回 &quot;N/A&quot;）；未帶 equipmentId 時 EquipmentConnector 為 null；找到 0 個或多於 1 個一律拋例外並在訊息列出全部候選，多於 1 個時請改用 equipmentConnectorIndex（清單位置索引，本工具已先依 Connector.Id 排序才建立索引，故同一族群在接頭數不變時穩定；但族群重載後若接頭增減，索引會位移且不會報錯，需跨次呼叫穩定指定同一接頭時請用 equipmentConnectorId）或 equipmentConnectorId（Connector.Id，穩定識別）明確指定，不會靜默取第一個；equipmentConnectorIndex/equipmentConnectorId 指定的 Connector 仍會驗證 DuctSystemType/Direction 是否與 systemType 相符，不符會拋例外（不會只驗 Domain 就放行）。設備或風口的 Connector 若已隸屬其他系統，Revit 不允許加入第二個系統，本工具會在對應的錯誤訊息中列出既有系統的 ElementId 與名稱。回傳的 SystemId 是新建立的 MechanicalSystem 的 ElementId，讀取時機在 trans.Commit() 之後——CommitStatus 非 &#39;Committed&#39;（交易未成功提交）或讀取本身失敗時為 null，此時沒有系統可供後續工具引用。SystemType 是實際採用的系統類型（即 systemType 參數解析後的值），恆有值、不受 CommitStatus 影響。EquipmentId 是實際採用的設備 ElementId，在設備 Connector 解析成功時（早於交易 Commit）就已決定；未帶 equipmentId 時為 null。SystemName 是實際生效的系統名稱，於 Commit 之後讀回；CommitStatus 非 Committed 或讀取失敗時為 null、不補值。SystemFlowReadBack 是建立後從系統本身讀回的總流量，不是呼叫端寫進去的，是 Revit 依系統成員實際計算的結果——但只有在回傳的 IsWellConnected=true 時才是有效計算值；IsWellConnected=false（例如風口已放置但風管尚未繪製，系統未良好連接）時 Revit 文件明載該計算參數無效，請勿用於驗算，回傳的 Note 會註明原因。IsWellConnected 讀 MechanicalSystem.IsWellConnected，CommitStatus 非 Committed 或讀取失敗時為 null。回傳同時附 SystemIsEmpty（讀 MEPSystem.IsEmpty），CommitStatus 非 Committed 或讀取失敗時同樣為 null、不補值。若有設備，一併讀回其 Air Flow 參數放進 EquipmentAirFlowReadBack（附 IsReadOnly 供核對是否唯讀；若該族群同名參數有多個，Ambiguous=true 且讀取的是 Revit GetParameters() 回傳的第一筆，比對結果依 Revit 文件為隨機且可能變動）。兩者都拆成 Found/DisplayValue（顯示值）/RawValue（內部值）/CalculationValid/IsReadOnly/Ambiguous/Note 欄位，互不補值。回傳另附 ActualMemberCount（系統實際成員數，讀不到為 null）與 ExpectedMemberCount（= SuccessCount；Revit API 文件明載 MEPSystem.Elements 不含 base equipment 或 panel，故預期成員數只算風口成功筆數、不含設備）供交叉比對，不一致時 MemberCountMismatch=true。設備是否已掛上系統由獨立欄位 BaseEquipmentAttached 回報（true/false；交易非 Committed 或讀取失敗時為 null，不補值），不混進成員數比對。整批在單一 Transaction 內完成；systemName 有給時嘗試命名，但 Revit 要求系統名稱在專案內唯一，撞名時系統仍會建立並保留 Revit 自動產生的名稱，命名失敗的原因放在 SystemNameError（不會整批 rollback），你要求的原始名稱回報在 SystemNameRequested。回傳的 CommitStatus 是 Transaction.Commit() 的實際回傳狀態，Success 欄位同時要求 CommitStatus=&#39;Committed&#39; 且所有風口都成功；CommitStatus 非 Committed 時 CommitError 會說明、且不會讀回任何流量或系統成員資訊（避免對已回滾的元素讀值）。TerminalCount 是輸入 terminalIds 的總筆數（不論成敗）；SuccessCount／FailureCount 分別是成功／失敗筆數，兩者相加等於 TerminalCount。FailureCount=0 不等於整體 Success=true——即使所有風口都解析成功，只要 CommitStatus 不是 &#39;Committed&#39;，Success 仍為 false，請兩個欄位一起看。本工具的 MCP timeout 為 30 秒且逾時不會回滾——若逾時，Revit 端交易仍可能已提交，請務必用 query_elements_with_filter 或 get_element_info 核對模型實際狀態後再重試。直接重試會失敗——第一次已提交時，設備與風口的 Connector 已隸屬該系統，本工具會在設備端直接中止、或全部風口都記為失敗後因無可用成員而整體報錯（與 systemName 是否重複無關；名稱撞名本身不會讓呼叫失敗，只會填 SystemNameError）。作用視圖為明細表時，Revit 會在每次模型變更後重算整張表，依 domain/tool-capability-boundary.md L17 實測這會顯著提高逾時機率，回傳的 PerformanceWarning 會提醒（不擋執行），建議先用 set_active_view 切到一般平面圖再執行；回傳附 ElapsedMs 供核對耗時。</div>
       </div>
     </div>
     <div class="tool-card" id="curate_mep_sizes" data-tool="curate_mep_sizes" data-search-item data-effect="destructive" data-search-in="D">
@@ -1277,10 +1416,10 @@
         <div class="tool-desc">匯出 detect_clashes 結果為報表。format 可選 csv、json、both。預設輸出到桌面，檔名含時間戳。</div>
       </div>
     </div>
-    <div class="tool-card" id="export_families" data-tool="export_families" data-search-item data-effect="readonly" data-search-in="D">
+    <div class="tool-card" id="export_families" data-tool="export_families" data-search-item data-effect="write" data-search-in="D">
       <div>
         <div class="tool-name">export_families</div>
-        <div class="tool-flags"><span class="tool-badge readonly">唯讀</span></div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
         <div class="tool-module">mep-tools</div>
       </div>
       <div>
@@ -1394,7 +1533,7 @@
         <div class="tool-module">mep-tools</div>
       </div>
       <div>
-        <div class="tool-desc">回傳每個 Revit Space（OST_MEPSpaces）的代表點座標（mm）。這是本專案第一個支援 Space 品類的工具——get_room_info 等既有工具只吃 OST_Rooms，傳 Space 進去會 cast 失敗。供後續自動放置元件（如風口）使用。代表點依序嘗試 LocationPoint → BoundingBox 中心 → BoundingBox 內網格取樣，每一步都用 Space.IsPointInSpace 驗證是否真的落在空間內（凹形空間的 BoundingBox 中心可能落在空間外），全部失敗則回傳 null 並標示 PointSource=&#x27;None&#x27;，不做靜默 fallback。也回傳 BoundedHeight（= Volume / Area，可用來估算前期天花高度）。未放置或未封閉的 Space 仍會列出，但標示 IsPlaced=false 且幾何欄位為 null；IsPlaced=false 時可再看 HasLocation 與 IsEnclosed 區分「根本沒放置」與「已放置但未封閉（unenclosed）」這兩種處置方式完全不同的狀況。</div>
+        <div class="tool-desc">回傳每個 Revit Space（OST_MEPSpaces）的代表點座標（mm）。這是本專案第一個支援 Space 品類的工具——get_room_info 等既有工具只吃 OST_Rooms，傳 Space 進去會 cast 失敗。供後續自動放置元件（如風口）使用。代表點依序嘗試 LocationPoint → BoundingBox 中心 → BoundingBox 內網格取樣，每一步都用 Space.IsPointInSpace 驗證是否真的落在空間內（凹形空間的 BoundingBox 中心可能落在空間外），全部失敗則回傳 null 並標示 PointSource=&#39;None&#39;，不做靜默 fallback。也回傳 BoundedHeight（= Volume / Area，可用來估算前期天花高度）。未放置或未封閉的 Space 仍會列出，但標示 IsPlaced=false 且幾何欄位為 null；IsPlaced=false 時可再看 HasLocation 與 IsEnclosed 區分「根本沒放置」與「已放置但未封閉（unenclosed）」這兩種處置方式完全不同的狀況。</div>
       </div>
     </div>
     <div class="tool-card" id="place_family_instances" data-tool="place_family_instances" data-search-item data-effect="write" data-search-in="D">
@@ -1404,7 +1543,7 @@
         <div class="tool-module">mep-tools</div>
       </div>
       <div>
-        <div class="tool-desc">批次把族群實例放置到指定世界座標點，可放置後設定實例參數。這是本專案第一個不綁死品類的泛用放置工具——place_furniture 寫死 OST_Furniture、create_door/create_window 需要 hosting 牆，都無法放風口（Air Terminal）等 MEP 族群。placements 每筆優先用 typeId（FamilySymbol 的 ElementId）直接取用，不做名稱比對；未給 typeId 才走 familyName/typeName 名稱比對（支援「FamilyName: TypeName」複合寫法）。名稱比對採兩段式：給了 familyName 就只在該族群底下比對 typeName，命中多個會直接報錯要求改用 typeId，不會悶聲選第一個；familyName 為空才允許 typeName 全域比對，同樣命中多個會報錯。x/y/z 皆為世界座標，單位 mm，get_space_centroid 回傳的座標可直接餵入（歷史註記：2026-08-14 曾實測 z 是「相對所在樓層標高的偏移」而非世界座標，直接餵 get_space_centroid 的 Z 會整批高出一個樓層標高且無錯誤訊息；2026-08-15 已將 C# 端 z 語意改為世界座標，換算改在工具內部用 Level.ProjectElevation 完成，見下方 z 欄位的部署時滯警告；此偏移語意僅在單一模型的特定設備族群上實測過，可能為族群／放置型式相依，Revit API 文件並未記載此語意）。levelName 省略時的自動選層邏輯是取「ProjectElevation 最接近 z 且不高於 z」的樓層，z 改為世界座標後這段邏輯才自洽（此分支同樣未經 Revit 實測，見下方 levelName 欄位說明）。回傳結果的 LevelName 是實際採用的樓層，請與你給的 levelName 核對是否一致；並務必用回傳的 PlacedPoint（與 PlacedBBoxCenter，見下方）核對實際落點。rotation 為繞放置點鉛直軸旋轉的角度（度），預設 0。tag 是呼叫端自訂識別字串，原樣回傳供比對。整批只開一個 Transaction，單筆失敗不影響其他筆；若實例已建立但後續步驟（旋轉/設參數）才失敗，該筆結果仍會附上 ElementId 並在 Error 註明「實例已建立但後續步驟失敗」，避免孤兒元件追蹤不到。放置後、讀取旋轉軸與最終落點之前，工具會補一次 Regenerate（2026-08-14 實測某些族群如 Exhauster with Cabinet，放置後未 Regenerate 直接讀 LocationPoint 會拿到 (0,0,0)，即使 BoundingBox 證實位置正確；同批 AHU 沒有這個問題，屬族群相依）；加上參數設定完後的既有一次性 Regenerate，每筆 placement 在這兩個時點各至多一次、上限共兩次；另外每個尚未啟用的族群類型（FamilySymbol）在批次中第一次用到時會多觸發一次 Activate 後的 Regenerate，但只發生在該 symbol 第一次出現時，不隨 placement 筆數累加。批次規模較大時請沿用 domain/space-centroid-placement.md 的分批估算，避免撞破 MCP-Server 的 30 秒 timeout。回傳結果每筆附 PlacedPointSource：&#x27;LocationPoint&#x27; 代表 PlacedPoint 是讀到的實際落點（可用來偵測 Revit 放置時是否對點做了吸附/調整）；&#x27;RequestedFallback&#x27; 代表讀不到 LocationPoint、PlacedPoint 只是回聲你給的 x/y/z，此時不可用它判斷是否發生吸附。另附 PlacedBBoxCenter：取元件 BoundingBox 中心（mm），與 PlacedPoint 是兩個獨立訊號、互不補值——LocationPoint 因族群相依而失真時（如上述 Exhauster 案例），可用 PlacedBBoxCenter 交叉核對；BoundingBox 讀不到時為 null，不會用 PlacedPoint 頂替。PlacedBBoxCenter 是元件整體外接盒的中心，對非對稱族群本來就不等於插入點，且依 Revit API 文件該盒會納入 flip controls 等不明顯的幾何；交叉核對的用途是判斷量級是否合理（例如 PlacedPoint 回 (0,0,0) 而 BBox 中心落在預期位置附近），不是逐位比對相等。回傳逐筆 Success/Error 與整體成功/失敗計數。parameters 是放置後要設定的實例參數 {參數名: 值}；每個參數設定後會讀回兩個獨立欄位：WrittenBackDisplay（Parameter.AsValueString()，Revit 依專案顯示單位格式化的值）與 WrittenBackRaw（依 StorageType 取的內部單位原始值，ElementId 類參數若讀到有效 ID 就回該 ID、讀到「已設定但無效」則回 -1、真正讀不出來才回 null），兩者互不補值、各自可能為 null，務必併看才能判斷是數字寫錯還是單位換算錯——modify_element_parameter 走 Revit 內部單位，Set() 成功不代表寫進去的是你要的量（domain/tool-capability-boundary.md 的 lesson L16，實測表在該檔「寫入值／讀回值／比值」表格，記錄過「寫入 89.2 讀回 9093」的落差），這裡不做任何單位換算或猜測，只誠實回報寫進去之後實際是什麼，請自行比對 Requested 與這兩個 WrittenBack 欄位判斷是否正確。⚠️ 部署時滯警告（2026-08-15）：z 的世界座標語意是 C# 端的改動，需重新編譯部署 DLL 並重啟 Revit 才會生效；若你連到的 add-in 尚未更新，行為仍是舊版的「相對樓層偏移」語意，且不會有任何錯誤提示你版本不符。PlacedBBoxCenter 亦為本次新增欄位；若回傳結果中沒有這個欄位，即代表你連到的 add-in 尚未更新，z 仍為舊版的相對樓層偏移語意——這是唯一可用的版本判別訊號。首次使用本工具時請先只放 1 件，用回傳的 PlacedPoint 與 PlacedBBoxCenter 核對落點是否符合世界座標預期，確認無誤後再批次放置。</div>
+        <div class="tool-desc">批次把族群實例放置到指定世界座標點，可放置後設定實例參數。這是本專案第一個不綁死品類的泛用放置工具——place_furniture 寫死 OST_Furniture、create_door/create_window 需要 hosting 牆，都無法放風口（Air Terminal）等 MEP 族群。placements 每筆優先用 typeId（FamilySymbol 的 ElementId）直接取用，不做名稱比對；未給 typeId 才走 familyName/typeName 名稱比對（支援「FamilyName: TypeName」複合寫法）。名稱比對採兩段式：給了 familyName 就只在該族群底下比對 typeName，命中多個會直接報錯要求改用 typeId，不會悶聲選第一個；familyName 為空才允許 typeName 全域比對，同樣命中多個會報錯。x/y/z 皆為世界座標，單位 mm，get_space_centroid 回傳的座標可直接餵入（歷史註記：2026-08-14 曾實測 z 是「相對所在樓層標高的偏移」而非世界座標，直接餵 get_space_centroid 的 Z 會整批高出一個樓層標高且無錯誤訊息；2026-08-15 已將 C# 端 z 語意改為世界座標，換算改在工具內部用 Level.ProjectElevation 完成，見下方 z 欄位的部署時滯警告；此偏移語意僅在單一模型的特定設備族群上實測過，可能為族群／放置型式相依，Revit API 文件並未記載此語意）。levelName 省略時的自動選層邏輯是取「ProjectElevation 最接近 z 且不高於 z」的樓層，z 改為世界座標後這段邏輯才自洽（此分支同樣未經 Revit 實測，見下方 levelName 欄位說明）。回傳結果的 LevelName 是實際採用的樓層，請與你給的 levelName 核對是否一致；並務必用回傳的 PlacedPoint（與 PlacedBBoxCenter，見下方）核對實際落點。rotation 為繞放置點鉛直軸旋轉的角度（度），預設 0。tag 是呼叫端自訂識別字串，原樣回傳供比對。整批只開一個 Transaction，單筆失敗不影響其他筆；若實例已建立但後續步驟（旋轉/設參數）才失敗，該筆結果仍會附上 ElementId 並在 Error 註明「實例已建立但後續步驟失敗」，避免孤兒元件追蹤不到。放置後、讀取旋轉軸與最終落點之前，工具會補一次 Regenerate（2026-08-14 實測某些族群如 Exhauster with Cabinet，放置後未 Regenerate 直接讀 LocationPoint 會拿到 (0,0,0)，即使 BoundingBox 證實位置正確；同批 AHU 沒有這個問題，屬族群相依）；加上參數設定完後的既有一次性 Regenerate，每筆 placement 在這兩個時點各至多一次、上限共兩次；另外每個尚未啟用的族群類型（FamilySymbol）在批次中第一次用到時會多觸發一次 Activate 後的 Regenerate，但只發生在該 symbol 第一次出現時，不隨 placement 筆數累加。批次規模較大時請沿用 domain/space-centroid-placement.md 的分批估算，避免撞破 MCP-Server 的 30 秒 timeout。回傳結果每筆附 PlacedPointSource：&#39;LocationPoint&#39; 代表 PlacedPoint 是讀到的實際落點（可用來偵測 Revit 放置時是否對點做了吸附/調整）；&#39;RequestedFallback&#39; 代表讀不到 LocationPoint、PlacedPoint 只是回聲你給的 x/y/z，此時不可用它判斷是否發生吸附。另附 PlacedBBoxCenter：取元件 BoundingBox 中心（mm），與 PlacedPoint 是兩個獨立訊號、互不補值——LocationPoint 因族群相依而失真時（如上述 Exhauster 案例），可用 PlacedBBoxCenter 交叉核對；BoundingBox 讀不到時為 null，不會用 PlacedPoint 頂替。PlacedBBoxCenter 是元件整體外接盒的中心，對非對稱族群本來就不等於插入點，且依 Revit API 文件該盒會納入 flip controls 等不明顯的幾何；交叉核對的用途是判斷量級是否合理（例如 PlacedPoint 回 (0,0,0) 而 BBox 中心落在預期位置附近），不是逐位比對相等。回傳逐筆 Success/Error 與整體成功/失敗計數。parameters 是放置後要設定的實例參數 {參數名: 值}；每個參數設定後會讀回兩個獨立欄位：WrittenBackDisplay（Parameter.AsValueString()，Revit 依專案顯示單位格式化的值）與 WrittenBackRaw（依 StorageType 取的內部單位原始值，ElementId 類參數若讀到有效 ID 就回該 ID、讀到「已設定但無效」則回 -1、真正讀不出來才回 null），兩者互不補值、各自可能為 null，務必併看才能判斷是數字寫錯還是單位換算錯——modify_element_parameter 走 Revit 內部單位，Set() 成功不代表寫進去的是你要的量（domain/tool-capability-boundary.md 的 lesson L16，實測表在該檔「寫入值／讀回值／比值」表格，記錄過「寫入 89.2 讀回 9093」的落差），這裡不做任何單位換算或猜測，只誠實回報寫進去之後實際是什麼，請自行比對 Requested 與這兩個 WrittenBack 欄位判斷是否正確。⚠️ 部署時滯警告（2026-08-15）：z 的世界座標語意是 C# 端的改動，需重新編譯部署 DLL 並重啟 Revit 才會生效；若你連到的 add-in 尚未更新，行為仍是舊版的「相對樓層偏移」語意，且不會有任何錯誤提示你版本不符。PlacedBBoxCenter 亦為本次新增欄位；若回傳結果中沒有這個欄位，即代表你連到的 add-in 尚未更新，z 仍為舊版的相對樓層偏移語意——這是唯一可用的版本判別訊號。首次使用本工具時請先只放 1 件，用回傳的 PlacedPoint 與 PlacedBBoxCenter 核對落點是否符合世界座標預期，確認無誤後再批次放置。</div>
       </div>
     </div>
     <div class="tool-card" id="query_linked_elements" data-tool="query_linked_elements" data-search-item data-effect="readonly" data-search-in="D">
@@ -1427,10 +1566,10 @@
         <div class="tool-desc">唯讀掃描 MEP 管線穿越結構的開孔候選。沿用 detect_clashes 的 Curve-to-Solid 幾何核心，依明確的每側 clearanceMm 計算建議孔徑，並以 candidate / review_required 與 warningCodes 保守分流；不建立套管、開孔族群、標記或視圖圖形。</div>
       </div>
     </div>
-    <div data-search-group="E">
+
+
     <h3 id="cat-E" class="cat-header">E · 法規檢核（13 個）</h3>
     <p class="cat-blurb">排煙、偵煙、樓梯——有法源、有判準的檢查。</p>
-    </div>
     <div class="tool-card" id="analyze_smoke_detectors" data-tool="analyze_smoke_detectors" data-search-item data-effect="readonly" data-search-in="E">
       <div>
         <div class="tool-name">analyze_smoke_detectors</div>
@@ -1561,10 +1700,10 @@
         <div class="tool-desc">依照法規判定結果對偵煙探測器上色：綠=PASS、紅=FAIL、橙=WARN（出風口資料缺失）。</div>
       </div>
     </div>
-    <div data-search-group="F">
+
+
     <h3 id="cat-F" class="cat-header">F · 視圖與圖紙（40 個）</h3>
     <p class="cat-blurb">建視圖、裁剪、圖紙配置、視埠定位、跨專案複製。</p>
-    </div>
     <div class="tool-card" id="align_titleblocks_on_sheets" data-tool="align_titleblocks_on_sheets" data-search-item data-effect="write" data-search-in="F">
       <div>
         <div class="tool-name">align_titleblocks_on_sheets</div>
@@ -1742,7 +1881,7 @@
         <div class="tool-module">view-duplicate-tools</div>
       </div>
       <div>
-        <div class="tool-desc">Duplicate one or more views with detailing (ViewDuplicateOption.WithDetailing keeps view-specific detailing/annotation), optionally renaming them and copying the crop region from the source view. Typical use: create the &#x27;高於6m牆標示&#x27; tall-partition markup views from a base plan.</div>
+        <div class="tool-desc">Duplicate one or more views with detailing (ViewDuplicateOption.WithDetailing keeps view-specific detailing/annotation), optionally renaming them and copying the crop region from the source view. Typical use: create the &#39;高於6m牆標示&#39; tall-partition markup views from a base plan.</div>
       </div>
     </div>
     <div class="tool-card" id="get_all_sheets" data-tool="get_all_sheets" data-search-item data-effect="readonly" data-search-in="F">
@@ -1965,10 +2104,10 @@
         <div class="tool-desc">補丁工具：為 target 中已存在的 sheets 從 source 同號 sheet 補齊 custom parameters（例如修補先前 copy_sheets_from_file 沒帶到的 sheet folder/圖集 / Discipline / 繪圖人 等）。**不會重建 sheet、不會動 viewport**，只比對同 SheetNumber 並複製 custom parameters。同名 + 同 StorageType 的 writable parameter 才會被複製，ElementId 類型跳過。觸發條件：使用者提到 sheet folder 缺失、補圖集、修圖紙分組、sheet 沒歸入 folder、補 sheet metadata、sync sheet parameter、batch update sheet parameter。</div>
       </div>
     </div>
-    <div data-search-group="G">
+
+
     <h3 id="cat-G" class="cat-header">G · 標註與詳圖（28 個）</h3>
     <p class="cat-blurb">尺寸、詳圖元件、填充區域、圖例、明細表、文字。</p>
-    </div>
     <div class="tool-card" id="auto_convert_rotated_viewport_patterns" data-tool="auto_convert_rotated_viewport_patterns" data-search-item data-effect="write" data-search-in="G">
       <div>
         <div class="tool-name">auto_convert_rotated_viewport_patterns</div>
@@ -2046,7 +2185,7 @@
         <div class="tool-module">dimension-tools</div>
       </div>
       <div>
-        <div class="tool-desc">使用射線偵測 (Ray-Casting) 建立尺寸標註。從指定原點向正反方向發射射線，偵測牆面並建立標註。</div>
+        <div class="tool-desc">指定 elementIds 可混合牆與建築柱／結構柱，以實際平面面參照建立寬度與淨距連續串。samplePoints 可指定個別構件取樣點，尺寸線仍依 origin/offsetMm 統一定位；非平行、缺面或重疊跳過。elementIds 與 wallIds 擇一。指定 wallIds（至少兩道牆）時，鎖定多道直線平行基本牆的實際側面，一次建立包含牆厚與牆間淨距的單一連續尺寸串。origin.x/y/z 為 mm，direction 指向串列延伸方向且垂直牆身。不使用 3D 最近射線、不抓其他牆柱；回傳每道牆穩定面參照及各段實測值。任一選定牆在取樣位置有開口或參照不明確，整串跳過並列出原因。預設 dryRun=true，apply=true 且 dryRun=false 才建立，已存在相同面參照串則不重複建立。未提供 wallIds 時保留原射線流程。</div>
       </div>
     </div>
     <div class="tool-card" id="create_legends" data-tool="create_legends" data-search-item data-effect="write" data-search-in="G">
@@ -2249,10 +2388,10 @@
         <div class="tool-desc">自動同步所有詳圖元件的類型參數（詳圖圖號、圖說名稱）與其所在圖紙的編號和名稱。僅更新類型名稱已匹配圖紙編號的元件，不會影響共用標準詳圖。</div>
       </div>
     </div>
-    <div data-search-group="H">
+
+
     <h3 id="cat-H" class="cat-header">H · 視覺化（31 個）</h3>
     <p class="cat-blurb">上色、覆寫、隱藏顯示——把分析結果畫回模型上；也涵蓋材質與 Type 建構（含綠建材材質）。</p>
-    </div>
     <div class="tool-card" id="assign_existing_material" data-tool="assign_existing_material" data-search-item data-effect="write" data-search-in="H">
       <div>
         <div class="tool-name">assign_existing_material</div>
@@ -2260,7 +2399,7 @@
         <div class="tool-module">visualization-tools</div>
       </div>
       <div>
-        <div class="tool-desc">將既有材質（透過名稱查找）套用到指定的 Type。不建立新材質。用於復原或批次指派既有材質（例如把 9 個柱子從 &#x27;White_MCP&#x27; 改回 &#x27;鋼 AISI 1015&#x27;）。</div>
+        <div class="tool-desc">將既有材質（透過名稱查找）套用到指定的 Type。不建立新材質。用於復原或批次指派既有材質（例如把 9 個柱子從 &#39;White_MCP&#39; 改回 &#39;鋼 AISI 1015&#39;）。</div>
       </div>
     </div>
     <div class="tool-card" id="batch_set_material" data-tool="batch_set_material" data-search-item data-effect="write" data-search-in="H">
@@ -2270,7 +2409,7 @@
         <div class="tool-module">visualization-tools</div>
       </div>
       <div>
-        <div class="tool-desc">批次修改指定 Type 的材質（複製原材質模式）。為每個 Type 的原材質建立複本 &#x27;{原名}_{suffix}&#x27;，只修改複本的 Appearance Asset（diffuse color），保留 Graphics 顏色與原材質其他屬性。影響 Enscape/V-Ray 等渲染引擎，但平面圖切割填充和 Revit Shaded 3D 維持原材質外觀。牆/樓板只修改 CompoundStructure 最外層（Layer 0），其他層保留。已含 suffix 的材質會被冪等跳過。</div>
+        <div class="tool-desc">批次修改指定 Type 的材質（複製原材質模式）。為每個 Type 的原材質建立複本 &#39;{原名}_{suffix}&#39;，只修改複本的 Appearance Asset（diffuse color），保留 Graphics 顏色與原材質其他屬性。影響 Enscape/V-Ray 等渲染引擎，但平面圖切割填充和 Revit Shaded 3D 維持原材質外觀。牆/樓板只修改 CompoundStructure 最外層（Layer 0），其他層保留。已含 suffix 的材質會被冪等跳過。</div>
       </div>
     </div>
     <div class="tool-card" id="clear_element_override" data-tool="clear_element_override" data-search-item data-effect="write" data-search-in="H">
@@ -2290,7 +2429,7 @@
         <div class="tool-module">visualization-tools</div>
       </div>
       <div>
-        <div class="tool-desc">在 Revit 專案材質庫 (OST_Materials) 中實體發動 Duplicate/Create 獨立建立純淨綠建材或測試 Material (如 &#x27;test材質&#x27; 或 &#x27;GBM0104106_水性漆(居室外用)&#x27;)。</div>
+        <div class="tool-desc">在 Revit 專案材質庫 (OST_Materials) 中實體發動 Duplicate/Create 獨立建立純淨綠建材或測試 Material (如 &#39;test材質&#39; 或 &#39;GBM0104106_水性漆(居室外用)&#39;)。</div>
       </div>
     </div>
     <div class="tool-card" id="create_material" data-tool="create_material" data-search-item data-effect="write" data-search-in="H">
@@ -2510,7 +2649,7 @@
         <div class="tool-module">visualization-tools</div>
       </div>
       <div>
-        <div class="tool-desc">將綠建材共享參數 Schema（GreenMaterial_SharedParams.txt，Mat1~Mat6 六槽位 + Construction 群組共 67 個欄位）實體寫入指定 ElementType 的 Identity Data。參數須已透過 load_shared_parameters 綁定至該 Type 所屬品類（如 Walls），否則對應欄位會列在回傳的 MissingParameters 中。Mat1=主體/牆板，Mat2=面材/塗料，Mat3=附屬/膠材（僅有基本欄位，無 TVOC/Formaldehyde/CNS），Mat4/Mat5/Mat6=追加構造層（欄位與 Mat1/Mat2 同樣完整）。一個 Set 有幾種材料就只傳幾個 matN 物件，其餘留空，不必寫滿 6 組；哪個材料進哪個槽位請依 GM_generate_revit_injection_plan.py 產出的 plan[&#x27;materialSlotAssignment&#x27;] 決定，不要自行猜測順序——非幾何輔助材料（接著劑/填縫劑/防水材料）一樣要填一個 matN 物件（Mat 槽位記錄的是「這個元件用了哪些綠建材」的完整清單，不是只有物理構造層才算數），另外再用 adhesive/sealant/waterproofing 額外補記它們的施工用途，兩者並存不衝突、不是二選一。</div>
+        <div class="tool-desc">將綠建材共享參數 Schema（GreenMaterial_SharedParams.txt，Mat1~Mat6 六槽位 + Construction 群組共 67 個欄位）實體寫入指定 ElementType 的 Identity Data。參數須已透過 load_shared_parameters 綁定至該 Type 所屬品類（如 Walls），否則對應欄位會列在回傳的 MissingParameters 中。Mat1=主體/牆板，Mat2=面材/塗料，Mat3=附屬/膠材（僅有基本欄位，無 TVOC/Formaldehyde/CNS），Mat4/Mat5/Mat6=追加構造層（欄位與 Mat1/Mat2 同樣完整）。一個 Set 有幾種材料就只傳幾個 matN 物件，其餘留空，不必寫滿 6 組；哪個材料進哪個槽位請依 GM_generate_revit_injection_plan.py 產出的 plan[&#39;materialSlotAssignment&#39;] 決定，不要自行猜測順序——非幾何輔助材料（接著劑/填縫劑/防水材料）一樣要填一個 matN 物件（Mat 槽位記錄的是「這個元件用了哪些綠建材」的完整清單，不是只有物理構造層才算數），另外再用 adhesive/sealant/waterproofing 額外補記它們的施工用途，兩者並存不衝突、不是二選一。</div>
       </div>
     </div>
     <div class="tool-card" id="set_link_display_settings" data-tool="set_link_display_settings" data-search-item data-effect="write" data-search-in="H">
@@ -2564,6 +2703,35 @@
       </div>
     </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </section>
 
 <section class="bim-section">
@@ -2577,7 +2745,7 @@
     <a href="../index.html" class="bim-footer-btn">回 BIM_MCP 首頁</a>
   </div>
   <p>BIM_MCP · reference / tools-index</p>
-  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">239 個 MCP 工具完整索引，由 scripts/gen-tools-index.py 從 registerRevitTools() 產生；唯讀/寫入標註由 annotations.ts 集中產生。</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">253 個 MCP 工具完整索引，由 scripts/gen-tools-index.py 從 registerRevitTools() 產生；唯讀/寫入標註由 annotations.ts 集中產生。</p>
 </footer>
 
 <script src="../shared.js"></script>

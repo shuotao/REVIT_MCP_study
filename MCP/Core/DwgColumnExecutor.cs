@@ -17,7 +17,7 @@ namespace RevitMCP.Core
     ///   - preview_dwg_columns   : 預覽指定圖層解析出的柱資訊
     ///   - create_columns_from_dwg : 從 CAD 圖層建立結構柱或建築柱
     /// </summary>
-    public static class DwgColumnExecutor
+    public static partial class DwgColumnExecutor
     {
         const double FtMm = 304.8;
         const double MmFt = 1.0 / 304.8;
@@ -160,6 +160,7 @@ namespace RevitMCP.Core
         // ────────────────────────────────────────────────
         public static object CreateColumnsFromDwg(Document doc, JObject p)
         {
+            if (p["exactTypeId"] != null) return CreateExactSteelColumns(doc, p);
             var vp = doc.ActiveView as ViewPlan;
             if (vp == null) throw new Exception("請在平面視圖中執行");
 
@@ -181,7 +182,16 @@ namespace RevitMCP.Core
             var bLv = vp.GenLevel;
             if (bLv == null) throw new Exception("無法取得基準樓層");
 
-            var tLv = new FilteredElementCollector(doc)
+            Level tLv;
+            if (p["topLevelId"] != null)
+            {
+                if (p["topLevelId"].Type != JTokenType.Integer || (long)p["topLevelId"] <= 0)
+                    throw new ArgumentException("topLevelId must be a positive integer.");
+                tLv = doc.GetElement(new ElementId((long)p["topLevelId"])) as Level;
+                if (tLv == null || tLv.Elevation <= bLv.Elevation + 0.001)
+                    throw new ArgumentException("Specified top level must exist and be above the base level.");
+            }
+            else tLv = new FilteredElementCollector(doc)
                 .OfClass(typeof(Level)).Cast<Level>()
                 .Where(l => l.Elevation > bLv.Elevation + 0.001)
                 .OrderBy(l => l.Elevation).FirstOrDefault();
@@ -236,6 +246,7 @@ namespace RevitMCP.Core
                 }
             }
 
+            var createdElementIds = new List<long>();
             int ok = 0, fail = 0;
             var errors = new List<string>();
             var typeMapping = new List<string>();
@@ -249,6 +260,8 @@ namespace RevitMCP.Core
 
                 foreach (var c in cols)
                 {
+                    using (var columnTransaction = new SubTransaction(doc))
+                    {
                     try
                     {
                         FamilySymbol sym;
@@ -295,9 +308,11 @@ namespace RevitMCP.Core
                         }
                         if (!sym.IsActive) { sym.Activate(); doc.Regenerate(); }
 
+                        if (columnTransaction.Start() != TransactionStatus.Started)
+                            throw new InvalidOperationException("Could not start column transaction.");
                         var loc = new XYZ(c.X, c.Y, bLv.Elevation);
                         var inst = doc.Create.NewFamilyInstance(loc, sym, bLv, stype);
-                        if (inst != null)
+                        if (inst == null) throw new InvalidOperationException("Column creation returned null.");
                         {
                             SetParam(inst, BuiltInParameter.FAMILY_TOP_LEVEL_PARAM, tLv.Id);
                             SetParam(inst, BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM, 0.0);
@@ -308,6 +323,15 @@ namespace RevitMCP.Core
                                 var ax = Line.CreateBound(loc, loc + XYZ.BasisZ);
                                 ElementTransformUtils.RotateElement(doc, inst.Id, ax, c.A);
                             }
+                            doc.Regenerate();
+                            if (inst.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM)?.AsElementId() != tLv.Id ||
+                                inst.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_PARAM)?.AsElementId() != bLv.Id ||
+                                Math.Abs(inst.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM)?.AsDouble() ?? double.PositiveInfinity) > 1e-8 ||
+                                Math.Abs(inst.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM)?.AsDouble() ?? double.PositiveInfinity) > 1e-8)
+                                throw new InvalidOperationException("Column level/offset readback mismatch.");
+                            if (columnTransaction.Commit() != TransactionStatus.Committed)
+                                throw new InvalidOperationException("Column subtransaction did not commit.");
+                            createdElementIds.Add(inst.Id.GetIdValue());
                             ok++;
                             if (typeMapping.Count < 10 && !typeMapping.Contains(sym.Name))
                                 typeMapping.Add(sym.Name);
@@ -315,11 +339,18 @@ namespace RevitMCP.Core
                     }
                     catch (Exception ex)
                     {
+                        if (columnTransaction.GetStatus() == TransactionStatus.Started) columnTransaction.RollBack();
+                        if (ex is Autodesk.Revit.Exceptions.RegenerationFailedException ||
+                            ex is Autodesk.Revit.Exceptions.ModificationForbiddenException ||
+                            ex is Autodesk.Revit.Exceptions.OperationCanceledException ||
+                            ex is System.OperationCanceledException || ex is OutOfMemoryException) throw;
                         fail++;
                         errors.Add(ex.Message);
                     }
+                    }
                 }
-                tr.Commit();
+                if (tr.Commit() != TransactionStatus.Committed)
+                    throw new InvalidOperationException("Column batch did not commit; no successful creation reported.");
             }
 
             return new
@@ -335,6 +366,8 @@ namespace RevitMCP.Core
                 depthParam = dp,
                 baseLevel = bLv.Name,
                 topLevel = tLv.Name,
+                topLevelId = tLv.Id.GetIdValue(),
+                createdElementIds,
                 totalDetected = cols.Count,
                 created = ok,
                 failed = fail,
@@ -741,7 +774,7 @@ namespace RevitMCP.Core
 
             var psi = new ProcessStartInfo
             {
-                FileName = "python",
+                FileName = AbbyEnvironment.ResolvePython(),
                 Arguments = $"\"{workerPath}\" \"{filePath}\" \"{textLayerName}\"",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,

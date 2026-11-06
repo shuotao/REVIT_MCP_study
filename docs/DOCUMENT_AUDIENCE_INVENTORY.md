@@ -15,7 +15,7 @@ This inventory defines which project documents are for AI agents, human readers,
 
 | Item | Count | Source |
 |---|---:|---|
-| Runtime MCP tools | 239 | `registerRevitTools()` |
+| Runtime MCP tools | 253 | `registerRevitTools()` |
 | Domain SOP files | 94 | `domain/*.md` except README, plus `domain/references/*.md` |
 | Claude skills | 61 | `.claude/skills/*/SKILL.md` |
 
@@ -97,3 +97,11 @@ These must remain understandable by both sides.
 5. Any document that states global counts must identify or follow the source of truth.
 6. Any new setup path must use `Release.R{YY}` output paths.
 7. Avoid box-drawing characters and emoji in canonical AI docs; they are unnecessary encoding risk.
+
+## Abby Local Development Documents
+
+| Path | Audience | Notes |
+|---|---|---|
+| ABBY-DEVELOPMENT.md | Human-facing | Traditional Chinese; independent repository and runtime boundaries |
+| tests/ParameterCopy.Tests/README.md | Human-facing | Command test scope and limitations |
+

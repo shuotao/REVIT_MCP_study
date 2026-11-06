@@ -27,7 +27,11 @@ _ODA_SEARCH_PATHS = [
 def _inject_oda_path():
     """動態將 ODA 路徑注入 PATH，繞過 Revit/pyRevit 啟動前未更新環境的問題。"""
     current_path = os.environ.get("PATH", "")
-    for p in _ODA_SEARCH_PATHS:
+    import glob
+    discovered = []
+    for root in (os.environ.get("ProgramFiles", r"C:\Program Files"), os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")):
+        discovered.extend(sorted(glob.glob(os.path.join(root, "ODA", "ODAFileConverter*")), reverse=True))
+    for p in discovered + _ODA_SEARCH_PATHS:
         if os.path.isdir(p) and p not in current_path:
             os.environ["PATH"] += os.pathsep + p
             return True
@@ -115,8 +119,23 @@ def main():
                 "height": height
             })
 
+        # Optional control-line layer used to validate elevation text placement.
+        control_lines = []
+        if len(sys.argv) > 3:
+            from ezdxf.disassemble import recursive_decompose
+            for entity in recursive_decompose(msp):
+                if entity.dxf.layer != sys.argv[3]:
+                    continue
+                if entity.dxftype() == "LINE":
+                    control_lines.append([list(entity.dxf.start), list(entity.dxf.end)])
+                elif entity.dxftype() in ("LWPOLYLINE", "POLYLINE"):
+                    for part in entity.virtual_entities():
+                        if part.dxftype() == "LINE":
+                            control_lines.append([list(part.dxf.start), list(part.dxf.end)])
+
         print(json.dumps({
             "success": True,
+            "control_lines": control_lines,
             "insunits": insunits,
             "insunits_to_mm": insunits_to_mm,
             "data": results

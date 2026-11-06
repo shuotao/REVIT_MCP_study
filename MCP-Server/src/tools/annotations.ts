@@ -96,7 +96,8 @@ type ClassificationHints = Pick<ToolAnnotations, "readOnlyHint" | "destructiveHi
  *     前綴規則會判它 readOnlyHint=true，那是錯的宣稱 → 明確覆寫為寫入型。
  */
 export const OVERRIDE: Record<string, ClassificationHints> = {
-    export_families: { readOnlyHint: true, destructiveHint: false },
+    // Abby also exposes explicitly authorized model replacement through replaceGreenFence.
+    export_families: { readOnlyHint: false, destructiveHint: false },
     export_clash_report: { readOnlyHint: true, destructiveHint: false },
     export_smoke_review_excel: { readOnlyHint: true, destructiveHint: false },
     // 讀外部 Excel、寫 Revit 模型：同名 Drafting View 預設先刪後建（overwrite 預設 true）→ 破壞性寫入

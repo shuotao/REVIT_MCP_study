@@ -14,7 +14,7 @@ Revit MCP lets AI clients call Autodesk Revit tools through the Model Context Pr
 
 ## What is this?
 
-Talk to Revit in plain language. Ask your AI client to *"dimension every wall on this view"* or *"check the curtain-wall elevations"*, and Revit does it — through **239 MCP tools** backed by **90 professional BIM SOPs** (building code, quantity take-off, compliance checks).
+Talk to Revit in plain language. Ask your AI client to *"dimension every wall on this view"* or *"check the curtain-wall elevations"*, and Revit does it — through **253 MCP tools** backed by **94 professional BIM SOPs** (building code, quantity take-off, compliance checks).
 
 **Who it's for:** BIM engineers and architects who use Revit and want AI-assisted, standards-based workflows. You'll need Revit (2022–2026) on Windows and to be comfortable installing an add-in.
 
@@ -33,7 +33,7 @@ Questions or want to show what you built? → **[Discussions](https://github.com
 
 | Item | Count | Source |
 |---|---:|---|
-| Runtime MCP tools | 239 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
+| Runtime MCP tools | 253 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
 | Domain SOP files | 94 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
 | Claude skills | 61 | `.claude/skills/*/SKILL.md` |
 
@@ -373,8 +373,42 @@ Confirm the `.addin` file and DLL were deployed under the matching `%APPDATA%\Au
 | [scripts/README.md](./scripts/README.md) | Script documentation |
 | [docs/DOCUMENT_AUDIENCE_INVENTORY.md](./docs/DOCUMENT_AUDIENCE_INVENTORY.md) | Document audience inventory |
 | [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | Docs directory guide |
-| [log/README.md](./log/README.md) | Log append rules |
+| [Abby two-PC setup](./docs/ABBY-TWO-PC-SETUP.md) | Shared installation and synchronization; work logs stay local |
 
 ## License
 
 MIT License
+
+### Copy parameters by group
+
+The MCP tool `copy_parameter_by_group` matches instance parameters by exact name and
+`Definition.GetGroupTypeId()`. Defaults: source `頂部約束` / `約束` (Constraints), target
+`牆頂至` / `文字` (Text), category Walls, and scope `project` (current document instances only).
+
+Call with `{}` to preview. To write, pass `{"dryRun":false,"apply":true}`.
+Both flags are required for writes; `apply=true` alone still previews.
+`overwrite` defaults to true. Group inputs accept the Chinese defaults,
+Constraints/Text, PG_CONSTRAINTS/PG_TEXT, or a full built-in Forge group TypeId.
+
+Empty sources (including whitespace strings) are skipped; numeric zero is a value.
+Missing/ambiguous parameters, read-only targets and incompatible storage/data types
+are reported as skips. The default valueTransform=afterColon reads AsString for strings or
+AsValueString otherwise, extracts everything after the first ':' or '：', and trims whitespace.
+It requires a String target. Missing delimiters and empty suffixes are skipped.
+Use valueTransform=raw for direct copies with matching storage/data types and Revit internal units.
+Writes use one transaction, with the whole planned batch rolled back on a write failure.
+`Planned` counts eligible changes even after commit/rollback; `Updated` counts only
+committed changes. `Unchanged`, `Skipped`, `Failed`, `ByCategory`, `ByReason`,
+`Results` and `ValueChanges` provide detailed outcomes and old/new value counts.
+Inspect `Success`, `Committed`, `RolledBack` and `Error` in the returned data.
+
+CAD beam number schedules are supported by create_beams_from_dwg with mappingMode=numericSchedule.
+The explicit case-sensitive schedule reuses cm-named types after checking their actual dimensions:
+FWB1..5 and Fb/Fg+digits use 60x270; FB/FG+digits use 70x270; exact Fb0 uses 50x270.
+Provide familyName, line/text layers and cadUnits. Numeric mode previews by default and writes only
+with dryRun=false and apply=true. Legacy behavior remains unchanged.
+
+
+### Abby: 梁柱封閉區域批次建板
+使用 list_floor_types 選擇現有類型，再以 create_floors_from_framing_regions 預覽梁／梁柱內側封閉區域並批次建立樓板。含柱洞、重疊跳過、預覽驗證與交易回滾。詳見 [使用方式與限制](docs/ABBY-FRAMING-FLOORS.md)。
+

@@ -1,0 +1,23 @@
+const test=require('node:test'),assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto');
+test('publication blocks removed private files in new history and preserves exact audited imports across line endings',()=>{
+ const root=path.resolve(__dirname,'..'),fixture=fs.mkdtempSync(path.join(root,'tmp','publication-test-'));
+ const git=args=>cp.execFileSync('git',args,{cwd:fixture,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
+ const scan=(range)=>cp.spawnSync(process.execPath,['scripts/abby/check-public-source.cjs',...(range?['--range',range]:[])],{cwd:fixture,encoding:'utf8'});
+ fs.mkdirSync(path.join(fixture,'scripts','abby'),{recursive:true});
+ fs.copyFileSync(path.join(root,'scripts','abby','check-public-source.cjs'),path.join(fixture,'scripts','abby','check-public-source.cjs'));
+ const slash=String.fromCharCode(92),example=['C:','Users','FixtureAccount','example'].join(slash)+'\n';
+ const hash=crypto.createHash('sha256').update(example).digest('hex');
+ fs.writeFileSync(path.join(fixture,'scripts','abby','public-import-exceptions.json'),JSON.stringify({Files:{'notes.md':hash}}));
+ fs.writeFileSync(path.join(fixture,'notes.md'),example.replace(/\n/g,'\r\n'));
+ git(['init','--initial-branch=my-revit-tool']);git(['config','user.name','Publication Test']);git(['config','user.email','test@example.invalid']);git(['config','core.autocrlf','false']);
+ git(['add','.']);git(['commit','-m','Safe source']);const base=git(['rev-parse','HEAD']);
+ assert.equal(scan().status,0,'CRLF must not invalidate an otherwise exact audited import');
+ fs.appendFileSync(path.join(fixture,'notes.md'),'modified\n');assert.notEqual(scan().status,0,'changed content must lose the import exception');
+ fs.writeFileSync(path.join(fixture,'notes.md'),example);
+ fs.writeFileSync(path.join(fixture,'private.rvt'),'private fixture');git(['add','.']);git(['commit','-m','Add private fixture']);
+ fs.unlinkSync(path.join(fixture,'private.rvt'));git(['add','-u']);git(['commit','-m','Remove private fixture']);
+ assert.equal(scan().status,0,'the final source tree itself is clean');
+ const result=scan(base+'..HEAD');assert.notEqual(result.status,0,'a private file in intermediate history must block upload');
+ assert.match(result.stderr,/private\.rvt: excluded/);
+});

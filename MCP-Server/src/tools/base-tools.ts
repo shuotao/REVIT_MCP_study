@@ -5,7 +5,20 @@
 
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 
+import { cadWallTools } from './cad-wall-tools.js';
+import { framingFloorTools } from './framing-floor-tools.js';
+import { beamMarkTools } from './beam-mark-tools.js';
+import { columnMarkTools } from './column-mark-tools.js';
+import { parameterCopyTools } from './parameter-copy-tools.js';
+import { coordinateTools } from './coordinate-tools.js';
+
 export const baseTools: Tool[] = [
+    ...coordinateTools,
+    ...cadWallTools,
+    ...parameterCopyTools,
+    ...columnMarkTools,
+    ...beamMarkTools,
+    ...framingFloorTools,
     // === 專案與元素基礎 ===
     {
         name: "get_project_info",
@@ -58,7 +71,7 @@ export const baseTools: Tool[] = [
     },
     {
         name: "get_element_info",
-        description: "取得指定元素的詳細資訊，包括參數、幾何資訊等。",
+        description: "取得指定元素的詳細資訊與參數。IndependentTag 另回傳 OwnerViewId、IsOrphaned 與 TaggedElements（本機／連結元素 ID；無效 ID 為 -1）。僅非孤立柱標籤讀取 Tag.Text；其他標籤 Text=null、TextReadStatus=SkippedNativeCrashRisk，避免 Revit 原生 TagText 存取崩潰。不可將 null 當作空白標籤。",
         inputSchema: {
             type: "object",
             properties: {
@@ -93,15 +106,22 @@ export const baseTools: Tool[] = [
     },
     {
         name: "modify_element_parameter",
-        description: "修改 Revit 元素的參數值。",
+        description: "修改 Revit 元素的唯一同名參數值。Double 使用 Revit 內部單位（長度為英尺）。梁參考樓層支援 ElementId，value 傳目前文件的 Level ID 字串；其他 ElementId 欄位不支援。",
         inputSchema: {
             type: "object",
             properties: {
+                textUpdates: {type:"array",minItems:1,maxItems:2000,description:"單次批次寫入明確實例的文字群組字串參數；使用Definition.GetGroupTypeId精確比對。parameterName/value傳空字串。dryRun預設true，apply=true且dryRun=false才寫入。缺少、唯讀、歧義或非字串跳過並回報。",items:{type:"object",additionalProperties:false,required:["elementId","name","value"],properties:{elementId:{type:"integer",minimum:1},name:{type:"string",minLength:1},value:{type:"string"}}}},
+                copyTypeNameBatch: { type: "boolean", default: false, description: "將明確 elementIds 的完整類型名稱批次填入 parameterName 指定的實例文字欄位；value 必須為空字串。預覽預設開啟，apply=true 且 dryRun=false 才以單一交易寫入，提交後驗證失敗整批回滾。唯讀、群組及不明確欄位跳過。不可與 rcWallsStructuralBatch 同用。" },
+                floorNumberRules: { type: "array", minItems: 1, maxItems: 100, description: "依樓板實際厚度 mm 批次修正文字群組的編號。需 viewId、elementIds、parameterName=編號、value=空字串；僅處理目前視圖內明確指定的樓板，單一交易及提交後驗證，失敗整批回滾。不可與其他批次模式同用。", items: { type: "object", properties: { thicknessMm: { type: "number", exclusiveMinimum: 0 }, number: { type: "string", minLength: 1 } }, required: ["thicknessMm", "number"], additionalProperties: false } },
+                viewId: { type: "integer", minimum: 1, description: "floorNumberRules 模式必填，目前視圖 ID。" },
+                rcWallsStructuralBatch: { type: "boolean", default: false, description: "批次只啟用明確 elementIds 中類型含 RC 的牆之內建結構參數，需 parameterName=結構,value=1；單一交易，提交後驗證失敗整批回滾。" },
+                elementIds: { type: "array", minItems: 1, maxItems: 10000, uniqueItems: true, items: { type: "integer", minimum: 1 } },
+                dryRun: { type: "boolean", default: true }, apply: { type: "boolean", default: false },
                 elementId: { type: "number", description: "元素 ID" },
                 parameterName: { type: "string", description: "參數名稱" },
                 value: { type: "string", description: "新的參數值" },
             },
-            required: ["elementId", "parameterName", "value"],
+            required: ["parameterName", "value"],
         },
     },
     {
@@ -296,16 +316,25 @@ export const baseTools: Tool[] = [
     },
     {
         name: "move_element",
-        description: "移動指定的 Revit 元素（依 dx, dy, dz 指定位移量）。",
+        description: "移動指定元素（dx/dy/dz，mm）；centerBeamTags=true 可批次將目前視圖梁標籤移到實際對應梁中心線中點的視圖投影，保留文字方向與引線。此模式需 viewId 與明確 elementIds，預設 dryRun=true，只有 dryRun=false 且 apply=true 才寫入。孤立、多目標、連結、釘選、群組或非梁標籤跳過。",
         inputSchema: {
             type: "object",
             properties: {
                 elementId: { type: "number", description: "要移動的元素 ID" },
+                centerBeamTags: { type: "boolean", default: false },
+                avoidDoorTagOverlap: { type: "boolean", default: false, description: "平面視圖門標籤批次避開可量測門外框及其他標籤外框；需要 viewId/elementIds。保留方向，不讀 TagText；引線、釘選、群組、不明確主體跳過。預設唯讀，apply=true 且 dryRun=false 單一交易寫入並驗證，錯誤回滾。" },
+                avoidBeamTagOverlap: { type: "boolean", default: false, description: "依目前視圖標籤外框微移梁標籤避讓，不讀取 TagText。與 centerBeamTags 互斥。保留無法避讓的項目並回報；只有 dryRun=false 且 apply=true 才套用。" },
+                gapPaperMm: { type: "number", minimum: 0, maximum: 3, default: 0.5, description: "紙面標籤間距 mm" },
+                maxMovePaperMm: { type: "number", minimum: 0.5, maximum: 20, default: 8, description: "紙面最大微移距離 mm，依視圖比例換算" },
+                viewId: { type: "integer" },
+                elementIds: { type: "array", minItems: 1, maxItems: 10000, uniqueItems: true, items: { type: "integer" } },
+                dryRun: { type: "boolean", default: true },
+                apply: { type: "boolean", default: false },
                 dx: { type: "number", description: "X 軸移動距離 (mm)", default: 0 },
                 dy: { type: "number", description: "Y 軸移動距離 (mm)", default: 0 },
                 dz: { type: "number", description: "Z 軸移動距離 (mm)", default: 0 },
             },
-            required: ["elementId"],
+            anyOf: [{ required: ["elementId"] }, { required: ["centerBeamTags", "viewId", "elementIds"] }, { required: ["avoidBeamTagOverlap", "viewId", "elementIds"] }, { required: ["avoidDoorTagOverlap", "viewId", "elementIds"] }],
         },
     },
     {
@@ -371,3 +400,5 @@ export const baseTools: Tool[] = [
         }
     }
 ];
+
+

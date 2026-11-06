@@ -135,6 +135,36 @@ namespace RevitMCP.Core
 
                 switch (request.CommandName.ToLower())
                 {
+                    case "create_walls_from_dwg":
+                        result = CreateWallsFromDwg(parameters);
+                        break;
+                    case "shape_floor_ramp":
+                        result = ShapeFloorRamp(parameters);
+                        break;
+                    case "list_floor_types":
+                        result = ListFloorTypes(parameters);
+                        break;
+                    case "create_floors_from_framing_regions":
+                        result = CreateFloorsFromFramingRegions(parameters);
+                        break;
+                    case "fill_beam_marks_from_dwg":
+                        result = DwgColumnExecutor.FillBeamMarks(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+                    case "fill_column_marks_from_dwg":
+                        result = DwgColumnExecutor.FillColumnMarks(_uiApp.ActiveUIDocument.Document, parameters);
+                        break;
+                    case "copy_parameter_by_group":
+                        result = CopyParameterByGroup(parameters);
+                        break;
+
+                    case "create_structural_beam_types":
+                        result = CreateStructuralBeamTypes(parameters);
+                        break;
+                    case "fit_beam_to_floor": result = FitBeamToFloor(parameters); break;
+                    case "create_beam_additions":
+                        result = CreateBeamAdditions(parameters);
+                        break;
+
                     case "create_wall":
                         result = CreateWall(parameters);
                         break;
@@ -190,6 +220,9 @@ namespace RevitMCP.Core
                     
                     case "modify_element_parameter":
                         result = ModifyElementParameter(parameters);
+                        break;
+                    case "align_coordinate_points_to_grids":
+                        result = AlignCoordinatePointsToGrids(parameters);
                         break;
 
                     case "load_shared_parameters":
@@ -947,6 +980,9 @@ namespace RevitMCP.Core
                         break;
 
 #if REVIT2024_OR_GREATER
+                    case "create_toposolid_from_cad":
+                        result = CreateToposolidFromCad(parameters);
+                        break;
                     case "grade_toposolid_to_floors":
                         result = GradeToposolidToFloors(parameters);
                         break;
@@ -1272,7 +1308,24 @@ namespace RevitMCP.Core
                 Category = element.Category?.Name,
                 Type = doc.GetElement(element.GetTypeId())?.Name,
                 Level = doc.GetElement(element.LevelId)?.Name,
-                Parameters = parameterList
+                Parameters = parameterList,
+                Tag = element is IndependentTag tag ? new
+                {
+                    // Framing TagText caused native access violations on the active
+                    // Revit 2025 model. Only column text has been validated here.
+                    Text = tag.Category?.Id.GetIdValue() == (long)BuiltInCategory.OST_StructuralColumnTags
+                        && !tag.IsOrphaned ? tag.TagText : null,
+                    TextReadStatus = tag.Category?.Id.GetIdValue() == (long)BuiltInCategory.OST_StructuralColumnTags
+                        && !tag.IsOrphaned ? "Read" : "SkippedNativeCrashRisk",
+                    OwnerViewId = tag.OwnerViewId.GetIdValue(),
+                    IsOrphaned = tag.IsOrphaned,
+                    TaggedElements = tag.GetTaggedElementIds().Select(reference => new
+                    {
+                        HostElementId = reference.HostElementId.GetIdValue(),
+                        LinkInstanceId = reference.LinkInstanceId.GetIdValue(),
+                        LinkedElementId = reference.LinkedElementId.GetIdValue()
+                    }).ToArray()
+                } : null
             };
         }
 
@@ -1410,6 +1463,12 @@ namespace RevitMCP.Core
         /// </summary>
         private object ModifyElementParameter(JObject parameters)
         {
+            if (parameters["textUpdates"] != null) return SetGroupedTextBatch(parameters);
+            if (parameters["floorNumberRules"] != null)
+                return SetFloorNumbersByThickness(parameters);
+            if (parameters["copyTypeNameBatch"]?.Value<bool>() == true)
+                return CopyTypeNameBatch(parameters);
+            if(parameters["rcWallsStructuralBatch"]?.Value<bool>()==true)return SetRcWallsStructural(parameters);
             Document doc = _uiApp.ActiveUIDocument.Document;
             IdType elementId = parameters["elementId"]?.Value<IdType>() ?? 0;
             string parameterName = parameters["parameterName"]?.Value<string>();
@@ -1442,7 +1501,10 @@ namespace RevitMCP.Core
                 }
                 else
                 {
-                    Parameter param = element.LookupParameter(parameterName);
+                    var matchingParameters = element.GetParameters(parameterName);
+                    if (matchingParameters.Count > 1)
+                        throw new Exception($"同名參數不唯一: {parameterName}");
+                    Parameter param = matchingParameters.SingleOrDefault();
                     if (param == null)
                     {
                         throw new Exception($"找不到參數: {parameterName}");
@@ -1466,6 +1528,22 @@ namespace RevitMCP.Core
                             if (int.TryParse(value, out int iVal))
                                 success = param.Set(iVal);
                             break;
+                        case StorageType.ElementId:
+                            // Only a structural beam reference level is supported here;
+                            // other element-reference parameters have different constraints.
+                            if (param.Id.GetIdValue() != (IdType)BuiltInParameter.INSTANCE_REFERENCE_LEVEL_PARAM
+                                || !(element is FamilyInstance framing)
+                                || framing.StructuralType != Autodesk.Revit.DB.Structure.StructuralType.Beam)
+                                throw new Exception("目前只支援梁參考樓層的 ElementId 修改");
+                            if (!IdType.TryParse(value, out IdType levelValue)
+                                || !(doc.GetElement(new ElementId(levelValue)) is Level))
+                                throw new Exception("參考樓層必須是目前文件中有效的 Level ID");
+                            var levelId = new ElementId(levelValue);
+                            success = param.Set(levelId);
+                            doc.Regenerate();
+                            if (param.AsElementId() != levelId)
+                                throw new Exception("參考樓層寫入驗證失敗");
+                            break;
                         default:
                             throw new Exception($"不支援的參數類型: {param.StorageType}");
                     }
@@ -1476,7 +1554,8 @@ namespace RevitMCP.Core
                     throw new Exception($"設定參數失敗");
                 }
 
-                trans.Commit();
+                if (trans.Commit() != TransactionStatus.Committed)
+                    throw new Exception("參數修改交易未提交");
 
                 return new
                 {
@@ -1876,6 +1955,7 @@ namespace RevitMCP.Core
         /// </summary>
         private object CreateColumn(JObject parameters)
         {
+            if (parameters["placements"] != null) return CreateColumnBatch(parameters);
             Document doc = _uiApp.ActiveUIDocument.Document;
 
             // 解析參數
@@ -4839,6 +4919,9 @@ namespace RevitMCP.Core
         #endregion
     }
 }
+
+
+
 
 
 

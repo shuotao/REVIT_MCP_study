@@ -151,6 +151,16 @@ export const wallTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
+                wallTopToBeams: {type:"object",additionalProperties:false,required:["wallId","beamIds"],properties:{wallId:{type:"integer",minimum:1},beamIds:{type:"array",items:{type:"integer",minimum:1},minItems:1,maxItems:50,uniqueItems:true},targetSurface:{type:"string",enum:["top","bottom"],default:"top"}},description:"以牆中心面與指定梁表面交會的最高、最低兩點連成單一斜牆頂並延伸至牆端。targetSurface=bottom取梁底，top取梁頂。等高區取區間中點。保留牆底貼附、牆底形狀與平面位置，驗證失敗整組回滾。先dryRun預覽，再以previewToken套用；不支援已編輯輪廓、洞口或頂部貼附。"},
+                wallTopToFloor: {type:"object",additionalProperties:false,required:["wallId","floorId"],properties:{wallId:{type:"integer",minimum:1},floorId:{type:"integer",minimum:1},extendFloorPlane:{type:"boolean",default:false}},description:"將單一直立直牆的頂部輪廓修剪至指定樓板斜頂面，保留牆底與位置；非動態貼附。不支援既有輪廓/洞口/跨向坡度，預覽後以token套用。extendFloorPlane 明確允許未覆蓋處沿同一坡面延伸，限600mm。"},
+                wallBottomToBeam: { type: "object", additionalProperties: false, required: ["wallId","beamId"], properties: {wallId:{type:"integer",minimum:1},beamId:{type:"integer",minimum:1}}, description: "修改指定直立直牆輪廓的下緣，貼合指定斜梁實際頂面；保留牆頂、平面位置、牆厚及原牆ID。須先解除頂底貼附，不支援洞口、已編輯輪廓或跨向坡度。不是動態貼附。先預覽，再以token套用。" },
+                previewToken: {type:"string"},
+                beamCutsFloor: { type: "boolean", default: false, description: "梁切割樓板；預設唯讀，dryRun=false 且 apply=true 才修正，與其他模式互斥。逐組失敗回滾；回傳提交後 Verification。" },
+                auditBeamFloor: { type: "boolean", default: false, description: "唯讀檢核梁＞樓板；回傳 Correct/Reversed/NotJoined/Failed。必須 dryRun=true、apply=false，與其他模式互斥。levels 依樓板樓層精確篩選；省略檢查全專案。不修改接合。" },
+                floorCutsWall: { type: "boolean", default: false, description: "全牆高度檢查與樓板的相交及既有接合，強制樓板切割牆；與 beamCutsWall 互斥。牆與樓板接合請使用此模式。" },
+                beamCutsWall: { type: "boolean", default: false, description: "只接合牆頂結構梁，強制梁切割牆，並修正既有反向接合。" },
+                dryRun: { type: "boolean", default: true, description: "切割順序模式預設僅預覽。" },
+                apply: { type: "boolean", default: false, description: "切割順序模式須 dryRun=false 且 apply=true 才寫入。" },
                 levels: {
                     type: "array",
                     items: { type: "string" },
@@ -197,17 +207,20 @@ export const wallTools: Tool[] = [
     },
     {
         name: "create_column",
-        description: "在指定位置建立柱子。",
+        description: "在指定位置建立柱子。placements 可單次批次建立結構柱，使用明確類型ID及上下樓層；預設預覽，apply=true且dryRun=false才以單一交易寫入。相同位置及樓層既有柱跳過，不逐筆核准。",
         inputSchema: {
             type: "object",
             properties: {
+                placements: {type:"array",minItems:1,maxItems:500,items:{type:"object",additionalProperties:false,required:["x","y","typeId"],properties:{x:{type:"number"},y:{type:"number"},typeId:{type:"integer",minimum:1}}},description:"批次柱中心座標mm與明確結構柱類型ID。"},
+                dryRun:{type:"boolean",default:true,description:"僅placements批次模式適用。"},
+                apply:{type:"boolean",default:false,description:"僅placements批次模式適用。"},
                 x: { type: "number", description: "X 座標（公釐）" },
                 y: { type: "number", description: "Y 座標（公釐）" },
                 bottomLevel: { type: "string", description: "底部樓層名稱", default: "Level 1" },
                 topLevel: { type: "string", description: "頂部樓層名稱（選填）" },
                 columnType: { type: "string", description: "柱類型名稱（選填）" },
             },
-            required: ["x", "y"],
+            anyOf: [{required:["x","y"]},{required:["placements","bottomLevel","topLevel"]}],
         },
     },
     {
@@ -252,8 +265,14 @@ export const wallTools: Tool[] = [
                 elementId: { type: "number", description: "元素 ID" },
                 elementIds: { type: "array", items: { type: "number" }, description: "元素 ID 列表（用於批量變更）" },
                 typeId: { type: "number", description: "目標類型的 Element ID" },
+                keepOuterFace: { type: "boolean", description: "加厚直線單一結構層牆：先固定實體外側面的定位線再改類型，不平移牆。複製類型並保留材質；驗證其他牆（含獨立飾面）位置與範圍不變，失敗整批回滾。群組牆不支援。預覽預設開啟；新版回傳 Method=LocationLineFaceAnchorV2，須確認外掛已更新。" },
+                targetThicknessMm: { type: "number", exclusiveMinimum: 0 },
+                newTypeName: { type: "string", minLength: 1 },
+                dryRun: { type: "boolean", default: true },
+                apply: { type: "boolean", default: false },
+                walls: { type: "array", minItems: 1, items: { type: "object", properties: { elementId: { type: "integer" }, outwardNormal: { type: "object", properties: { x: { type: "number" }, y: { type: "number" } }, required: ["x", "y"] } }, required: ["elementId", "outwardNormal"] } },
             },
-            required: ["typeId"],
+            anyOf: [{ required: ["typeId"] }, { required: ["keepOuterFace", "targetThicknessMm", "newTypeName", "walls"] }],
         },
     },
     {
@@ -267,3 +286,33 @@ export const wallTools: Tool[] = [
         inputSchema: { type: "object", properties: {} },
     },
 ];
+
+
+
+
+
+// Abby retains the upstream compatibility handlers for existing workflows.
+wallTools.push(
+{
+        name: "unjoin_wall_joins",
+        description: "取消牆體與柱子等元素的幾何接合關係。常用於元素上色前的前置作業。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                wallIds: { type: "array", items: { type: "number" }, description: "要取消接合的牆體 Element ID 列表" },
+                viewId: { type: "number", description: "視圖 ID" },
+            },
+        },
+    },
+{
+        name: "unjoin_column_joins",
+        description: "以柱子為中心解除其與鄰近元素的幾何接合，涵蓋牆、樓板、結構樑。未指定 columnIds 時預設整個專案所有柱（或 viewId 內的柱）。可用 rejoin_wall_joins 還原（限同一 Revit session）。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                columnIds: { type: "array", items: { type: "number" }, description: "要處理的柱子 Element ID 列表（選填，預設為全部柱）" },
+                viewId: { type: "number", description: "視圖 ID（選填，未給 columnIds 時用來限縮範圍）" },
+            },
+        },
+    }
+);

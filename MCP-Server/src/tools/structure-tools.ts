@@ -5,6 +5,33 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 
 export const structureTools: Tool[] = [
+    {name:"fit_beam_to_floor",description:"將指定直梁頂面貼齊指定車道板底或板頂（targetSurface），沿原XY軸調整兩端坡度；板底全寬取樣非單一縱坡則拒絕。預設回滾預覽，正式寫入需previewToken及apply=true/dryRun=false。移除該梁既有接合並停用梁端接合；保留尺寸及平面位置。",inputSchema:{type:"object",required:["beamId","floorId"],properties:{beamId:{type:"integer"},floorId:{type:"integer"},targetSurface:{type:"string",enum:["bottom","top"],default:"bottom",description:"梁頂對齊板底或板頂；top模式允許梁板預期重疊，仍驗證梁頂貼合與XY不變。"},extendAlongEdge:{type:"boolean",default:false,description:"明確允許由近旁平行樓板實際直邊延伸高程至未覆蓋部分。距梁外框600mm內、縱向投影重疊至少500mm且20%；衝突坡度拒絕，實際重疊板面仍須符合。保留XY。"},extendOverhang:{type:"boolean",default:false,description:"明確允許梁寬部分超出板邊；僅依沿全長存在的重疊區單一縱坡延伸，維持XY。跨向坡度、折板、縱向缺口或覆蓋不足拒絕。"},dryRun:{type:"boolean",default:true},apply:{type:"boolean",default:false},previewToken:{type:"string"}}}},
+    {name:"create_beam_additions",description:"依明確指定的既有水平直梁，在原平面位置建立同寬指定深度的增築梁。保留 Y 對正與偏移，頂部對正，參考樓層與 Z 偏移明確指定。高程只依指定參考樓層及 Z 偏移，不要求與原梁頂銜接；缺類型時同族群複製建立，以公分類型命名。文字群組編號精確寫入，單一交易驗證實體體積與高程，錯誤回滾。先預覽，再以相同 token 正式寫入。",inputSchema:{type:"object",additionalProperties:false,required:["sourceBeamIds"],anyOf:[{required:["mode","floorId"],properties:{mode:{const:"slopedSolid"},sourceBeamIds:{maxItems:1}}},{required:["referenceLevelId","depthMm","zOffsetMm"],properties:{mode:{const:"rectangular"}}}],properties:{mode:{type:"string",enum:["rectangular","slopedSolid"],default:"rectangular",description:"slopedSolid 建立結構構架 DirectShape：底貼來源水平梁頂、頂貼指定樓板平面；不具一般梁參數。須先預覽。"},floorId:{type:"integer",minimum:1},extendFloorPlane:{type:"boolean",default:false},sourceBeamIds:{type:"array",minItems:1,maxItems:500,uniqueItems:true,items:{type:"integer",minimum:1}},referenceLevelId:{type:"integer",minimum:1},depthMm:{type:"number",exclusiveMinimum:0,maximum:10000},zOffsetMm:{type:"number"},numberValue:{type:"string",minLength:1,default:"增築"},dryRun:{type:"boolean",default:true},apply:{type:"boolean",default:false},previewToken:{type:"string"}}}},
+    {
+        name: "create_structural_beam_types",
+        description: "批次複製 Structural Framing FamilySymbol，不放置梁實體。同族群既有同名類型跳過、不覆寫；同批重複名稱採第一筆。單一 Transaction，任一失敗整批回滾。回傳 Success、Created、Skipped、Failed、Error；回滾項目列入 Failed。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                familyName: { type: "string", minLength: 1, default: "混凝土樑-矩形", description: "已載入基礎族群名稱（精確比對）" },
+                baseTypeName: { type: "string", minLength: 1, description: "基礎類型名稱；省略時依名稱排序取第一個" },
+                types: {
+                    type: "array", minItems: 1,
+                    items: {
+                        type: "object",
+                        properties: {
+                            typeName: { type: "string", minLength: 1 },
+                            widthMm: { type: "number", exclusiveMinimum: 0, description: "梁寬 mm，參數 b／寬度／Width" },
+                            heightMm: { type: "number", exclusiveMinimum: 0, description: "梁高 mm，參數 h／高度／Height" },
+                        },
+                        required: ["typeName", "widthMm", "heightMm"],
+                        additionalProperties: false,
+                    },
+                },
+            },
+            required: ["types"],
+        },
+    },
     {
         name: "analyze_beam_penetration",
         description: "分析特定結構梁上的套管穿孔。回傳精確的幾何數據，如距離柱心長度、梁深度、開孔直徑等。",
@@ -44,4 +71,10 @@ export const structureTools: Tool[] = [
         },
     },
 ];
+
+// The assistant collects these inputs before the Revit transaction; no silent batch defaults.
+const beamAdditionTool = structureTools.find(tool => tool.name === "create_beam_additions");
+if (beamAdditionTool) {
+    beamAdditionTool.description = "rectangular 模式呼叫前必須依序詢問：先確認增築厚度（作為新梁深），再確認參考樓層與含正負號的 Z 偏移值，單位明確後換算為 mm。使用者本次已提供的設定不重複詢問；缺少資料不得預覽或寫入，不沿用其他批次設定。資料齊全後先預覽，檢查指定高程與類型，再在已授權範圍內正式執行。 " + beamAdditionTool.description + " slopedSolid 模式改以 sourceBeamIds（限一支）、floorId 及明確同意的 extendFloorPlane 決定幾何，不需 depthMm/referenceLevelId/zOffsetMm；不得宣稱為一般梁族群。";
+}
 

@@ -14,7 +14,7 @@ Revit MCP 透過 Model Context Protocol (MCP) 讓 AI Client 呼叫 Revit 工具�
 
 ## 這是什麼？
 
-用講人話的方式操作 Revit。跟你的 AI Client 說「幫這個視圖的牆全部標尺寸」或「檢查帷幕牆立面」，Revit 就會做——背後是 **239 個 MCP 工具**，由 **94 份專業 BIM SOP**（建築法規、數量計算、法規檢核）支撐。
+用講人話的方式操作 Revit。跟你的 AI Client 說「幫這個視圖的牆全部標尺寸」或「檢查帷幕牆立面」，Revit 就會做——背後是 **253 個 MCP 工具**，由 **94 份專業 BIM SOP**（建築法規、數量計算、法規檢核）支撐。
 
 **給誰用：** 使用 Revit、想要 AI 輔助且符合規範的 BIM 工程師與建築師。你需要 Windows 上的 Revit（2022–2026），並願意安裝一個 add-in。
 
@@ -33,7 +33,7 @@ Revit MCP 透過 Model Context Protocol (MCP) 讓 AI Client 呼叫 Revit 工具�
 
 | 項目 | 數量 | 來源 |
 |---|---:|---|
-| Runtime MCP tools | 239 | `MCP-Server/src/tools/index.ts` 的 `registerRevitTools()` |
+| Runtime MCP tools | 253 | `MCP-Server/src/tools/index.ts` 的 `registerRevitTools()` |
 | Domain SOP files | 94 | `domain/*.md` 扣除 `README.md`，加上 `domain/references/*.md` |
 | Claude skills | 61 | `.claude/skills/*/SKILL.md` |
 
@@ -372,8 +372,41 @@ powershell -ExecutionPolicy Bypass -File scripts\release-port.ps1
 | [scripts/README.md](./scripts/README.md) | 腳本說明 |
 | [docs/DOCUMENT_AUDIENCE_INVENTORY.md](./docs/DOCUMENT_AUDIENCE_INVENTORY.md) | 文件受眾盤點 |
 | [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | docs 目錄說明 |
-| [log/README.md](./log/README.md) | log append 規則 |
+| [Abby 雙機設定](./docs/ABBY-TWO-PC-SETUP.md) | 共用安裝與同步；工作日誌僅留本機 |
 
 ## License
 
 MIT License
+
+### 依參數群組複製
+
+MCP 工具 `copy_parameter_by_group` 以精確名稱及 `Definition.GetGroupTypeId()`
+配對實例參數。預設將「約束」群組的「頂部約束」複製到「文字」群組的「牆頂至」，
+類別為 Walls；`scope=project` 僅掃描目前文件的實例。
+
+傳入 `{}` 即預覽；正式寫入需傳入 `{"dryRun":false,"apply":true}`。
+只指定 `apply=true` 仍維持預覽。預設 `overwrite=true`。
+群組可用約束／文字、Constraints／Text、PG_CONSTRAINTS／PG_TEXT，
+或完整的內建 Forge 群組 TypeId。
+
+來源空值（含全空白字串）、缺少或重複配對、目標唯讀、儲存／資料類型不相容
+會跳過並回報。預設 valueTransform=afterColon：字串來源讀 AsString，其餘讀 AsValueString，
+取第一個 : 或 ：之後的全部文字並去除前後空白，只接受字串目標。
+例如「樓層: RF」寫入「RF」；沒有冒號回報 MissingDelimiter，擷取後空白回報 EmptyTransformedSource。
+valueTransform=raw 保留原值與內部單位，要求來源和目標儲存／資料類型相同，數字 0 不視為空值。
+寫入使用單一交易，任一寫入失敗會回復整批。
+`Planned` 是原計畫變更數，提交或回復後仍保留；`Updated` 只計已提交變更。
+另回傳 `Scanned`、`Unchanged`、`Skipped`、`Failed`、
+`ByCategory`、`ByReason`、逐筆 `Results` 及原值／新值 `ValueChanges` 統計。
+請一併檢查結果內的 `Success`、`Committed`、`RolledBack` 與 `Error`。
+
+CAD 梁號規則模式：create_beams_from_dwg 的 mappingMode=numericSchedule 支援
+FWB1～FWB5→60x270、FB/FG＋數字→70x270、Fb/Fg＋數字→60x270，Fb0 優先→50x270。
+區分大小寫，類型命名為公分，實際寬高以毫米核對。需指定 familyName、梁線與文字圖層、
+cadUnits；預設預覽，dryRun=false 且 apply=true 才建立。找不到配對時跳過，不猜測未編號梁。
+此安全預覽開關只適用 numericSchedule；legacy 模式保留既有直接建立行為。
+
+
+### Abby: 梁柱封閉區域批次建板
+使用 list_floor_types 選擇現有類型，再以 create_floors_from_framing_regions 預覽梁／梁柱內側封閉區域並批次建立樓板。含柱洞、重疊跳過、預覽驗證與交易回滾。詳見 [使用方式與限制](docs/ABBY-FRAMING-FLOORS.md)。
+

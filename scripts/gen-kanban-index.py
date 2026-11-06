@@ -42,7 +42,7 @@ PRODUCED = {
     "TASK-005.11":  {"skill": ["GM_inject"]},
     "TASK-005.12":  {"skill": ["GM_inject"], "domain": ["domain/GM_parameter-schema.md"]},
     "TASK-006":     {"skill": ["GM_query"]},
-    "TASK-008":     {"file": [".agents/AGENTS.md", "ai/process/definition-of-done.md"]},
+    "TASK-008":     {"file": ["AGENTS.md", "ai/process/definition-of-done.md"]},
     "TASK-009":     {"skill": ["GM_import", "GM_inject"]},
     "TASK-010":     {"skill": ["GM_inject"]},
     "TASK-011":     {"skill": ["GM_inject"]},

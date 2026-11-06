@@ -36,14 +36,10 @@ export async function executeRevitTool(
 
     // 開檔、存檔、重載連結、匯出影像都可能遠超過 30 秒（大模型存檔、地形連結重載尤其明顯）。
     // 逾時斷在中途會讓使用者以為失敗，實際上 Revit 還在跑 —— 所以一律給長 timeout。
-    const SLOW_COMMANDS = new Set(["open_document", "save_document", "reload_links", "capture_view_image", "run_camera_keyplan", "list_cameras", "run_camera_overview", "create_camera_sheet"]);
+    const SLOW_COMMANDS = new Set(["create_beam_additions", "shape_floor_ramp", "create_walls_from_dwg", "copy_parameter_by_group", "fill_column_marks_from_dwg", "fill_beam_marks_from_dwg", "create_beams_from_dwg", "create_floors_from_framing_regions", "open_document", "save_document", "reload_links", "capture_view_image", "run_camera_keyplan", "list_cameras", "run_camera_overview", "create_camera_sheet"]);
 
-    // 全模型檢討（含連結模型逐點射線 / 逐段實體過濾）與影像輸出在大型專案可能超過 120 秒；
-    // 逾時後 Revit 仍會繼續跑，重跑會重複放標記，所以給 300 秒。
     const LONG_RUNNING_COMMANDS = new Set(["check_beam_clear_height", "check_mep_spacing", "export_view_image", "batch_modify_elements"]);
-
-    const timeoutMs = LONG_RUNNING_COMMANDS.has(commandName)
-        ? 300000
+    const timeoutMs = LONG_RUNNING_COMMANDS.has(commandName) ? 300000 : commandName === "create_toposolid_from_cad" || commandName === "export_families" ? 180000
         : CROSS_DOC_COMMANDS.has(commandName) || SLOW_COMMANDS.has(commandName) ? 120000 : 30000;
 
     // 發送命令到 Revit
@@ -55,3 +51,4 @@ export async function executeRevitTool(
 
     return response.data;
 }
+

@@ -12,7 +12,7 @@
     4.8 plus a local Revit install. Run them on the machine you develop on.
   -->
 
-  <PropertyGroup>
+  <PropertyGroup Condition="$(MSBuildProjectName.StartsWith('RevitMCP.Tests.'))">
     <OutputType>Exe</OutputType>
     <TargetFramework>net48</TargetFramework>
     <LangVersion>latest</LangVersion>
@@ -27,11 +27,11 @@
     <RevitMcpAssembly>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\MCP\bin\$(RevitTestConfiguration)\RevitMCP.dll'))</RevitMcpAssembly>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="$(MSBuildProjectName.StartsWith('RevitMCP.Tests.'))">
     <Compile Include="$(MSBuildThisFileDirectory)Shared\*.cs" Link="Shared\%(Filename)%(Extension)" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="$(MSBuildProjectName.StartsWith('RevitMCP.Tests.'))">
     <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="2023.1.90" />
     <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="2023.1.90" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
@@ -48,7 +48,7 @@
        loads whatever MCP/bin currently holds instead of a copy that silently goes stale
        after the add-in is rebuilt. The runtime then has no way to find it, so bake the
        resolved path in for the AssemblyResolve hook to read back. -->
-  <ItemGroup>
+  <ItemGroup Condition="$(MSBuildProjectName.StartsWith('RevitMCP.Tests.'))">
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>RevitMcpAssembly</_Parameter1>
       <_Parameter2>$(RevitMcpAssembly)</_Parameter2>
@@ -57,7 +57,7 @@
 
   <!-- bin/ is gitignored, so a fresh clone has no add-in build yet. Fail with the command
        to run rather than a reference-resolution error nobody can act on. -->
-  <Target Name="CheckRevitMcpBuilt" BeforeTargets="ResolveAssemblyReferences">
+  <Target Name="CheckRevitMcpBuilt" BeforeTargets="ResolveAssemblyReferences" Condition="$(MSBuildProjectName.StartsWith('RevitMCP.Tests.'))">
     <Error Condition="!Exists('$(RevitMcpAssembly)')"
            Text="Add-in not built: $(RevitMcpAssembly) is missing. Build it first:%0A  cd MCP &amp;&amp; dotnet build -c $(RevitTestConfiguration) RevitMCP.csproj" />
   </Target>
