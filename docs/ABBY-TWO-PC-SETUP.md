@@ -17,7 +17,7 @@
 
 1. 在[Releases](https://github.com/s7814322-ops/REVIT_MCP_study/releases)選擇名稱以`abby-my-revit-tool-`開頭的版本，下載`Abby-OneClick-Setup-*.zip`並完整解壓縮。這是連網安裝包；執行時下載缺少的官方環境。
 2. 儲存並關閉Revit，雙擊`Abby-Install.cmd`，完成Windows權限確認。安裝器會自動要求提升權限；必須使用同一個Windows帳號，避免安裝到另一人的使用者目錄。不自動關閉Revit。
-3. 安裝器依序驗證Abby包、準備Node、Python／ezdxf、Codex及ODA，再部署已安裝的Revit版本；自動啟用每10分鐘更新，不需另選Y。沒有WinGet時，使用Microsoft官方模組補齊。官方套件或商店被組織政策阻擋時會保留錯誤記錄，不繞過政策。
+3. 安裝器依序驗證Abby包、準備Node、Python／ezdxf、Codex及ODA，再部署已安裝的Revit版本；自動啟用每1小時更新，不需另選Y。沒有WinGet時，使用Microsoft官方模組補齊。官方套件或商店被組織政策阻擋時會保留錯誤記錄，不繞過政策。
 4. 自動在目前使用者的Codex設定增加`mcp_servers.abby`，使用該電腦的固定入口與Node完整路徑；保留其他區段並先備份。既有同名項目若不屬於此Abby入口會停止，不覆寫。私人設定與憑證不傳到GitHub。
 5. 開啟桌面版並登入你的帳號；啟動Revit及Abby服務，再重新載入MCP。登入、Windows權限確認、Revit授權及族群範本不由安裝器代辦。
 
@@ -35,7 +35,8 @@ Node缺少時及Python都安裝在`%LOCALAPPDATA%\AbbyMCP\tools`，不覆寫系�
 - Revit開啟時延後並保留原版；不強制關閉程式、不替換執行中的DLL。關閉後下次檢查再部署。
 - 舊外掛與runtime保留備份；部署檔案失敗時回復已寫入檔案，成功後才切換固定MCP入口。
 - `current.json`記錄Version／SourceCommit／ToolCount。兩台這些值一致才代表安裝同一版本；已開啟的MCP用戶端仍需重新載入才會採用新版工具清單。
-- 排程為`AbbyMCP-AutoUpdate`，使用者登入期間每10分鐘執行。可在工作排程器停用。離線時沿用現有版本，不保證兩台執行中的程式瞬間同步。
+- 排程為`AbbyMCP-AutoUpdate`，使用者登入期間每1小時執行。可在工作排程器停用。離線時沿用現有版本，不保證兩台執行中的程式瞬間同步。
+- 已安裝舊版的電腦：各執行一次`Abby-Set-Hourly.cmd`，即可把原本10分鐘的觸發間隔改為1小時，無需重裝MCP。只更改已識別的Abby排程觸發器，保留執行指令、使用者、安全設定與啟用狀態，先備份原始排程XML並在完成後驗證。若Windows要求提升權限，必須使用同一個Windows帳號。
 - 共用skill／SOP隨包提供於`releases\版本\knowledge`。Codex可開啟此資料夾使用其中`.agents/skills`；自己的私人skill與本機設定不放到共用庫。
 
 ## 兩台都開發工具

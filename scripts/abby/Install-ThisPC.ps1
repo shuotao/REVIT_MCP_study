@@ -4,7 +4,7 @@ $ErrorActionPreference='Stop'
 [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12
 . (Join-Path $PSScriptRoot 'Abby.Common.ps1')
 . (Join-Path $PSScriptRoot 'Bootstrap.Common.ps1')
-if($PlanOnly){[pscustomobject]@{InstallRoot=$InstallRoot;Node='Private Node.js22 if needed';Python='Private Python3.13 + ezdxf';Desktop='Official Microsoft Store app';Cad='ODA converter if missing';AutoUpdate='Every10minutes';ClientConfig='Add only mcp_servers.abby';Models='Never opened';OtherAddins='SHA256 verified'}|ConvertTo-Json;return}
+if($PlanOnly){[pscustomobject]@{InstallRoot=$InstallRoot;Node='Private Node.js22 if needed';Python='Private Python3.13 + ezdxf';Desktop='Official Microsoft Store app';Cad='ODA converter if missing';AutoUpdate='Every1hour';ClientConfig='Add only mcp_servers.abby';Models='Never opened';OtherAddins='SHA256 verified'}|ConvertTo-Json;return}
 $sid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
 if($ExpectedUserSid -and $ExpectedUserSid -ne $sid){throw 'Elevation used a different Windows account. Run with the intended user account; no installation performed.'}
 $principal=New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())

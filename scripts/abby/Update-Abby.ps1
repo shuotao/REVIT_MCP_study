@@ -33,7 +33,7 @@ try{
  if($EnableAutoUpdate){
   if(!$Repo){throw 'Configure the private GitHub repository before enabling automatic updates'}
   $scriptPath=Join-Path $root 'Update-Abby.ps1';$action=New-ScheduledTaskAction -Execute 'powershell.exe' -Argument ('-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "'+$scriptPath+'" -NonInteractive')
-  $trigger=New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 10) -RepetitionDuration (New-TimeSpan -Days 3650)
+  $trigger=New-ScheduledTaskTrigger -Once -At (Get-Date).AddHours(1) -RepetitionInterval (New-TimeSpan -Hours 1) -RepetitionDuration (New-TimeSpan -Days 3650)
   $principal=New-ScheduledTaskPrincipal -UserId ([Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Limited
   Register-ScheduledTask -TaskName 'AbbyMCP-AutoUpdate' -Action $action -Trigger $trigger -Principal $principal -Description 'Install stable Abby releases when Revit is closed; no model operations.' -Force|Out-Null
  }
