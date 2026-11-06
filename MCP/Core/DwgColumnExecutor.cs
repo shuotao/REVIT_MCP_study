@@ -774,7 +774,7 @@ namespace RevitMCP.Core
 
             var psi = new ProcessStartInfo
             {
-                FileName = "python",
+                FileName = AbbyEnvironment.ResolvePython(),
                 Arguments = $"\"{workerPath}\" \"{filePath}\" \"{textLayerName}\"",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,

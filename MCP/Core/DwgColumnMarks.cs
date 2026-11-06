@@ -59,7 +59,7 @@ namespace RevitMCP.Core
             // Pass quoted arguments to the process directly; no shell execution.
             if (new[] {file,worker,layer}.Any(s => s.Contains("\"") || s.EndsWith("\\")))
                 throw new ArgumentException("Unsupported quote or trailing slash in CAD arguments.");
-            var psi = new ProcessStartInfo(python, "\"" + worker + "\" \"" + file + "\" \"" + layer + "\"")
+            var psi = new ProcessStartInfo(AbbyEnvironment.ResolvePython(python), "\"" + worker + "\" \"" + file + "\" \"" + layer + "\"")
                 { UseShellExecute=false, CreateNoWindow=true, RedirectStandardOutput=true, RedirectStandardError=true };
             string odaRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "ODA");
             if (Directory.Exists(odaRoot))

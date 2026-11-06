@@ -202,7 +202,7 @@ namespace RevitMCP.Core {
    string worker=FindWorkerScript()??throw new InvalidOperationException("CAD reader unavailable.");
    if(new[]{file,worker,layer}.Any(s=>s.Contains("\"")||s.EndsWith("\\")))throw new ArgumentException("Unsupported CAD argument.");
    if(controlLayer!=null&&(controlLayer.Contains("\"")||controlLayer.EndsWith("\\")))throw new ArgumentException("Unsupported control layer argument.");
-   var psi=new ProcessStartInfo(python,"\""+worker+"\" \""+file+"\" \""+layer+"\""+(controlLayer==null?"":" \""+controlLayer+"\"")){
+   var psi=new ProcessStartInfo(AbbyEnvironment.ResolvePython(python),"\""+worker+"\" \""+file+"\" \""+layer+"\""+(controlLayer==null?"":" \""+controlLayer+"\"")){
     UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true};
    string odaRoot=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),"ODA");
    if(Directory.Exists(odaRoot))psi.EnvironmentVariables["PATH"]=string.Join(";",Directory.GetDirectories(odaRoot)

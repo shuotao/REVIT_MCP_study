@@ -27,7 +27,11 @@ _ODA_SEARCH_PATHS = [
 def _inject_oda_path():
     """動態將 ODA 路徑注入 PATH，繞過 Revit/pyRevit 啟動前未更新環境的問題。"""
     current_path = os.environ.get("PATH", "")
-    for p in _ODA_SEARCH_PATHS:
+    import glob
+    discovered = []
+    for root in (os.environ.get("ProgramFiles", r"C:\Program Files"), os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")):
+        discovered.extend(sorted(glob.glob(os.path.join(root, "ODA", "ODAFileConverter*")), reverse=True))
+    for p in discovered + _ODA_SEARCH_PATHS:
         if os.path.isdir(p) and p not in current_path:
             os.environ["PATH"] += os.pathsep + p
             return True

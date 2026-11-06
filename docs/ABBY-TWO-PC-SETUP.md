@@ -6,20 +6,25 @@
 
 | 用途 | 前置項目 |
 |---|---|
-| 日常使用及自動更新 | Windows、需要的Revit版本、Node.js22以上、Codex或其他MCP用戶端，以及可連線GitHub／npm |
+| 日常使用及自動更新 | Windows x64、已授權的Revit2024／2025／2026至少一版，以及可連線官方下載站、Microsoft Store、GitHub／npm／PyPI |
 | 同時開發工具 | 再安裝Git for Windows；本機要編譯時加.NET10 SDK（建置工具需求，Revit2025／2026仍以.NET8為目標）。GitHub登入必須有此庫的寫入權限 |
-| CAD文字與DWG | Python3、ezdxf、ODA File Converter；不使用此功能可稍後安裝 |
+| 安裝器自動處理 | Node.js22（缺少時）、獨立Python3.13與ezdxf、缺少的Codex桌面版及ODA File Converter、自動更新與MCP設定 |
 | 族群生成 | 對應Revit版本的公制族群範本，路徑依該電腦實際位置指定 |
 
 日常更新是公開Release下載，不需要GitHub CLI、帳號密碼或PAT。安裝器不修改Smart App Control、安全設定、TYBIM或模型。
 
 ## 首次安裝
 
-1. 在[Releases](https://github.com/s7814322-ops/REVIT_MCP_study/releases)選擇名稱以`abby-my-revit-tool-`開頭的版本，下載`Abby-Second-PC-*.zip`並完整解壓縮。
-2. 儲存並關閉Revit2024／2025／2026，雙擊`Abby-Install.cmd`。勾選／輸入Y可啟用目前使用者的每10分鐘更新排程。
-3. 腳本只替已安裝的Revit版本部署。預設偵測標準安裝位置；自訂Revit安裝路徑需先調整偵測。
-4. 將`%LOCALAPPDATA%\AbbyMCP\mcp-client.example.toml`提供的設定加入Codex一次。固定入口為`node`加上該電腦`start-mcp.cjs`的完整路徑；不複製別台的使用者路徑或憑證，不覆寫整份既有設定。
-5. 啟動Revit及Abby服務，重新載入Codex MCP，確認工具數。
+1. 在[Releases](https://github.com/s7814322-ops/REVIT_MCP_study/releases)選擇名稱以`abby-my-revit-tool-`開頭的版本，下載`Abby-OneClick-Setup-*.zip`並完整解壓縮。這是連網安裝包；執行時下載缺少的官方環境。
+2. 儲存並關閉Revit，雙擊`Abby-Install.cmd`，完成Windows權限確認。安裝器會自動要求提升權限；必須使用同一個Windows帳號，避免安裝到另一人的使用者目錄。不自動關閉Revit。
+3. 安裝器依序驗證Abby包、準備Node、Python／ezdxf、Codex及ODA，再部署已安裝的Revit版本；自動啟用每10分鐘更新，不需另選Y。沒有WinGet時，使用Microsoft官方模組補齊。官方套件或商店被組織政策阻擋時會保留錯誤記錄，不繞過政策。
+4. 自動在目前使用者的Codex設定增加`mcp_servers.abby`，使用該電腦的固定入口與Node完整路徑；保留其他區段並先備份。既有同名項目若不屬於此Abby入口會停止，不覆寫。私人設定與憑證不傳到GitHub。
+5. 開啟桌面版並登入你的帳號；啟動Revit及Abby服務，再重新載入MCP。登入、Windows權限確認、Revit授權及族群範本不由安裝器代辦。
+
+Node缺少時及Python都安裝在`%LOCALAPPDATA%\AbbyMCP\tools`，不覆寫系統Python、不修改使用者或系統PATH。CAD工具預設優先使用Abby專用Python；明確傳入其他Python完整路徑時保留該選擇。既有Codex與ODA不批次升級。安裝記錄位於AbbyMCP目錄的`install-*.log`，成功摘要為`installation.json`。
+
+安裝與更新前後比對其他Revit外掛的檔案雜湊（不只TYBIM），寫入限Abby已識別的資料夾與manifest；同名manifest若屬於其他外掛，或未知資料夾無法辨識歸屬，會停止。模型不開啟、不儲存、不移動。
+初次安裝會為目前使用者建立Abby的`http://localhost:8964/`本機URL權限；已有的預約不覆寫，連接埠已被占用則停止。沒有開放防火牆或遠端介面，也不更改Smart App Control與既有安全政策。
 
 同一台Revit服務只連接一個MCP用戶端。更換設定時保留其他工具設定，避免同時啟用兩個連向同一Revit服務的Abby入口。
 
@@ -51,6 +56,7 @@
 ## 維護與驗證
 
 - 安全測試：`powershell -File tests/abby-update-safety.ps1`。
+- 安裝器隔離測試：`powershell -File tests/abby-bootstrap.ps1`；僅列計畫：`powershell -File scripts/abby/Install-ThisPC.ps1 -PlanOnly`。
 - 公開內容檢查：`node scripts/abby/check-public-source.cjs`。
 - 僅驗證ZIP、不部署：`powershell -File scripts/abby/Update-Abby.ps1 -Package ZIP完整路徑 -ValidateOnly`。
 - 暫存預設位於安裝目錄staging，避免過長TEMP路徑；可用`-StagingRoot`指定短路徑。

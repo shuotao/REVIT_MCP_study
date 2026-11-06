@@ -18,6 +18,20 @@ function Get-AbbyTybim {
 function Get-AbbyRunningRevit {
  $result=@();foreach($p in @(Get-Process Revit -ErrorAction SilentlyContinue)){try{$exe=$p.Path}catch{throw 'Cannot inspect running Revit. Update deferred.'};if(!$exe){throw 'Cannot identify Revit version. Update deferred.'};if($exe -match '(?i)\\Revit (2024|2025|2026)\\'){$result+=$Matches[1]}};return $result
 }
+function Get-AbbyOtherAddins {
+ $roots=@((Join-Path $env:APPDATA 'Autodesk\Revit\Addins'),(Join-Path $env:PROGRAMDATA 'Autodesk\Revit\Addins'))
+ $inventory=@(foreach($root in $roots){
+  if(!(Test-Path -LiteralPath $root)){continue}
+  foreach($year in Get-ChildItem -LiteralPath $root -Directory){
+   foreach($entry in Get-ChildItem -LiteralPath $year.FullName){
+    if($entry.Name -in @('RevitMCP','RevitMCP.addin')){continue}
+    $files=if($entry.PSIsContainer){@(Get-ChildItem -LiteralPath $entry.FullName -Recurse -File)}else{@($entry)}
+    foreach($file in $files){[pscustomobject]@{Path=$file.FullName;Hash=(Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash}}
+   }
+  }
+ })
+ return @($inventory|Sort-Object Path)
+}
 function Test-AbbyPayload($Root,[switch]$AllowInstalledDependencies){
  $manifest=Read-AbbyJson (Join-Path $Root 'manifest.json');if($manifest.Format -ne 1 -or $manifest.Version -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$'){throw 'Unsupported package manifest'}
  $seen=@{};foreach($file in $manifest.Files){$key=$file.Path.ToLowerInvariant();if($seen.ContainsKey($key)){throw 'Duplicate manifest path'};$seen[$key]=$true;$p=Get-AbbyChild $Root $file.Path;if(!(Test-Path -LiteralPath $p -PathType Leaf)){throw "Missing payload: $($file.Path)"};if((Get-FileHash -LiteralPath $p -Algorithm SHA256).Hash -ne $file.Sha256){throw "Payload hash mismatch: $($file.Path)"}}
