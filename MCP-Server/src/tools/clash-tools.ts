@@ -97,6 +97,7 @@ export const clashTools: Tool[] = [
                     type: "object",
                     description: "CSA 結構來源（通常為主模型）",
                     properties: {
+                        linkInstanceId: { type: "number", description: "連結模型 ID；為 0 或省略時從主模型讀取" },
                         categories: {
                             type: "array",
                             items: { type: "string" },
@@ -116,6 +117,59 @@ export const clashTools: Tool[] = [
                 },
             },
             required: ["mepSource"],
+        },
+    },
+    {
+        name: "scan_opening_candidates",
+        title: "Scan MEP Opening Candidates",
+        description: "唯讀掃描 MEP 管線穿越結構的開孔候選。沿用 detect_clashes 的 Curve-to-Solid 幾何核心，依明確的每側 clearanceMm 計算建議孔徑，並以 candidate / review_required 與 warningCodes 保守分流；不建立套管、開孔族群、標記或視圖圖形。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                mepSource: {
+                    type: "object",
+                    description: "MEP 來源；語意同 detect_clashes.mepSource",
+                    properties: {
+                        linkInstanceId: { type: "number", description: "連結模型 ID；為 0 或省略時讀取主模型" },
+                        categories: {
+                            type: "array",
+                            items: { type: "string", enum: ["Pipes", "Ducts", "CableTrays", "Conduits"] },
+                        },
+                        filters: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                properties: {
+                                    field: { type: "string" },
+                                    operator: { type: "string", enum: ["equals", "contains", "not_equals", "less_than", "greater_than"] },
+                                    value: { type: "string" },
+                                },
+                                required: ["field", "operator", "value"],
+                            },
+                        },
+                    },
+                },
+                structureSource: {
+                    type: "object",
+                    description: "結構來源；語意同 detect_clashes.csaSource",
+                    properties: {
+                        linkInstanceId: { type: "number", description: "連結模型 ID；為 0 或省略時讀取主模型" },
+                        categories: {
+                            type: "array",
+                            items: { type: "string", enum: ["Walls", "Floors", "StructuralFraming", "StructuralColumns"] },
+                        },
+                    },
+                },
+                clearanceMm: { type: "number", minimum: 0, description: "開孔每一側的明確預留量（mm），無預設值" },
+                levels: { type: "array", items: { type: "string" }, description: "主模型樓層名稱篩選（選填）" },
+                categories: {
+                    type: "array",
+                    items: { type: "string", enum: ["Pipes", "Ducts", "CableTrays", "Conduits", "Walls", "Floors", "StructuralFraming", "StructuralColumns"] },
+                    description: "跨來源的品類子集篩選；會依 MEP／結構品類分流套用（選填）",
+                },
+                maxCount: { type: "number", minimum: 1, default: 1000, description: "最大回傳候選數" },
+            },
+            required: ["mepSource", "structureSource", "clearanceMm"],
         },
     },
     {

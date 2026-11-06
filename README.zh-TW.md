@@ -14,7 +14,7 @@ Revit MCP 透過 Model Context Protocol (MCP) 讓 AI Client 呼叫 Revit 工具�
 
 ## 這是什麼？
 
-用講人話的方式操作 Revit。跟你的 AI Client 說「幫這個視圖的牆全部標尺寸」或「檢查帷幕牆立面」，Revit 就會做——背後是 **166 個 MCP 工具**，由 **72 份專業 BIM SOP**（建築法規、數量計算、法規檢核）支撐。
+用講人話的方式操作 Revit。跟你的 AI Client 說「幫這個視圖的牆全部標尺寸」或「檢查帷幕牆立面」，Revit 就會做——背後是 **253 個 MCP 工具**，由 **94 份專業 BIM SOP**（建築法規、數量計算、法規檢核）支撐。
 
 **給誰用：** 使用 Revit、想要 AI 輔助且符合規範的 BIM 工程師與建築師。你需要 Windows 上的 Revit（2022–2026），並願意安裝一個 add-in。
 
@@ -33,15 +33,25 @@ Revit MCP 透過 Model Context Protocol (MCP) 讓 AI Client 呼叫 Revit 工具�
 
 | 項目 | 數量 | 來源 |
 |---|---:|---|
-| Runtime MCP tools | 166 | `MCP-Server/src/tools/index.ts` 的 `registerRevitTools()` |
-| Domain SOP files | 72 | `domain/*.md` 扣除 `README.md`，加上 `domain/references/*.md` |
-| Claude skills | 50 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 253 | `MCP-Server/src/tools/index.ts` 的 `registerRevitTools()` |
+| Domain SOP files | 94 | `domain/*.md` 扣除 `README.md`，加上 `domain/references/*.md` |
+| Claude skills | 61 | `.claude/skills/*/SKILL.md` |
 
 如果這些數字改變，請同步更新 `CLAUDE.md`、本 README、`README.md`、`docs/DOCUMENT_AUDIENCE_INVENTORY.md`，並執行：
 
 ```powershell
 .\scripts\verify-qaqc.ps1 -SkipBuild -SkipDeploy
 ```
+
+## 新功能：互動式碰撞檢視器（MCP Apps）
+
+`detect_clashes` 現在可以透過 [MCP Apps](https://modelcontextprotocol.io/) extension（`io.modelcontextprotocol/ui`）在對話中直接顯示互動式碰撞檢視 UI，需要 AI Client（host）支援此 extension 才會顯示。這是純加法式功能：
+
+- 互動介面只會出現在**支援 MCP Apps 的圖形介面 host**（Claude Desktop、claude.ai 網頁版、VS Code GitHub Copilot）；**終端機 CLI（如 Claude Code）無法顯示面板，一律是純文字結果 —— 這是正常的，不是故障**。
+- 不支援 MCP Apps 的 Client 仍會拿到 `detect_clashes` 原本的純文字結果，不受任何影響。
+- stdio 連線方式與既有 Revit add-in 完全不受影響，不需要重新安裝或重新設定。
+
+完整的 MCP 2026-07-28 升級說明見 `docs/MIGRATION_GUIDE.md`。
 
 ## 架構
 
@@ -150,8 +160,15 @@ MCP/bin/Release.R24/RevitMCP.dll
 建議使用：
 
 ```powershell
-.\scripts\install-addon.ps1
+# 指定 Revit 版本（必要時；偵測到多版本而未指定會要求你選擇，非互動模式則直接失敗，不會擅自挑）
+.\scripts\install-addon.ps1 -Version 2024
+
+# 多版本環境一次部署完
+.\scripts\install-addon.ps1 -All
 ```
+
+腳本會複製**建構產物中的全部 DLL**（R22–R24 為 13 個、R25–R26 為 8 個，兩者都正確）、
+部署前檢查建構產物世代是否與目標 Revit 相符、部署後逐檔 SHA256 驗證、並輪替舊版備份。
 
 手動部署時，`.addin` 與 DLL 必須放在對應版本的 Revit Addins 位置，並維持 `RevitMCP.addin` 內的相對 assembly path：
 
@@ -209,11 +226,14 @@ VS Code 設定在 `.vscode/mcp.json`：
 
 ### AI Client 切換與並用限制
 
-Revit 端的 WebSocket 服務一次只接受一條 MCP 連線：後連上的 MCP Server 會取代先前的連線。因此多個 AI Client 是「切換使用」而不是「同時並用」：
+Revit 端的 WebSocket 服務採「獨占鎖」機制：同一時間只有一個 AI Client 能保持連線。第二個嘗試連線的 Client 會被直接拒絕（HTTP 409），而不是取代掉原本的連線——第一個連線因此維持穩定。因此多個 AI Client 是「切換使用」而不是「同時並用」：
 
-1. 關閉目前使用的 AI Client（或停用其 MCP server）。
-2. 啟動另一個 AI Client，它的 MCP Server 連上 `localhost:8964` 後即接手。
-3. 若連線狀態異常，於 Revit ribbon 重啟 MCP 服務即可重置。
+在這道鎖定檢查之前，只要 handshake 帶有瀏覽器的 `Origin` 標頭，就會直接以 HTTP 403 拒絕。這是為了擋掉另一種風險：WebSocket handshake 不受瀏覽器同源政策保護，若無此檢查，使用者瀏覽器裡開著的惡意分頁就可能在不知情的情況下操控 add-in。此規則沒有設定可以關閉，且不影響 MCP bridge——它本來就不會送出 `Origin` 標頭。
+
+1. 在 Revit ribbon 點擊 **「切換/釋放連線」** 按鈕，釋放目前的連線。
+2. 啟動或重新連線另一個 AI Client，它的 MCP Server 連上 `localhost:8964` 後即取得連線。
+3. **「MCP 設定」** 對話框會顯示目前是哪個 Client 持有連線（例如 `claude-code`、`claude-ai`）。
+4. 若連線狀態異常，可使用同一個 ribbon 按鈕，或於 Revit ribbon 重啟 MCP 服務即可重置。
 
 ## 啟動流程
 
@@ -357,3 +377,36 @@ powershell -ExecutionPolicy Bypass -File scripts\release-port.ps1
 ## License
 
 MIT License
+
+### 依參數群組複製
+
+MCP 工具 `copy_parameter_by_group` 以精確名稱及 `Definition.GetGroupTypeId()`
+配對實例參數。預設將「約束」群組的「頂部約束」複製到「文字」群組的「牆頂至」，
+類別為 Walls；`scope=project` 僅掃描目前文件的實例。
+
+傳入 `{}` 即預覽；正式寫入需傳入 `{"dryRun":false,"apply":true}`。
+只指定 `apply=true` 仍維持預覽。預設 `overwrite=true`。
+群組可用約束／文字、Constraints／Text、PG_CONSTRAINTS／PG_TEXT，
+或完整的內建 Forge 群組 TypeId。
+
+來源空值（含全空白字串）、缺少或重複配對、目標唯讀、儲存／資料類型不相容
+會跳過並回報。預設 valueTransform=afterColon：字串來源讀 AsString，其餘讀 AsValueString，
+取第一個 : 或 ：之後的全部文字並去除前後空白，只接受字串目標。
+例如「樓層: RF」寫入「RF」；沒有冒號回報 MissingDelimiter，擷取後空白回報 EmptyTransformedSource。
+valueTransform=raw 保留原值與內部單位，要求來源和目標儲存／資料類型相同，數字 0 不視為空值。
+寫入使用單一交易，任一寫入失敗會回復整批。
+`Planned` 是原計畫變更數，提交或回復後仍保留；`Updated` 只計已提交變更。
+另回傳 `Scanned`、`Unchanged`、`Skipped`、`Failed`、
+`ByCategory`、`ByReason`、逐筆 `Results` 及原值／新值 `ValueChanges` 統計。
+請一併檢查結果內的 `Success`、`Committed`、`RolledBack` 與 `Error`。
+
+CAD 梁號規則模式：create_beams_from_dwg 的 mappingMode=numericSchedule 支援
+FWB1～FWB5→60x270、FB/FG＋數字→70x270、Fb/Fg＋數字→60x270，Fb0 優先→50x270。
+區分大小寫，類型命名為公分，實際寬高以毫米核對。需指定 familyName、梁線與文字圖層、
+cadUnits；預設預覽，dryRun=false 且 apply=true 才建立。找不到配對時跳過，不猜測未編號梁。
+此安全預覽開關只適用 numericSchedule；legacy 模式保留既有直接建立行為。
+
+
+### Abby: 梁柱封閉區域批次建板
+使用 list_floor_types 選擇現有類型，再以 create_floors_from_framing_regions 預覽梁／梁柱內側封閉區域並批次建立樓板。含柱洞、重疊跳過、預覽驗證與交易回滾。詳見 [使用方式與限制](docs/ABBY-FRAMING-FLOORS.md)。
+

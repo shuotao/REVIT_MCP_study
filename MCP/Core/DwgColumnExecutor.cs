@@ -17,7 +17,7 @@ namespace RevitMCP.Core
     ///   - preview_dwg_columns   : 預覽指定圖層解析出的柱資訊
     ///   - create_columns_from_dwg : 從 CAD 圖層建立結構柱或建築柱
     /// </summary>
-    public static class DwgColumnExecutor
+    public static partial class DwgColumnExecutor
     {
         const double FtMm = 304.8;
         const double MmFt = 1.0 / 304.8;
@@ -160,6 +160,7 @@ namespace RevitMCP.Core
         // ────────────────────────────────────────────────
         public static object CreateColumnsFromDwg(Document doc, JObject p)
         {
+            if (p["exactTypeId"] != null) return CreateExactSteelColumns(doc, p);
             var vp = doc.ActiveView as ViewPlan;
             if (vp == null) throw new Exception("請在平面視圖中執行");
 
@@ -181,7 +182,16 @@ namespace RevitMCP.Core
             var bLv = vp.GenLevel;
             if (bLv == null) throw new Exception("無法取得基準樓層");
 
-            var tLv = new FilteredElementCollector(doc)
+            Level tLv;
+            if (p["topLevelId"] != null)
+            {
+                if (p["topLevelId"].Type != JTokenType.Integer || (long)p["topLevelId"] <= 0)
+                    throw new ArgumentException("topLevelId must be a positive integer.");
+                tLv = doc.GetElement(new ElementId((long)p["topLevelId"])) as Level;
+                if (tLv == null || tLv.Elevation <= bLv.Elevation + 0.001)
+                    throw new ArgumentException("Specified top level must exist and be above the base level.");
+            }
+            else tLv = new FilteredElementCollector(doc)
                 .OfClass(typeof(Level)).Cast<Level>()
                 .Where(l => l.Elevation > bLv.Elevation + 0.001)
                 .OrderBy(l => l.Elevation).FirstOrDefault();
@@ -236,6 +246,7 @@ namespace RevitMCP.Core
                 }
             }
 
+            var createdElementIds = new List<long>();
             int ok = 0, fail = 0;
             var errors = new List<string>();
             var typeMapping = new List<string>();
@@ -249,6 +260,8 @@ namespace RevitMCP.Core
 
                 foreach (var c in cols)
                 {
+                    using (var columnTransaction = new SubTransaction(doc))
+                    {
                     try
                     {
                         FamilySymbol sym;
@@ -295,9 +308,11 @@ namespace RevitMCP.Core
                         }
                         if (!sym.IsActive) { sym.Activate(); doc.Regenerate(); }
 
+                        if (columnTransaction.Start() != TransactionStatus.Started)
+                            throw new InvalidOperationException("Could not start column transaction.");
                         var loc = new XYZ(c.X, c.Y, bLv.Elevation);
                         var inst = doc.Create.NewFamilyInstance(loc, sym, bLv, stype);
-                        if (inst != null)
+                        if (inst == null) throw new InvalidOperationException("Column creation returned null.");
                         {
                             SetParam(inst, BuiltInParameter.FAMILY_TOP_LEVEL_PARAM, tLv.Id);
                             SetParam(inst, BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM, 0.0);
@@ -308,6 +323,15 @@ namespace RevitMCP.Core
                                 var ax = Line.CreateBound(loc, loc + XYZ.BasisZ);
                                 ElementTransformUtils.RotateElement(doc, inst.Id, ax, c.A);
                             }
+                            doc.Regenerate();
+                            if (inst.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_PARAM)?.AsElementId() != tLv.Id ||
+                                inst.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_PARAM)?.AsElementId() != bLv.Id ||
+                                Math.Abs(inst.get_Parameter(BuiltInParameter.FAMILY_TOP_LEVEL_OFFSET_PARAM)?.AsDouble() ?? double.PositiveInfinity) > 1e-8 ||
+                                Math.Abs(inst.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_OFFSET_PARAM)?.AsDouble() ?? double.PositiveInfinity) > 1e-8)
+                                throw new InvalidOperationException("Column level/offset readback mismatch.");
+                            if (columnTransaction.Commit() != TransactionStatus.Committed)
+                                throw new InvalidOperationException("Column subtransaction did not commit.");
+                            createdElementIds.Add(inst.Id.GetIdValue());
                             ok++;
                             if (typeMapping.Count < 10 && !typeMapping.Contains(sym.Name))
                                 typeMapping.Add(sym.Name);
@@ -315,11 +339,18 @@ namespace RevitMCP.Core
                     }
                     catch (Exception ex)
                     {
+                        if (columnTransaction.GetStatus() == TransactionStatus.Started) columnTransaction.RollBack();
+                        if (ex is Autodesk.Revit.Exceptions.RegenerationFailedException ||
+                            ex is Autodesk.Revit.Exceptions.ModificationForbiddenException ||
+                            ex is Autodesk.Revit.Exceptions.OperationCanceledException ||
+                            ex is System.OperationCanceledException || ex is OutOfMemoryException) throw;
                         fail++;
                         errors.Add(ex.Message);
                     }
+                    }
                 }
-                tr.Commit();
+                if (tr.Commit() != TransactionStatus.Committed)
+                    throw new InvalidOperationException("Column batch did not commit; no successful creation reported.");
             }
 
             return new
@@ -335,6 +366,8 @@ namespace RevitMCP.Core
                 depthParam = dp,
                 baseLevel = bLv.Name,
                 topLevel = tLv.Name,
+                topLevelId = tLv.Id.GetIdValue(),
+                createdElementIds,
                 totalDetected = cols.Count,
                 created = ok,
                 failed = fail,
@@ -393,7 +426,22 @@ namespace RevitMCP.Core
                     var pts = pl.GetCoordinates().ToList();
                     var c = MakeRect(pts);                          // 嚴格矩形優先（向後相容）
                     if (c == null && pts.Count >= 3)                // 退而求其次：通用外接矩形
-                        c = BuildColFromPoints(pts, LongestEdgeAngle(pts), diag, "PolyLine(" + pts.Count + "pt)");
+                    {
+                        // #118：這道 guard 排除的是「去重後恰為 4 點但不構成矩形（梯形/歪斜四邊形）」：
+                        // 這種形狀若仍交給 BuildColFromPoints 的外接矩形近似，會硬套成尺寸錯誤的柱，應跳過並記錄診斷。
+                        // fallback 本身保留，是為了去重後相異點數 ≠ 4 的形狀（三角形、多邊形、以及含共線冗餘頂點的矩形）；
+                        // BuildColFromPoints 自己在第 486 行也帶與 MakeRect 相同的 100-3000mm 尺寸窗，所以被尺寸窗擋下的真矩形在 fallback 也一樣進不來，不是這個 guard 在援救的對象。
+                        var uniq = DedupPoints(pts);
+                        if (uniq.Count == 4 && !IsRectangularQuad(uniq))
+                        {
+                            if (diag != null)
+                                diag.Add("PolyLine(" + pts.Count + "pt) skip: 非矩形四邊形(梯形/歪斜), unique=" + uniq.Count);
+                        }
+                        else
+                        {
+                            c = BuildColFromPoints(pts, LongestEdgeAngle(pts), diag, "PolyLine(" + pts.Count + "pt)");
+                        }
+                    }
                     if (c != null) res.Add(c);
                 }
                 else if (obj is GeometryInstance gi)
@@ -514,7 +562,8 @@ namespace RevitMCP.Core
             }
         }
 
-        static ColData MakeRect(List<XYZ> points)
+        // 去重複點（0.001 ft 容差）。MakeRect 與 Extract() 的 fallback 分流共用，避免邏輯分岔。
+        static List<XYZ> DedupPoints(List<XYZ> points)
         {
             var pts = new List<XYZ>();
             foreach (var p in points)
@@ -523,17 +572,31 @@ namespace RevitMCP.Core
                 foreach (var q in pts) { if (p.DistanceTo(q) < 0.001) { dup = true; break; } }
                 if (!dup) pts.Add(p);
             }
-            if (pts.Count != 4) return null;
+            return pts;
+        }
 
+        // 判斷「已去重」的 4 點依序連接是否構成矩形（每個角近似直角，且無退化邊）。
+        // 供 MakeRect 與 Extract() 的 fallback 分流共用，避免邏輯分岔。
+        static bool IsRectangularQuad(List<XYZ> uniquePts)
+        {
+            if (uniquePts.Count != 4) return false;
             for (int i = 0; i < 4; i++)
             {
-                var ab = pts[(i + 1) % 4] - pts[i];
-                var bc = pts[(i + 2) % 4] - pts[(i + 1) % 4];
+                var ab = uniquePts[(i + 1) % 4] - uniquePts[i];
+                var bc = uniquePts[(i + 2) % 4] - uniquePts[(i + 1) % 4];
                 double la = Math.Sqrt(ab.X * ab.X + ab.Y * ab.Y);
                 double lb = Math.Sqrt(bc.X * bc.X + bc.Y * bc.Y);
-                if (la < 0.001 || lb < 0.001) return null;
-                if (Math.Abs((ab.X * bc.X + ab.Y * bc.Y) / (la * lb)) > 0.05) return null;
+                if (la < 0.001 || lb < 0.001) return false;
+                if (Math.Abs((ab.X * bc.X + ab.Y * bc.Y) / (la * lb)) > 0.05) return false;
             }
+            return true;
+        }
+
+        static ColData MakeRect(List<XYZ> points)
+        {
+            var pts = DedupPoints(points);
+            if (pts.Count != 4) return null;
+            if (!IsRectangularQuad(pts)) return null;
 
             XYZ e1 = pts[1] - pts[0];
             XYZ e2 = pts[2] - pts[1];
@@ -801,8 +864,9 @@ namespace RevitMCP.Core
                 .Where(s => s != null).ToList();
 
             // Step 1: 完整名稱完全符合
+            // #92 使用 Ordinal（區分大小寫）：台灣柱號與族群類型皆全大寫，避免 C1 誤配 c1
             var match = syms.FirstOrDefault(s =>
-                s.Name.Equals(labelText, StringComparison.OrdinalIgnoreCase));
+                s.Name.Equals(labelText, StringComparison.Ordinal));
             if (match != null) return match;
 
             // 萃取代號：去掉括號與尺寸後綴，如 "C3a(100×60)" → "C3a"
@@ -825,9 +889,9 @@ namespace RevitMCP.Core
 
             // Step 2: 代號前綴符合（"C3a_..." 或 "C3a-..." 或完全等於 "C3a"）
             match = syms.FirstOrDefault(s =>
-                s.Name.StartsWith(code + "_", StringComparison.OrdinalIgnoreCase) ||
-                s.Name.StartsWith(code + "-", StringComparison.OrdinalIgnoreCase) ||
-                s.Name.Equals(code, StringComparison.OrdinalIgnoreCase));
+                s.Name.StartsWith(code + "_", StringComparison.Ordinal) ||
+                s.Name.StartsWith(code + "-", StringComparison.Ordinal) ||
+                s.Name.Equals(code, StringComparison.Ordinal));
             if (match != null) return match;
 
             // Step 3: 代號前綴 + 尺寸雙重符合（代號相同但尺寸不同時區分）
@@ -836,7 +900,7 @@ namespace RevitMCP.Core
                 double wF = wMm * MmFt, dF = dMm * MmFt, t = Tol * MmFt;
                 match = syms.FirstOrDefault(s =>
                 {
-                    if (!s.Name.StartsWith(code, StringComparison.OrdinalIgnoreCase)) return false;
+                    if (!s.Name.StartsWith(code, StringComparison.Ordinal)) return false;
                     var pw = s.LookupParameter(wp); var pd = s.LookupParameter(dp);
                     if (pw == null || pd == null) return false;
                     double sw = pw.AsDouble() * FtMm, sd = pd.AsDouble() * FtMm;

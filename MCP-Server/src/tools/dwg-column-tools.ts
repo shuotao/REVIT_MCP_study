@@ -39,7 +39,7 @@ export const dwgColumnTools: Tool[] = [
         name: "create_columns_from_dwg",
         description:
             "從 CAD 指定圖層自動建立 Revit 結構柱或建築柱。" +
-            "會自動：辨識矩形輪廓、建立對應尺寸的族群類型、設定底頂樓層、套用旋轉角度。" +
+            "會自動：辨識矩形輪廓、建立對應尺寸的族群類型、設定底頂樓層、套用旋轉角度。topLevelId 可指定柱頂樓層，回傳 createdElementIds 供後續填號。" +
             "若指定 familyName，會從該族群的現有類型中依尺寸比對，直接使用原有柱名稱（如 C1、C2）；" +
             "未指定時自動挑選最適族群並按尺寸建立新類型。" +
             "執行前建議先呼叫 preview_dwg_columns 確認識別結果。" +
@@ -51,6 +51,12 @@ export const dwgColumnTools: Tool[] = [
                     type: "string",
                     description: "CAD 圖層名稱，請從 get_dwg_column_layers 回傳的清單中選擇",
                 },
+                exactTypeId: { type: "integer", minimum: 1, description: "Exact structural H steel column type. Uses closed H outlines and flange direction, without changing types. Requires topLevelId, topOffsetMm, downwardLengthMm and expectedCount." },
+                topOffsetMm: { type: "number", description: "Exact-type mode: column top offset from topLevelId, in mm." },
+                downwardLengthMm: { type: "number", exclusiveMinimum: 0, description: "Exact-type mode: vertical length measured down from column top, in mm." },
+                expectedCount: { type: "integer", minimum: 1, description: "Exact-type mode: expected CAD H outline count; mismatch aborts." },
+                dryRun: { type: "boolean", default: true, description: "Exact-type mode: trial creation and verification, rolled back by default." },
+                apply: { type: "boolean", default: false, description: "Exact-type mode: writes only with apply=true and dryRun=false." },
                 columnType: {
                     type: "string",
                     enum: ["structural", "architectural"],
@@ -58,6 +64,10 @@ export const dwgColumnTools: Tool[] = [
                     description:
                         "柱類型：'structural'（結構柱，OST_StructuralColumns）或 " +
                         "'architectural'（建築柱，OST_Columns）。預設為 structural",
+                },
+                topLevelId: {
+                    type: "integer", minimum: 1,
+                    description: "指定柱頂樓層 ID，必須高於目前平面視圖的基準層。從 get_all_levels 選擇；省略時使用最近上層。",
                 },
                 familyName: {
                     type: "string",

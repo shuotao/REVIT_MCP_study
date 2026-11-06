@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace RevitMCP.Core
 {
-    public static class DwgBeamExecutor
+    public static partial class DwgBeamExecutor
     {
         const double FtMm = 304.8;
         const double MmFt = 1.0 / 304.8;
@@ -28,12 +28,12 @@ namespace RevitMCP.Core
             public double Angle { get; set; }
         }
 
-        class LabelData { public string Text; public double X; public double Y; public double RawX; public double RawY; }
+        class LabelData { public string Text; public double X; public double Y; public double Z; public double RawX; public double RawY; }
 
         public static object GetDwgBeamLayers(Document doc)
         {
-            var vp = doc.ActiveView as ViewPlan;
-            if (vp == null) throw new Exception("請在平面視圖中執行");
+            var vp = doc.ActiveView;
+            if (!(vp is ViewPlan) && !(vp is ViewSection)) throw new Exception("請在平面或立剖面視圖中執行");
 
             var cads = new FilteredElementCollector(doc, vp.Id)
                 .OfClass(typeof(ImportInstance))
@@ -90,7 +90,7 @@ namespace RevitMCP.Core
             if (string.IsNullOrEmpty(layerName)) throw new Exception("必須提供 layerName 參數");
 
             var lines = CollectLayerLines(doc, vp, layerName);
-            var beams = ExtractBeamCenterLines(lines);
+            var beams = ExtractBeamCenterLines(lines, ReadCadBeamWidth(p), p.Value<double?>("cadWidthToleranceMm") ?? 5);
 
             var xBeams = beams.Where(b => b.IsXAligned).ToList();
             var yBeams = beams.Where(b => b.IsYAligned).ToList();
@@ -113,6 +113,15 @@ namespace RevitMCP.Core
 
         public static object CreateBeamsFromDwg(Document doc, JObject p)
         {
+            if ((string)p["mappingMode"] == "elevationSteel") return CreateElevationSteel(doc, p);
+            if (p["exactTypeId"] != null) return CreateExactDwgBeams(doc, p);
+            if (p["mappingMode"] != null) {
+                if (p["mappingMode"].Type != JTokenType.String) throw new ArgumentException("mappingMode must be a string.");
+                if ((string)p["mappingMode"] == "numericSchedule") return CreateBeamsByNumericSchedule(doc, p);
+                if ((string)p["mappingMode"] != "legacy") throw new ArgumentException("Unknown mappingMode.");
+            }
+            if(new[]{"uncertainElevationLevelId","elevationLayerPairs","defaultLevelId","parenthesizedLevelId","parenthesizedOffsetUnits","writeTextNumber"}.Any(key=>p[key]!=null))throw new ArgumentException("Beam elevation and text numbering options require numericSchedule.");
+
             var vp = doc.ActiveView as ViewPlan;
             if (vp == null) throw new Exception("請在平面視圖中執行");
 
@@ -237,7 +246,7 @@ namespace RevitMCP.Core
                             }
                         }
                         if (sym == null) { fail++; continue; }
-                        PlaceBeamInstance(doc, b, bLv, sym, typeMapping, ref ok);
+                        PlaceBeamInstance(doc, b, bLv, sym, typeMapping, ref ok, beamRole);
                     }
                     catch (Exception ex) { fail++; errors.Add(ex.Message); }
                 }
@@ -276,7 +285,7 @@ namespace RevitMCP.Core
                             }
                         }
                         if (sym == null) { fail++; continue; }
-                        PlaceBeamInstance(doc, b, bLv, sym, typeMapping, ref ok);
+                        PlaceBeamInstance(doc, b, bLv, sym, typeMapping, ref ok, beamRole);
                     }
                     catch (Exception ex) { fail++; errors.Add(ex.Message); }
                 }
@@ -329,7 +338,12 @@ namespace RevitMCP.Core
                             else if (obj is PolyLine pl)
                             {
                                 var pts = pl.GetCoordinates();
-                                for (int i = 0; i < pts.Count - 1; i++) result.Add(Line.CreateBound(pts[i], pts[i+1]));
+                                for (int i = 0; i < pts.Count - 1; i++)
+                                {
+                                    // #90 過濾零長（重合頂點）線段，Line.CreateBound 遇零長會丟例外
+                                    if (pts[i].DistanceTo(pts[i + 1]) > 0.005)
+                                        result.Add(Line.CreateBound(pts[i], pts[i + 1]));
+                                }
                             }
                         }
                     }
@@ -338,8 +352,30 @@ namespace RevitMCP.Core
             return result;
         }
 
-        static List<BeamData> ExtractBeamCenterLines(List<Line> lines)
+        static double? ReadCadBeamWidth(JObject p)
         {
+            double? width = p.Value<double?>("cadWidthMm");
+            double tolerance = p.Value<double?>("cadWidthToleranceMm") ?? 5;
+            if (width.HasValue && (double.IsNaN(width.Value) || double.IsInfinity(width.Value) || width < 100 || width > 2500))
+                throw new ArgumentException("cadWidthMm must be between 100 and 2500 mm.");
+            if (double.IsNaN(tolerance) || double.IsInfinity(tolerance) || tolerance < 0 || tolerance > 20)
+                throw new ArgumentException("cadWidthToleranceMm must be between 0 and 20 mm.");
+            return width;
+        }
+
+        static List<BeamData> ExtractBeamCenterLines(List<Line> lines, double? cadWidthMm = null, double widthToleranceMm = 5, bool restoreEdges = true)
+        {
+            if (cadWidthMm.HasValue && restoreEdges)
+            {
+                var edges = RestoreContinuousCadEdges(lines);
+                var pairs = new List<BeamData>();
+                // A continuous edge can bound several separate opposite edges.
+                // Keep each supported interval instead of consuming the whole edge.
+                for (int i = 0; i < edges.Count; i++)
+                    for (int j = i + 1; j < edges.Count; j++)
+                        pairs.AddRange(ExtractBeamCenterLines(new List<Line> { edges[i], edges[j] }, cadWidthMm, widthToleranceMm, false));
+                return pairs;
+            }
             var results = new List<BeamData>();
             var used = new HashSet<int>();
 
@@ -365,7 +401,7 @@ namespace RevitMCP.Core
                     Line L2 = lines[j];
                     XYZ d2 = (L2.GetEndPoint(1) - L2.GetEndPoint(0)).Normalize();
                     
-                    if (Math.Abs(d1.DotProduct(d2)) < 0.95) continue; 
+                    if (Math.Abs(d1.DotProduct(d2)) < (cadWidthMm.HasValue ? 0.999999 : 0.95)) continue;
                     
                     XYZ p1 = L1.GetEndPoint(0);
                     XYZ p2 = L2.GetEndPoint(0);
@@ -373,6 +409,13 @@ namespace RevitMCP.Core
                     double dist = (v - v.DotProduct(d1) * d1).GetLength();
                     
                     if (dist < 100 * MmFt || dist > 2500 * MmFt) continue;
+                    if (cadWidthMm.HasValue)
+                    {
+                        var far = L2.GetEndPoint(1) - p1;
+                        double farDist = (far - far.DotProduct(d1) * d1).GetLength();
+                        if (Math.Abs(dist * FtMm - cadWidthMm.Value) > widthToleranceMm ||
+                            Math.Abs(farDist * FtMm - cadWidthMm.Value) > widthToleranceMm) continue;
+                    }
 
                     double p0 = L1.GetEndPoint(0).DotProduct(d1);
                     double p1_proj = L1.GetEndPoint(1).DotProduct(d1);
@@ -437,6 +480,41 @@ namespace RevitMCP.Core
             return results;
         }
 
+        // Input is already restricted to the exact requested CAD layer. Restore
+        // polyline vertices/overlaps before pairing; never bridge a real gap.
+        static List<Line> RestoreContinuousCadEdges(List<Line> source)
+        {
+            var pending = source.OrderByDescending(l => l.Length).ToList();
+            var result = new List<Line>();
+            double tolerance = 0.1 * MmFt;
+            while (pending.Count > 0)
+            {
+                var seed = pending[0]; pending.RemoveAt(0);
+                var origin = seed.GetEndPoint(0);
+                var direction = (seed.GetEndPoint(1) - origin).Normalize();
+                double low = 0, high = seed.Length;
+                bool changed;
+                do
+                {
+                    changed = false;
+                    for (int i = pending.Count - 1; i >= 0; i--)
+                    {
+                        var a = pending[i].GetEndPoint(0) - origin;
+                        var b = pending[i].GetEndPoint(1) - origin;
+                        double x = a.DotProduct(direction), y = b.DotProduct(direction);
+                        if ((a - x * direction).GetLength() > tolerance ||
+                            (b - y * direction).GetLength() > tolerance) continue;
+                        double start = Math.Min(x,y), end = Math.Max(x,y);
+                        if (start > high + tolerance || end < low - tolerance) continue;
+                        low = Math.Min(low,start); high = Math.Max(high,end);
+                        pending.RemoveAt(i); changed = true;
+                    }
+                } while (changed);
+                result.Add(Line.CreateBound(origin + low * direction, origin + high * direction));
+            }
+            return result;
+        }
+
         static FamilySymbol FindFramingFamily(Document doc, string name)
         {
             var syms = new FilteredElementCollector(doc)
@@ -451,8 +529,8 @@ namespace RevitMCP.Core
 
         static void DetectParams(FamilySymbol sym, ref string wp, ref string dp)
         {
-            string[] wNames = { "b", "Width", "寬", "寬度" };
-            string[] dNames = { "h", "Depth", "深", "深度", "高", "高度" };
+            string[] wNames = { "b", "B", "Width", "寬", "寬度" };
+            string[] dNames = { "h", "H", "Depth", "深", "深度", "高", "高度" };
             foreach (Parameter p in sym.Parameters)
             {
                 string n = p.Definition.Name;
@@ -480,7 +558,7 @@ namespace RevitMCP.Core
             return pt.DistanceTo(closest) * FtMm;
         }
 
-        static void PlaceBeamInstance(Document doc, BeamData b, Level bLv, FamilySymbol sym, List<string> typeMapping, ref int ok)
+        static FamilyInstance PlaceBeamInstance(Document doc, BeamData b, Level bLv, FamilySymbol sym, List<string> typeMapping, ref int ok, string beamRole)
         {
             if (!sym.IsActive) { sym.Activate(); doc.Regenerate(); }
             if (!typeMapping.Contains(sym.Name) && typeMapping.Count < 10)
@@ -489,20 +567,39 @@ namespace RevitMCP.Core
             XYZ st = new XYZ(b.StartPoint.X, b.StartPoint.Y, bLv.Elevation);
             XYZ en = new XYZ(b.EndPoint.X, b.EndPoint.Y, bLv.Elevation);
             var inst = doc.Create.NewFamilyInstance(Line.CreateBound(st, en), sym, bLv, StructuralType.Beam);
-            if (inst == null) return;
-            try
+            if (inst == null) return null;
+
+            // #117 依批次角色設定結構用途：大樑/地樑→Girder、次樑/小樑→Joist。
+            // 對新建樑而言 INSTANCE_STRUCTURAL_USAGE_PARAM 為唯讀，須直接對 FamilyInstance.StructuralUsage 賦值。
+            // 不再吞例外：賦值失敗要讓呼叫端的 catch (Exception ex) { fail++; errors.Add(...) } 看得到。
+            var usage = MapBeamRoleToUsage(beamRole);
+            if (usage.HasValue)
             {
-                var yJust = inst.get_Parameter(BuiltInParameter.Y_JUSTIFICATION);
-                if (yJust != null && !yJust.IsReadOnly) yJust.Set(1); // Center
-
-                var zOff = inst.get_Parameter(BuiltInParameter.Z_OFFSET_VALUE);
-                if (zOff != null && !zOff.IsReadOnly) zOff.Set(0.0);
-
-                var zJust = inst.get_Parameter(BuiltInParameter.Z_JUSTIFICATION);
-                if (zJust != null && !zJust.IsReadOnly) zJust.Set(0); // Top
+                inst.StructuralUsage = usage.Value;
             }
-            catch { }
+
+            var yJust = inst.get_Parameter(BuiltInParameter.Y_JUSTIFICATION);
+            if (yJust != null && !yJust.IsReadOnly) yJust.Set(1); // Center
+
+            var zOff = inst.get_Parameter(BuiltInParameter.Z_OFFSET_VALUE);
+            if (zOff != null && !zOff.IsReadOnly) zOff.Set(0.0);
+
+            var zJust = inst.get_Parameter(BuiltInParameter.Z_JUSTIFICATION);
+            if (zJust != null && !zJust.IsReadOnly) zJust.Set(0); // Top
+
             ok++;
+            return inst;
+        }
+
+        /// <summary>將批次樑角色字串對應到 Revit 結構用途；無法判定（空字串或未知）時回傳 null，維持族群預設。</summary>
+        static StructuralInstanceUsage? MapBeamRoleToUsage(string beamRole)
+        {
+            if (string.IsNullOrWhiteSpace(beamRole)) return null;
+            if (beamRole.Contains("次樑") || beamRole.Contains("次梁") ||
+                beamRole.Contains("小樑") || beamRole.Contains("小梁")) return StructuralInstanceUsage.Joist;
+            if (beamRole.Contains("大樑") || beamRole.Contains("大梁") ||
+                beamRole.Contains("地樑") || beamRole.Contains("地梁")) return StructuralInstanceUsage.Girder;
+            return null;
         }
 
         static string FindWorkerScript()

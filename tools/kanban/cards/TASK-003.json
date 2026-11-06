@@ -1,0 +1,36 @@
+{
+  "id": "TASK-003",
+  "title": "精準對映 Revit 元件類別 (Walls/Floors/Ceilings/Windows) 之綠建材共享參數規範",
+  "content": "### 任務說明\n依據 Revit 建築元件類別（牆面 Walls、地坪 Floors、天花板 Ceilings、門窗與幕牆 Windows/Doors/CurtainPanels、材料 Materials、非幾何輔助材料 Adhesives/Sealants），完成全量 11 大工程情境（包含牆體塗料、地磚 Hatch、單選非模型材料、門窗 RFA 備份等）之建築 Agent 優化分析，建立 19 個共享參數檔 GreenMaterial_SharedParams.txt 與全情境對映規範 Master 文件。\n\n### Readiness (DOR)\n- [x] problem_clear: 完成 11 大 BIM 元件工程情境之 Agent 評估與優化建議\n- [x] scope_defined: 定義標章身份、物化性能、算量評定、CNS 驗證、非幾何輔助材料等 5 大群組 19 個共享參數\n\n### Sign-off Gates (DOD)\n- [x] architecture: 完成全情境（情境 1~11）建築 Agent 剖析與 Master Mapping 表格\n- [x] test_passed: 通過 19 個共享參數 GUID 與語法自動化校驗\n- [x] code_review: 完成 SharedParams 擴充與文件產出修訂",
+  "stage": "done",
+  "risk": "medium",
+  "owner": "shuotao",
+  "agent": "antigravity",
+  "approvalRequired": false,
+  "createdAt": "2026-07-30",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-3: Revit 元件級綠建材參數 schema 定義",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-001",
+    "TASK-002"
+  ],
+  "order": 4,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

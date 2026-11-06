@@ -21,11 +21,17 @@ namespace RevitMCP.Core
     public class ExteriorWallOpeningChecker
     {
         private readonly Document _doc;
+        private readonly OpeningCheckThresholds _t;
         private const double FEET_TO_METER = 0.3048;
 
-        public ExteriorWallOpeningChecker(Document doc)
+        /// <summary>
+        /// thresholds 省略時使用台灣門檻，與過去硬編碼的行為完全相同。
+        /// 換轄區（例如越南 QCVN）時傳入對應的 OpeningCheckThresholds 即可。
+        /// </summary>
+        public ExteriorWallOpeningChecker(Document doc, OpeningCheckThresholds thresholds = null)
         {
             _doc = doc ?? throw new ArgumentNullException(nameof(doc));
+            _t = thresholds ?? OpeningCheckThresholds.Taiwan();
         }
 
         #region 階段 1：識別外牆與開口
@@ -289,10 +295,10 @@ namespace RevitMCP.Core
             };
 
             // 檢查距離境界線（第45條：緊鄰鄰地不得向鄰地方向開設門窗，除非距離 ≥ 1.0m）
-            if (result.DistanceToBoundary < 1.0)
+            if (result.DistanceToBoundary < _t.MinBoundaryDistanceM)
             {
                 result.BoundaryStatus = CheckStatus.Fail;
-                result.BoundaryMessage = $"開口距境界線僅 {result.DistanceToBoundary:F2}m，不符合第45條規定（需 ≥ 1.0m）";
+                result.BoundaryMessage = $"開口距境界線僅 {result.DistanceToBoundary:F2}m，不符合第45條規定（需 ≥ {OpeningCheckThresholds.Fmt(_t.MinBoundaryDistanceM, "0.0#")}m）";
             }
             else
             {
@@ -303,10 +309,10 @@ namespace RevitMCP.Core
             // 檢查同基地建築物間距
             // TODO: 需要判斷是雙面開口（≥2.0m）還是單面開口（≥1.0m）
             // 目前暫時使用較嚴格的標準：2.0m
-            if (result.DistanceToBuilding < 2.0)
+            if (result.DistanceToBuilding < _t.MinBuildingDistanceDoubleSidedM)
             {
                 result.BuildingStatus = CheckStatus.Warning;
-                result.BuildingMessage = $"開口距其他建築物 {result.DistanceToBuilding:F2}m，建議檢查是否為單面開口（需 ≥ 1.0m）或雙面開口（需 ≥ 2.0m）";
+                result.BuildingMessage = $"開口距其他建築物 {result.DistanceToBuilding:F2}m，建議檢查是否為單面開口（需 ≥ {OpeningCheckThresholds.Fmt(_t.MinBuildingDistanceSingleSidedM, "0.0#")}m）或雙面開口（需 ≥ {OpeningCheckThresholds.Fmt(_t.MinBuildingDistanceDoubleSidedM, "0.0#")}m）";
             }
             else
             {
@@ -337,46 +343,46 @@ namespace RevitMCP.Core
             };
 
             // 基地境界線防火間隔檢查
-            if (result.DistanceToBoundary >= 6.0)
+            if (result.DistanceToBoundary >= _t.BoundaryFireGapExemptM)
             {
                 result.BoundaryFireStatus = CheckStatus.NotApplicable;
-                result.BoundaryFireMessage = "鄰接6m以上道路或空地，不適用防火間隔規定";
+                result.BoundaryFireMessage = $"鄰接{OpeningCheckThresholds.Fmt(_t.BoundaryFireGapExemptM, "0.##")}m以上道路或空地，不適用防火間隔規定";
             }
-            else if (result.DistanceToBoundary < 1.5)
+            else if (result.DistanceToBoundary < _t.BoundaryFullRatingBelowM)
             {
-                result.RequiredFireRating = 1.0;
+                result.RequiredFireRating = _t.FullFireRatingHours;
                 result.BoundaryFireStatus = CheckStatus.Warning;
-                result.BoundaryFireMessage = $"退縮距離 {result.DistanceToBoundary:F2}m < 1.5m，外牆需1小時防火時效，開口需1小時防火門窗";
+                result.BoundaryFireMessage = $"退縮距離 {result.DistanceToBoundary:F2}m < {OpeningCheckThresholds.Fmt(_t.BoundaryFullRatingBelowM, "0.0#")}m，外牆需{OpeningCheckThresholds.FormatRating(_t.FullFireRatingHours)}防火時效，開口需{OpeningCheckThresholds.FormatRating(_t.FullFireRatingHours)}防火門窗";
             }
-            else if (result.DistanceToBoundary < 3.0)
+            else if (result.DistanceToBoundary < _t.BoundaryHalfRatingBelowM)
             {
-                result.RequiredFireRating = 0.5;
+                result.RequiredFireRating = _t.HalfFireRatingHours;
                 result.BoundaryFireStatus = CheckStatus.Warning;
-                result.BoundaryFireMessage = $"退縮距離 {result.DistanceToBoundary:F2}m (1.5~3.0m)，外牆需半小時防火時效，開口需半小時防火門窗";
+                result.BoundaryFireMessage = $"退縮距離 {result.DistanceToBoundary:F2}m ({OpeningCheckThresholds.Fmt(_t.BoundaryFullRatingBelowM, "0.0#")}~{OpeningCheckThresholds.Fmt(_t.BoundaryHalfRatingBelowM, "0.0#")}m)，外牆需{OpeningCheckThresholds.FormatRating(_t.HalfFireRatingHours)}防火時效，開口需{OpeningCheckThresholds.FormatRating(_t.HalfFireRatingHours)}防火門窗";
             }
             else
             {
                 result.BoundaryFireStatus = CheckStatus.Pass;
-                result.BoundaryFireMessage = $"退縮距離 {result.DistanceToBoundary:F2}m ≥ 3.0m，不需防火時效";
+                result.BoundaryFireMessage = $"退縮距離 {result.DistanceToBoundary:F2}m ≥ {OpeningCheckThresholds.Fmt(_t.BoundaryHalfRatingBelowM, "0.0#")}m，不需防火時效";
             }
 
             // 同基地建築間防火間隔檢查
-            if (result.DistanceToBuilding >= 6.0)
+            if (result.DistanceToBuilding >= _t.BuildingFireGapExemptM)
             {
                 result.BuildingFireStatus = CheckStatus.Pass;
-                result.BuildingFireMessage = "建築物間距 ≥ 6.0m，不需防火時效";
+                result.BuildingFireMessage = $"建築物間距 ≥ {OpeningCheckThresholds.Fmt(_t.BuildingFireGapExemptM, "0.0")}m，不需防火時效";
             }
-            else if (result.DistanceToBuilding < 3.0)
+            else if (result.DistanceToBuilding < _t.BuildingFullRatingBelowM)
             {
-                result.RequiredFireRating = Math.Max(result.RequiredFireRating, 1.0);
+                result.RequiredFireRating = Math.Max(result.RequiredFireRating, _t.FullFireRatingHours);
                 result.BuildingFireStatus = CheckStatus.Warning;
-                result.BuildingFireMessage = $"建築物間距 {result.DistanceToBuilding:F2}m < 3.0m，外牆需1小時防火時效，開口需1小時防火門窗";
+                result.BuildingFireMessage = $"建築物間距 {result.DistanceToBuilding:F2}m < {OpeningCheckThresholds.Fmt(_t.BuildingFullRatingBelowM, "0.0#")}m，外牆需{OpeningCheckThresholds.FormatRating(_t.FullFireRatingHours)}防火時效，開口需{OpeningCheckThresholds.FormatRating(_t.FullFireRatingHours)}防火門窗";
             }
-            else if (result.DistanceToBuilding < 6.0)
+            else if (result.DistanceToBuilding < _t.BuildingHalfRatingBelowM)
             {
-                result.RequiredFireRating = Math.Max(result.RequiredFireRating, 0.5);
+                result.RequiredFireRating = Math.Max(result.RequiredFireRating, _t.HalfFireRatingHours);
                 result.BuildingFireStatus = CheckStatus.Warning;
-                result.BuildingFireMessage = $"建築物間距 {result.DistanceToBuilding:F2}m (3.0~6.0m)，外牆需半小時防火時效，開口需半小時防火門窗";
+                result.BuildingFireMessage = $"建築物間距 {result.DistanceToBuilding:F2}m ({OpeningCheckThresholds.Fmt(_t.BuildingFullRatingBelowM, "0.0#")}~{OpeningCheckThresholds.Fmt(_t.BuildingHalfRatingBelowM, "0.0#")}m)，外牆需{OpeningCheckThresholds.FormatRating(_t.HalfFireRatingHours)}防火時效，開口需{OpeningCheckThresholds.FormatRating(_t.HalfFireRatingHours)}防火門窗";
             }
 
             // 總體狀態

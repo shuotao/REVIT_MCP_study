@@ -42,8 +42,13 @@ metadata:
 
 ### Step 2: 執行分析與回寫
 - 呼叫 `analyze_floor_slopes(elementIds?, paramName?)`。
-- `paramName` 預設 `Comments`（字串欄位寫入 `Slope {min}%~{max}%`）。若指定為數值欄位（StorageType.Double），則以比例值寫入最大坡度（例 2% → 0.02）。
-- 回傳 `ProcessedCount` 與每片樓板 `{ ElementId, MinSlopePercent, MaxSlopePercent, UpwardFaceCount, Written }`。
+- **`paramName` 沒有預設值。省略它＝純分析：不開 Transaction、不寫入任何參數**，回傳會帶 `WriteSkipped: true` 與如何選擇回寫的說明。
+- 只有明確指定 `paramName` 才會回寫。字串欄位寫入 `Slope {min}%~{max}%`；數值欄位（StorageType.Double）以比例值寫入最大坡度（例 2% → 0.02）。
+- `paramName` 傳 `"Comments"`（不分大小寫）時走 `BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS`，不依賴本地化顯示名稱；其餘名稱走 `LookupParameter`，所以繁中介面也可以直接傳「註解」。
+- 回傳 `ProcessedCount`、`WrittenCount` 與每片樓板 `{ ElementId, MinSlopePercent, MaxSlopePercent, UpwardFaceCount, Written }`。
+
+> [!IMPORTANT]
+> **預設不寫入是刻意的改動（issue #137）。** 舊版 `paramName` 預設 `Comments`，而且不帶 `elementIds` 時會掃全部室外樓板——也就是一句「分析坡度」就會把每片室外樓板的「備註」欄覆寫掉，那是很多團隊放人工註記的地方。更麻煩的是舊版用顯示名稱比對，所以**同一支工具在不同介面語言下行為不同**：繁中版找不到 `Comments` 於是什麼都沒寫，英文版則直接覆寫。要回寫請明確指定 `paramName`。
 
 ### Step 3: 視覺化（選配）
 - 搭配 `override_element_graphics`，將坡度 `< 設計最小值` 的不合規樓板染色，對應 `domain/element-coloring-workflow.md`。

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 966" width="1200" height="966" font-family="'Noto Sans TC','Helvetica Neue',Inter,sans-serif">
+<style>
+  .g{transform-box:fill-box;transform-origin:center;opacity:1;
+     animation:glow 4.5s ease-in-out infinite;}
+  @keyframes glow{0%,100%{filter:drop-shadow(0 0 0 rgba(0,0,0,0))}50%{filter:drop-shadow(0 0 7px rgba(255,255,255,.22))}}
+  .num{fill:#fff;font-size:128px;font-weight:800;letter-spacing:-3px}
+  .t{fill:rgba(255,255,255,.92);font-size:40px;font-weight:700}
+  .s{fill:rgba(255,255,255,.45);font-size:24px;letter-spacing:1px}
+  .lg{fill:rgba(255,255,255,.72);font-size:21px}
+</style>
+  <rect width="1200" height="966" rx="0" fill="#0a0a0a"/>
+  <text x="118" y="150" class="num">61</text>
+  <text x="120" y="205" class="t">Skills · 編排層</text>
+  <text x="120" y="240" class="s">AI WORKFLOW ORCHESTRATION · 5 CATEGORIES</text>
+  <rect class="g" x="120" y="250" width="70" height="70" rx="14" fill="#ef4444" style="animation-delay:0.150s"/>
+  <rect class="g" x="208" y="250" width="70" height="70" rx="14" fill="#ef4444" style="animation-delay:0.195s"/>
+  <rect class="g" x="296" y="250" width="70" height="70" rx="14" fill="#ef4444" style="animation-delay:0.240s"/>
+  <rect class="g" x="384" y="250" width="70" height="70" rx="14" fill="#ef4444" style="animation-delay:0.285s"/>
+  <rect class="g" x="472" y="250" width="70" height="70" rx="14" fill="#ef4444" style="animation-delay:0.330s"/>
+  <rect class="g" x="560" y="250" width="70" height="70" rx="14" fill="#ef4444" style="animation-delay:0.375s"/>
+  <rect class="g" x="648" y="250" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.420s"/>
+  <rect class="g" x="736" y="250" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.465s"/>
+  <rect class="g" x="824" y="250" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.510s"/>
+  <rect class="g" x="912" y="250" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.555s"/>
+  <rect class="g" x="120" y="338" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.600s"/>
+  <rect class="g" x="208" y="338" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.645s"/>
+  <rect class="g" x="296" y="338" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.690s"/>
+  <rect class="g" x="384" y="338" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.735s"/>
+  <rect class="g" x="472" y="338" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.780s"/>
+  <rect class="g" x="560" y="338" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.825s"/>
+  <rect class="g" x="648" y="338" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.870s"/>
+  <rect class="g" x="736" y="338" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.915s"/>
+  <rect class="g" x="824" y="338" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:0.960s"/>
+  <rect class="g" x="912" y="338" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.005s"/>
+  <rect class="g" x="120" y="426" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.050s"/>
+  <rect class="g" x="208" y="426" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.095s"/>
+  <rect class="g" x="296" y="426" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.140s"/>
+  <rect class="g" x="384" y="426" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.185s"/>
+  <rect class="g" x="472" y="426" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.230s"/>
+  <rect class="g" x="560" y="426" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.275s"/>
+  <rect class="g" x="648" y="426" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.320s"/>
+  <rect class="g" x="736" y="426" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.365s"/>
+  <rect class="g" x="824" y="426" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.410s"/>
+  <rect class="g" x="912" y="426" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.455s"/>
+  <rect class="g" x="120" y="514" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.500s"/>
+  <rect class="g" x="208" y="514" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.545s"/>
+  <rect class="g" x="296" y="514" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.590s"/>
+  <rect class="g" x="384" y="514" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.635s"/>
+  <rect class="g" x="472" y="514" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.680s"/>
+  <rect class="g" x="560" y="514" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.725s"/>
+  <rect class="g" x="648" y="514" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.770s"/>
+  <rect class="g" x="736" y="514" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.815s"/>
+  <rect class="g" x="824" y="514" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.860s"/>
+  <rect class="g" x="912" y="514" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.905s"/>
+  <rect class="g" x="120" y="602" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.950s"/>
+  <rect class="g" x="208" y="602" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:1.995s"/>
+  <rect class="g" x="296" y="602" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:2.040s"/>
+  <rect class="g" x="384" y="602" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:2.085s"/>
+  <rect class="g" x="472" y="602" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:2.130s"/>
+  <rect class="g" x="560" y="602" width="70" height="70" rx="14" fill="#60a5fa" style="animation-delay:2.175s"/>
+  <rect class="g" x="648" y="602" width="70" height="70" rx="14" fill="#fbbf24" style="animation-delay:2.220s"/>
+  <rect class="g" x="736" y="602" width="70" height="70" rx="14" fill="#fbbf24" style="animation-delay:2.265s"/>
+  <rect class="g" x="824" y="602" width="70" height="70" rx="14" fill="#fbbf24" style="animation-delay:2.310s"/>
+  <rect class="g" x="912" y="602" width="70" height="70" rx="14" fill="#fbbf24" style="animation-delay:2.355s"/>
+  <rect class="g" x="120" y="690" width="70" height="70" rx="14" fill="#fbbf24" style="animation-delay:2.400s"/>
+  <rect class="g" x="208" y="690" width="70" height="70" rx="14" fill="#fbbf24" style="animation-delay:2.445s"/>
+  <rect class="g" x="296" y="690" width="70" height="70" rx="14" fill="#fbbf24" style="animation-delay:2.490s"/>
+  <rect class="g" x="384" y="690" width="70" height="70" rx="14" fill="#fbbf24" style="animation-delay:2.535s"/>
+  <rect class="g" x="472" y="690" width="70" height="70" rx="14" fill="#fbbf24" style="animation-delay:2.580s"/>
+  <rect class="g" x="560" y="690" width="70" height="70" rx="14" fill="#fbbf24" style="animation-delay:2.625s"/>
+  <rect class="g" x="648" y="690" width="70" height="70" rx="14" fill="#4ade80" style="animation-delay:2.670s"/>
+  <rect class="g" x="736" y="690" width="70" height="70" rx="14" fill="#4ade80" style="animation-delay:2.715s"/>
+  <rect class="g" x="824" y="690" width="70" height="70" rx="14" fill="#4ade80" style="animation-delay:2.760s"/>
+  <rect class="g" x="912" y="690" width="70" height="70" rx="14" fill="#a78bfa" style="animation-delay:2.805s"/>
+  <rect class="g" x="120" y="778" width="70" height="70" rx="14" fill="#a78bfa" style="animation-delay:2.850s"/>
+  <g transform="translate(120,906)"><rect width="22" height="22" rx="6" fill="#ef4444"/><text x="32" y="17" class="lg">法規 · 6</text></g>
+  <g transform="translate(320,906)"><rect width="22" height="22" rx="6" fill="#60a5fa"/><text x="32" y="17" class="lg">流程 · 40</text></g>
+  <g transform="translate(520,906)"><rect width="22" height="22" rx="6" fill="#fbbf24"/><text x="32" y="17" class="lg">維運 · 10</text></g>
+  <g transform="translate(720,906)"><rect width="22" height="22" rx="6" fill="#4ade80"/><text x="32" y="17" class="lg">MEP · 3</text></g>
+  <g transform="translate(920,906)"><rect width="22" height="22" rx="6" fill="#a78bfa"/><text x="32" y="17" class="lg">外部 · 2</text></g>
+</svg>

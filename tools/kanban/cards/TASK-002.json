@@ -1,0 +1,35 @@
+{
+  "id": "TASK-002",
+  "title": "優化 TABC 綠建材地端檢索與 Showcase 平台之 UI/UX 介面與操作體驗",
+  "content": "### 任務說明\n優化 tabc_search.html 與 assets/green-material-showcase.html 的檢索介面與互動操作體驗。包含全量 1,141 筆綠建材標章檢索、100% 復刻原網頁紅字「產品規格與性能 (依 CNS 國家標準試驗、合格項目、試驗項目實測數據)」、網格與表格雙視圖切換、一鍵複製 Revit 共享參數 JSON 彈窗、彈窗完整呈現產品照片全貌 (Full Image contain)，以及專案材料 Set 組合管理與一鍵推送操作優化。\n\n### Readiness (DOR)\n- [x] problem_clear: 確定全量檢索網頁與 Showcase 的 UI/UX 改善點\n- [x] scope_defined: 包含 CNS 試驗項目高亮、雙視圖切換、彈窗產品照片全貌 (object-fit: contain)、Revit JSON 預覽 Modal 與 Set 管理\n\n### Sign-off Gates (DOD)\n- [x] architecture: 完成網頁前端架構與 1,141 筆資料結構嵌入\n- [x] ui: 完成紅字標題「產品規格與性能」視覺復刻與模態彈窗產品圖全貌\n- [x] test_passed: 通過關鍵字搜尋、分類過濾、視圖切換與參數 JSON 匯出功能測試",
+  "stage": "done",
+  "risk": "low",
+  "owner": "shuotao",
+  "agent": "antigravity",
+  "approvalRequired": false,
+  "createdAt": "2026-07-30",
+  "epic": "Epic-1: TABC 綠建材資料庫與法規模組化",
+  "userStory": "US-2: 檢索平台介面與操作體驗優化",
+  "track": "frontend",
+  "dependsOn": [
+    "TASK-001"
+  ],
+  "order": 2,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

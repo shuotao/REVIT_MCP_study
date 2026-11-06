@@ -10,10 +10,13 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 import { RevitSocketClient } from "./socket.js";
 import { registerRevitTools, executeRevitTool } from "./tools/revit-tools.js";
+import { listAppResources, readAppResource } from "./apps/register-apps.js";
 
 // MCP Server Instance
 const server = new Server(
@@ -24,6 +27,8 @@ const server = new Server(
   {
     capabilities: {
       tools: {},
+      // MCP Apps (io.modelcontextprotocol/ui): serve ui:// HTML resources for interactive tools.
+      resources: {},
     },
   }
 );
@@ -41,6 +46,24 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 });
 
 /**
+ * Handle List Resources Request (MCP Apps: ui:// interactive UI resources)
+ */
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return { resources: listAppResources() };
+});
+
+/**
+ * Handle Read Resource Request (serves the ui:// App HTML)
+ */
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  const resource = readAppResource(request.params.uri);
+  if (!resource) {
+    throw new Error(`Resource not found: ${request.params.uri}`);
+  }
+  return resource;
+});
+
+/**
  * Handle Call Tool Request
  */
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -50,7 +73,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     // Check Revit Connection
     if (!revitClient.isConnected()) {
-      console.error("[MCP Server] Revit not connected, attempting to connect...");
+      // 取得目前 AI 客戶端名稱（MCP initialize 的 clientInfo.name），連線時一併回報給 Revit add-in
+      const clientInfo = server.getClientVersion();
+      revitClient.clientName = clientInfo?.name || "unknown";
+      console.error(`[MCP Server] Revit not connected, connecting as client="${revitClient.clientName}"...`);
       await revitClient.connect();
     }
 
@@ -62,6 +88,29 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     );
 
     console.error(`[MCP Server] Tool executed successfully`);
+
+    // 影像結果（capture_view_image）改用 image content block 回傳。
+    // 若照一般路徑塞進 JSON 字串，AI client 拿到的只是一長串 base64 文字，看不到圖 —— 工具等於白做。
+    // base64 抽離後，其餘欄位仍以 text block 附上，讓視圖名稱、尺寸、Warnings 不會遺失。
+    if (result && typeof result === "object" && typeof (result as any).ImageBase64 === "string") {
+      const { ImageBase64, ...meta } = result as Record<string, any>;
+      console.error(
+        `[MCP Server] Returning image content (${ImageBase64.length} base64 chars, ${meta.MimeType || "image/png"})`
+      );
+      return {
+        content: [
+          {
+            type: "image",
+            data: ImageBase64,
+            mimeType: typeof meta.MimeType === "string" ? meta.MimeType : "image/png",
+          },
+          {
+            type: "text",
+            text: JSON.stringify(meta, null, 2),
+          },
+        ],
+      };
+    }
 
     return {
       content: [

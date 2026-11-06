@@ -2,14 +2,15 @@
 name: smoke-exhaust-review
 description: "在 Revit 中自動檢討建築物排煙窗是否符合法規要求，涵蓋無開口樓層判定、無窗居室判定、排煙窗有效面積計算、改善建議、視覺化標註、Excel 報告匯出。"
 metadata:
-  version: "1.0"
-  updated: "2026-04-05"
+  version: "1.3"
+  updated: "2026-09-17"
   created: "2026-03-18"
   contributors:
     - "Alex Huang"
     - "shuotao"
   references: []  # TODO: 月小聚補法規條號或外部依據
-  related: []  # TODO: 月小聚補相關 domain（檔名）
+  related:
+    - room-height-limit.md
   referenced_by:
     - smoke-exhaust
   tags: []  # TODO: 月小聚補分類關鍵字
@@ -94,7 +95,7 @@ Step 2（無窗居室判定）與 Step 5（排煙窗計算）檢查的是同一�
 - 排煙設計：建技規 §101① + 消防 §188③⑦
 
 **計算邏輯**：
-1. 取得天花板高度（Room 參數 或 Ceiling 元素，由使用者選擇）
+1. 依下方「天花板高度來源路由」取得天花板高度
 2. 定義有效帶：天花板高度 - 80cm ~ 天花板高度
 3. 逐窗計算：
    - 窗頂若超過天花板 → 截斷至天花板
@@ -103,16 +104,40 @@ Step 2（無窗居室判定）與 Step 5（排煙窗計算）檢查的是同一�
    - 有效面積 = 帶內面積 × 開啟折減係數
 4. 加總有效面積 ≥ 區劃面積 × 2% → 合規
 
+### 天花板高度來源路由
+
+`check_smoke_exhaust_windows` 與 `export_smoke_review_excel` 都接受：
+
+- `room_parameter`：依 Room 的 Upper Limit、Limit Offset 與 Base Level 計算房間高度。
+- `ceiling_element`：以房間中心點落在 Ceiling BoundingBox 內作為對應條件，讀取 Ceiling 相對房間樓層的高度。
+
+選擇順序：
+
+| 條件 | 使用來源 | 原因 |
+|------|----------|------|
+| 使用者明確指定 | 使用者指定值 | 專案建模規則是最高優先的 ground truth |
+| 天花尚未建模或只完成一部分 | `room_parameter` | 避免少數 Ceiling 誤代表整層，造成不同房間基準混用 |
+| 受檢範圍的 Ceiling 已完整建模且逐房覆蓋可確認 | `ceiling_element` | 實體天花可反映降板、局部天花與不同淨高 |
+| 無法確認完成度 | `room_parameter`，並揭露假設 | 保守採用一致、可稽核的 Room 高度來源 |
+
+一次檢討及其 Excel 匯出必須使用相同 `ceilingHeightSource`。目前實作在 `ceiling_element` 找不到匹配天花時會靜默回退到 Room 參數，但回傳欄位仍只顯示呼叫端要求的來源；因此**部分建模階段不得依賴此隱性 fallback**，應在呼叫前直接選 `room_parameter`。
+
+`room_parameter` 使用模型中的實際 Upper Limit + Limit Offset，不會把使用者口述的「標準 3000 mm」當常數。第一次以此來源檢討時，必須核對逐房 `CeilingHeight`；若與專案宣告值不符，讀取代表 Room 的 Upper Limit、Limit Offset、Base Offset 與 Unbounded Height，先解決模型參數差異，再做正式 PASS/FAIL。不得在結果外部直接把高度改寫成預期值。
+
+若專案確認且模型實值也顯示所有 Room 高度皆為 3000 mm、同時 Ceiling 尚未建模，則有效帶統一為 2200–3000 mm；待實體天花完成並驗證覆蓋率後，才改用 `ceiling_element` 重新檢討。
+
 **窗戶開啟方式判定表**（從族群名稱推斷）：
 
 | 關鍵字 | 類型 | 折減係數 |
 |--------|------|----------|
-| casement, 平開, 側開, pivot, 樞軸, tilt, 內倒內開 | 全開型 | 1.0 |
-| sliding, 橫拉, 推拉, hung, 上下拉 | 半開型 | 0.5 |
-| awning, 上懸, 外推, hopper, 下懸 | 外推型 | 0.5 |
+| casement, 平開, 側開, pivot, 樞軸, tilt, 內倒內開 | 推開／平開窗 | 1.0（工具預設） |
+| sliding, 橫拉, 推拉, hung, 上下拉 | 橫拉窗 | 0.5（整樘面積基準） |
+| awning, 上懸, 外推, hopper, 下懸, projected | 推射／外推／上懸窗 | 1.0（工具預設） |
 | louver, 百葉 | 百葉 | 0.5 |
 | fixed, 固定, picture, 景觀 | 固定窗 | 0 |
-| （其他） | 未知 | 0（加註需人工確認） |
+| （其他） | 未知 | 本案暫按推射窗 1.0，仍加註需人工確認 |
+
+上述係數是本案經使用者確認的檢討政策，不應被當成所有專案的固定法規常數。工具以 `casementOpeningRatio`、`slidingOpeningRatio`、`projectedOpeningRatio` 與 `unknownWindowAssumption` 明確傳入並回傳政策；若其他專案未確認，使用工具的一般預設值並要求人工核對。正式名稱採「橫拉窗（Horizontal Sliding Window）」；「推拉窗」只作搜尋別名。
 
 **面積門檻**：> 50m² 的房間才需檢討（建技規 §1第35款第三目）
 
@@ -132,10 +157,10 @@ Step 2（無窗居室判定）與 Step 5（排煙窗計算）檢查的是同一�
 ## 視覺化
 
 **上色**（自動）：
-- 🟢 綠色：全開型窗（casement/pivot）— 有效
-- 🟡 黃色：折減型窗（sliding/awning）— 有效但折減
+- 🟢 綠色：係數 1.0 且不需人工確認
+- 🟡 黃色：係數介於 0 與 1 之間且不需人工確認
 - 🔴 紅色：固定窗 — 排煙無效
-- ⚪ 灰色：未知 — 需人工確認
+- ⚪ 灰色：未知假設或其他需人工確認項目
 
 **檢討立面**（新工具）：
 - `create_section_view`：建立面向外牆的剖面視圖
@@ -143,6 +168,22 @@ Step 2（無窗居室判定）與 Step 5（排煙窗計算）檢查的是同一�
 - `create_filled_region`：有效帶範圍的半透明填充
 - `create_text_note`：統計摘要文字
 - `create_dimension`（既有）：窗戶寬高、帶內高度標註
+
+**逐房 3D Section Box 檢視**（`set_3d_section_box`，目標元素為 Room）：
+
+共同設定：`includeSupportingBeams=true`、`padding_bottom_mm=0`（由支承樑決定底面）、`padding_xy_mm` 依需要（實測 600 mm）。上方以 `upperStructureMode` 分兩條路由，由使用者選擇：
+
+| 路由 | 頂面高度 | 看到什麼 | 適用 |
+|------|----------|----------|------|
+| `current_level_only`（預設） | 房間頂 + `padding_top_mm`（建議 0） | 當層與當層支承樑；上層結構全部切掉 | 只看本層窗與天花板關係，畫面最乾淨 |
+| `include_upper_structure_without_slab` | 最近上層樓板底 − `upperSlabClearance_mm`（預設 10 mm） | 另含吊在上層樓板下的樑；樓板本體不顯示 | 需要確認上層樑下緣與排煙有效帶（天花板下 80 cm）的關係 |
+
+上層樓板判定：與房間 XY 重疊的 Floor，底面高於房間底 + 容許值、頂面不低於房間頂 − 容許值，取底面最低者。容許值沿用 `supportingBeamTolerance_mm`。
+
+誠實規則：
+- 找不到上層樓板（未建模、在連結模型、XY 未覆蓋）時工具直接報錯、不修改視圖；**不得改用口述或推測的樓高替代**。回報使用者後，由使用者決定先建模樓板或改走 `current_level_only`。
+- 回傳 `UpperStructure.UpperStructureBeamCount = 0` 表示範圍內沒有偵測到上層樑，需向使用者揭露，不可宣稱「上層結構已顯示」。
+- `TopBelowTargetTop = true` 表示房間上限高於上層樓板底，Section Box 會切到房間頂以下，需一併回報。
 
 ## Step 8：§101 補充法規檢討
 

@@ -130,8 +130,8 @@ DONE (25):
   #12 spectrum__s02__decision-tree.svg
   #13 spectrum__quote__resign-king.svg
   #14 skills-domain__frame__concentric.svg
-  #15 skills__hero__22-grains.svg
-  #16 domain__hero__45-grains.svg
+  #15 skills__hero__grains.svg
+  #16 domain__hero__grains.svg
   #17 deployment__hero__one-cmd.svg
   #18 deployment__s02__arch.svg
   #19 troubleshooting__hero__9-cases.svg
@@ -152,10 +152,10 @@ TODO:
 
 ## 4. 檔案規範與引用方式
 
-- 圖檔目錄：`docs/BIM_MCP/_images/`
+- 圖檔目錄：`docs/BIM_MCP/images/`
 - 命名規則：`<page-stem>__<position>__<concept>.svg`
-- reference 頁面引用：`../_images/<filename>.svg`
-- hub 頁面引用：`_images/<filename>.svg`
+- reference 頁面引用：`../images/<filename>.svg`
+- hub 頁面引用：`images/<filename>.svg`
 - SVG 必須可被 git review，優先用外連 `<img>`，避免 inline 長 SVG 汙染 HTML。
 - alt text 寫概念，不寫裝飾描述；純背景圖可用 `alt=""` 並加 `aria-hidden="true"`。
 
@@ -163,7 +163,7 @@ TODO:
 
 ## 5. 一致性驗收檢查
 
-- 25 張 SVG 均已放入 `_images/`。
+- 25 張 SVG 均已放入 `images/`。
 - 每張 SVG 已掛到對應頁面或對應 section/card。
 - 共用 figure 樣式已集中於 `styles.css`，保留少量舊頁 inline style 但不影響新圖。
 - SVG 已用 XML parser 驗證可解析。

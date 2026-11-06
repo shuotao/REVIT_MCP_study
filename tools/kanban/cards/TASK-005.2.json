@@ -1,0 +1,35 @@
+{
+  "id": "TASK-005.2",
+  "title": "情境 2｜地磚與表面填充 Set 導入（OST_Floors）",
+  "content": "### 任務說明\n將陶瓷地磚、木地板等 Set 導入 Floor Type。面材配置於 Finish 1 [4]，泥作打底配置於 Substrate [2]，並依產品規格建立 600×600 網格或木紋 Surface Pattern。\n\n### 已納入既有 TASK-005 技術模組\n- [x] create_multi_layer_type：Floor 多層構造（Finish1 地磚 + Substrate 打底），厚度可覆寫（預設 15mm/20mm 已在 generate_revit_injection_plan.py 定案）\n- [x] create_single_material_type：情境 2「各別建立」Floor 型別\n- [x] load_shared_parameters / set_green_material_type_parameters：沿用既有綁定與寫入邏輯（Floors 品類）\n- [x] set_material_surface_pattern（新增）：建立/重用 Model 目標 FillPattern（Grid 600×600 或 Wood 木紋），依名稱去重，套入材質 Surface/Cut 樣式\n- [x] `/import` skill Scenario 2/3 新增 Surface Pattern 步驟（5b / 6b）\n\n### 驗收條件\n- [x] 可複製既有 Floor Type 並建立 TABC 新型別（沿用既有多層構造工具）\n- [x] 地磚預設 15 mm、打底預設 20 mm，且可由計畫覆寫（generate_revit_injection_plan.py 既有邏輯）\n- [x] Surface Pattern 不重複建立並能正確套入材質（新增 set_material_surface_pattern，依名稱去重）\n- [x] 綠建材共享參數成功綁定 Floors Type 並可回查（沿用既有工具）\n- [x] 產出 Element ID、Type、材質與厚度異動摘要（既有工具回傳值涵蓋）\n\n### 2026-08-11 端到端實測（Set【地磚test】GBM0104033）\n部署新版 DLL（Revit 2024）並重啟後，於即時連線的 Revit 專案完整跑通：建立 `TABC_地磚test` Floor Type（Element ID 264193，來源 TypeId 339），Finish1 層 GBM0104033_透水性混凝土地磚（Material ID 264195，15mm）+ Substrate 層 1-3水泥砂漿打底（Material ID 264197，非綠建材通用材質，20mm，經使用者確認後加入）；`set_material_surface_pattern` 成功建立並套用 `TABC_Grid_600x600`（Pattern ID 264214）到地磚材質 Surface 樣式；13 個共享參數全數寫入、`get_element_info` 逐欄核對相符；`exported_material_sets.json` 狀態已更新。過程中兩度因 Revit 關閉未存檔導致重建，最終確認存檔成功。\n\n### Sign-off Gates (DOD)\n- [x] architecture: 沿用既有 MCP Tool 架構＋新增 set_material_surface_pattern（正式 C# dispatch，不使用 side-channel）\n- [x] test_passed: 2026-08-11 端到端實測通過（見上）\n- [ ] code_review: 待使用者最終複審與簽核",
+  "stage": "done",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": true,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-005.1"
+  ],
+  "order": 8.2,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

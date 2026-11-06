@@ -1,0 +1,36 @@
+{
+  "id": "TASK-005.3",
+  "title": "情境 3｜系統家族雙階層參數寫入（Type＋Material）",
+  "content": "### 任務說明\n建立 Walls／Floors 等系統家族的雙階層寫入規範：Material 層保存完整綠建材資料，ElementType 的 Identity Data 保存可直接檢視的摘要與多槽位資料。\n\n### 2026-08-12 澄清與定案\n卡片原文字面意思（Material 層存完整資料、Type 層存摘要）與 `domain/green-material-parameter-schema.md` §2 已生效的定案架構方向相反。經與使用者確認，本卡採**補齊現有架構的驗證與文件**方向，不新增 Material 層參數寫入機制：\n- Material 層 = 僅 `Material.Name`（`GBM編號_材料名稱`）識別字串，不掛參數\n- Type 層 = 完整 64 個 `GreenMaterial_*` 共享參數（Mat1~Mat6 + 全域欄位）\n- `docs/green-material/Revit_Element_GreenMaterial_Mapping_Analysis.md` 情境 3（早期提案，方向相反）已加註取代說明，指向 `domain/green-material-parameter-schema.md` §2.1 新增的雙階層欄位責任對照表\n\n### 驗收條件\n- [x] 明確區分 Material 與 Type 欄位責任，避免重複或衝突（見 §2.1 對照表，責任互斥不重複）\n- [x] Walls、Floors 至少各完成一個端到端測試（Walls: TypeId 263551「TABC_室內牆與塗料」；Floors: TypeId 264332「TABC_地磚與填縫」，皆為既有模型案例，本次重新交叉驗證）\n- [x] 缺少共享參數時回報 MissingParameters，不得靜默失敗（機制由 `load_shared_parameters` 冪等綁定 + `set_green_material_type_parameters` 的 `MissingParameters` 回傳欄位保證，兩案例皆驗證為空陣列）\n- [x] 寫入後可用 Material 與 Element Type 查詢工具交叉驗證（`get_element_info` + `get_all_materials` 雙工具交叉核對：Walls 兩材質、Floors 一實體材質 + 一輔助材料「查無 Material 元素」的預期缺席）\n- [x] 產出雙階層欄位對照與異動摘要（`domain/green-material-parameter-schema.md` §2.1）",
+  "stage": "done",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": false,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-005.1",
+    "TASK-005.2"
+  ],
+  "order": 8.3,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

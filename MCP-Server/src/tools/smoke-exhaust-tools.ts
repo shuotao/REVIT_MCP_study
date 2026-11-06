@@ -9,7 +9,7 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 export const smokeExhaustTools: Tool[] = [
     {
         name: "check_smoke_exhaust_windows",
-        description: "排煙窗檢討：檢查天花板下 80cm 內可開啟窗面積是否 ≥ 區劃面積 2%。同時判定無窗居室。法源：建技規§101① + 消防§188。自動上色：綠=全開、黃=折減、紅=固定。",
+        description: "排煙窗檢討：檢查天花板下 80cm 內可開啟窗面積是否 ≥ 區劃面積 2%。窗型採推射/外推、推開/平開、橫拉、固定的明確分類，並可傳入專案係數與未知窗型假設；假設值會保留人工確認標記。法源：建技規§101① + 消防§188。",
         inputSchema: {
             type: "object",
             properties: {
@@ -18,6 +18,10 @@ export const smokeExhaustTools: Tool[] = [
                 colorize: { type: "boolean", description: "是否自動上色窗戶", default: true },
                 smokeZoneHeight: { type: "number", description: "有效帶高度（mm），預設 800", default: 800 },
                 excludeKeywords: { type: "array", items: { type: "string" }, description: "非居室排除關鍵字" },
+                casementOpeningRatio: { type: "number", minimum: 0, maximum: 1, description: "推開/平開窗有效面積係數；預設 1.0（可完整開啟），實際開啟角度受限時可調低", default: 1.0 },
+                slidingOpeningRatio: { type: "number", minimum: 0, maximum: 1, description: "橫拉窗有效面積係數；按整樘窗面積計時預設 0.5", default: 0.5 },
+                projectedOpeningRatio: { type: "number", minimum: 0, maximum: 1, description: "推射/外推/上懸窗有效面積係數；預設 1.0（可完整開啟），實際開啟角度受限時可調低", default: 1.0 },
+                unknownWindowAssumption: { type: "string", enum: ["manual", "projected", "casement", "sliding"], description: "無法由族群名稱判定時的暫定窗型；仍標記需人工確認", default: "manual" },
             },
             required: ["levelName"],
         },
@@ -118,6 +122,10 @@ export const smokeExhaustTools: Tool[] = [
             properties: {
                 levelName: { type: "string", description: "樓層名稱" },
                 ceilingHeightSource: { type: "string", enum: ["room_parameter", "ceiling_element"], default: "room_parameter" },
+                casementOpeningRatio: { type: "number", minimum: 0, maximum: 1, description: "須與檢討呼叫一致", default: 1.0 },
+                slidingOpeningRatio: { type: "number", minimum: 0, maximum: 1, description: "須與檢討呼叫一致", default: 0.5 },
+                projectedOpeningRatio: { type: "number", minimum: 0, maximum: 1, description: "須與檢討呼叫一致", default: 1.0 },
+                unknownWindowAssumption: { type: "string", enum: ["manual", "projected", "casement", "sliding"], description: "須與檢討呼叫一致", default: "manual" },
                 outputPath: { type: "string", description: "輸出路徑（選填）" },
             },
             required: ["levelName"],

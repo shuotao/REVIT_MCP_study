@@ -5,12 +5,46 @@
 
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 
+import { cadWallTools } from './cad-wall-tools.js';
+import { framingFloorTools } from './framing-floor-tools.js';
+import { beamMarkTools } from './beam-mark-tools.js';
+import { columnMarkTools } from './column-mark-tools.js';
+import { parameterCopyTools } from './parameter-copy-tools.js';
+import { coordinateTools } from './coordinate-tools.js';
+
 export const baseTools: Tool[] = [
+    ...coordinateTools,
+    ...cadWallTools,
+    ...parameterCopyTools,
+    ...columnMarkTools,
+    ...beamMarkTools,
+    ...framingFloorTools,
     // === 專案與元素基礎 ===
     {
         name: "get_project_info",
         description: "取得目前開啟的 Revit 專案基本資訊，包括專案名稱、建築物名稱、業主等。",
         inputSchema: { type: "object", properties: {} },
+    },
+    {
+        name: "set_project_units",
+        description: "一次把整個專案的顯示單位切換到指定系統/模式（全案性動作，單一 Transaction 可 Ctrl+Z 還原）。mode='taiwan' = 公制底 + Air Flow m³/h（建築技術規則 §102 通風量單位）+ Length 補單位符號；mode='taiwan-plumbing' = taiwan 再加給排水管路側六格（管徑 mm、流量 L/min、流速 m/s、壓力 mH2O、摩擦 mmH2O/m、坡度 1:ratio），對齊建築設備編 §43/§46 與給水排水設備設計技術規範；'metric' / 'imperial' 為純公制/英制預設。每個 spec 都會連同「精度」與「單位符號」一起設定——只設單位會讓 Length 顯示成裸數字（673 而非 673 mm），且流速精度 0.1 位會讓 2.98 與 3.05 看起來相同而產生假綠燈。可再用 length/area/volume/airFlow/pipeSize/flow/velocity/pressure/friction/slope 個別覆寫。⚠️ 台灣法規的壓力單位 kgf/cm² 在 Revit 2026 不存在（305 個 UnitTypeId 逐一反射確認），故以 mH2O 代用：1 kgf/cm² = 10.0 mH2O。回傳的 Result 是套用後從 Document 回讀的實際單位/符號/精度，不是參數回聲。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                mode: { type: "string", description: "預設模式：'taiwan'（公制 + Air Flow m³/h + Length 帶符號，空調案適用）、'taiwan-plumbing'（taiwan 再加管路側六格，給排水案適用）、'metric'、'imperial'。與 system 擇一。" },
+                system: { type: "string", description: "基底單位系統：'metric' 或 'imperial'（未給 mode 時使用；預設 metric）。" },
+                length: { type: "string", description: "長度單位覆寫：m / mm / cm / ft / ft-in（選填）" },
+                area: { type: "string", description: "面積單位覆寫：m2 / sf（選填）" },
+                volume: { type: "string", description: "體積單位覆寫：m3 / l / cf（選填）" },
+                airFlow: { type: "string", description: "風量單位覆寫：m3/h / l/s / cfm（選填）" },
+                pipeSize: { type: "string", description: "管徑單位覆寫：mm / cm / m / in（選填）" },
+                flow: { type: "string", description: "管路流量單位覆寫：l/min / l/s / m3/h / gpm（選填）。台灣技術規範 3.4 用 L/min。" },
+                velocity: { type: "string", description: "管路流速單位覆寫：m/s / fps（選填）" },
+                pressure: { type: "string", description: "管路壓力單位覆寫：mh2o / mmh2o / kpa / pa / bar / kgf/m2（選填）。⚠️ 台灣法規的 kgf/cm² 在 Revit 不存在，預設以 mh2o 代用（1 kgf/cm² = 10.0 mH2O）。" },
+                friction: { type: "string", description: "管路摩擦損失單位覆寫：mmh2o/m / mh2o/m / pa/m（選填）" },
+                slope: { type: "string", description: "管路坡度單位覆寫：1:ratio / ratio:1 / % / deg（選填）。台灣技術規範 3.2.2 寫 1/50、1/100，對應 '1:ratio'；選 'ratio:1' 會顯示成 0.01:1，與法規寫法相反。" },
+            },
+        },
     },
     {
         name: "get_all_levels",
@@ -37,13 +71,26 @@ export const baseTools: Tool[] = [
     },
     {
         name: "get_element_info",
-        description: "取得指定元素的詳細資訊，包括參數、幾何資訊等。",
+        description: "取得指定元素的詳細資訊與參數。IndependentTag 另回傳 OwnerViewId、IsOrphaned 與 TaggedElements（本機／連結元素 ID；無效 ID 為 -1）。僅非孤立柱標籤讀取 Tag.Text；其他標籤 Text=null、TextReadStatus=SkippedNativeCrashRisk，避免 Revit 原生 TagText 存取崩潰。不可將 null 當作空白標籤。",
         inputSchema: {
             type: "object",
             properties: {
                 elementId: { type: "number", description: "元素 ID" },
             },
             required: ["elementId"],
+        },
+    },
+    {
+        name: "get_door_window_coordinates",
+        description: "一次撈全部門窗的座標清單：插入點 (LocationPoint) 與 boundingbox（含中心點），座標為 mm。可依門/窗/全部與樓層篩選，並可選擇一併掃描連結模型（自動套用 Transform 轉專案座標）。回傳每筆含 ElementId、族群、類型、標記、樓層、宿主牆ID、朝向。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                category: { type: "string", description: "門 / 窗 / 全部（預設全部）。也接受 Doors / Windows。" },
+                level: { type: "string", description: "只回傳指定樓層名稱的門窗（選填）" },
+                includeLinks: { type: "boolean", description: "是否一併掃描連結模型的門窗（預設 false）" },
+                maxCount: { type: "number", description: "最大回傳數量（預設 1000）" },
+            },
         },
     },
     {
@@ -59,15 +106,50 @@ export const baseTools: Tool[] = [
     },
     {
         name: "modify_element_parameter",
-        description: "修改 Revit 元素的參數值。",
+        description: "修改 Revit 元素的唯一同名參數值。Double 使用 Revit 內部單位（長度為英尺）。梁參考樓層支援 ElementId，value 傳目前文件的 Level ID 字串；其他 ElementId 欄位不支援。",
         inputSchema: {
             type: "object",
             properties: {
+                textUpdates: {type:"array",minItems:1,maxItems:2000,description:"單次批次寫入明確實例的文字群組字串參數；使用Definition.GetGroupTypeId精確比對。parameterName/value傳空字串。dryRun預設true，apply=true且dryRun=false才寫入。缺少、唯讀、歧義或非字串跳過並回報。",items:{type:"object",additionalProperties:false,required:["elementId","name","value"],properties:{elementId:{type:"integer",minimum:1},name:{type:"string",minLength:1},value:{type:"string"}}}},
+                copyTypeNameBatch: { type: "boolean", default: false, description: "將明確 elementIds 的完整類型名稱批次填入 parameterName 指定的實例文字欄位；value 必須為空字串。預覽預設開啟，apply=true 且 dryRun=false 才以單一交易寫入，提交後驗證失敗整批回滾。唯讀、群組及不明確欄位跳過。不可與 rcWallsStructuralBatch 同用。" },
+                floorNumberRules: { type: "array", minItems: 1, maxItems: 100, description: "依樓板實際厚度 mm 批次修正文字群組的編號。需 viewId、elementIds、parameterName=編號、value=空字串；僅處理目前視圖內明確指定的樓板，單一交易及提交後驗證，失敗整批回滾。不可與其他批次模式同用。", items: { type: "object", properties: { thicknessMm: { type: "number", exclusiveMinimum: 0 }, number: { type: "string", minLength: 1 } }, required: ["thicknessMm", "number"], additionalProperties: false } },
+                viewId: { type: "integer", minimum: 1, description: "floorNumberRules 模式必填，目前視圖 ID。" },
+                rcWallsStructuralBatch: { type: "boolean", default: false, description: "批次只啟用明確 elementIds 中類型含 RC 的牆之內建結構參數，需 parameterName=結構,value=1；單一交易，提交後驗證失敗整批回滾。" },
+                elementIds: { type: "array", minItems: 1, maxItems: 10000, uniqueItems: true, items: { type: "integer", minimum: 1 } },
+                dryRun: { type: "boolean", default: true }, apply: { type: "boolean", default: false },
                 elementId: { type: "number", description: "元素 ID" },
                 parameterName: { type: "string", description: "參數名稱" },
                 value: { type: "string", description: "新的參數值" },
             },
-            required: ["elementId", "parameterName", "value"],
+            required: ["parameterName", "value"],
+        },
+    },
+    {
+        name: "load_shared_parameters",
+        description: "載入共享參數檔 (Shared Parameter File) 並將參數綁定至指定品類的 Type 或 Instance 層級。用於在寫入自訂參數前，先確保專案已載入參數定義。例如載入 GreenMaterial_SharedParams.txt 的 64 個綠建材參數（Mat1~Mat6 六槽位）至 Walls/Floors/Ceilings，之後用 set_green_material_type_parameters 寫值。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                filePath: {
+                    type: "string",
+                    description: "共享參數檔的絕對路徑 (如 C:/path/to/GreenMaterial_SharedParams.txt)",
+                },
+                categories: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "要綁定的品類名稱清單: Walls, Floors, Ceilings, Windows, Doors, Materials, Roofs, CurtainPanels, Columns（同時綁 OST_Columns 與 OST_StructuralColumns）, StructuralFraming（樑）",
+                },
+                bindToInstance: {
+                    type: "boolean",
+                    description: "true = 綁定至 Instance 參數, false = 綁定至 Type 參數 (預設 false)",
+                    default: false,
+                },
+                dryRun: {
+                    type: "boolean",
+                    description: "true = 只回報哪些參數會被新綁定/擴充綁定/冪等跳過，不實際呼叫任何 BindingMap 綁定變更，Revit 文件不受影響。預設 false = 正常執行綁定。",
+                },
+            },
+            required: ["filePath", "categories"],
         },
     },
     {
@@ -234,16 +316,25 @@ export const baseTools: Tool[] = [
     },
     {
         name: "move_element",
-        description: "移動指定的 Revit 元素（依 dx, dy, dz 指定位移量）。",
+        description: "移動指定元素（dx/dy/dz，mm）；centerBeamTags=true 可批次將目前視圖梁標籤移到實際對應梁中心線中點的視圖投影，保留文字方向與引線。此模式需 viewId 與明確 elementIds，預設 dryRun=true，只有 dryRun=false 且 apply=true 才寫入。孤立、多目標、連結、釘選、群組或非梁標籤跳過。",
         inputSchema: {
             type: "object",
             properties: {
                 elementId: { type: "number", description: "要移動的元素 ID" },
+                centerBeamTags: { type: "boolean", default: false },
+                avoidDoorTagOverlap: { type: "boolean", default: false, description: "平面視圖門標籤批次避開可量測門外框及其他標籤外框；需要 viewId/elementIds。保留方向，不讀 TagText；引線、釘選、群組、不明確主體跳過。預設唯讀，apply=true 且 dryRun=false 單一交易寫入並驗證，錯誤回滾。" },
+                avoidBeamTagOverlap: { type: "boolean", default: false, description: "依目前視圖標籤外框微移梁標籤避讓，不讀取 TagText。與 centerBeamTags 互斥。保留無法避讓的項目並回報；只有 dryRun=false 且 apply=true 才套用。" },
+                gapPaperMm: { type: "number", minimum: 0, maximum: 3, default: 0.5, description: "紙面標籤間距 mm" },
+                maxMovePaperMm: { type: "number", minimum: 0.5, maximum: 20, default: 8, description: "紙面最大微移距離 mm，依視圖比例換算" },
+                viewId: { type: "integer" },
+                elementIds: { type: "array", minItems: 1, maxItems: 10000, uniqueItems: true, items: { type: "integer" } },
+                dryRun: { type: "boolean", default: true },
+                apply: { type: "boolean", default: false },
                 dx: { type: "number", description: "X 軸移動距離 (mm)", default: 0 },
                 dy: { type: "number", description: "Y 軸移動距離 (mm)", default: 0 },
                 dz: { type: "number", description: "Z 軸移動距離 (mm)", default: 0 },
             },
-            required: ["elementId"],
+            anyOf: [{ required: ["elementId"] }, { required: ["centerBeamTags", "viewId", "elementIds"] }, { required: ["avoidBeamTagOverlap", "viewId", "elementIds"] }, { required: ["avoidDoorTagOverlap", "viewId", "elementIds"] }],
         },
     },
     {
@@ -275,7 +366,7 @@ export const baseTools: Tool[] = [
     },
     {
         name: "analyze_floor_slopes",
-        description: "分析樓板頂面排水坡度：以 Solid→PlanarFace 法向量與 Z 軸夾角計算每片朝上頂面的坡度百分比，回傳每片樓板的 Min/Max 坡度，並可回寫至指定參數（預設 Comments）。未指定 elementIds 時自動收集 Function=Exterior 的樓板。",
+        description: "分析樓板頂面排水坡度：以 Solid→PlanarFace 法向量與 Z 軸夾角計算每片朝上頂面的坡度百分比，回傳每片樓板的 Min/Max 坡度。預設只分析、不寫入模型（不開 Transaction）；只有明確指定 paramName 時才會回寫該參數。未指定 elementIds 時自動收集 Function=Exterior 的樓板。",
         inputSchema: {
             type: "object",
             properties: {
@@ -286,7 +377,7 @@ export const baseTools: Tool[] = [
                 },
                 paramName: {
                     type: "string",
-                    description: "坡度回寫的目標參數名稱，預設 Comments"
+                    description: "選填。坡度回寫的目標參數名稱；**省略即完全不寫入模型**，分析結果仍會回傳。指定後會覆寫該參數既有內容：填 \"Comments\" 會寫入內建註解參數（BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS，不受 Revit 介面語言影響），其他名稱則以 LookupParameter 解析自訂／共用參數或本地化顯示名（例如「註解」）"
                 }
             }
         }
@@ -309,3 +400,5 @@ export const baseTools: Tool[] = [
         }
     }
 ];
+
+

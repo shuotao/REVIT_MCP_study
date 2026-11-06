@@ -1,6 +1,6 @@
 ---
 name: element-coloring
-description: "元素上色工作流程：根據參數值對 Revit 元素進行顏色標記與視覺化。觸發條件：使用者提到上色、顏色標示、color code、highlight、視覺化標記、參數上色。工具：get_category_fields、get_field_values、query_elements_with_filter、override_element_graphics、clear_element_override、unjoin_wall_joins、rejoin_wall_joins。"
+description: "元素上色工作流程：根據參數值對 Revit 元素進行顏色標記與視覺化。觸發條件：使用者提到上色、顏色標示、color code、highlight、視覺化標記、參數上色。工具：get_category_fields、get_field_values、query_elements_with_filter、override_element_graphics、clear_element_override、unjoin_element_joins、rejoin_wall_joins。"
 ---
 
 # 元素上色工作流程
@@ -19,7 +19,7 @@ description: "元素上色工作流程：根據參數值對 Revit 元素進行�
 `clear_element_override` 清除目標元素的現有顏色
 
 ### 步驟 2：取消牆接合（如果上色對象是牆）
-`unjoin_wall_joins` 避免接合導致顏色顯示不正確
+`unjoin_element_joins`（`sourceCategory: "Walls"`、`targetCategories: ["Columns", "StructuralColumns"]`） 避免接合導致顏色顯示不正確
 
 ### 步驟 3：查詢並分類
 1. `get_category_fields` 確認參數名稱

@@ -92,9 +92,7 @@ unjoin_element_joins({ sourceCategory: "StructuralFraming" })
 
 | 工具名稱 | 用途 |
 |---------|------|
-| `unjoin_element_joins` | 通用版解除（預設 8 類 target） |
-| `unjoin_column_joins` | 柱本位特化版（保留向後相容） |
-| `unjoin_wall_joins` | 牆-柱雙邊特化版（保留向後相容） |
+| `unjoin_element_joins` | 解除接合的唯一入口（預設 8 類 target；`sourceCategories` 可一次給多個來源類別） |
 | `rejoin_wall_joins` | 還原所有累計的 `_unjoinedPairs`（session-scoped） |
 | `query_elements_with_filter` | 交叉檢查來源類別總數 |
 

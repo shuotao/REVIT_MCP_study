@@ -307,7 +307,7 @@ namespace RevitMCP.Core
         private static bool HasWindowCountRoomName(Room room)
         {
             string roomName = GetWindowCountRoomName(room);
-            return !string.IsNullOrWhiteSpace(roomName) && roomName != "Room" && roomName != "?輸?";
+            return !string.IsNullOrWhiteSpace(roomName) && roomName != "Room" && roomName != "房間";
         }
 
         private static string GetWindowParameterString(Element element, BuiltInParameter builtInParameter)

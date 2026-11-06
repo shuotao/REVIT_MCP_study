@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Revit Clash Viewer</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1a1a; --muted: #667085; --line: #e4e7ec;
+    --chip-bg: #f2f4f7; --accent: #2563eb; --accent-fg: #ffffff;
+    --row: #ffffff; --row-alt: #f9fafb; --err: #b42318;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181d; --fg: #e6e8eb; --muted: #98a2b3; --line: #2b2f36;
+      --chip-bg: #23272e; --accent: #4f8cff; --accent-fg: #0b0d10;
+      --row: #16181d; --row-alt: #1b1e24; --err: #ff7b6b;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font: 14px/1.5 -apple-system, "Segoe UI", "Noto Sans TC", system-ui, sans-serif;
+    padding: 16px;
+  }
+  #root { max-width: 100%; }
+  .hd h1 { font-size: 18px; margin: 0 0 12px; }
+  .summary { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .chip {
+    display: inline-flex; align-items: baseline; gap: 6px;
+    background: var(--chip-bg); border: 1px solid var(--line);
+    border-radius: 999px; padding: 4px 12px; font-size: 12px;
+  }
+  .chip-k { color: var(--muted); }
+  .chip-v { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .actions { margin-bottom: 14px; }
+  .btn {
+    font: inherit; cursor: pointer; border: 1px solid var(--line);
+    background: var(--chip-bg); color: var(--fg);
+    border-radius: 8px; padding: 7px 14px;
+  }
+  .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+  .btn.small { padding: 3px 10px; font-size: 12px; border-radius: 6px; }
+  .btn[disabled] { opacity: .55; cursor: default; }
+  .table-wrap { overflow-x: auto; }
+  table.clash-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  .clash-table th, .clash-table td {
+    text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line);
+    white-space: nowrap; max-width: 320px; overflow: hidden; text-overflow: ellipsis;
+  }
+  .clash-table th { color: var(--muted); font-weight: 600; position: sticky; top: 0; background: var(--bg); }
+  .clash-table tbody tr:nth-child(even) { background: var(--row-alt); }
+  .status { margin: 10px 0; color: var(--muted); }
+  .status.error { color: var(--err); }
+  pre.raw {
+    background: var(--chip-bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px; overflow: auto; max-height: 50vh; font-size: 12px;
+  }
+</style>
+</head>
+<body>
+  <div id="root">
+    <div class="status">等待碰撞資料… / Waiting for clash data…</div>
+  </div>
+  <script>/*__APP_BUNDLE__*/</script>
+</body>
+</html>

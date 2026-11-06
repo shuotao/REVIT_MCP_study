@@ -1,8 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>try{if(localStorage.getItem("bim-theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}</script>
 <title>限制顯現器 — 22 條命題完整宣言 · BIM_MCP</title>
 <meta property="og:title" content="限制顯現器：22 條命題完整宣言">
 <meta property="og:description" content="MCP × Revit 人機協作的核心哲學體系，22 條命題完整論述，含使用者原文 quote 與業界對標。">
@@ -20,9 +21,8 @@
     <span class="bim-topnav-sep">/</span>
     <span class="bim-topnav-current">限制顯現器哲學</span>
   </div>
-  <div class="bim-topnav-actions">
+  <div class="bim-topnav-actions" data-route-nav="top">
     <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener" class="bim-topnav-btn bim-topnav-btn-github" title="View source on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
-    <a href="three-constitutions.html" class="bim-topnav-btn">三憲法 →</a>
     <a href="../index.html" class="bim-topnav-btn">回首頁</a>
   </div>
 </nav>
@@ -32,7 +32,7 @@
   <h1 class="bim-hero-title">MCP 是<span class="accent">限制顯現器</span><br>不是另一個自動化工具</h1>
   <p class="bim-hero-sub">22 條命題構成從「為什麼 MCP 重要」到「會議場景延伸」的完整思想體系。每一條都來自實際開發的反思——使用者 6 輪論述 + 業界研究（BEP/LOD/IDS/Stage-Gate）的交叉驗證。本頁是 0523 五月小聚的哲學中軸，可單獨閱讀（不依賴簡報 context）。</p>
 </header>
-<figure style="max-width:1100px;margin:32px auto 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:#000;">
+<figure style="max-width:1100px;margin:32px auto 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--figure-bg);">
   <img src="../images/philosophy__hero__22-stars.svg" alt="Twenty two propositions as ordered dots" width="1600" height="900" style="display:block;width:100%;height:auto;">
 </figure>
 
@@ -88,7 +88,7 @@
       <button class="ptable-cell" data-drawer-open data-source="#p7" data-title="P7 · 階段完成點" data-eyebrow="PROPOSITION 07 / 何時顯現">
         <span class="ptable-p">P7</span><span class="ptable-name">階段完成點</span>
       </button>
-      <button class="ptable-cell star" data-drawer-open data-source="#p8" data-title="P8 · 被動就緒" data-eyebrow="PROPOSITION 08 / 何時顯現 · 第三憲法源頭">
+      <button class="ptable-cell star" data-drawer-open data-source="#p8" data-title="P8 · 被動就緒" data-eyebrow="PROPOSITION 08 / 何時顯現 · 第一憲法源頭">
         <span class="ptable-p">P8</span><span class="ptable-name">被動就緒</span>
       </button>
       <button class="ptable-cell" data-drawer-open data-source="#p9" data-title="P9 · 滾動式開源 Domain" data-eyebrow="PROPOSITION 09 / 何時顯現">
@@ -178,7 +178,7 @@
     <div class="how-tech-label">WHY</div>
     <div class="how-tech-content">傳統 BIM 工具解決「<strong>怎麼把腦中方案畫出來</strong>」——畫得快、畫得準、畫得可協作。但它們不告訴你方案撞了哪些限制。MCP 補上 Revit 沒解決的另一半問題：<strong>讓限制變得可見</strong>。兩者協作，不是競爭。</div>
     <div class="how-tech-label">HOW</div>
-    <div class="how-tech-content">把規範、法條、檢核從「設計師腦中的隱性知識」抽出來，編碼成 72 個 <code>domain/*.md</code>，由 50 個 Skill 編排觸發，透過 166 個 MCP Tool 在 Revit 上即時呈現。</div>
+    <div class="how-tech-content">把規範、法條、檢核從「設計師腦中的隱性知識」抽出來，編碼成 94 個 <code>domain/*.md</code>，由 61 個 Skill 編排觸發，透過 239 個 MCP Tool 在 Revit 上即時呈現。</div>
     <div class="how-tech-label">TECHNIQUE</div>
     <div class="how-tech-content technique">Domain-Driven Constraint Externalization · 三層架構 Skill / CLAUDE.md / Domain · Model Context Protocol over WebSocket</div>
   </div>
@@ -412,7 +412,7 @@
     <div class="how-tech-label">WHY</div>
     <div class="how-tech-content">tools 是執行手段（API 改變、工具淘汰、技術換代很快），<strong>domain 是知識本體</strong>（法規 / 業界 SOP / 邊界案例的演化遠慢於工具）。把專案的「資產投資」放在 domain，是長遠正確的選擇。</div>
     <div class="how-tech-label">HOW</div>
-    <div class="how-tech-content">每個 domain 寫成 <code>domain/{name}.md</code>，含觸發關鍵字、法規條號、公式、邊界案例、被引用的 Skill 清單。<strong>多 Skill 共用同一 domain</strong>——例如 <code>fire-rating-check.md</code> 被 <code>/fire-safety-check</code>、<code>/corridor-analysis</code>、<code>/building-compliance</code> 三個 Skill 引用，規範改一次三個自動同步。</div>
+    <div class="how-tech-content">每個 domain 寫成 <code>domain/{name}.md</code>，含觸發關鍵字、法規條號、公式、邊界案例、被引用的 Skill 清單。<strong>多 Skill 共用同一 domain</strong>——例如 <code>fire-rating-check.md</code> 被 <code>/fire-safety-check</code>、<code>/element-coloring</code> 兩個 Skill 引用，規範改一次兩個自動同步。</div>
     <div class="how-tech-label">TECHNIQUE</div>
     <div class="how-tech-content technique">Domain-Driven Knowledge Layer · Single Source of Truth · Skill Composition over Skill Duplication · Frontmatter Lint (/qaqc Phase 6)</div>
     <div class="how-tech-label">CHECKLIST</div>
@@ -449,7 +449,7 @@
       </li>
       <li>
         <div>
-          <span class="fr-type">Index</span><a href="domain-index.html">72 Domain 完整索引</a>
+          <span class="fr-type">Index</span><a href="domain-index.html">94 Domain 完整索引</a>
           <span class="fr-desc">看所有現有 domain 的觸發詞、被引用 Skill、檔案位置</span>
         </div>
       </li>
@@ -672,7 +672,7 @@
       </li>
       <li>
         <div>
-          <span class="fr-type">Index</span><a href="domain-index.html">72 個 Domain 完整索引</a>
+          <span class="fr-type">Index</span><a href="domain-index.html">94 個 Domain 完整索引</a>
           <span class="fr-desc">看現有 domain，找你能補的那幾條</span>
         </div>
       </li>
@@ -1040,7 +1040,7 @@
     <div class="pitfalls-title">反模式警告：8/80 Rule</div>
     <ul>
       <li><strong>工作包應 8-80 小時</strong>——過細變 micromanagement 反而拖垮整條流程</li>
-      <li><strong>警告：166 工具不該變成 500 個微任務</strong>——保持「設計師可一次完成的單元」尺度</li>
+      <li><strong>警告：239 工具不該變成 500 個微任務</strong>——保持「設計師可一次完成的單元」尺度</li>
       <li><strong>拆分到「每根牆都觸發一次檢核」是反人類設計</strong>——拆到「每個樓層平面完成觸發一組檢核」就對了</li>
     </ul>
   </div>
@@ -1362,8 +1362,14 @@
     <ul class="further-reading-list">
       <li>
         <div>
-          <span class="fr-type">Page</span><a href="../2026-05/handson.html">5/23 Hands-on 練習頁</a>
+          <span class="fr-type">Page</span><a href="../2026-05/handson.html">5/23 Hands-on 練習頁（導讀）</a>
           <span class="fr-desc">P22 ARCHI 優先的具體實作——10 個 prompt 用日本 sample 跑 5 個 ARCHI 工具</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="fr-type">Page</span><a href="../../0523-handson.html">直接開練習頁 <code>../../0523-handson.html</code></a>
+          <span class="fr-desc">同一場 Hands-on 的練習頁本體（導讀頁連到的是它的 GitHub 原始碼）</span>
         </div>
       </li>
       <li>
@@ -1419,15 +1425,13 @@ P20 ❌ 淘汰留紀錄</pre>
 </section>
 
 <footer class="bim-footer">
-  <div class="bim-footer-actions">
-    <a href="../index.html" class="bim-footer-btn">← 回 BIM_MCP 首頁</a>
-    <a href="three-constitutions.html" class="bim-footer-btn primary">三憲法 →</a>
+  <div class="bim-footer-actions" data-route-nav="foot">
     <a href="spectrum-decision.html" class="bim-footer-btn">A/B/C/D 光譜決策</a>
-    <a href="industry-evidence.html" class="bim-footer-btn">業界證據</a>
+    <a href="../index.html" class="bim-footer-btn">回首頁</a>
   </div>
   <div>
     BIM_MCP · 限制顯現器哲學 · 22 命題完整宣言<br>
-    最後更新：2026-05-18 · 來源：0523 五月小聚反思
+    最後更新：2026-10-23 · 來源：0523 五月小聚反思
   </div>
 </footer>
 

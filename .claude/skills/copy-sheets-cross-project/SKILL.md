@@ -351,6 +351,6 @@ if (skipNames.Contains(sourceParam.Definition.Name)) continue;
 
 ## Reference
 
-- 計畫文件：`C:\Users\lesle\.claude\plans\revit-api-graceful-noodle.md`
+- 計畫文件：`C:\Users\<YOUR_USERNAME>\.claude\plans\revit-api-graceful-noodle.md`
 - C# 實作：`MCP/Core/Commands/CommandExecutor.CrossDocument.cs`
 - Tool schemas：`MCP-Server/src/tools/cross-document-tools.ts`

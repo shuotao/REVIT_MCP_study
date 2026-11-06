@@ -15,121 +15,44 @@ namespace RevitMCP.Core
     public partial class CommandExecutor
     {
         /// <summary>
-        /// 解除柱子與鄰近牆、樓板、結構樑的幾何接合。
-        /// 配對存入 _unjoinedPairs，可用 rejoin_wall_joins 還原（限同一 Revit session）。
+        /// 相容 shim（#138 C3）：unjoin_wall_joins 已自 MCP registry 移除，命令名保留給舊版 MCP-Server
+        /// 與既有腳本。等價於 unjoin_element_joins(sourceCategory: Walls, targetCategories: [Columns,
+        /// StructuralColumns])。保留舊工具的兩個契約：未給 wallIds 也未給 viewId 時拋錯（不擴及全專案），
+        /// 以及開始前清空 _unjoinedPairs（rejoin 只還原這一次）。
         /// </summary>
-        private object UnjoinColumnJoins(JObject parameters)
+        private object UnjoinWallJoinsCompat(JObject parameters)
         {
-            Document doc = _uiApp.ActiveUIDocument.Document;
+            var wallIds = parameters["wallIds"] as JArray;
+            var viewId = parameters["viewId"];
+            if ((wallIds == null || wallIds.Count == 0) && viewId == null)
+                throw new Exception("請提供 wallIds 或 viewId 參數");
 
-            var columnIdsArray = parameters["columnIds"] as JArray;
-            IdType? viewId = parameters["viewId"]?.Value<IdType>();
-
-            List<IdType> columnIds = new List<IdType>();
-            if (columnIdsArray != null)
+            _unjoinedPairs.Clear();
+            var translated = new JObject
             {
-                columnIds.AddRange(columnIdsArray.Select(id => id.Value<IdType>()));
-            }
-
-            // 若未指定 columnIds，則收集所有柱子（視圖內或整個專案）
-            if (columnIds.Count == 0)
-            {
-                FilteredElementCollector archCols = viewId.HasValue
-                    ? new FilteredElementCollector(doc, new ElementId(viewId.Value))
-                    : new FilteredElementCollector(doc);
-                FilteredElementCollector structCols = viewId.HasValue
-                    ? new FilteredElementCollector(doc, new ElementId(viewId.Value))
-                    : new FilteredElementCollector(doc);
-
-                var arch = archCols.OfCategory(BuiltInCategory.OST_Columns)
-                                   .WhereElementIsNotElementType()
-                                   .ToElements();
-                var stru = structCols.OfCategory(BuiltInCategory.OST_StructuralColumns)
-                                     .WhereElementIsNotElementType()
-                                     .ToElements();
-
-                columnIds = arch.Concat(stru)
-                                .Select(c => c.Id.GetIdValue())
-                                .ToList();
-            }
-
-            if (columnIds.Count == 0)
-            {
-                return new
-                {
-                    Success = true,
-                    UnjoinedCount = 0,
-                    ColumnCount = 0,
-                    StoredPairs = _unjoinedPairs.Count,
-                    Message = "未找到任何柱子"
-                };
-            }
-
-            int unjoinedCount = 0;
-            int wallPairs = 0;
-            int floorPairs = 0;
-            int framingPairs = 0;
-
-            // 重要：沿用 _unjoinedPairs 給 rejoin_wall_joins 使用，不能 Clear
-            // 但若同一 session 內重複呼叫，為避免重複 pair，先去重
-            var existingPairs = new HashSet<string>(
-                _unjoinedPairs.Select(p => PairKey(p.Item1, p.Item2)));
-
-            using (Transaction trans = TransactionHelper.Begin(doc, "Unjoin Column Geometry"))
-            {
-                trans.Start();
-
-                foreach (IdType columnId in columnIds)
-                {
-                    Element column = doc.GetElement(new ElementId(columnId));
-                    if (column == null) continue;
-
-                    BoundingBoxXYZ bbox = column.get_BoundingBox(null);
-                    if (bbox == null) continue;
-
-                    XYZ min = bbox.Min - new XYZ(1, 1, 1);
-                    XYZ max = bbox.Max + new XYZ(1, 1, 1);
-                    Outline outline = new Outline(min, max);
-                    var bboxFilter = new BoundingBoxIntersectsFilter(outline);
-
-                    // 依序處理：牆、樓板、結構樑
-                    var wallNeighbors = new FilteredElementCollector(doc)
-                        .OfCategory(BuiltInCategory.OST_Walls)
-                        .WhereElementIsNotElementType()
-                        .WherePasses(bboxFilter)
-                        .ToElements();
-
-                    var floorNeighbors = new FilteredElementCollector(doc)
-                        .OfCategory(BuiltInCategory.OST_Floors)
-                        .WhereElementIsNotElementType()
-                        .WherePasses(bboxFilter)
-                        .ToElements();
-
-                    var framingNeighbors = new FilteredElementCollector(doc)
-                        .OfCategory(BuiltInCategory.OST_StructuralFraming)
-                        .WhereElementIsNotElementType()
-                        .WherePasses(bboxFilter)
-                        .ToElements();
-
-                    unjoinedCount += TryUnjoinBatch(doc, column, wallNeighbors, existingPairs, ref wallPairs);
-                    unjoinedCount += TryUnjoinBatch(doc, column, floorNeighbors, existingPairs, ref floorPairs);
-                    unjoinedCount += TryUnjoinBatch(doc, column, framingNeighbors, existingPairs, ref framingPairs);
-                }
-
-                trans.Commit();
-            }
-
-            return new
-            {
-                Success = true,
-                UnjoinedCount = unjoinedCount,
-                ColumnCount = columnIds.Count,
-                WallPairs = wallPairs,
-                FloorPairs = floorPairs,
-                FramingPairs = framingPairs,
-                StoredPairs = _unjoinedPairs.Count,
-                Message = $"已取消 {unjoinedCount} 個柱-鄰接元素接合（牆 {wallPairs}, 樓板 {floorPairs}, 樑 {framingPairs}）"
+                ["sourceCategory"] = "Walls",
+                ["targetCategories"] = new JArray("Columns", "StructuralColumns"),
             };
+            if (wallIds != null) translated["elementIds"] = wallIds;
+            if (viewId != null) translated["viewId"] = viewId;
+            return UnjoinElementJoins(translated);
+        }
+
+        /// <summary>
+        /// 相容 shim（#138 C3）：unjoin_column_joins 已自 MCP registry 移除。等價於
+        /// unjoin_element_joins(sourceCategories: [Columns, StructuralColumns],
+        /// targetCategories: [Walls, Floors, StructuralFraming])。
+        /// </summary>
+        private object UnjoinColumnJoinsCompat(JObject parameters)
+        {
+            var translated = new JObject
+            {
+                ["sourceCategories"] = new JArray("Columns", "StructuralColumns"),
+                ["targetCategories"] = new JArray("Walls", "Floors", "StructuralFraming"),
+            };
+            if (parameters["columnIds"] is JArray columnIds) translated["elementIds"] = columnIds;
+            if (parameters["viewId"] != null) translated["viewId"] = parameters["viewId"];
+            return UnjoinElementJoins(translated);
         }
 
         private int TryUnjoinBatch(Document doc, Element column, IList<Element> neighbors,
@@ -173,18 +96,30 @@ namespace RevitMCP.Core
         /// 預設 target 為 8 類（Walls/Floors/Columns/StructuralColumns/
         /// StructuralFraming/StructuralFoundation/Roofs/Ceilings）。
         /// 共用 _unjoinedPairs 與 rejoin_wall_joins 還原路徑。
+        /// 來源可用 sourceCategory（單一）或 sourceCategories（陣列）指定。
         /// </summary>
         private object UnjoinElementJoins(JObject parameters)
         {
             Document doc = _uiApp.ActiveUIDocument.Document;
 
-            string sourceCategoryStr = parameters["sourceCategory"]?.Value<string>();
-            if (string.IsNullOrEmpty(sourceCategoryStr))
-                throw new Exception("必須提供 sourceCategory 參數 (例如 StructuralFraming、Walls、Floors)");
+            // sourceCategories（陣列）與 sourceCategory（單一）擇一；陣列讓一次呼叫涵蓋建築柱＋結構柱這類成對類別
+            var sourceNames = new List<string>();
+            if (parameters["sourceCategories"] is JArray sourceCatsArray)
+                sourceNames.AddRange(sourceCatsArray.Select(t => t.Value<string>()).Where(n => !string.IsNullOrEmpty(n)));
+            string singleSource = parameters["sourceCategory"]?.Value<string>();
+            if (!string.IsNullOrEmpty(singleSource) && !sourceNames.Contains(singleSource))
+                sourceNames.Add(singleSource);
+            if (sourceNames.Count == 0)
+                throw new Exception("必須提供 sourceCategory 或 sourceCategories 參數 (例如 StructuralFraming、Walls、Floors)");
 
-            BuiltInCategory sourceCat;
-            if (!Enum.TryParse($"OST_{sourceCategoryStr}", out sourceCat))
-                throw new Exception($"無法解析 sourceCategory: {sourceCategoryStr}（應為 Walls、Floors、Columns、StructuralColumns、StructuralFraming、StructuralFoundation、Roofs、Ceilings 等）");
+            var sourceCats = new List<BuiltInCategory>();
+            foreach (string name in sourceNames)
+            {
+                if (!Enum.TryParse($"OST_{name}", out BuiltInCategory cat))
+                    throw new Exception($"無法解析 sourceCategory: {name}（應為 Walls、Floors、Columns、StructuralColumns、StructuralFraming、StructuralFoundation、Roofs、Ceilings 等）");
+                sourceCats.Add(cat);
+            }
+            string sourceCategoryStr = string.Join("+", sourceNames);
 
             var targetCatsArray = parameters["targetCategories"] as JArray;
             List<BuiltInCategory> targetCats = new List<BuiltInCategory>();
@@ -230,14 +165,16 @@ namespace RevitMCP.Core
 
             if (elementIds.Count == 0)
             {
-                var collector = viewId.HasValue
-                    ? new FilteredElementCollector(doc, new ElementId(viewId.Value))
-                    : new FilteredElementCollector(doc);
-                elementIds = collector.OfCategory(sourceCat)
-                                      .WhereElementIsNotElementType()
-                                      .ToElements()
-                                      .Select(e => e.Id.GetIdValue())
-                                      .ToList();
+                foreach (BuiltInCategory sourceCat in sourceCats)
+                {
+                    var collector = viewId.HasValue
+                        ? new FilteredElementCollector(doc, new ElementId(viewId.Value))
+                        : new FilteredElementCollector(doc);
+                    elementIds.AddRange(collector.OfCategory(sourceCat)
+                                                 .WhereElementIsNotElementType()
+                                                 .ToElements()
+                                                 .Select(e => e.Id.GetIdValue()));
+                }
             }
 
             if (elementIds.Count == 0)

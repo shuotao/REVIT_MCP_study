@@ -282,7 +282,7 @@ double cropCenterSheetY = sheetOriginY + (cropCenterModel.Y - viewOrigin.Y) / sc
 
 ```bash
 # 找 RequestId（從錯誤訊息或 tail log）然後直接 grep
-grep "<RequestId>" "/c/Users/lesle/AppData/Roaming/RevitMCP/Logs/RevitMCP_YYYYMMDD.log"
+grep "<RequestId>" "/c/Users/<YOUR_USERNAME>/AppData/Roaming/RevitMCP/Logs/RevitMCP_YYYYMMDD.log"
 ```
 若有「已發送回應」 → 操作已完成，直接視覺驗證。
 

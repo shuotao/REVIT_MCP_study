@@ -31,9 +31,16 @@ export async function executeRevitTool(
     // 如果是 query_elements_with_filter，映射到 C# 的 query_elements
     const commandName = toolName === "query_elements_with_filter" ? "query_elements" : toolName;
 
-    // 跨文件命令需要較長 timeout（開啟 .rvt 檔案較費時）
-    const CROSS_DOC_COMMANDS = new Set(["read_source_file_sheets", "copy_sheets_from_file", "sync_sheet_parameters_from_source"]);
-    const timeoutMs = CROSS_DOC_COMMANDS.has(commandName) ? 120000 : 30000;
+    // 跨文件命令需要較長 timeout（開啟 .rvt/.rfa 檔案較費時）
+    const CROSS_DOC_COMMANDS = new Set(["read_source_file_sheets", "copy_sheets_from_file", "sync_sheet_parameters_from_source", "inject_green_material_into_family"]);
+
+    // 開檔、存檔、重載連結、匯出影像都可能遠超過 30 秒（大模型存檔、地形連結重載尤其明顯）。
+    // 逾時斷在中途會讓使用者以為失敗，實際上 Revit 還在跑 —— 所以一律給長 timeout。
+    const SLOW_COMMANDS = new Set(["create_beam_additions", "shape_floor_ramp", "create_walls_from_dwg", "copy_parameter_by_group", "fill_column_marks_from_dwg", "fill_beam_marks_from_dwg", "create_beams_from_dwg", "create_floors_from_framing_regions", "open_document", "save_document", "reload_links", "capture_view_image", "run_camera_keyplan", "list_cameras", "run_camera_overview", "create_camera_sheet"]);
+
+    const LONG_RUNNING_COMMANDS = new Set(["check_beam_clear_height", "check_mep_spacing", "export_view_image", "batch_modify_elements"]);
+    const timeoutMs = LONG_RUNNING_COMMANDS.has(commandName) ? 300000 : commandName === "create_toposolid_from_cad" || commandName === "export_families" ? 180000
+        : CROSS_DOC_COMMANDS.has(commandName) || SLOW_COMMANDS.has(commandName) ? 120000 : 30000;
 
     // 發送命令到 Revit
     const response = await client.sendCommand(commandName, args, timeoutMs);
@@ -44,3 +51,4 @@ export async function executeRevitTool(
 
     return response.data;
 }
+

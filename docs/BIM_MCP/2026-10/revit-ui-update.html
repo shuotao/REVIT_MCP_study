@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026-10-12 更新 · Ribbon 狀態圖示 + 相機管理停靠面板 · BIM_MCP</title>
+<meta property="og:title" content="2026-10-12 更新：ribbon 狀態圖示 + 相機管理停靠面板（192→221）">
+<meta property="og:description" content="這次更新改的是 Revit add-in 本體，不是文件——只 git pull 的人會看到 ribbon 完全沒變。必做：重建、重新部署、重啟 Revit。附升級步驟、面板用法與 29 支新工具清單。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../nav.css">
+</head>
+<body>
+<div data-snapshot="2026-10-12" style="position:fixed;bottom:12px;right:12px;z-index:9999;background:rgba(15,23,42,.92);color:#fbbf24;padding:6px 14px;font-size:12px;border:1px solid #334155;border-radius:8px;pointer-events:none;">2026-10-12 活動快照 snapshot · 數字為當時狀態，最新統計見 BIM_MCP 知識站</div>
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">2026-10 · Revit UI 更新</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener" class="bim-topnav-btn bim-topnav-btn-github" title="View source on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+    <a href="../reference/contributors.html" class="bim-topnav-btn">貢獻者致謝</a>
+    <a href="../index.html" class="bim-topnav-btn">回首頁</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">2026-10-12 UPDATE · REVIT UI</div>
+  <h1 class="bim-hero-title">Ribbon 狀態圖示<span class="accent">＋相機管理面板</span></h1>
+  <p class="bim-hero-sub">這一次收編了兩位貢獻者的 Revit UI 成果：<strong>嘉祥</strong>（<a href="https://github.com/laytonluo" target="_blank" rel="noopener">@laytonluo</a>）補上 ribbon 上的 MCP 服務狀態圖示，<strong>任遠</strong>（<a href="https://github.com/7alexhuang-ux" target="_blank" rel="noopener">@7alexhuang-ux</a>）帶來一整套相機管理停靠面板、Key Plan 一鍵四視圖，以及視圖診斷／篩選器／Section Box／文件操作共 29 支新工具。</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="data-emph" style="font-size:32px;">+29</div>
+      <div class="data-emph-label">MCP 工具</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">192 → 221</div>
+    </div>
+    <div class="hero-stat">
+      <div class="data-emph" style="font-size:32px;">2</div>
+      <div class="data-emph-label">新的 UI 入口</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">狀態圖示＋停靠面板</div>
+    </div>
+    <div class="hero-stat">
+      <div class="data-emph" style="font-size:32px;">5 / 5</div>
+      <div class="data-emph-label">建置 0 error</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">R22–R26</div>
+    </div>
+  </div>
+</header>
+
+<section class="bim-section bim-anchor" id="upgrade">
+  <div class="bim-section-eyebrow">SECTION 01 · 先做這件事</div>
+  <h2 class="bim-section-title">只 <code>git pull</code> 的話，你什麼都不會看到</h2>
+  <p class="bim-section-desc">這次改的是 <strong>C# add-in 本體</strong>，不是文件。Revit 載入的是已編譯的 <code>RevitMCP.dll</code>，所以同步原始碼不會讓 ribbon 改變；而停靠面板是在 <code>OnStartup</code> 註冊的，<strong>不重啟 Revit 就不會出現</strong>。先把這四步做完，再往下看功能。</p>
+
+  <div class="bim-card bim-card-warn">
+    <h4>三個最常見的「以為壞了」</h4>
+    <p><strong>① ribbon 完全沒變</strong> → 沒重建／沒重新部署 DLL。<br>
+    <strong>② 沒有「相機管理」按鈕</strong> → 部署了但沒重啟 Revit。<br>
+    <strong>③ AI 端還是只有 192 支工具</strong> → 沒跑 <code>npm run build</code>；MCP client 執行的是 <code>MCP-Server/build/</code>，不是 <code>src/</code>。</p>
+  </div>
+
+  <h3>四步升級</h3>
+  <pre><code># 1. 同步 fork（或直接用 GitHub 頁面上的 "Sync fork" 按鈕）
+git remote add upstream https://github.com/shuotao/REVIT_MCP_study.git   # 只需做一次
+git fetch upstream
+git merge upstream/main
+
+# 2. 重建 MCP Server（工具 192 → 221 靠這一步生效）
+npm --prefix MCP-Server run build
+
+# 3. 重建 add-in —— 換成你自己的 Revit 版本（R22/R23/R24/R25/R26）
+dotnet build -c Release.R24 MCP/RevitMCP.csproj
+
+# 4. 部署
+powershell -File scripts/install-addon.ps1 -Version 2024</code></pre>
+
+  <p><strong>然後重啟 Revit。</strong>npm 相依套件這次沒有變動，不需要重跑 <code>npm install</code>。</p>
+
+  <div class="bim-card">
+    <h4>關於 R22／R23</h4>
+    <p>任遠的規格書裡寫著「R22/R23 有既有的 <code>CommandExecutor.LinkDisplay.cs</code> 編譯錯誤」——那是他開發中途的狀態。他後來自己補了版本防護，收編時在乾淨環境複驗過：<strong>R22、R23、R24、R25、R26 五組建置各 0 error</strong>。如果你是 Revit 2022／2023，可以照上面的步驟直接升。</p>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="ribbon">
+  <div class="bim-section-eyebrow">SECTION 02 · 嘉祥 @laytonluo</div>
+  <h2 class="bim-section-title">Ribbon 上現在看得出服務是開還是關</h2>
+  <p class="bim-section-desc">以前「MCP 服務（開/關）」按鈕沒有圖示，服務是開還是關只會在你按下去的那一瞬間、由一個 <code>TaskDialog</code> 告訴你一次——關掉對話框之後 ribbon 上就沒有任何線索了。想確認狀態只能再按一次，而再按一次就把它關掉了。</p>
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card bim-card-ok">
+      <h4>現在</h4>
+      <p>按鈕帶 ON／OFF 圖示，與 <code>SocketService.IsRunning</code> 連動；滑過去的 tooltip 直接寫「MCP 服務：開啟／監聽中（port 8964）／點擊停止」。port 是從 <code>ConfigManager</code> 實際讀的，改過 <code>REVIT_MCP_PORT</code> 的人會看到自己的那個號碼。</p>
+    </div>
+    <div class="bim-card">
+      <h4>收編時補強了什麼</h4>
+      <p>服務啟動是非同步的（<code>StartAsync()</code> fire-and-forget），port 被佔用時內部會先等 500 ms 才真正綁定——原實作在那段時間讀到的狀態還是「關」。現在改成「按下去立刻套一次 ＋ 之後幾次 Revit 閒置再讀回校正」，所以不會停在錯的圖示上。</p>
+    </div>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="camera">
+  <div class="bim-section-eyebrow">SECTION 03 · 任遠 @7alexhuang-ux</div>
+  <h2 class="bim-section-title">相機管理停靠面板怎麼用</h2>
+  <p class="bim-section-desc">入口：功能區 <strong>MCP Tools → 相機管理</strong>。它是 Revit 原生停靠面板（預設停在右側，寬度 300–600 px 可用），<strong>不是 MCP App</strong>——不需要 AI client 連線也能用。管理對象是專案裡所有 <code>IsPerspective = true</code> 的非樣板 3D 視圖。</p>
+
+  <div class="bim-card bim-card-warn">
+    <h4>第一次打開會是空的——這是故意的</h4>
+    <p>面板是<strong>懶載入</strong>：開檔、切視圖、面板本身載入都<strong>不會</strong>自動去讀模型，會停在「按『重新整理』載入相機」。這個設計是為了修一輪崩潰——原本在文件還在開啟時就同步做 DataGrid 重繪與 <code>ExportImage</code>，會讓 Revit 在開檔後 5–10 秒掛掉（<code>0xe0434352</code>）。所以：<strong>先按「重新整理」</strong>。</p>
+  </div>
+
+  <h3>面板的六個區（單頁、沒有分頁）</h3>
+  <table>
+    <thead>
+      <tr><th style="width:18%;">區</th><th style="width:82%;">內容</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>① 工具列</strong></td><td>搜尋框（依名稱篩選）／重新整理／從透視圖同步（在透視圖裡導覽過但清單沒更新時強制重讀）／「⋯」選單（匯出 Excel、開啟預覽視窗）</td></tr>
+      <tr><td><strong>② 相機清單</strong></td><td>每台相機一列：名稱、樓層、<strong>離樓板高度</strong>、水平角、俯仰角。右鍵欄標題可勾出選用欄位（平面 X／Y、遠裁剪、視野角估算、Eye Elevation 原始值）</td></tr>
+      <tr><td><strong>③ 位置圖</strong></td><td>該樓層平面底圖上畫出所有相機位置與視野扇形。滾輪縮放、左鍵拖曳平移、雙擊空白＝符合畫面</td></tr>
+      <tr><td><strong>④ 視圖操作</strong></td><td>一鍵 4 視圖、一鍵出圖紙、更新樓層總覽、重設剖面位置、等角範圍／近側、剖面方向／位置、剖面轉 90° 等下拉選項</td></tr>
+      <tr><td><strong>⑤ 人視高預設值</strong></td><td>批次把相機設到人視高的預設值</td></tr>
+      <tr><td><strong>⑥ 狀態列</strong></td><td>最近一次動作的結果或錯誤，前面帶 <code>HH:mm</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>三個手勢，記這個就夠</h3>
+  <div class="bim-grid bim-grid-3">
+    <div class="bim-card">
+      <h4>雙擊名稱＝一鍵 4 視圖</h4>
+      <p>單擊只是選取。<strong>雙擊</strong>相機名稱（或位置圖上的圓點）會產生／更新三張真實的 Revit 視圖——平面 Key Plan、沿視線的剖面、等角——再連同原透視圖一起並排。視圖以 Extensible Storage 綁在相機上，改名不會變孤兒、重跑不會重複建立。</p>
+    </div>
+    <div class="bim-card">
+      <h4>點數字＝直接改</h4>
+      <p>清單裡的樓層、離樓板高度、水平角、俯仰角都可以就地編輯，按 Enter 直接下交易改模型。輸入無效值會還原，不彈對話框。</p>
+    </div>
+    <div class="bim-card">
+      <h4>右鍵＝其他全部</h4>
+      <p>一鍵 4 視圖／僅打開透視圖／重新命名／<strong>複製到其他樓層</strong>／<strong>視角版本</strong>（具名視角快照，存在 .rvt 裡可切回）／一鍵出圖紙／重設剖面到視線。清單列與位置圖標記共用同一個選單。</p>
+    </div>
+  </div>
+
+  <h3>它解決的四件事</h3>
+  <table>
+    <thead>
+      <tr><th style="width:50%;">原本的麻煩</th><th style="width:50%;">面板的回答</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>性質面板的 Eye Elevation 從內部原點量起，看不出相機離樓板多高</td><td>一律顯示「離樓板高度」；原始 Eye Elevation 只唯讀備查</td></tr>
+      <tr><td>相機在平面上看不到、不能列印</td><td>Key Plan 平面／剖面上畫出相機標記，是真的 Revit 詳圖元素，可列印</td></tr>
+      <tr><td>沒有總覽，不知道一共有幾台、分佈在哪</td><td>清單＋位置圖一次看完；每層另可產生一張「樓層總覽」平面</td></tr>
+      <tr><td>每台相機要手動排圖紙；想試不同角度得另開一台相機</td><td>一鍵出圖紙；具名「視角版本」存在模型裡，隨時切回</td></tr>
+    </tbody>
+  </table>
+
+  <p class="bim-section-desc">完整規格（每個按鈕的行為、樓層判定規則、ES Schema）在 <a href="https://github.com/shuotao/REVIT_MCP_study/blob/main/docs/camera-manager/spec.zh-TW.md" target="_blank" rel="noopener"><code>docs/camera-manager/spec.zh-TW.md</code></a>；為什麼這樣決定在 <code>adr.zh-TW.md</code>；哪些還沒驗證在 <code>roadmap.zh-TW.md</code>。</p>
+</section>
+
+<section class="bim-section bim-anchor" id="tools">
+  <div class="bim-section-eyebrow">SECTION 04 · 29 支新工具</div>
+  <h2 class="bim-section-title">AI 端多了什麼可以問</h2>
+  <p class="bim-section-desc">面板的功能另外包了 8 支工具供自動測試呼叫同一套服務程式碼，其餘 21 支是視圖診斷與文件操作。全部可在 <a href="../reference/tools-index.html">Tools 索引</a>查到卡片。</p>
+  <table>
+    <thead>
+      <tr><th style="width:24%;">分組</th><th style="width:8%;">數</th><th style="width:68%;">工具</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>相機管理</td><td>8</td><td><code>list_cameras</code>、<code>get_camera_info</code>、<code>set_camera_pose</code>、<code>run_camera_keyplan</code>、<code>run_camera_overview</code>、<code>create_camera_sheet</code>、<code>copy_camera_to_level</code>、<code>camera_version</code></td></tr>
+      <tr><td>視圖表現法診斷／控制</td><td>6</td><td><code>get_view_graphics_diagnostics</code>、<code>set_view_template_controls</code>、<code>create_view_filter</code>、<code>remove_view_filter</code>、<code>get_filterable_parameters</code>、<code>list_fill_patterns</code></td></tr>
+      <tr><td>視圖範圍／裁剪／出圖</td><td>4</td><td><code>get_view_range</code>、<code>set_view_range</code>、<code>get_view_extents</code>、<code>capture_view_image</code></td></tr>
+      <tr><td>Section Box</td><td>2</td><td><code>set_section_box</code>、<code>set_3d_section_box</code></td></tr>
+      <tr><td>連結顯示</td><td>3</td><td><code>get_link_display_settings</code>、<code>set_link_display_settings</code>、<code>reload_links</code></td></tr>
+      <tr><td>材質圖形</td><td>2</td><td><code>get_material_graphics</code>、<code>set_material_graphics</code></td></tr>
+      <tr><td>文件操作</td><td>4</td><td><code>list_open_documents</code>、<code>open_document</code>、<code>close_document</code>、<code>save_document</code></td></tr>
+    </tbody>
+  </table>
+  <div class="bim-card bim-card-ok">
+    <h4>最值得先試的一支</h4>
+    <p><code>get_view_graphics_diagnostics</code>——唯讀回答「這張圖為什麼長這樣」。它沿 Revit 的覆寫優先序（視覺型式 &gt; 元素覆寫 &gt; 篩選器 &gt; 類別覆寫 &gt; 材料）一次掃完，把<strong>所有</strong>命中的成因都列出來，而不是只回報第一個。以前這題要人工翻五個地方。</p>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="honest">
+  <div class="bim-section-eyebrow">SECTION 05 · 誠實標註</div>
+  <h2 class="bim-section-title">哪些驗過了，哪些沒有</h2>
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card bim-card-ok">
+      <h4>收編時實跑驗過的</h4>
+      <p>R22–R26 五組建置各 0 error；<code>registerRevitTools()</code> 實回 221 支、零重複；<code>MCP-Server</code> build 通過；兩個 ribbon 圖示確認已編進 <code>RevitMCP.g.resources</code>（R22 與 R25 各驗一次）；<code>verify-qaqc.ps1 -SkipBuild -SkipDeploy</code> 67 PASS／0 FAIL。</p>
+    </div>
+    <div class="bim-card bim-card-bad">
+      <h4>沒有驗過的</h4>
+      <p><strong>這批功能沒有在 upstream 做過 Revit 實機驗證</strong>——收編時本機 Revit 未執行，驗收只到建置與資源嵌入層。停靠面板的開啟與操作手感、Key Plan 四視圖的實際幾何、ribbon 圖示的外觀與切換、以及任遠自己列出的未驗清單（崩潰修復未能複現、迷你地圖縮放平移、剖面保留調整的端到端行為），目前全部仍是待驗狀態。</p>
+    </div>
+  </div>
+  <div class="empathy-quote">
+    <div class="empathy-quote-label">所以這頁最想請你做的事</div>
+    <div class="empathy-quote-text">升上去、打開面板、按「重新整理」、雙擊一台相機，然後<strong>回報發生了什麼</strong>——不管是壞的還是好的。上面那張「沒有驗過」的清單只能靠真的有人在真的模型上跑過才會縮短。開 issue 就好，附 <code>%APPDATA%\RevitMCP\Logs</code> 裡的 log 會更快。</div>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="related">
+  <div class="bim-section-eyebrow">RELATED REFERENCE</div>
+  <h2 class="bim-section-title">深度閱讀</h2>
+  <div class="bim-grid bim-grid-3">
+    <a class="bim-card" href="../reference/tools-index.html">
+      <h4>Tools 索引</h4>
+      <p>每一支工具的完整卡片，含唯讀／破壞性標記 — 數量以索引頁為準</p>
+    </a>
+    <a class="bim-card" href="../reference/contributors.html">
+      <h4>貢獻者致謝</h4>
+      <p>21 位建置協助人——這次新增嘉祥與尚霖</p>
+    </a>
+    <a class="bim-card" href="../2026-07/harvest-waves.html">
+      <h4>五波收編</h4>
+      <p>收編流程長什麼樣：一日內 103 → 146 的那次</p>
+    </a>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="../index.html" class="bim-footer-btn primary">← 回 BIM_MCP 首頁</a>
+    <a href="../reference/tools-index.html" class="bim-footer-btn">Tools 索引</a>
+    <a href="../reference/contributors.html" class="bim-footer-btn">貢獻者致謝</a>
+  </div>
+  <p>BIM_MCP · 2026-10-12 update · 嘉祥 @laytonluo（ribbon 狀態圖示）／任遠 @7alexhuang-ux（相機管理面板與 29 支工具）</p>
+</footer>
+
+<script src="../shared.js"></script>
+<script>initAll();</script>
+</body>
+</html>

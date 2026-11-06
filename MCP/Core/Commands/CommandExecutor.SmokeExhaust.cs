@@ -29,7 +29,13 @@ namespace RevitMCP.Core
         /// <summary>
         /// 從族群名稱推斷窗戶開啟方式與有效面積折減係數
         /// </summary>
-        private (string operationType, double openingRatio, bool needsConfirm, string note) GetWindowOperationType(string familyName, string typeName)
+        private (string operationType, double openingRatio, bool needsConfirm, string note) GetWindowOperationType(
+            string familyName,
+            string typeName,
+            double casementOpeningRatio = 1.0,
+            double slidingOpeningRatio = 0.5,
+            double projectedOpeningRatio = 1.0,
+            string unknownWindowAssumption = "manual")
         {
             string name = (familyName + " " + typeName).ToLower();
 
@@ -37,23 +43,40 @@ namespace RevitMCP.Core
             if (ContainsAny(name, new[] { "fixed", "固定", "picture", "景觀", "fix" }))
                 return ("fixed", 0, false, "固定窗：排煙有效面積為 0");
 
-            // 全開型 → 1.0
+            // 側懸推開／平開窗。只有部分窗扇可開時，專案可傳入 0.5。
             if (ContainsAny(name, new[] { "casement", "平開", "側開", "pivot", "樞軸", "中懸", "tilt", "內倒內開", "tiltturn" }))
-                return ("casement", 1.0, false, null);
+                return ("casement", casementOpeningRatio, false,
+                    casementOpeningRatio < 1.0 ? $"推開/平開窗：有效面積係數 {casementOpeningRatio:0.###}" : null);
 
-            // 半開型 → 0.5
+            // 正式名稱：橫拉窗（Horizontal Sliding Window）。按整樘面積計算時，
+            // 典型雙扇最大淨開口為一半。
             if (ContainsAny(name, new[] { "sliding", "橫拉", "推拉", "hung", "上下拉", "單拉", "double hung", "single hung", "doublehung", "singlehung" }))
-                return ("sliding", 0.5, false, "橫拉/拉窗：有效面積折減 50%");
+                return ("sliding", slidingOpeningRatio, false,
+                    $"橫拉窗：按整樘窗面積計算，最大淨開口係數 {slidingOpeningRatio:0.###}");
 
-            // 外推型 → 0.5（保守）
+            // 推射／外推／上懸窗。係數可依專案確認的開啟角度調整。
             if (ContainsAny(name, new[] { "awning", "上懸", "外推", "hopper", "下懸", "projected" }))
-                return ("projected", 0.5, false, "外推/懸窗：有效面積折減 50%（保守估計）");
+                return ("projected", projectedOpeningRatio, false,
+                    projectedOpeningRatio >= 1.0
+                        ? "推射/外推/上懸窗：依專案確認按完整開口計"
+                        : $"推射/外推/上懸窗：有效面積係數 {projectedOpeningRatio:0.###}");
 
             // 百葉 → 0.5
             if (ContainsAny(name, new[] { "louver", "百葉" }))
                 return ("louver", 0.5, false, "百葉窗：有效面積折減 50%");
 
-            // 無法判定
+            // 專案可明確指定未知窗型的暫定假設；仍保留人工確認旗標。
+            if (unknownWindowAssumption == "projected")
+                return ("projected", projectedOpeningRatio, true,
+                    $"族群名稱無法判定；本次暫按推射/外推窗，係數 {projectedOpeningRatio:0.###}");
+            if (unknownWindowAssumption == "casement")
+                return ("casement", casementOpeningRatio, true,
+                    $"族群名稱無法判定；本次暫按推開/平開窗，係數 {casementOpeningRatio:0.###}");
+            if (unknownWindowAssumption == "sliding")
+                return ("sliding", slidingOpeningRatio, true,
+                    $"族群名稱無法判定；本次暫按橫拉窗，係數 {slidingOpeningRatio:0.###}");
+
+            // 無法判定且未指定假設
             return ("unknown", 0, true, "無法從族群名稱判定開啟方式，需人工確認");
         }
 
@@ -181,6 +204,17 @@ namespace RevitMCP.Core
             string ceilingHeightSource = parameters["ceilingHeightSource"]?.Value<string>() ?? "room_parameter";
             bool colorize = parameters["colorize"]?.Value<bool>() ?? true;
             double smokeZoneHeight = parameters["smokeZoneHeight"]?.Value<double>() ?? 800; // 預設 80cm
+            double casementOpeningRatio = parameters["casementOpeningRatio"]?.Value<double>() ?? 1.0;
+            double slidingOpeningRatio = parameters["slidingOpeningRatio"]?.Value<double>() ?? 0.5;
+            double projectedOpeningRatio = parameters["projectedOpeningRatio"]?.Value<double>() ?? 1.0;
+            string unknownWindowAssumption = (parameters["unknownWindowAssumption"]?.Value<string>() ?? "manual").ToLowerInvariant();
+
+            if (casementOpeningRatio < 0 || casementOpeningRatio > 1 ||
+                slidingOpeningRatio < 0 || slidingOpeningRatio > 1 ||
+                projectedOpeningRatio < 0 || projectedOpeningRatio > 1)
+                throw new Exception("窗戶有效面積係數必須介於 0 與 1 之間");
+            if (!new[] { "manual", "projected", "casement", "sliding" }.Contains(unknownWindowAssumption))
+                throw new Exception("unknownWindowAssumption 必須是 manual、projected、casement 或 sliding");
 
             // 非居室排除關鍵字（走廊、樓梯等非居室空間不需檢討排煙）
             string[] defaultExcludeKeywords = { "走廊", "corridor", "hall", "樓梯", "stair", "電梯", "elevator", "lift", "管道", "shaft", "機房", "mechanical", "廁所", "toilet", "restroom", "浴室", "bath", "玄關", "vestibule", "lobby", "陽台", "balcony" };
@@ -217,7 +251,7 @@ namespace RevitMCP.Core
             int roomsNeedConfirm = 0;
 
             // 收集所有需要上色的窗戶
-            var colorizeList = new List<(IdType elementId, string type)>();
+            var colorizeList = new List<(IdType elementId, string type, double ratio, bool needsConfirm)>();
             var roomCeilingHeights = new List<double>(); // 收集天花板高度用於畫線
             var allWindowDetails = new List<(IdType id, double areaInZone, bool inZone, double width, double heightInZone)>(); // 所有窗戶的標註資料
 
@@ -373,7 +407,13 @@ namespace RevitMCP.Core
 
                                         // 從族群名稱判定開啟方式
                                         var (operationType, openingRatio, needsConfirm, note) =
-                                            GetWindowOperationType(fi.Symbol.FamilyName, fi.Symbol.Name);
+                                            GetWindowOperationType(
+                                                fi.Symbol.FamilyName,
+                                                fi.Symbol.Name,
+                                                casementOpeningRatio,
+                                                slidingOpeningRatio,
+                                                projectedOpeningRatio,
+                                                unknownWindowAssumption);
 
                                         if (needsConfirm) hasConfirmNeeded = true;
 
@@ -382,7 +422,7 @@ namespace RevitMCP.Core
                                         // 收集上色資訊
                                         if (colorize)
                                         {
-                                            colorizeList.Add((insertId.GetIdValue(), operationType));
+                                            colorizeList.Add((insertId.GetIdValue(), operationType, openingRatio, needsConfirm));
                                         }
 
                                         windowResults.Add(new
@@ -675,17 +715,15 @@ namespace RevitMCP.Core
                         catch { newView.Name = $"排煙檢討_{newViewId.GetIdValue()}_{timestamp}"; }
 
                         // 1. 上色窗戶
-                        foreach (var (elemId, opType) in colorizeList)
+                        foreach (var (elemId, opType, openingRatio, needsConfirm) in colorizeList)
                         {
                             OverrideGraphicSettings ogs = new OverrideGraphicSettings();
                             Color color;
-                            switch (opType)
-                            {
-                                case "casement": case "pivot": color = new Color(0, 180, 0); break;
-                                case "sliding": case "projected": case "louver": color = new Color(255, 200, 0); break;
-                                case "fixed": color = new Color(255, 50, 50); break;
-                                default: color = new Color(180, 180, 180); break;
-                            }
+                            if (opType == "fixed") color = new Color(255, 50, 50);
+                            else if (needsConfirm) color = new Color(180, 180, 180);
+                            else if (openingRatio >= 0.999) color = new Color(0, 180, 0);
+                            else if (openingRatio > 0) color = new Color(255, 200, 0);
+                            else color = new Color(180, 180, 180);
                             ogs.SetSurfaceForegroundPatternColor(color);
                             if (solidPatternId != ElementId.InvalidElementId)
                             {
@@ -856,6 +894,14 @@ namespace RevitMCP.Core
                 IsBasement = isBasement,
                 CeilingHeightSource = ceilingHeightSource,
                 SmokeZoneHeight = smokeZoneHeight,
+                WindowOperationPolicy = new
+                {
+                    CasementOpeningRatio = casementOpeningRatio,
+                    SlidingOpeningRatio = slidingOpeningRatio,
+                    ProjectedOpeningRatio = projectedOpeningRatio,
+                    FixedOpeningRatio = 0,
+                    UnknownWindowAssumption = unknownWindowAssumption
+                },
                 AnnotatedViews = createdViewIds,
                 LegalBasis = new
                 {
@@ -1638,6 +1684,11 @@ namespace RevitMCP.Core
 
             // 執行檢討
             var checkParams = new JObject { ["levelName"] = levelName, ["ceilingHeightSource"] = ceilingHeightSource, ["colorize"] = false };
+            foreach (string policyKey in new[] { "casementOpeningRatio", "slidingOpeningRatio", "projectedOpeningRatio", "unknownWindowAssumption" })
+            {
+                if (parameters[policyKey] != null)
+                    checkParams[policyKey] = parameters[policyKey].DeepClone();
+            }
             var checkResult = JObject.FromObject(CheckSmokeExhaustWindows(checkParams));
 
             var floorParams = new JObject { ["levelName"] = levelName, ["colorize"] = false };
@@ -1814,13 +1865,13 @@ namespace RevitMCP.Core
 
                         // 開啟方式底色
                         ClosedXML.Excel.XLColor opBg;
-                        switch (opType)
-                        {
-                            case "casement": case "pivot": opBg = passBg; break;
-                            case "sliding": case "projected": case "louver": opBg = warnBg; break;
-                            case "fixed": opBg = failBg; break;
-                            default: opBg = ClosedXML.Excel.XLColor.FromHtml("#E0E0E0"); break;
-                        }
+                        double openingRatio = (double)w["OpeningRatio"];
+                        bool needsManualConfirm = (bool)w["NeedsManualConfirm"];
+                        if (opType == "fixed") opBg = failBg;
+                        else if (needsManualConfirm) opBg = ClosedXML.Excel.XLColor.FromHtml("#E0E0E0");
+                        else if (openingRatio >= 0.999) opBg = passBg;
+                        else if (openingRatio > 0) opBg = warnBg;
+                        else opBg = ClosedXML.Excel.XLColor.FromHtml("#E0E0E0");
                         ws3.Cell(r, 12).Style.Fill.SetBackgroundColor(opBg);
                         ws3.Cell(r, 14).Style.Fill.SetBackgroundColor((double)w["EffectiveArea"] > 0 ? passBg : failBg);
 

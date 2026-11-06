@@ -274,8 +274,19 @@ namespace RevitMCP.Core
             foreach (var t in textCollector) doc.Delete(t.Id);
 
             // 清理舊有的 DirectShape (回溯相容)
+            //
+            // 刻意只比對 Name。不要再把 ds.ApplicationId == "RevitMCP" 加回來：
+            // 那個條件會命中本外掛「任何功能、任何時候」建立的 DirectShape，
+            // 其中包含 MCP/Core/CameraKeyPlanService.MarkerA.cs 的相機視錐標記
+            // （fan.ApplicationId = "RevitMCP"，ApplicationDataId = "CameraFan:" + cid），
+            // 等於跑一次樓梯淨高檢核就把相機管理員的全部註記刪掉。
+            //
+            // 回溯相容的目的由 Name 比對完成——舊版樓梯標記的 DirectShape 就是這個名字，
+            // 而目前這個功能已不再建立 DirectShape（上方 FilledRegion / TextNote 以
+            // failKey = "MCP_FAIL_STAIR_{stairId}" 逐梯精確清理）。
+            // ApplicationId 條件不增加任何定位能力，只放大破壞半徑。
             var dsCollector = new FilteredElementCollector(doc).OfClass(typeof(DirectShape)).Cast<DirectShape>()
-                .Where(ds => ds.Name == "MCP_淨高不合格" || ds.ApplicationId == "RevitMCP").ToList();
+                .Where(ds => ds.Name == "MCP_淨高不合格").ToList();
             foreach (var ds in dsCollector) doc.Delete(ds.Id);
         }
 

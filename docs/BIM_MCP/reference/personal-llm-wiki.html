@@ -1,8 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>try{if(localStorage.getItem("bim-theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}</script>
 <title>個人 LLM Wiki · BIM_MCP</title>
 <meta property="og:title" content="BIM_MCP 個人 LLM Wiki · 把公共智慧 pull 回家，長成自己的知識庫">
 <meta property="og:description" content="用 Karpathy 的 LLM Wiki 模式 + Obsidian，把 REVIT_MCP 的 Domain/Skill 公共智慧 ingest 成個人 wiki，再把個人深化的成果回饋上游。含可直接複製給 AI Agent 的建置說明。">
@@ -29,7 +30,7 @@
   .why-card p{margin:0;font-size:13px;color:var(--text-secondary)}
   .bim-steps{counter-reset:step;list-style:none;padding:0}
   .bim-steps li{counter-increment:step;margin:0 0 14px;padding:18px 22px 18px 64px;border:1px solid var(--border);border-radius:var(--radius-md);position:relative;background:var(--bg-card)}
-  .bim-steps li:before{content:counter(step);position:absolute;left:20px;top:18px;width:28px;height:28px;display:grid;place-items:center;background:var(--accent);color:#000;border-radius:50%;font-family:var(--font-tech);font-weight:700}
+  .bim-steps li:before{content:counter(step);position:absolute;left:20px;top:18px;width:28px;height:28px;display:grid;place-items:center;background:var(--accent);color:var(--on-accent);border-radius:50%;font-family:var(--font-tech);font-weight:700}
   .bim-steps li > strong{display:block;margin-bottom:8px;color:var(--text-primary);font-size:15px}
   .bim-steps li > p{font-size:13px;margin:4px 0 0 0;color:var(--text-secondary)}
   .bim-steps li pre{margin:8px 0 0 0;font-size:11px}
@@ -42,26 +43,30 @@
   body.wizard .bim-footer{display:none}
   body.wizard.wiz-last .bim-footer{display:block}
   @keyframes wizIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  .wiz-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:14px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:40}
+  .wiz-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--bg)}
+  @media(min-width:901px){.wiz-bar{padding-right:268px}}
+  body:not(.wizard) .wiz-ctrl{display:none}
   .wiz-pill{font-family:var(--font-tech);font-size:11px;letter-spacing:1px;padding:6px 12px;border:1px solid var(--border);border-radius:100px;color:var(--text-muted);cursor:pointer;background:var(--bg-card);user-select:none}
-  .wiz-pill.done{color:var(--ok);border-color:rgba(74,222,128,.49)}
-  .wiz-pill.active{color:#000;background:var(--accent);border-color:var(--accent);font-weight:700}
+  .wiz-pill.done{color:var(--ok);border-color:var(--ok-border-strong)}
+  .wiz-pill.active{color:var(--on-accent);background:var(--accent);border-color:var(--accent);font-weight:700}
   .wiz-ctrl{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:38px 0 6px;border-top:1px solid var(--border);padding-top:22px}
   .wiz-btn{font-family:var(--font-tech);font-size:13px;letter-spacing:1px;padding:12px 26px;border-radius:100px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;transition:all .2s}
   .wiz-btn:hover{border-color:var(--accent-border);color:var(--accent)}
-  .wiz-btn.primary{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
+  .wiz-btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:700}
   .wiz-btn[disabled]{opacity:.3;cursor:default}
+  .wiz-all{margin-left:auto;font-family:var(--font-tech);font-size:11px;letter-spacing:1px;padding:6px 12px;border:1px solid var(--border);border-radius:100px;color:var(--text-muted);cursor:pointer;background:var(--bg-card)}
+  .wiz-all:hover,.wiz-all[aria-pressed="true"]{border-color:var(--accent-border);color:var(--accent)}
   .wiz-progress{font-family:var(--font-tech);font-size:11px;letter-spacing:2px;color:var(--text-faint)}
 </style>
 </head>
-<body data-prev="contributor-template.html" data-next="../index.html">
+<body>
 <nav class="bim-topnav">
   <div class="bim-topnav-left">
     <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
     <span class="bim-topnav-sep">/</span>
     <span class="bim-topnav-current">personal llm wiki</span>
   </div>
-  <div class="bim-topnav-actions">
+  <div class="bim-topnav-actions" data-route-nav="top">
     <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener" class="bim-topnav-btn">GitHub</a>
     <a href="domain-index.html" class="bim-topnav-btn">Domain</a>
     <a href="contributor-template.html" class="bim-topnav-btn">Contribute</a>
@@ -72,7 +77,7 @@
 <header class="bim-hero">
   <div class="bim-hero-eyebrow">PERSONAL LLM WIKI <span class="accent">raw / wiki / schema</span></div>
   <h1 class="bim-hero-title">把公共智慧 pull 回家，<br>長成自己的知識庫</h1>
-  <p class="bim-hero-sub">REVIT_MCP 的 72 個 Domain 是老師們共同維護的公共智慧。這一頁教你用 Andrej Karpathy 的 LLM Wiki 模式 + Obsidian，在自己的電腦上把它 ingest 成「你的」wiki —— 用你的語言、你的分類、你的重點。最後再把個人深化的成果回饋上游，完成循環。</p>
+  <p class="bim-hero-sub">REVIT_MCP 的 94 個 Domain 是老師們共同維護的公共智慧。這一頁教你用 Andrej Karpathy 的 LLM Wiki 模式 + Obsidian，在自己的電腦上把它 ingest 成「你的」wiki —— 用你的語言、你的分類、你的重點。最後再把個人深化的成果回饋上游，完成循環。</p>
 </header>
 
 <section class="bim-section bim-anchor" id="why">
@@ -104,21 +109,21 @@
   <table class="map-table">
     <tr><th>Karpathy LLM Wiki</th><th>REVIT_MCP 公共版（已在運轉）</th><th>你的個人版（這頁要建的）</th></tr>
     <tr><td>Raw sources</td><td>建築法規、Revit 實機資料</td><td>你的 REVIT_MCP clone 本身（唯讀對待，git pull 更新）</td></tr>
-    <tr><td>The wiki</td><td>domain/*.md —— 72 個 Domain，各領域老師貢獻、有 frontmatter 互相引用</td><td>wiki/ = AI 為你維護的個人筆記</td></tr>
+    <tr><td>The wiki</td><td>domain/*.md —— 94 個 Domain，各領域老師貢獻、有 frontmatter 互相引用</td><td>wiki/ = AI 為你維護的個人筆記</td></tr>
     <tr><td>The schema</td><td>CLAUDE.md（連檔名都一樣）</td><td>vault 根目錄的 CLAUDE.md，從本頁範本起手</td></tr>
     <tr><td>index.md</td><td>CLAUDE.md 觸發關鍵字表 + domain/README.md</td><td>你的 index.md</td></tr>
     <tr><td>log.md（可 grep 的條目格式）</td><td>log/YYYY-MM.md —— 條目格式完全相同</td><td>你的 log.md（沿用同一格式）</td></tr>
     <tr><td>Lint 操作</td><td>scripts/verify-qaqc.ps1（孤兒頁、斷鏈、計數漂移）</td><td>請 AI 健檢你的 wiki（過版、矛盾、可回饋上游的發現）</td></tr>
   </table>
-  <p style="color:var(--text-muted);font-size:13px">補充：50 個編排層 Skill 與 166 個 MCP tools 也都在 repo 裡，AI 會在 ingest 時一併理解「哪些 SOP 有對應的自動化能力」。</p>
+  <p style="color:var(--text-muted);font-size:13px">補充：61 個編排層 Skill 與 239 個 MCP tools 也都在 repo 裡，AI 會在 ingest 時一併理解「哪些 SOP 有對應的自動化能力」。</p>
 </section>
 
 <section class="bim-section bim-anchor" id="structure">
   <div class="bim-section-eyebrow">SECTION 03 / STRUCTURE</div>
   <h2 class="bim-section-title">Vault 結構與更新邏輯</h2>
   <div class="vault-tree">REVIT_MCP/                 ← 你既有的 clone = raw 層（Obsidian 開這一層）
-  domain/*.md              ← 公共智慧：72 個 Domain SOP（唯讀對待）
-  .claude/skills/          ← 50 個 Skill
+  domain/*.md              ← 公共智慧：94 個 Domain SOP（唯讀對待）
+  .claude/skills/          ← 61 個 Skill
   CLAUDE.md                ← 公共 schema
   log/                     ← 公共時間軸
   templates/personal-vault/VAULT-CLAUDE.md  ← 你的 schema 的上游範本
@@ -230,10 +235,10 @@ repo 本身就是 raw 層；個人區是 repo 內的 vault/ 資料夾，上游 .
 
 1. raw 層 = repo 根目錄的所有上游內容。我只透過 git pull 更新；
    你只讀、永不修改。重點來源：
-   - domain/*.md：72 個 Domain SOP（各領域老師貢獻的公共智慧，
+   - domain/*.md：94 個 Domain SOP（各領域老師貢獻的公共智慧，
      frontmatter 含 version、updated、related、referenced_by、references、tags）
    - domain/references/building-code-tw.md：建築技術規則彙整
-   - .claude/skills/*/SKILL.md：50 個編排層 Skill
+   - .claude/skills/*/SKILL.md：61 個編排層 Skill
    - CLAUDE.md：公共 wiki 的 schema（Domain 觸發關鍵字表在這裡；
      它的開發規則只適用於開發本專案，vault 操作以 vault/CLAUDE.md 為準）
    - log/YYYY-MM.md：公共 wiki 的時間軸
@@ -424,6 +429,10 @@ This document is intentionally abstract. It describes the idea, not a specific i
     <li><strong>之後每次：pull + ingest</strong><p>上游有新東西（月小聚後通常會有），跟 AI 說「pull 一下，ingest 有變動的」就完成更新 —— 同一個 pull 也同時更新了你的 MCP 工具和 schema 範本。發現值得回饋的，請 AI 幫你整理提案。</p></li>
   </ol>
   <h2 class="bim-section-title" style="margin-top:48px">最常見的兩個疑問</h2>
+  <figure class="bim-figure bim-illustration">
+    <img src="../images/wiki__firstrun__repo-and-vault.webp" alt="以整個 repo 作閱讀範圍，公共 Domain 與 vault 個人區透過連結關聯" loading="lazy">
+    <figcaption>概念示意圖（AI 生成），非軟體畫面。文字版見下方 Q1：Obsidian 打開的是整個 REVIT_MCP 資料夾，vault/ 只是其中的個人區。</figcaption>
+  </figure>
   <div class="why-card">
     <h4>Q1：Obsidian 的 vault 跟我們的 vault/ 是同一個東西嗎？</h4>
     <p>不是，這是命名撞車。<strong>Obsidian 說的「vault」= 它打開的那整個資料夾，也就是 REVIT_MCP 根目錄</strong>；我們的 <code>vault/</code> 子資料夾只是個人區的名字，不是給 Obsidian 開的。如果只開 <code>vault/</code>，你的 [[連結]] 連不到 domain 檔（Obsidian 連結出不了它的 vault 範圍），graph view 就只剩自己的筆記、沒有知識族譜了。</p>
@@ -439,7 +448,7 @@ This document is intentionally abstract. It describes the idea, not a specific i
 </section>
 
 <footer class="bim-footer">
-  <div class="bim-footer-actions">
+  <div class="bim-footer-actions" data-route-nav="foot">
     <a class="bim-footer-btn primary" href="#copy">複製建置說明</a>
     <a class="bim-footer-btn" href="domain-index.html">Domain 索引</a>
     <a class="bim-footer-btn" href="contributor-template.html">回饋上游</a>
@@ -473,12 +482,49 @@ document.getElementById("copyIdea").addEventListener("click", function(){
     var pill = document.createElement("span");
     pill.className = "wiz-pill";
     pill.textContent = (i + 1) + " " + (labels[i] || s.id);
-    pill.addEventListener("click", function(){ go(i); });
+    pill.addEventListener("click", function(){
+      if (document.body.classList.contains("wizard")) { go(i); return; }
+      /* 顯示全部步驟時：只捲動到該段並更新網址，不切換步驟 */
+      s.scrollIntoView({ block: "start" });
+      try { history.replaceState(null, "", "#" + s.id); } catch (e) {}
+    });
     bar.appendChild(pill);
   });
   var nav = document.querySelector(".bim-topnav");
-  nav.parentNode.insertBefore(bar, nav.nextSibling);
+  var ctx = document.querySelector(".bim-context-bar");
+  var anchor = ctx || nav;
+  anchor.parentNode.insertBefore(bar, anchor.nextSibling);
+  /* 固定頂欄與 sticky context bar 會蓋住流程中靠前的內容：
+     以實測把 wiz-bar 推到它們下方（僅在頁首量測，避免捲動後失真） */
+  function syncTop(){
+    if (window.scrollY > 0) return;
+    bar.style.marginTop = "0px";
+    var covered = Math.max(nav ? nav.getBoundingClientRect().bottom : 0, ctx ? ctx.getBoundingClientRect().bottom : 0) - bar.getBoundingClientRect().top;
+    bar.style.marginTop = Math.max(0, Math.ceil(covered)) + "px";
+  }
+  syncTop();
+  window.addEventListener("resize", syncTop);
   var pills = Array.prototype.slice.call(bar.children);
+
+  /* 顯示全部步驟：移除 body.wizard，所有段落同時可見；偏好存 localStorage */
+  var ALLKEY = "pllmwiki-showall";
+  var allBtn = document.createElement("button");
+  allBtn.type = "button";
+  allBtn.className = "wiz-all";
+  allBtn.setAttribute("aria-pressed", "false");
+  allBtn.textContent = "顯示全部步驟";
+  bar.appendChild(allBtn);
+  function setAll(on, persist){
+    document.body.classList.toggle("wizard", !on);
+    allBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    allBtn.textContent = on ? "回到分步模式" : "顯示全部步驟";
+    if (persist) { try { localStorage.setItem(ALLKEY, on ? "1" : "0"); } catch (e) {} }
+  }
+  allBtn.addEventListener("click", function(){
+    var on = document.body.classList.contains("wizard");
+    setAll(on, true);
+    if (!on) go(current);
+  });
 
   steps.forEach(function(s, i){
     var ctrl = document.createElement("div");
@@ -504,7 +550,9 @@ document.getElementById("copyIdea").addEventListener("click", function(){
     s.appendChild(ctrl);
   });
 
-  function go(i){
+  var current = 0;
+  function go(i, keepScroll){
+    current = i;
     steps.forEach(function(s, j){
       s.classList.toggle("wiz-active", j === i);
       pills[j].classList.toggle("active", j === i);
@@ -513,7 +561,29 @@ document.getElementById("copyIdea").addEventListener("click", function(){
     document.body.classList.toggle("wiz-first", i === 0);
     document.body.classList.toggle("wiz-last", i === steps.length - 1);
     try { localStorage.setItem(KEY, String(i)); } catch (e) {}
-    window.scrollTo(0, 0);
+    if (!keepScroll) window.scrollTo(0, 0);
+  }
+
+  /* 依 location.hash 找出所在步驟；找不到回傳 -1 */
+  function hashStep(){
+    var id = "";
+    try { id = decodeURIComponent((location.hash || "").slice(1)); } catch (e) { id = (location.hash || "").slice(1); }
+    if (!id) return -1;
+    var el = document.getElementById(id);
+    if (!el) return -1;
+    for (var i = 0; i < steps.length; i++) {
+      if (steps[i] === el || steps[i].contains(el)) return i;
+    }
+    return -1;
+  }
+  function followHash(){
+    var i = hashStep();
+    if (i < 0) return;
+    var id = "";
+    try { id = decodeURIComponent(location.hash.slice(1)); } catch (e) { id = location.hash.slice(1); }
+    var el = document.getElementById(id);
+    if (document.body.classList.contains("wizard")) go(i, true);
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: "start" });
   }
 
   /* 站內 # 錨點改成跳到對應步驟（含 topnav 的「複製建置說明」） */
@@ -524,8 +594,7 @@ document.getElementById("copyIdea").addEventListener("click", function(){
     if (!id) return;
     for (var i = 0; i < steps.length; i++) {
       if (steps[i].id === id || steps[i].querySelector("#" + id)) {
-        e.preventDefault();
-        go(i);
+        if (document.body.classList.contains("wizard")) { e.preventDefault(); go(i); }
         return;
       }
     }
@@ -534,7 +603,14 @@ document.getElementById("copyIdea").addEventListener("click", function(){
   var saved = 0;
   try { saved = parseInt(localStorage.getItem(KEY) || "0", 10) || 0; } catch (e) {}
   if (saved < 0 || saved >= steps.length) saved = 0;
-  go(saved);
+  var showAll = false;
+  try { showAll = localStorage.getItem(ALLKEY) === "1"; } catch (e) {}
+  if (hashStep() >= 0) saved = hashStep();
+  go(saved, hashStep() >= 0);
+  if (showAll) setAll(true, false);
+  if (hashStep() >= 0) followHash();
+  /* shared.js 的 revealHash 先註冊先執行（負責 details／抽屜）；此處再切步驟並捲動 */
+  window.addEventListener("hashchange", followHash);
 })();
 </script>
 </body>

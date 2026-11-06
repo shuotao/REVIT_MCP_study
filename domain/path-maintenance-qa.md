@@ -155,7 +155,7 @@ foreach ($pattern in $patterns) {
 
 ```powershell
 # 重新執行搜尋確認
-$git = "C:\Users\01102088\AppData\Local\Programs\Git\cmd\git.exe"
+$git = "C:\Users\<YOUR_USERNAME>\AppData\Local\Programs\Git\cmd\git.exe"
 
 # 檢查 git diff
 & $git diff --stat

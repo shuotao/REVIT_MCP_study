@@ -1,8 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>try{if(localStorage.getItem("bim-theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}</script>
 <title>業界證據：100x / 70% / $15-25K · BIM_MCP</title>
 <meta property="og:title" content="業界證據：為什麼 MCP 在 BIM 是早期介入而非過度工程">
 <meta property="og:description" content="Boehm 100x 規則、united-bim 70% 返工、Nexora $15-25K 直接損失。Stage-Gate / DoD / CI 三套成熟方法論對應 MCP 三命題。Early Mover 5 個時機證據。">
@@ -124,20 +125,17 @@
     <span class="bim-topnav-sep">/</span>
     <span class="bim-topnav-current">業界證據</span>
   </div>
-  <div class="bim-topnav-actions">
+  <div class="bim-topnav-actions" data-route-nav="top">
     <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener" class="bim-topnav-btn bim-topnav-btn-github" title="View source on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
-    <a href="philosophy-22-propositions.html" class="bim-topnav-btn">22 命題</a>
-    <a href="three-constitutions.html" class="bim-topnav-btn">三憲法</a>
-    <a href="spectrum-decision.html" class="bim-topnav-btn">光譜決策 →</a>
   </div>
 </nav>
 
 <header class="bim-hero">
   <div class="bim-hero-eyebrow">INDUSTRY EVIDENCE <span class="accent">3 數據 / 3 方法論 / 5 時機</span></div>
   <h1 class="bim-hero-title">為什麼是<span class="accent">現在</span><br>而不是兩年後</h1>
-  <p class="bim-hero-sub"><strong>後期返工很貴</strong>——Boehm 40 年前在軟體業已經證明過。<strong>70% 的營建返工本可避免</strong>——united-bim 統計過。<strong>2 吋誤差直接燒掉 $15-25K</strong>——Nexora 算過。MCP 在 BIM 的價值不是發明新理論，而是把<strong>三套成熟方法論</strong>（Stage-Gate / Definition of Done / CI Quality Gates）套到設計流程的第一個切入點。本頁集中業界證據與外部資源。</p>
+  <p class="bim-hero-sub"><strong>後期返工很貴</strong>——Boehm 40 年前在軟體業已經證明過。<strong>70% 的營建返工本可避免</strong>——united-bim 統計過。<strong>2 吋誤差直接燒掉 $15-25K</strong>——Nexora 算過。MCP 在 BIM 的價值不是發明新理論，而是把<strong>三套成熟方法論</strong>（Stage-Gate / Definition of Done / CI Quality Gates）套到設計流程的第一個切入點。本頁集中業界證據與外部資源。<strong>選讀背景；本頁引用的外部數據沿用既有內容，2026-10 改版時未重新查證。</strong></p>
 </header>
-<figure style="max-width:1100px;margin:32px auto 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:#000;">
+<figure style="max-width:1100px;margin:32px auto 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--figure-bg);">
   <img src="../images/industry__hero__cost-curve.svg" alt="Cost curve from requirement phase to field phase" width="1600" height="900" style="display:block;width:100%;height:auto;">
 </figure>
 
@@ -329,7 +327,7 @@
   <div class="bim-card bim-card-accent">
     <h4>「Early Mover」不是賭快，是賭<span style="color:var(--accent);">沉澱資產</span></h4>
     <p>等 Autodesk 內建 MCP 後，工具層會被打平——但<strong>「採光 SOP / 消防 SOP / 容積 SOP」這些 domain 知識</strong>不會。沉澱在自家 <code>domain/</code> 目錄的 SOP 是<strong>事務所專屬資產</strong>，跨工具可遷移。</p>
-    <p>本專案 <strong>72 個 domain/*.md</strong> 就是答案的雛形。</p>
+    <p>本專案 <strong>94 個 domain/*.md</strong> 就是答案的雛形。</p>
   </div>
 </section>
 
@@ -427,11 +425,8 @@
 </section>
 
 <footer class="bim-footer">
-  <div class="bim-footer-actions">
-    <a href="philosophy-22-propositions.html" class="bim-footer-btn">← 22 命題</a>
-    <a href="three-constitutions.html" class="bim-footer-btn">三憲法</a>
-    <a href="spectrum-decision.html" class="bim-footer-btn primary">光譜決策 →</a>
-    <a href="../index.html" class="bim-footer-btn">回 BIM_MCP 首頁</a>
+  <div class="bim-footer-actions" data-route-nav="foot">
+    <a href="../index.html" class="bim-footer-btn">回首頁</a>
   </div>
   <p>BIM_MCP · reference / industry-evidence</p>
   <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-05-18 · 為 5/23 月小聚場後追加業界證據獨立頁，集中三大數據與外部 URL。</p>

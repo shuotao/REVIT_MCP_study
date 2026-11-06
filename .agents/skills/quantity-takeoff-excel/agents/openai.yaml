@@ -1,4 +1,0 @@
-interface:
-  display_name: "Revit 數量計算 Excel"
-  short_description: "依 Revit 幾何與房間關係產出可稽核的數量計算 Excel"
-  default_prompt: "Use $quantity-takeoff-excel to calculate the current Revit project's quantities and export an auditable Excel workbook."

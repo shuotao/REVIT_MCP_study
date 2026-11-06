@@ -88,7 +88,7 @@ node step_rejoin.js
 |------|------|
 | `override_element_graphics` | 覆寫元素圖形顯示 |
 | `clear_element_override` | 清除元素圖形覆寫 |
-| `unjoin_wall_joins` | 取消牆柱接合 |
+| `unjoin_element_joins` | 取消牆柱接合（`sourceCategory: "Walls"`、`targetCategories: ["Columns", "StructuralColumns"]`） |
 | `rejoin_wall_joins` | 恢復牆柱接合 |
 | `query_elements` | 查詢元素 |
 

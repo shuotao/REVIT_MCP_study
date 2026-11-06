@@ -1,0 +1,65 @@
+<Project>
+
+  <!--
+    Shared settings for the harnesses under tests/.
+
+    These are plain console executables, not a unit-test framework: they need the real
+    Revit API assemblies loaded, and one of them starts a real HttpListener. Exit code 0
+    means every check passed, non-zero means at least one failed, so they work in a script
+    or by hand without pulling in a runner.
+
+    They cannot run in the repo's CI: it is ubuntu-latest, and these need .NET Framework
+    4.8 plus a local Revit install. Run them on the machine you develop on.
+  -->
+
+  <PropertyGroup Condition="$(MSBuildProjectName.StartsWith('RevitMCP.Tests.'))">
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <!-- Revit references resolve at compile time but ship with the host, so the usual
+         "could not resolve reference" warning is noise here. -->
+    <NoWarn>$(NoWarn);MSB3277</NoWarn>
+
+    <!-- Which build of the add-in to test against. Override to test another Revit year:
+         dotnet build tests\... -p:RevitTestConfiguration=Release.R24 -->
+    <RevitTestConfiguration Condition="'$(RevitTestConfiguration)' == ''">Release.R23</RevitTestConfiguration>
+    <RevitMcpAssembly>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\MCP\bin\$(RevitTestConfiguration)\RevitMCP.dll'))</RevitMcpAssembly>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$(MSBuildProjectName.StartsWith('RevitMCP.Tests.'))">
+    <Compile Include="$(MSBuildThisFileDirectory)Shared\*.cs" Link="Shared\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(MSBuildProjectName.StartsWith('RevitMCP.Tests.'))">
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="2023.1.90" />
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="2023.1.90" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+
+    <!-- Private=false: the add-in DLL is loaded from the build output, not copied here,
+         so a rebuild of MCP is picked up without rebuilding the harness. -->
+    <Reference Include="RevitMCP">
+      <HintPath>$(RevitMcpAssembly)</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Private=false keeps the add-in out of the output directory, so the harness always
+       loads whatever MCP/bin currently holds instead of a copy that silently goes stale
+       after the add-in is rebuilt. The runtime then has no way to find it, so bake the
+       resolved path in for the AssemblyResolve hook to read back. -->
+  <ItemGroup Condition="$(MSBuildProjectName.StartsWith('RevitMCP.Tests.'))">
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>RevitMcpAssembly</_Parameter1>
+      <_Parameter2>$(RevitMcpAssembly)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <!-- bin/ is gitignored, so a fresh clone has no add-in build yet. Fail with the command
+       to run rather than a reference-resolution error nobody can act on. -->
+  <Target Name="CheckRevitMcpBuilt" BeforeTargets="ResolveAssemblyReferences" Condition="$(MSBuildProjectName.StartsWith('RevitMCP.Tests.'))">
+    <Error Condition="!Exists('$(RevitMcpAssembly)')"
+           Text="Add-in not built: $(RevitMcpAssembly) is missing. Build it first:%0A  cd MCP &amp;&amp; dotnet build -c $(RevitTestConfiguration) RevitMCP.csproj" />
+  </Target>
+
+</Project>

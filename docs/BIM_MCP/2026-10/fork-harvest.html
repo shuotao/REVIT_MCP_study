@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026-10-23 更新 · 五個 fork 收編 · BIM_MCP</title>
+<meta property="og:title" content="2026-10-23 更新：五個 fork 收編（工具 220→239、domain 90→94）">
+<meta property="og:description" content="逐 commit 列出收了什麼、沒收什麼（附紀錄中的理由或「未記錄理由」），並明講這批只在 macOS 驗過。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../nav.css">
+</head>
+<body>
+<div data-snapshot="2026-10-23" style="position:fixed;bottom:12px;right:12px;z-index:9999;background:rgba(15,23,42,.92);color:#fbbf24;padding:6px 14px;font-size:12px;border:1px solid #334155;border-radius:8px;pointer-events:none;">2026-10-23 活動快照 snapshot · 數字為當時狀態，最新統計見 BIM_MCP 知識站</div>
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">2026-10 · 五個 fork 收編</span>
+  </div>
+  <div class="bim-topnav-actions">
+    <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener" class="bim-topnav-btn bim-topnav-btn-github" title="View source on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+    <a href="../reference/contributors.html" class="bim-topnav-btn">貢獻者致謝</a>
+    <a href="../index.html" class="bim-topnav-btn">回首頁</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">2026-10-23 UPDATE · FORK HARVEST</div>
+  <h1 class="bim-hero-title">五個 fork 收編</h1>
+  <p class="bim-hero-sub">這一輪收編了五位貢獻者的 fork 內容：<a href="https://github.com/s9101800111-byte" target="_blank" rel="noopener">@s9101800111-byte</a>、<a href="https://github.com/a0917-cell" target="_blank" rel="noopener">@a0917-cell</a>、<a href="https://github.com/hb5138111" target="_blank" rel="noopener">@hb5138111</a>、<a href="https://github.com/huynvk19-cell" target="_blank" rel="noopener">@huynvk19-cell</a>、<a href="https://github.com/penny116889" target="_blank" rel="noopener">@penny116889</a>。起點是 2026-10-22 的任務指示：<q data-src="log:2026-10-22 17:30">回溯每個 fork 找出有改動卻沒提 PR 的貢獻者</q>。盤點判定見 log 2026-10-22 17:30 的 14 位 CHANGED_LOCAL 表；本頁只記其中收編的五位。</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="data-emph" style="font-size:32px;">+19</div>
+      <div class="data-emph-label">MCP 工具</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">220 → 239</div>
+    </div>
+    <div class="hero-stat">
+      <div class="data-emph" style="font-size:32px;">+4</div>
+      <div class="data-emph-label">新增 domain SOP</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">90 → 94</div>
+    </div>
+    <div class="hero-stat">
+      <div class="data-emph" style="font-size:32px;">Mac</div>
+      <div class="data-emph-label">驗收範圍僅限</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">無 Windows、無 Revit 實機</div>
+    </div>
+  </div>
+</header>
+
+<section class="bim-section bim-anchor" id="taken">
+  <div class="bim-section-eyebrow">SECTION 01 · 收了什麼</div>
+  <h2 class="bim-section-title">逐 commit、逐來源 ref</h2>
+  <p class="bim-section-desc">本頁只放兩類句子：可用指令重跑的事實，與逐字引用 commit 內文或 <code>log/2026-10.md</code> 的引文（以引號標示出處）。引文以外不下因果或優劣判斷。貢獻者只以 GitHub handle 稱呼。</p>
+  <table>
+    <thead>
+      <tr><th style="width:12%;">貢獻者</th><th style="width:8%;">收編 commit</th><th style="width:16%;">來源 ref（merge-base）</th><th style="width:26%;">收錄內容</th><th style="width:38%;">收編 commit 自述的「相對 fork 的修正」（引自 commit 內文；是否為 fork 缺陷本頁不判定）</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>@s9101800111-byte</td><td><code>d89672c</code></td><td><code>byte/main</code>（<code>9a6ebf5</code>）</td><td>7 支新工具：<code>create_grids</code>、<code>preview_dwg_grids</code>、<code>create_grids_from_dwg</code>、<code>create_opening_types</code>、<code>get_all_tags</code>、<code>create_wall_sweeps</code>、<code>get_door_window_coordinates</code></td><td><ul><li><q data-src="commit:d89672c">create_wall_sweeps：專案端 doc.LoadFamily 原本在 Transaction 外，改為自開載入交易</q></li><li><q data-src="commit:d89672c">create_wall_sweeps：同名類型已存在時不再靜默改寫其輪廓（會連動既有飾條）</q></li><li><q data-src="commit:d89672c">create_wall_sweeps：族群樣板路徑改由執行中的 Revit 版本推導</q></li><li><q data-src="commit:d89672c">create_grids：座標缺漏時拋出點名索引的錯誤，而非 NullReferenceException</q></li><li><q data-src="commit:d89672c">get_all_tags：IsLeaderVisible 以 #if REVIT2023_OR_GREATER 包住，R22 可編譯</q></li></ul></td></tr>
+      <tr><td>@hb5138111</td><td><code>1eee3e5</code></td><td><code>tanner/feature/model-review-tools</code>（<code>2faacc5</code>）</td><td>8 支新工具：<code>get_model_snapshot</code>、<code>get_model_warnings</code>、<code>get_recent_changes</code>、<code>export_view_image</code>、<code>batch_modify_elements</code>、<code>check_beam_clear_height</code>、<code>check_mep_spacing</code>、<code>clear_review_markers</code>；domain：<code>domain/beam-clear-height-check.md</code>、<code>domain/mep-spacing-clearance-check.md</code></td><td><ul><li><q data-src="commit:1eee3e5">export_view_image 回傳欄位改為 PascalCase ImageBase64/MimeType，否則既有的 影像分支接不到，PNG 會以數 MB base64 文字送給 AI</q></li><li><q data-src="commit:1eee3e5">四支長時間檢討工具改用 300 秒逾時（LONG_RUNNING_COMMANDS），SLOW_COMMANDS 不動</q></li><li><q data-src="commit:1eee3e5">ChangeTracker 改為首次呼叫時才訂閱 DocumentChanged，handler 內只記 id， 類別名稱延後到 get_recent_changes 才解析（符合 CLAUDE.md 的 DocumentChanged 規則）</q></li><li><q data-src="commit:1eee3e5">新增 ChangeTracker.Unsubscribe（尚未接上 Application.cs 的 OnShutdown）</q></li></ul></td></tr>
+      <tr><td>@a0917-cell</td><td><code>e934da6</code></td><td><code>tkgcc/main</code>（<code>be5cb2b</code>）</td><td>4 支新工具：<code>align_structural_framing</code>、<code>create_floor_area_formula</code>、<code>renumber_parking_spaces</code>、<code>create_sequence_numbers</code>；domain：<code>domain/permit-floor-area-formula.md</code>、<code>domain/sequence-numbering.md</code>、<code>domain/parking-auto-numbering.md</code>（front matter version 1.0→2.0）；<code>tests/</code></td><td><ul><li><q data-src="commit:e934da6">permit-floor-area-formula §5 三角形列補上 handler 的直角三角形分支</q></li><li><q data-src="commit:e934da6">FramingAlign 檢查 Commit 狀態；新 handler 的 new ElementId 改用 ToElementId（R24 CS0618）</q></li><li><q data-src="commit:e934da6">renumber_parking_spaces：parameterName 為「備註」/"Comments" 時一律走 BuiltInParameter，不受 Revit 語系影響</q></li><li><q data-src="commit:e934da6">tests/ 的 Nice3point 套件釘版為 2023.1.90</q></li></ul></td></tr>
+      <tr><td>@huynvk19-cell、@penny116889</td><td><code>53fcd9e</code></td><td><code>huynv/claude/employee-repo-access-8y710w</code>（<code>be5cb2b</code>）、<code>penny/main</code>（<code>be5cb2b</code>）</td><td>@huynvk19-cell：<code>OpeningCheckThresholds</code>（<code>MCP/Core/OpeningCheckThresholds.cs</code>）；@penny116889：門窗圖例的 <code>scaffold_template</code> mode</td><td><ul><li><q data-src="commit:53fcd9e">CopyElement 改為跨視圖 CopyElements（原寫法會把佔位元件複製進別的圖例）、CommitOrThrow、清空步驟只刪新視圖擁有的元素、columns/rows 限 1..20、每條格線只畫一次並回報 Failed* 計數</q></li><li><code>domain/door-window-legend-workflow.md</code> 的補寫非 fork 內容（<code>penny/main</code> 差異未含此檔）。</li></ul></td></tr>
+      <tr><td>@huynvk19-cell</td><td><code>cb159da</code></td><td><code>huynv/claude/employee-repo-access-8y710w</code>（<code>be5cb2b</code>）</td><td><code>scripts/setup.ps1</code>：Microsoft Store 版 Claude Desktop 偵測；Claude Desktop 與 Gemini CLI 的 JSON 寫入改 UTF-8 無 BOM（皆在 fork 的 <code>scripts/setup.ps1</code> 差異內）</td><td><ul><li><q data-src="commit:cb159da">Claude Desktop 區塊（loop-up inspector 要求）：以 UTF-8 讀檔，不再用 Get-Content 的 ANSI 解碼；JSON 解析失敗時記 FAIL 並跳過該目錄，絕不覆寫；備份改用時間戳記檔名，不再 -Force 覆蓋舊備份</q></li></ul></td></tr>
+    </tbody>
+  </table>
+  <p class="bim-section-desc">加總：7＋8＋4 = 19 支新工具。<code>4c087b7</code> 的標題為 222→220，<code>58ab724</code> 的標題為 tools 220→239、domain 90→94（中央同步）。</p>
+</section>
+
+<section class="bim-section bim-anchor" id="not-taken">
+  <div class="bim-section-eyebrow">SECTION 02 · 沒收什麼</div>
+  <h2 class="bim-section-title">沒收的項目，與紀錄中有的理由</h2>
+  <p class="bim-section-desc">每列的「理由」欄只有三種內容：commit 內文引文、log 引文，或字樣「未記錄理由」。標為未記錄理由的項目，在本頁引用的 commit 內文與 log 條目中找不到理由；本頁不判定，也不補寫。</p>
+  <table>
+    <thead>
+      <tr><th style="width:24%;">來源 ref</th><th style="width:38%;">項目（路徑）</th><th style="width:38%;">理由</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>tkgcc/main</code></td><td><code>delete_question_mark_tags</code>（<code>MCP/Core/CommandExecutor.cs</code> 第 113 行、<code>MCP/Core/Commands/CommandExecutor.TagOps.cs</code> 第 16 行）</td><td><q data-src="commit:e934da6">會刪標籤、fork 未註冊為 MCP 工具，只被 pyRevit 呼叫</q>；另：<code>git grep</code> 於 <code>MCP-Server/</code>（c7395ca）零命中。</td></tr>
+      <tr><td><code>penny/main</code></td><td><code>domain/door-window-legend-template-workflow.md</code></td><td>以 <code>wc -l</code> 計 690 行，以 awk 計程式碼圍欄內 565 行；<q data-src="commit:53fcd9e">描述一個不存在的 TemplateLegendExecutor 填表後端），僅在 references 註記其 fork 位置</q>（註記位置：<code>domain/door-window-legend-workflow.md</code> 第 10 行）。</td></tr>
+      <tr><td><code>huynv/claude/employee-repo-access-8y710w</code></td><td><code>scripts/fix-claude-config.ps1</code></td><td><q data-src="commit:cb159da">與 setup.ps1 重複，經三輪審查各有新風險</q></td></tr>
+      <tr><td><code>byte/main</code></td><td><code>MCP/Application.cs</code>、<code>MCP/Core/SocketService.cs</code>、<code>.claude/hooks/jury-stop-gate.mjs</code>、<code>.claude/jury-gate.config.json</code></td><td><strong>未記錄理由</strong></td></tr>
+      <tr><td><code>tanner/feature/model-review-tools</code></td><td><code>MCP/Application.cs</code>、<code>.github/workflows/build-addin.yml</code>、<code>MCP-Server/src/index.ts</code>（camelCase 影像分支）</td><td><strong>未記錄理由</strong></td></tr>
+      <tr><td><code>tkgcc/main</code></td><td><code>pyRevit_Tools/</code>、<code>CODE_MAP.md</code>、<code>scripts/setup.ps1</code> 的 DEPRECATED 註解、<code>scripts/DEPRECATED-installers.md</code></td><td><strong>未記錄理由</strong></td></tr>
+      <tr><td>@hb5138111 的 <code>bim-custom</code> 分支（未 fetch 至本機）</td><td>整個分支</td><td><q data-src="log:2026-10-22 17:30">（36 commit／166 檔）零 MCP 工具且 csproj 加了 R26 條件式套件 → SKIP</q>（log 2026-10-22 17:30 表中 <code>bim-custom</code> 一列）</td></tr>
+    </tbody>
+  </table>
+  <p class="bim-section-desc">相對 merge-base 的差異檔數（依來源 ref，<code>git diff --stat</code>）：byte 42、tkgcc 53、tanner 36、huynv 6、penny 5；上表以外的檔案未逐一記錄取捨。</p>
+  <div class="bim-card bim-card-warn">
+    <h4>紀錄中列為「未收、刻意不動、待人決定」的殘留項</h4>
+    <p><q data-src="log:2026-10-23 16:30">已知殘留（minor，有紀錄未修）：`7-15` 不計複合賦值（`+=`）；`setup.ps1` 的 Gemini CLI 區塊仍有既有的格式錯誤覆寫；`ChangeTracker.Unsubscribe` 未接上 `OnShutdown`；`create_wall_sweeps` 同名類型存在時新載入的輪廓族群會閒置。</q></p>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="gates">
+  <div class="bim-section-eyebrow">SECTION 03 · 閘門與產生器</div>
+  <h2 class="bim-section-title">同一段 commit 範圍內的四個檢查／工具 commit</h2>
+  <table>
+    <thead>
+      <tr><th style="width:20%;">對象</th><th style="width:10%;">commit</th><th style="width:70%;">commit 內文（引文）</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>7-15</code>／<code>9-3</code></td><td><code>ad2081d</code></td><td><q data-src="commit:ad2081d">尾端 `:\s*toolName` 會吃掉下一段的 toolName，鏈式三元第二筆以後全部漏抓；改為 lookahead，並限定在 commandName 賦值句內解析。</q></td></tr>
+      <tr><td><code>7-15</code></td><td><code>3a4e84e</code></td><td><q data-src="commit:3a4e84e">定位改為 (const|let|var) commandName 宣告，不再誤抓前面的 === 比較</q></td></tr>
+      <tr><td><code>7-16</code></td><td><code>4f121bc</code></td><td><q data-src="commit:4f121bc">docs/BIM_MCP/reference/kanban-index.html 由 scripts/gen-kanban-index.py 自 tools/kanban/cards/*.json 產生；7-16 檢查雙向 exactly-one、連結存活、時間落差聲明、已被超出標記（由產生器解析，不在閘門重述）</q></td></tr>
+      <tr><td>tools-index 產生器</td><td><code>d326677</code></td><td><q data-src="commit:d326677">--check 模式：頁面與 registry 不一致時 exit 1</q></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="bim-section bim-anchor" id="honest">
+  <div class="bim-section-eyebrow">SECTION 04 · 誠實標註</div>
+  <h2 class="bim-section-title">哪些驗過了，哪些沒有</h2>
+  <p class="bim-section-desc">下列兩張卡逐字引自 <code>log/2026-10.md</code> 2026-10-23 16:30 條目的「驗收（Mac，不得宣告 Windows 通過）」小節。</p>
+  <div class="bim-grid bim-grid-2">
+    <div class="bim-card bim-card-ok">
+      <h4>log 記載的 Mac 驗收項</h4>
+      <ul><li><q data-src="log:2026-10-23 16:30">R22／R23／R24／R25／R26 五組 `dotnet build -p:EnableWindowsTargeting=true` 各 </q><strong><q data-src="log:2026-10-23 16:30">0 error</q></strong><q data-src="log:2026-10-23 16:30">（編譯期驗證）</q></li><li><q data-src="log:2026-10-23 16:30">`npm run build` 通過；`registerRevitTools()` </q><strong><q data-src="log:2026-10-23 16:30">239 支、零重複</q></strong><q data-src="log:2026-10-23 16:30">；domain </q><strong><q data-src="log:2026-10-23 16:30">94</q></strong><q data-src="log:2026-10-23 16:30">、skills </q><strong><q data-src="log:2026-10-23 16:30">61</q></strong></li><li><q data-src="log:2026-10-23 16:30">`gen-tools-index.py --check` 一致</q></li><li><q data-src="log:2026-10-23 16:30">`pwsh verify-qaqc.ps1 -SkipBuild -SkipDeploy`：60 PASS／10 FAIL／4 WARN／3 SKIP，FAIL 集合與 pristine 基準逐行相同（10 個皆為 macOS 平台性錯判）；計數、三層列舉、描述比對、`7-15`、`7-16`、`9-1`、`9-3`、domain frontmatter 全部 PASS</q></li></ul>
+    </div>
+    <div class="bim-card bim-card-bad">
+      <h4>log 記載的待 Windows 補跑項</h4>
+      <p><strong><q data-src="log:2026-10-23 16:30">待 Windows 補跑</q></strong><q data-src="log:2026-10-23 16:30">：正式 `verify-qaqc.ps1`（0 FAIL 才算過）、`S5`／`S5b` 的 RED／GREEN 紀錄重取、`setup.ps1` 三種情境（無設定檔／正常設定檔／格式錯誤設定檔）實際執行、全部新工具的 Revit 實機驗證</q></p>
+    </div>
+  </div>
+  <div class="empathy-quote">
+    <div class="empathy-quote-label">所以這頁最想請你做的事</div>
+    <div class="empathy-quote-text">如果你在 Windows＋Revit 上，升級後挑一支新工具在真的模型上跑一次，然後<strong>回報發生了什麼</strong>——壞的或好的都要。開 issue 就好。</div>
+  </div>
+</section>
+
+<section class="bim-section bim-anchor" id="related">
+  <div class="bim-section-eyebrow">RELATED REFERENCE</div>
+  <h2 class="bim-section-title">深度閱讀</h2>
+  <div class="bim-grid bim-grid-3">
+    <a class="bim-card" href="../reference/tools-index.html">
+      <h4>Tools 索引</h4>
+      <p>執行層工具的完整卡片，含唯讀／破壞性標記</p>
+    </a>
+    <a class="bim-card" href="../reference/domain-index.html">
+      <h4>Domain SOP 索引</h4>
+      <p>以索引頁為準的最新 SOP 清單</p>
+    </a>
+    <a class="bim-card" href="../reference/contributors.html">
+      <h4>貢獻者致謝</h4>
+      <p>建置協助人名單，以致謝頁為準</p>
+    </a>
+  </div>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions">
+    <a href="../index.html" class="bim-footer-btn primary">← 回 BIM_MCP 首頁</a>
+    <a href="../reference/tools-index.html" class="bim-footer-btn">Tools 索引</a>
+    <a href="../reference/contributors.html" class="bim-footer-btn">貢獻者致謝</a>
+  </div>
+  <p>BIM_MCP · 2026-10-23 update · 五個 fork 收編（loop-up 多 agent，macOS 驗收）</p>
+</footer>
+
+<script src="../shared.js"></script>
+<script>initAll();</script>
+</body>
+</html>

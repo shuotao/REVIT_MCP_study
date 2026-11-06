@@ -26,8 +26,11 @@ namespace RevitMCP.Core
     //   - DismissWarningsPreprocessor:比照 DetailCopy.cs 既有 SuppressWarningsPreprocessor。
     //   - GetDetector3DView:比照 StairCompliance.cs 取非樣板 View3D 的樣式。
     //
-    // ⚠️ 待 Jacky 對其原始碼複核。幾何射線類(FloorHitInfo / CollectFloorBottomHitsAtPoint /
-    //    CollectGeometryFloorBottomHitsAtPoint)另置於本檔下段,務必在 Revit 對真實模型實跑驗證。
+    // 2026-07-22 Jacky 複核回填:
+    //   - TrySetColumnTopAttachment 改用 Revit BuiltInParameter,不再猜族參數顯示名稱。
+    //   - 幾何/射線 floor-hit 搜尋改為基準高度上下搜尋,避免柱頂略穿過樓板底時漏判。
+    // ⚠️ 幾何射線類(FloorHitInfo / CollectFloorBottomHitsAtPoint /
+    //    CollectGeometryFloorBottomHitsAtPoint)仍建議在 Revit 對真實有柱模型實跑驗證。
     // =====================================================================================
 
     /// <summary>
@@ -111,21 +114,20 @@ namespace RevitMCP.Core
         }
 
         /// <summary>
-        /// 盡力設定柱頂固定旗標(整數參數)。柱頂實際對齊已由 TopLevel + TopOffset 完成,
-        /// 此為附帶旗標;查無對應參數即略過。
-        /// ⚠️ 原作者私有實作細節不明,待 Jacky 複核確認目標參數。
+        /// 設定結構柱頂附著旗標與附著偏移。這裡使用 Revit 內建參數,不依賴族參數顯示名稱。
+        /// 呼叫端傳入的 0 代表 attachment offset = 0,而不是把 attached flag 設為 0。
         /// </summary>
-        private static void TrySetColumnTopAttachment(FamilyInstance column, int value)
+        private static void TrySetColumnTopAttachment(FamilyInstance column, double offsetFeet)
         {
             if (column == null) return;
-            string[] names = { "頂部附著", "柱頂固定", "頂部固定", "Top Attachment", "Column Top Attachment" };
-            foreach (string name in names)
-            {
-                Parameter parameter = column.LookupParameter(name);
-                if (parameter == null || parameter.IsReadOnly || parameter.StorageType != StorageType.Integer) continue;
-                parameter.Set(value);
-                return;
-            }
+
+            Parameter attached = column.get_Parameter(BuiltInParameter.COLUMN_TOP_ATTACHED_PARAM);
+            if (attached != null && !attached.IsReadOnly && attached.StorageType == StorageType.Integer)
+                attached.Set(1);
+
+            Parameter offset = column.get_Parameter(BuiltInParameter.COLUMN_TOP_ATTACHMENT_OFFSET_PARAM);
+            if (offset != null && !offset.IsReadOnly && offset.StorageType == StorageType.Double)
+                offset.Set(offsetFeet);
         }
 
         // ---- 幾何射線類(PartitionTakeoff #81 + IfcStructuralSync #82 共用)-------------
@@ -169,16 +171,16 @@ namespace RevitMCP.Core
                 FindReferencesInRevitLinks = false
             };
 
-            XYZ origin = new XYZ(sample.X, sample.Y, baseZFeet + (1.0 / 304.8)); // 抬 1mm 避免自碰
+            double maxSearchFeet = Math.Max(maxSearchDistanceMm / 304.8, 1.0 / 304.8);
+            XYZ origin = new XYZ(sample.X, sample.Y, baseZFeet - maxSearchFeet);
             IList<ReferenceWithContext> hits = intersector.Find(origin, XYZ.BasisZ);
-            if (hits == null) return results;
+            if (hits == null || hits.Count == 0)
+                return CollectGeometryFloorBottomHitsAtPoint(doc, sample, baseZFeet, maxSearchDistanceMm, excludeFloorIds);
 
             var seen = new HashSet<string>();
             foreach (ReferenceWithContext rc in hits)
             {
                 if (rc == null) continue;
-                if (rc.Proximity * 304.8 > maxSearchDistanceMm) continue;
-
                 Reference reference = rc.GetReference();
                 if (reference == null) continue;
                 ElementId floorId = reference.ElementId;
@@ -186,6 +188,7 @@ namespace RevitMCP.Core
                 if (excludeFloorIds != null && excludeFloorIds.Contains(floorId)) continue;
 
                 double hitZ = reference.GlobalPoint != null ? reference.GlobalPoint.Z : origin.Z + rc.Proximity;
+                if (Math.Abs(hitZ - baseZFeet) > maxSearchFeet) continue;
                 if (!seen.Add(floorId.ToString() + ":" + Math.Round(hitZ, 4).ToString())) continue;
 
                 Element floor = doc.GetElement(floorId);
@@ -219,7 +222,7 @@ namespace RevitMCP.Core
 
             double maxDistFeet = Math.Max(maxSearchDistanceMm / 304.8, 1.0 / 304.8);
             Line vertical = Line.CreateBound(
-                new XYZ(sample.X, sample.Y, baseZFeet),
+                new XYZ(sample.X, sample.Y, baseZFeet - maxDistFeet),
                 new XYZ(sample.X, sample.Y, baseZFeet + maxDistFeet));
 
             var geomOptions = new Options
@@ -260,6 +263,8 @@ namespace RevitMCP.Core
 
                 if (bottomZ.HasValue)
                 {
+                    if (Math.Abs(bottomZ.Value - baseZFeet) > maxDistFeet) continue;
+
                     results.Add(new FloorHitInfo
                     {
                         HasHit = true,

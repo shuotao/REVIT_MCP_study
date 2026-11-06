@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>try{if(localStorage.getItem("bim-theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}</script>
 <title>Troubleshooting · BIM_MCP</title>
-<meta property="og:title" content="BIM_MCP Troubleshooting · 5 classic + 4 live fixes">
-<meta property="og:description" content="部署 / 連線 / 工具語義三類問題。含 5 個經典踩雷與 5/18 demo 暴露的 4 個 fix（commit 4975ceb）的 root cause 分析。">
+<meta property="og:title" content="BIM_MCP Troubleshooting · 依症狀找排錯入口">
+<meta property="og:description" content="依「看不到外掛」「無法連線」「有結果但不符合預期」三種症狀分流，附正式程序、要收集的資訊與回報模板；維護者診斷與歷史案例在後。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
@@ -54,15 +55,15 @@
     letter-spacing: 2px;
     padding: 3px 10px;
     border-radius: var(--radius-sm);
-    background: rgba(239,68,68,0.1);
+    background: var(--bad-bg);
     color: var(--bad);
-    border: 1px solid rgba(239,68,68,0.3);
+    border: 1px solid var(--bad-border);
     margin-bottom: 10px;
   }
   .fix-card.resolved .fix-tag {
-    background: rgba(74,222,128,0.1);
+    background: var(--ok-bg);
     color: var(--ok);
-    border-color: rgba(74,222,128,0.3);
+    border-color: var(--ok-border);
   }
   .fix-card h3 { margin: 4px 0 12px 0; font-size: 18px; }
   .fix-grid {
@@ -80,13 +81,31 @@
     margin-bottom: 6px;
   }
   .fix-section p { font-size: 13px; }
+  .sym-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap-sm);margin:var(--gap-md) 0}
+  .sym-entry{display:block;padding:16px 18px;background:var(--bg-card);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:var(--radius-md);text-decoration:none;color:inherit}
+  .sym-entry:hover{border-color:var(--accent)}
+  .sym-entry .sym-key{font-family:var(--font-tech);font-size:11px;letter-spacing:2px;color:var(--accent);margin-bottom:6px}
+  .sym-entry h4{font-size:16px;margin:0 0 6px 0}
+  .sym-entry p{font-size:13px;margin:0;color:var(--text-muted)}
+  .sym-block{background:var(--bg-card);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:var(--radius-md);padding:20px 24px;margin-bottom:var(--gap-md)}
+  .sym-block h3{margin:0 0 4px 0;font-size:19px}
+  .sym-block .sym-lead{font-size:13px;color:var(--text-muted);margin:0 0 12px 0}
+  .sym-block h5{font-family:var(--font-tech);font-size:11px;letter-spacing:2px;color:var(--accent);margin:14px 0 6px 0}
+  .sym-block ol,.sym-block ul{font-size:14px;margin:0;padding-left:1.4em}
+  .sym-block li{margin-bottom:4px}
+  .sym-block p{font-size:14px;margin:0 0 6px 0}
+  .sym-block pre{margin:6px 0;font-size:13px}
+  .tbl-sub{font-family:var(--font-tech);font-size:11px;letter-spacing:2px;color:var(--accent);margin:var(--gap-md) 0 6px 0}
+  @media (max-width: 700px) {
+    .sym-grid { grid-template-columns: 1fr; }
+  }
   @media (max-width: 700px) {
     .diag-flow { grid-template-columns: 1fr; }
     .fix-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
-<body data-prev="deployment-guide.html" data-next="contributor-template.html">
+<body>
 
 <nav class="bim-topnav">
   <div class="bim-topnav-left">
@@ -96,106 +115,207 @@
     <span class="bim-topnav-sep">/</span>
     <span class="bim-topnav-current">Troubleshooting</span>
   </div>
-  <div class="bim-topnav-actions">
+  <div class="bim-topnav-actions" data-route-nav="top">
     <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener" class="bim-topnav-btn bim-topnav-btn-github" title="View source on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
-    <a href="deployment-guide.html" class="bim-topnav-btn">← Deployment</a>
-    <a href="contributor-template.html" class="bim-topnav-btn">Contributor →</a>
   </div>
 </nav>
 
+
 <header class="bim-hero">
-  <div class="bim-hero-eyebrow">TROUBLESHOOTING <span class="accent">5 classic + 4 live fixes</span></div>
-  <h1 class="bim-hero-title">先分清：<span class="accent">部署</span> / 連線 / 工具語義</h1>
-  <p class="bim-hero-sub">本頁綜合 CLAUDE.md troubleshooting 表與 commit <code>4975ceb</code> 的 4 個工具修復。<strong>5/18 demo 暴露的不是單純 bug list</strong>——它們也是「<a href="three-constitutions.html#constitution-2">Tool Call Data Honesty</a>」與「<a href="three-constitutions.html#constitution-3">Domain Method Compliance</a>」邊界的活體實證。先看下方診斷流程決定該翻哪節。</p>
-  <figure class="bim-hero-figure"><img src="../images/troubleshooting__hero__9-cases.svg" alt="Nine troubleshooting scenarios" width="1600" height="900"></figure>
+  <div class="bim-hero-eyebrow">TROUBLESHOOTING <span class="accent">3 種症狀 · 先使用者檢查，再維護者診斷</span></div>
+  <h1 class="bim-hero-title">出問題了？先看<span class="accent">症狀</span>，再選入口</h1>
+  <p class="bim-hero-sub">先判斷你遇到的是「看不到外掛」「無法連線」還是「有結果但不符合預期」，每種症狀都有固定四段：你可以先檢查、正式程序、要收集什麼、怎麼回報。維護者用的診斷表與 2026-05-18 的歷史案例放在後面。</p>
 </header>
 
 <!-- ============================================ -->
-<!-- 診斷流程 -->
+<!-- 診斷流程：依症狀分流 -->
 <!-- ============================================ -->
 <section data-collapse class="bim-section bim-anchor" id="diagnose">
-  <div class="bim-section-eyebrow">SECTION 01 · 診斷流程</div>
-  <h2 class="bim-section-title">出問題了？先 30 秒分類</h2>
-  <p class="bim-section-desc">大多數「壞了」其實是三類問題之一。先分清屬於哪類，再翻對應節。</p>
+  <div class="bim-section-eyebrow">SECTION 01 · 依症狀分流</div>
+  <h2 class="bim-section-title">你看到的是哪一種？</h2>
+  <p class="bim-section-desc">點選最接近的症狀。三種都不像時，先看下方「先確認啟動順序」。</p>
 
-  <div class="diag-flow">
-    <div class="diag-step">
-      <div class="diag-num">CLASS A · 部署</div>
-      <h4>build / dll / addin</h4>
-      <p>Revit ribbon 沒看到 RevitMCP panel？build 失敗或找不到 dll？看 <a href="#classic">Section 02</a> 第 1-2 項。</p>
-    </div>
-    <div class="diag-step">
-      <div class="diag-num">CLASS B · 連線</div>
-      <h4>port / websocket</h4>
-      <p>MCP server 連不到 Revit？port 8964 卡住？指令送出去沒回應？看 <a href="#classic">Section 02</a> 第 3-5 項。</p>
-    </div>
-    <div class="diag-step">
-      <div class="diag-num">CLASS C · 工具語義</div>
-      <h4>raw data / pass-fail</h4>
-      <p>tool 跑得通但結果不對？輸出太長？建了一堆視圖？看 <a href="#demo-fixes">Section 03</a> 4 個 live fixes。</p>
-    </div>
+  <figure class="bim-figure bim-illustration">
+    <img src="../images/troubleshooting__diagnose__symptoms.webp" alt="依看不到外掛、無法連線、結果不符合預期三種症狀選擇排錯入口" width="1200" height="900" loading="lazy">
+    <figcaption>概念示意圖（AI 生成），非軟體畫面。文字版入口見下方三張卡片。</figcaption>
+  </figure>
+
+  <div class="sym-grid">
+    <a class="sym-entry" href="#sym-addin">
+      <div class="sym-key">症狀 A</div>
+      <h4>看不到外掛</h4>
+      <p>Revit ribbon 沒有 MCP Tools 面板。</p>
+    </a>
+    <a class="sym-entry" href="#sym-connect">
+      <div class="sym-key">症狀 B</div>
+      <h4>無法連線</h4>
+      <p>AI 說找不到 Revit tools、連不上 localhost:8964，或被拒絕連線（HTTP 409）。</p>
+    </a>
+    <a class="sym-entry" href="#sym-result">
+      <div class="sym-key">症狀 C</div>
+      <h4>有結果但不符合預期</h4>
+      <p>工具有回傳，但內容和你眼前的 Revit 或預期不同。</p>
+    </a>
+  </div>
+
+  <div class="bim-callout">
+    <div class="bim-callout-title">先確認啟動順序</div>
+    <ol>
+      <li>啟動 Revit，載入或建立專案。</li>
+      <li>在 Revit ribbon 的 MCP Tools 面板啟動 MCP 服務。</li>
+      <li>確認 Revit 顯示 WebSocket server 已監聽 <code>localhost:8964</code>。</li>
+      <li>啟動或重啟 AI Client，讓它載入 MCP Server。</li>
+    </ol>
+    <p style="font-size:13px;color:var(--text-muted);margin:6px 0 0 0;">來源：README.zh-TW.md「啟動流程」。</p>
+  </div>
+
+  <article class="sym-block" id="sym-addin">
+    <h3>症狀 A · 看不到外掛</h3>
+    <p class="sym-lead">Revit 已開啟，但 ribbon 上沒有 MCP Tools 面板。</p>
+    <h5>你可以先檢查</h5>
+    <ol>
+      <li><code>.addin</code> 與 DLL 是否已部署到對應版本的 <code>%APPDATA%\Autodesk\Revit\Addins\{version}</code>。</li>
+      <li>沒部署或不確定時，重新部署，再<strong>重新啟動 Revit</strong>：<pre><code>.\scripts\install-addon.ps1 -Version 2024</code></pre>多個 Revit 版本可改用 <code>-All</code>。</li>
+      <li>部署前需要有該版本的建置產物（<code>MCP/bin/Release.R{YY}/RevitMCP.dll</code>），找不到 DLL 時看下方 <a href="#classic">經典問題</a>。</li>
+    </ol>
+    <h5>正式程序</h5>
+    <p><a href="deployment-guide.html#manual">部署頁 · 手動安裝</a>；第一次安裝的紅字錯誤見 <a href="https://github.com/shuotao/REVIT_MCP_study/blob/main/docs/troubleshoot-first-install.md" target="_blank" rel="noopener">docs/troubleshoot-first-install.md</a>。</p>
+    <h5>要收集什麼</h5>
+    <ul>
+      <li>Revit 版本（年份）。</li>
+      <li>你執行的部署指令，與終端機輸出的錯誤原文。</li>
+      <li>該版本 Addins 資料夾內的檔案名稱。</li>
+    </ul>
+    <h5>怎麼回報</h5>
+    <p>把上面三項填進下方 <a href="#report-template">回報模板</a>。</p>
+  </article>
+
+  <article class="sym-block" id="sym-connect">
+    <h3>症狀 B · 無法連線</h3>
+    <p class="sym-lead">AI 說找不到 Revit tools，或 MCP Server 連不上 Revit。</p>
+    <h5>你可以先檢查</h5>
+    <ol>
+      <li>Revit 已啟動，且 MCP 服務已在 ribbon 開啟（見上方啟動順序）。</li>
+      <li><code>localhost:8964</code> 沒有被其他程式佔用；AI Client 的 <code>REVIT_MCP_PORT</code> 要與 Revit 端設定一致。</li>
+      <li>AI 說找不到 Revit tools：<code>MCP-Server</code> 已執行過 <code>npm run build</code>、AI Client 設定指向 <code>MCP-Server/build/index.js</code>，並已重啟或重新載入 MCP servers。</li>
+      <li>被拒絕（HTTP 409）：Revit 端採「獨占鎖」，同一時間只有一個 AI Client 能連線。先在 Revit ribbon 按「切換/釋放連線」，再讓要用的 Client 重新連線；「MCP 設定」對話框會顯示目前是誰持有連線。</li>
+      <li>Port 被 <code>PID 4</code>（System）卡住：用管理員身分執行 <code>scripts\release-port.ps1</code>。</li>
+    </ol>
+    <h5>正式程序</h5>
+    <p><a href="#classic">經典問題表</a>、<a href="https://github.com/shuotao/REVIT_MCP_study/blob/main/README.zh-TW.md" target="_blank" rel="noopener">README.zh-TW.md 的「AI Client 切換與並用限制」與「常見問題」</a>。</p>
+    <h5>要收集什麼</h5>
+    <ul>
+      <li>AI Client 名稱，以及同時開了哪些 AI Client。</li>
+      <li>錯誤原文（例如 HTTP 409、timeout）。</li>
+      <li>MCP Server 端與 Revit Add-in 端的 log（路徑見 <a href="#logs">Logs</a>）。</li>
+    </ul>
+    <h5>怎麼回報</h5>
+    <p>填寫 <a href="#report-template">回報模板</a>，並註明你已試過上面哪幾項。</p>
+  </article>
+
+  <article class="sym-block" id="sym-result">
+    <h3>症狀 C · 有結果但不符合預期</h3>
+    <p class="sym-lead">連線正常，工具也有回傳，但內容和你眼前的 Revit 或預期不同。</p>
+    <h5>你可以先檢查</h5>
+    <ol>
+      <li>請 AI 重新呼叫 <code>get_active_view</code>，確認目前的專案與作用視圖就是你正在看的那一個；不要沿用前一輪的視圖 ID 或樓層名稱。</li>
+      <li>答案裡的 ID、名稱、數量，是否都能在<strong>這一輪</strong>的工具回傳中找到；找不到的就不可信。</li>
+      <li>工具只回傳原始資料、沒有「通過／不通過」，是設計如此：判斷方法寫在對應的 <code>domain/*.md</code>，不是寫死在工具裡（見 <a href="#demo-fixes">歷史案例 #4</a>）。</li>
+      <li>工具無法使用時，AI 應該明說並只給通用流程，不能憑記憶補資料。</li>
+    </ol>
+    <h5>正式程序</h5>
+    <p><a href="#method">不要用猜的補 Revit 專案資料</a>、<a href="deployment-guide.html#verify">部署頁 · 第一次查詢</a>、<a href="#demo-fixes">歷史案例</a>。</p>
+    <h5>要收集什麼</h5>
+    <ul>
+      <li>你下的提示詞，與 AI 呼叫了哪些工具。</li>
+      <li>工具回傳原文，以及你預期的結果與依據（例如哪一份 domain）。</li>
+      <li>當下的作用視圖名稱與類型。</li>
+    </ul>
+    <h5>怎麼回報</h5>
+    <p>填寫 <a href="#report-template">回報模板</a>；貼出工具回傳前先移除專案與個人識別資料。</p>
+  </article>
+
+  <div class="bim-callout" id="report-template">
+    <div class="bim-callout-title">回報模板</div>
+    <ul>
+      <li>操作步驟：你做了什麼，做到哪一步出問題</li>
+      <li>Revit 版本：年份</li>
+      <li>AI Client：名稱與版本</li>
+      <li>錯誤原文：整段複製，不要只寫大意</li>
+      <li>log 路徑：附上哪一份 log、哪個時間點</li>
+    </ul>
+    <p style="margin:8px 0 0 0;"><strong>公開貼出前，請移除專案與個人識別資料。</strong>填好後到 <a href="https://github.com/shuotao/REVIT_MCP_study/issues" target="_blank" rel="noopener">GitHub Issues</a> 回報。</p>
   </div>
 </section>
 
 <!-- ============================================ -->
-<!-- 5 個經典 -->
+<!-- 經典問題 -->
 <!-- ============================================ -->
 <section data-collapse class="bim-section bim-anchor" id="classic">
   <div class="bim-section-eyebrow">SECTION 02 · CLASSIC</div>
-  <h2 class="bim-section-title">5 個經典問題（部署 / 連線層）</h2>
+  <h2 class="bim-section-title">經典問題：使用者可做，與維護者診斷</h2>
+  <p class="bim-section-desc">前四列是使用者自己能處理的；最後兩列要看程式碼與 log，歸維護者診斷。</p>
 
+  <div class="tbl-sub">使用者可做</div>
   <table>
     <thead>
       <tr><th style="width:25%;">Symptom</th><th style="width:30%;">Root cause</th><th style="width:49%;">Fix</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td><strong>Build 出現 56 warnings</strong></td>
-        <td>Revit 2024 使用 2022-compatible syntax 時的正常警告</td>
-        <td>確認無 error 即可。不影響功能。</td>
+        <td><strong>Build 出現 warnings</strong></td>
+        <td>warning 與 error 不同；warning 的數量依 Revit 版本而異</td>
+        <td>確認沒有 error 即可。</td>
       </tr>
       <tr>
         <td><code>RevitMCP.dll</code> not found</td>
         <td>Build config 拼錯或 output 路徑改了</td>
-        <td>使用 <code>dotnet build -c Release.R{YY} RevitMCP.csproj</code>，YY ∈ {22,23,24,25,26}。Output 在 <code>bin/Release.R{YY}/RevitMCP.dll</code>。</td>
+        <td>使用 <code>dotnet build -c Release.R{YY} RevitMCP.csproj</code>，YY ∈ {22,23,24,25,26}。Output 在 <code>MCP/bin/Release.R{YY}/RevitMCP.dll</code>。</td>
       </tr>
       <tr>
         <td><strong>MCP Server connection failed</strong></td>
         <td>(a) <code>npm run build</code> 沒跑 / (b) AI client 設定路徑錯 / (c) port 被佔</td>
-        <td>(a) <code>cd MCP-Server && npm run build</code><br>(b) 檢查 client config 是絕對路徑指向 <code>build/index.js</code><br>(c) 跑 <code>scripts/release-port.ps1</code></td>
+        <td>(a) 在終端機分兩行執行：<pre><code>cd MCP-Server
+npm run build</code></pre>(b) 檢查 client config 是絕對路徑指向 <code>build/index.js</code><br>(c) 跑 <code>scripts\release-port.ps1</code></td>
       </tr>
       <tr>
         <td>Port 8964 被 <code>PID 4</code>（System）佔用</td>
         <td>Revit 異常關閉後 HTTP.sys 留下孤兒 Request Queue</td>
-        <td>執行 <code>scripts\release-port.ps1</code>（需 Admin）。或手動：<code>net stop http /y && net start http</code></td>
-      </tr>
-      <tr>
-        <td><strong>Commands 送出去沒回應</strong></td>
-        <td>Revit UI thread 被卡（沒走 ExternalEventManager）</td>
-        <td>確認所有 Revit API 呼叫都包進 <code>ExternalEventManager.Instance.PostCommand()</code>。看 <code>%AppData%\RevitMCP\Logs\RevitMCP_YYYYMMDD.log</code> 確認 ExternalEvent 是否被觸發。</td>
+        <td>以系統管理員身分執行 <code>scripts\release-port.ps1</code>。手動處理時，兩個指令分成兩行各自執行（部分終端機不接受把兩個指令串在同一行，見 docs/troubleshoot-first-install.md 問題一）：<pre><code>net stop http /y
+net start http</code></pre></td>
       </tr>
     </tbody>
   </table>
 
-  <div class="pitfalls">
-    <div class="pitfalls-title">部署不可破壞 unified architecture</div>
-    <ul>
-      <li>❌ 不要新增 <code>RevitMCP.2024.csproj</code> 這類版本專用 project</li>
-      <li>❌ 不要新增版本專用 <code>.addin</code></li>
-      <li>❌ 不要在 <code>.addin</code> hardcode 絕對 DLL 路徑</li>
-      <li>❌ 不要改 <code>AddInId</code>（會被 Revit 視為兩個不同 plugin 載入兩次）</li>
-      <li>❌ 不要設 <code>&lt;DeployAddin&gt;true&lt;/DeployAddin&gt;</code>（Nice3point SDK 會產生 <code>RevitMCP.{version}.addin</code> 與手動的 <code>RevitMCP.addin</code> 衝突）</li>
-    </ul>
-  </div>
+  <div class="tbl-sub">維護者診斷</div>
+  <table>
+    <thead>
+      <tr><th style="width:25%;">Symptom</th><th style="width:30%;">Root cause</th><th style="width:49%;">Fix</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Commands 送出去沒回應</strong></td>
+        <td>Revit UI thread 被卡（沒走 ExternalEventManager）</td>
+        <td>確認從 WebSocket 進來的 Revit API 呼叫都經過 <code>ExternalEventManager.Instance.ExecuteCommand(...)</code>。看 <code>%AppData%\RevitMCP\Logs\RevitMCP_YYYYMMDD.log</code> 確認 ExternalEvent 是否被觸發。</td>
+      </tr>
+      <tr>
+        <td>握手立即被拒（HTTP 403）</td>
+        <td>連線的 handshake 帶有瀏覽器的 <code>Origin</code> 標頭；Revit 端為擋掉瀏覽器分頁操控 add-in，一律拒絕，且沒有設定可關閉</td>
+        <td>MCP bridge 本身不會送 <code>Origin</code>；出現 403 時檢查是否有非 bridge 的程式（例如瀏覽器）在連 <code>localhost:8964</code>。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>部署時哪些事不能做（例如不要新增版本專用的 project 或 <code>.addin</code>），統一寫在 <a href="deployment-guide.html#manual">部署頁 · 手動安裝</a>。</p>
 </section>
 
 <!-- ============================================ -->
-<!-- 4 個 5/18 demo live fixes -->
+<!-- 歷史案例：2026-05-18 demo -->
 <!-- ============================================ -->
 <section data-collapse class="bim-section bim-anchor" id="demo-fixes">
-  <div class="bim-section-eyebrow">SECTION 03 · LIVE FIXES</div>
-  <h2 class="bim-section-title">5/18 demo 4 個工具修復 <span style="font-family:var(--font-tech);font-size:14px;color:var(--text-faint);">commit 4975ceb</span></h2>
-  <p class="bim-section-desc">5/18 demo 實機跑 5 個工具暴露 5 種典型 MCP 工具邊界樣態（output 過大 / API 不對稱 / 工具設計差異 / 真實 bug / 只回 raw data）。<strong>這個歷程本身是 <a href="philosophy-22-propositions.html#p15">P15「排程死線」</a> + <a href="three-constitutions.html#constitution-2">第二憲法 Data Honesty</a> 的活體實證</strong>。</p>
+  <div class="bim-section-eyebrow">SECTION 03 · 歷史案例（2026-05-18）</div>
+  <h2 class="bim-section-title">歷史案例：2026-05-18 demo 的 4 個工具修復 <span style="font-family:var(--font-tech);font-size:14px;color:var(--text-faint);">commit 4975ceb</span></h2>
+  <p class="bim-section-desc">以下是 2026-05-18 當時的紀錄，保留作為「工具邊界怎麼被發現」的案例，<strong>不是目前要你操作的步驟</strong>。5/18 demo 實機跑 5 個工具暴露 5 種典型 MCP 工具邊界樣態（output 過大 / API 不對稱 / 工具設計差異 / 真實 bug / 只回 raw data）。<strong>這個歷程本身是 <a href="philosophy-22-propositions.html#p15">P15「排程死線」</a> + <a href="three-constitutions.html#constitution-2">第二憲法 Data Honesty</a> 的活體實證</strong>。</p>
 
   <div class="fix-card resolved">
     <span class="fix-tag">FIX #1 · RESOLVED</span>
@@ -389,15 +509,12 @@
     </ul>
   </div>
 </section>
-
 <footer class="bim-footer">
-  <div class="bim-footer-actions">
-    <a href="deployment-guide.html" class="bim-footer-btn">← Deployment</a>
-    <a href="contributor-template.html" class="bim-footer-btn primary">Contributor →</a>
-    <a href="../index.html" class="bim-footer-btn">回 BIM_MCP 首頁</a>
+  <div class="bim-footer-actions" data-route-nav="foot">
+    <a href="../index.html" class="bim-footer-btn">回首頁</a>
   </div>
   <p>BIM_MCP · reference / troubleshooting</p>
-  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-05-18 · 5 經典 + 4 個 5/18 demo live fix root cause 分析。</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">最後更新 2026-10-23 · 依症狀分流；2026-05-18 的 4 個工具修復保留為歷史案例。</p>
 </footer>
 
 <script src="../shared.js"></script><script>initAll();</script>

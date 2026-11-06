@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>RevitMCP.Tests.FramingAlign</AssemblyName>
+    <RootNamespace>RevitMCP.Tests.FramingAlign</RootNamespace>
+  </PropertyGroup>
+</Project>

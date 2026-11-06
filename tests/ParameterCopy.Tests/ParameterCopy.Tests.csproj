@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <DefineConstants>REVIT2025_OR_GREATER</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <Compile Include="../../MCP/Core/Commands/CommandExecutor.ParameterCopy.cs" Link="Production/CommandExecutor.ParameterCopy.cs" />
+    <Compile Include="../../MCP/Core/RevitCompatibility.cs" Link="Production/RevitCompatibility.cs" />
+  </ItemGroup>
+</Project>

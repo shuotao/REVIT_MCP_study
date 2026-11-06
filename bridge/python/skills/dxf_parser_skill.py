@@ -26,7 +26,7 @@ from RevitServices.Persistence import DocumentManager
 # 嘗試引入 ezdxf，如果沒有則提供錯誤提示
 import sys
 import os
-site_packages = r"C:\Users\ROY\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages"
+site_packages = r"C:\Users\<YOUR_USERNAME>\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages"
 if site_packages not in sys.path:
     sys.path.append(site_packages)
 

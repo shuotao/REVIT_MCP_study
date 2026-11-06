@@ -1,6 +1,6 @@
 ---
 name: domain-diagram
-description: "引導剛寫完 domain 的老師把 SOP 流程圖像化：先討論主流程、做流程健檢（迴圈／死路／缺口），再把流程整理成結構化 spec，交由 scripts/mermaid_from_spec.py 確定性地產出 GitHub 原生 ```mermaid 圖與健檢結論並回嵌 domain。模型不手寫圖，畫圖一律過腳本以保證一致性。觸發條件：使用者提到 domain 流程圖、流程圖像化、把 domain 畫成圖、mermaid、流程健檢、迴圈檢查、圖表型態、diagram、flowchart、visualize domain、畫流程。"
+description: "引導剛寫完 domain 的老師把 SOP 流程圖像化：先討論主流程、做流程健檢（迴圈／死路／缺口），再把流程整理成結構化 spec，交由 .claude/skills/domain-diagram/scripts/mermaid_from_spec.py 確定性地產出 GitHub 原生 ```mermaid 圖與健檢結論並回嵌 domain。模型不手寫圖，畫圖一律過腳本以保證一致性。觸發條件：使用者提到 domain 流程圖、流程圖像化、把 domain 畫成圖、mermaid、流程健檢、迴圈檢查、圖表型態、diagram、flowchart、visualize domain、畫流程。"
 ---
 
 # Domain 流程圖像化助手（腳本驅動）
@@ -12,7 +12,7 @@ description: "引導剛寫完 domain 的老師把 SOP 流程圖像化：先討�
 
 ## 最高原則：模型不手寫圖
 
-> **flowchart 一律由 `scripts/mermaid_from_spec.py` 產生。模型只負責產出結構化的流程 spec（JSON），絕不手刻 ` ```mermaid ` fence。**
+> **flowchart 一律由 `.claude/skills/domain-diagram/scripts/mermaid_from_spec.py` 產生。模型只負責產出結構化的流程 spec（JSON），絕不手刻 ` ```mermaid ` fence。**
 
 理由：手寫 fence 會在節點形狀、配色、跳脱、安全子集上漂移，每張圖長相不一。把「畫」交給確定性腳本後，一致性由程式保證，模型專注在「流程對不對」。
 
@@ -44,7 +44,7 @@ description: "引導剛寫完 domain 的老師把 SOP 流程圖像化：先討�
 
 ### 3. 跑腳本：健檢 + 產圖（Audit & render）
 ```bash
-python3 scripts/mermaid_from_spec.py spec.json
+python3 .claude/skills/domain-diagram/scripts/mermaid_from_spec.py spec.json
 ```
 腳本同時做兩件事：
 - **audit**：自動跑健檢項 1–4（迴圈偵測、死路/不可達、終點覆蓋、決策完備），項 5–6 標記為人工。
@@ -72,7 +72,7 @@ state / sequence 等：   討論 → 健檢 → 速查表手寫模板 → mermai
 
 | 路徑 | 角色 |
 |---|---|
-| `scripts/mermaid_from_spec.py` | **唯一**的 flowchart 產圖器 + 結構健檢器 |
+| `.claude/skills/domain-diagram/scripts/mermaid_from_spec.py` | **唯一**的 flowchart 產圖器 + 結構健檢器 |
 | `references/spec-schema.md` | flowchart spec 的 JSON schema 與 kind 對照 |
 | `references/troubleshooting.md` | GitHub fence 中文/特殊字元/型態踩雷 |
 | `references/programmatization-roadmap.md` | 各圖種程式化進度（log / lint 接續依據） |
@@ -80,7 +80,7 @@ state / sequence 等：   討論 → 健檢 → 速查表手寫模板 → mermai
 
 ## 工具
 
-本 skill 是 domain 編輯與分析工作，**不呼叫 Revit MCP tools**。產圖呼叫本地 `python3 scripts/mermaid_from_spec.py`；其餘用 Read / Edit 操作 `domain/*.md`，必要時用 WebFetch 對照 mermaid.js.org 最新語法。
+本 skill 是 domain 編輯與分析工作，**不呼叫 Revit MCP tools**。產圖呼叫本地 `python3 .claude/skills/domain-diagram/scripts/mermaid_from_spec.py`；其餘用 Read / Edit 操作 `domain/*.md`，必要時用 WebFetch 對照 mermaid.js.org 最新語法。
 
 ## Reference
 

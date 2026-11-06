@@ -4,8 +4,15 @@ import os
 
 try:
     import ezdxf
-except ImportError:
-    print(json.dumps({"error": "缺少 ezdxf 套件，請在系統 Python 環境中安裝 (pip install ezdxf)"}))
+except Exception as e:
+    # #93 放寬捕捉範圍並附上實際 Python 路徑與版本，方便在多版本環境診斷 Revit 呼叫的是哪個 Python
+    print(json.dumps({
+        "error": (
+            "缺少 ezdxf 套件或匯入失敗，請在系統 Python 環境中安裝 (pip install ezdxf)。"
+            f" [{type(e).__name__}: {e}]"
+            f" 目前 Python: {sys.executable} (版本 {sys.version.split()[0]})"
+        )
+    }))
     sys.exit(1)
 
 # 常見 ODA File Converter 安裝路徑，依版本由新到舊排列
@@ -108,8 +115,23 @@ def main():
                 "height": height
             })
 
+        # Optional control-line layer used to validate elevation text placement.
+        control_lines = []
+        if len(sys.argv) > 3:
+            from ezdxf.disassemble import recursive_decompose
+            for entity in recursive_decompose(msp):
+                if entity.dxf.layer != sys.argv[3]:
+                    continue
+                if entity.dxftype() == "LINE":
+                    control_lines.append([list(entity.dxf.start), list(entity.dxf.end)])
+                elif entity.dxftype() in ("LWPOLYLINE", "POLYLINE"):
+                    for part in entity.virtual_entities():
+                        if part.dxftype() == "LINE":
+                            control_lines.append([list(part.dxf.start), list(part.dxf.end)])
+
         print(json.dumps({
             "success": True,
+            "control_lines": control_lines,
             "insunits": insunits,
             "insunits_to_mm": insunits_to_mm,
             "data": results

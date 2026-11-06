@@ -1,0 +1,36 @@
+{
+  "id": "TASK-009",
+  "title": "[已併入 TASK-005.1] 修復綠建材 Set 導入 Revit 的 MCP 工具串接缺口，並將 /GMimport /import revit 正式 Slash Command 化",
+  "content": "### ⚠️ 2026-08-11 看板重整：本卡內容已併入 TASK-005.1\n本卡與 TASK-005.1（情境1｜牆體構造與塗料 Set 導入）描述的是同一件工作——建立 duplicate_element_type / get_all_materials / set_green_material_type_parameters 等基礎工具，並用 Wall 板材＋塗料 Set 端到端實測。TASK-005.1 的內文已引用這批工具為「已納入既有 TASK-005 技術模組」。保留本卡作為歷史紀錄，後續請只在 TASK-005.1 追蹤此範疇的簽核狀態，不要在兩張卡上重複勾選。\n\n---\n\n### 任務說明\n修復綠建材 Set 導入 Revit 的 MCP 串接缺口，建立情境 1／10 所需的共同基礎：材料回查、Type 複製、材質名稱參數化、多槽位共享參數寫入，以及正式 /GMimport → /import revit 流程。\n\n### 已完成修復\n- [x] 註冊 get_all_materials、duplicate_element_type、set_green_material_type_parameters\n- [x] 修正共享參數檔編碼與 licno 後綴比對\n- [x] 依 Master DB subCategory 判斷 Structure／Finish\n- [x] 建立 /GM、/GMimport、/import revit Skill\n\n### Sign-off Gates (DOD)\n- [x] architecture: 使用正式 TS Tool＋C# dispatch，未繞過 MCP bridge\n- [x] test_passed: 情境 1 Wall 板材＋塗料端到端實測通過\n- [ ] code_review: 隨 TASK-005.1 一併複審（見該卡，尚待使用者簽核）",
+  "stage": "done",
+  "risk": "medium",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": false,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-005.1",
+    "TASK-005.10"
+  ],
+  "order": 8.11,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

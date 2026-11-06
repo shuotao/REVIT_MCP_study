@@ -1,0 +1,52 @@
+name: Abby my-revit-tool release
+on:
+  push:
+    branches: [my-revit-tool]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: abby-my-revit-tool-release
+  cancel-in-progress: false
+jobs:
+  package:
+    if: github.ref == 'refs/heads/my-revit-tool'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: MCP-Server/package-lock.json
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Validate source and updater
+        shell: pwsh
+        run: |
+          node scripts/abby/check-public-source.cjs
+          ./tests/abby-update-safety.ps1
+          node --test tests/abby-launcher.test.cjs
+      - name: Build all three Revit versions and package
+        shell: pwsh
+        run: |
+          $version = 'abby-my-revit-tool-' + $env:GITHUB_SHA.Substring(0,12)
+          ./scripts/abby/New-AbbyPackage.ps1 -Version $version
+          ./scripts/abby/New-AbbyInstallKit.ps1 -Package "$PWD/output/releases/Abby-MCP-$version.zip"
+          Push-Location MCP-Server
+          node --test tests/*.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'MCP contract tests failed' }
+          Pop-Location
+      - name: Publish only the Abby channel
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = 'abby-my-revit-tool-' + $env:GITHUB_SHA.Substring(0,12)
+          "Abby branch: my-revit-tool`nSource commit: $env:GITHUB_SHA`nRevit2024/2025/2026. Main unchanged." | Set-Content output/release-notes.txt -Encoding utf8
+          $assets = @(Get-ChildItem output/releases -File | Where-Object { $_.Name -match '\.(zip|sha256)$' } | ForEach-Object FullName)
+          gh release create $version @assets --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title $version --notes-file output/release-notes.txt --latest=false
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }

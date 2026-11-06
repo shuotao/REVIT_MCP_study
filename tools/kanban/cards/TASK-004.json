@@ -1,0 +1,35 @@
+{
+  "id": "TASK-004",
+  "title": "AI Agent 綠建材推送 Revit 需求對齊與互動式計畫擬訂機制",
+  "content": "### 任務說明\n當使用者在地端檢索網頁中「勾選材料」或「將材料 Set」點擊推送至 Revit 時，系統將觸發回傳至 AI Agent (建築 Agent)。Agent 透過 /GMimport 指令讀取材料 Set 的真實 licno 清單（由 exported_material_sets.json 橋接），依據 TASK-003 最新 11 大工程情境（包含牆體/地磚/天花板/門窗.rfa/非幾何填縫劑等）動態分析，對映 19 個共享參數與厚度推判矩陣，自動擬訂「Revit 共享參數寫入計畫 (v3 專業版)」，並提供兩條簽核確認路徑。\n\n### 已完成優化功能\n- [x] /GMimport 指令解析 licno 清單並精確匹配 Master DB\n- [x] generate_revit_injection_plan.py v3 計畫擬訂引擎（升級對映 19 個共享參數）\n- [x] 整合 TASK-003 11 大工程情境（自動推判 Finish/Substrate 位階與預設厚度）\n- [x] 支援非幾何材料（接著劑/填縫劑/防水膜）寫入 Construction 群組屬性\n- [x] write_back_to_set_manager() 路徑 A：對齊計畫回傳 exported_material_sets.json\n- [x] 路徑 B 框架：回傳 + 啟動 TASK-005 自動注入\n- [x] Set 管理器：🔄 重新整理按鈕即時從伺服器同步最新對齊計畫\n- [x] 預備執行動作 SOP 條列式呈現\n\n### Sign-off Gates (DOD)\n- [x] architecture: 完成 Web -> Agent -> JSON -> Web 全情境對映迴路\n- [x] ui: Set 管理器顯示對齊狀態、專案用途、條列式 SOP\n- [x] test_passed: /GMimport 11大工程情境與 19 個共享參數端到端對映測試通過",
+  "stage": "done",
+  "risk": "medium",
+  "owner": "shuotao",
+  "agent": "antigravity",
+  "approvalRequired": true,
+  "createdAt": "2026-07-30",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-4: 互動式 Revit 推送計畫與需求對齊",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-003"
+  ],
+  "order": 5,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

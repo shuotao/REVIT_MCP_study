@@ -1,0 +1,2 @@
+import assert from 'node:assert/strict';import test from 'node:test';import {executeRevitTool} from '../build/tools/revit-tools.js';
+test('CAD wall bridge preserves explicit width/type mapping with preview token',async()=>{const args={baseLevelId:1,topLevelId:2,wallTypeOverrides:[{widthMm:350,wallTypeId:3}],dryRun:false,apply:true,previewToken:'verified'};await executeRevitTool('create_walls_from_dwg',args,{async sendCommand(name,payload){assert.equal(name,'create_walls_from_dwg');assert.deepEqual(payload,args);return {success:true,data:{Created:1,Skipped:2}};}});});

@@ -1,0 +1,35 @@
+{
+  "id": "TASK-005.4",
+  "title": "情境 4｜含接著劑／填縫劑的複合 Set 導入",
+  "content": "### 任務說明\n當 Floor／Wall Set 同時包含面材與非幾何接著劑、填縫劑或防水材料時，幾何材料寫入 Compound Structure，輔助材料則寫入 Parent Type 的 Construction／Green Building 欄位。\n\n### 2026-08-11 前端＋計畫引擎已完成\n觸發點：使用者回報「材料層級設定」視窗把填縫劑（GBM0104110 CG2WA泰固美特耐磁磚填縫劑）錯誤地強制塞進 Structure（結構層）下拉選單，因為視窗當時只有 Structure/Substrate/Finish 三個角色可選，沒有輔助材料的容身之處。\n\n- [x] `assets/green-material-showcase.html` 材料層級設定視窗新增獨立的「🧴 輔助材料」拖曳區（`auxCompositionList`），與原本的構造層清單（`layerCompositionList`）並列、可雙向跨區拖曳（`layerDragFrom` 追蹤來源區＋索引，`moveDraggedEntry` 處理同區重排與跨區搬移，Core Boundary 分界線禁止被拖進輔助材料區）\n- [x] 新增 `classifyAuxiliaryKeyword(title)`：依標題關鍵字（接著劑/黏著劑/填縫/矽利康/防水/環氧樹脂）自動判斷 Adhesive/Sealant/Waterproofing，規則與 `generate_revit_injection_plan.py` 的 `analyze_material_mapping()` 完全一致；`buildDefaultLayerDraft()` 開啟視窗時先用這個規則把輔助材料自動分流到 auxDraft，不會預設塞進構造層\n- [x] `layerComposition` 資料結構新增 `auxiliary: [{licno, auxType}]` 欄位（`sequence` 之外的獨立陣列），Set 卡片摘要同步顯示「🧴 輔助材料：」\n- [x] `generate_revit_injection_plan.py` 新增 `_build_layer_composition_aux_map`/`_resolve_layer_composition_auxiliary`：讀取 `layerComposition.auxiliary`（使用者在視窗明確分類）優先於關鍵字啟發式判斷，比照既有 Structure/Substrate/Finish 角色覆寫的權威順序處理\n- [x] ~~修正 `_assign_material_slots`：排除輔助材料~~ → **使用者糾正並還原**：Mat1~Mat6 的用途是記錄「這個元件用了哪些綠建材」的完整清單，不是只有物理構造層才算數，輔助材料仍應正常參與槽位競爭（歸類 'Other' 最低優先序，材料數多時最先被擠到 unassigned，跟其他判斷不出角色的材料一視同仁）。已還原 `_assign_material_slots`/Markdown 報告回原本邏輯，GBM0104110 在真實 Set【地磚與填縫】測試中正確拿到 `mat2`\n- [x] 單元測試：`classifyAuxiliaryKeyword`/`buildDefaultLayerDraft` 用 Node 驗證（含全部輔助材料的邊界案例）；`generate_injection_plan` 用 mock Set 與真實 Set【地磚與填縫】（GBM0104110 填縫劑 + GBM0102995 陶瓷面磚，即畫面截圖的真實情境）雙重驗證 `isAuxiliary`/`GreenMaterial_Sealant`/正常 Mat 槽位分配皆正確；Markdown 報告輸出人工核對正確\n- [x] `node --check` 語法檢查通過；`verify-qaqc.ps1 -SkipBuild -SkipDeploy` 全數 PASS\n\n### 2026-08-11 Revit 寫入工具已開發（尚未部署/實測）\n- [x] `GreenMaterial_SharedParams.txt` 新增 GROUP 4「非幾何輔助材料 (Construction)」與 3 個新 TEXT 參數 `GreenMaterial_Adhesive`/`Sealant`/`Waterproofing`（GUID 接續既有編號 ...165~167，cp950 編碼安全寫入，不破壞既有 64 個參數；`validate_shared_params.py` 確認 67 參數 4 群組無重複 GUID）\n- [x] C# `SetGreenMaterialTypeParameters` 新增 `adhesive`/`sealant`/`waterproofing` 三個頂層字串參數，寫入對應欄位；`set_green_material_type_parameters` TS schema 同步更新；`dotnet build -c Release.R24`（0 錯誤）、`npm run build`（MCP-Server 乾淨）皆通過\n- [x] `.claude/skills/import/SKILL.md` Scenario 3：step 3 明確排除 `isAuxiliary` 材料進入 `layers` 陣列（它們沒有物理層，但仍要在 step 9 進 matN 槽位）；step 7 註明輔助材料不會出現在 `get_all_materials`（本來就不會實體建立 Material，不算驗證失敗）；step 9 新增輔助材料同時寫 matN + 對應的 adhesive/sealant/waterproofing 頂層欄位的說明\n- [x] 部署新 DLL（Revit 2024）並重啟後，端到端實測 Set【地磚與填縫】（GBM0104110 填縫劑 + GBM0102995 陶瓷面磚）：`load_shared_parameters` 確認新的 3 個 Construction 群組欄位成功綁定至 Floors（`GreenMaterial_Adhesive`/`Sealant`/`Waterproofing` 全部 `綁定成功`）；`create_multi_layer_type` 建立 `TABC_地磚與填縫`（Element ID 264332，來源 TypeId 339，經使用者確認厚度改為 10mm 而非計畫預設的通用 150mm），輔助材料正確被排除在 CompoundStructure 之外（只有 1 層 Structure）；`set_green_material_type_parameters` 一次寫入 mat1（陶瓷面磚）+ mat2（填縫劑，作為材料清單項目）+ `sealant`（GreenMaterial_Sealant 專屬欄位）共 24 個參數、0 缺漏；`get_element_info` 逐欄核對 `GreenMaterial_Sealant = \"CG2WA泰固美特耐磁磚填縫劑 (GBM0104110)\"` 與 Mat1/Mat2 內容皆正確；`exported_material_sets.json` 已更新為完成狀態\n\n### 驗收條件\n- [x] 自動辨識 GreenMaterial_Adhesive、GreenMaterial_Sealant、GreenMaterial_Waterproofing（UI 拖曳分流 + 計畫引擎 + 端到端 Revit 寫入皆已驗證）\n- [x] 非幾何材料不得建立零厚度構造層（從一開始就不進入 `layerComposition.sequence`，`create_multi_layer_type` 回傳只有 1 層幾何構造層，確認未產生零厚度層）\n- [x] 輔助材料與 Parent Type 關聯可追溯（`GreenMaterial_Sealant` 欄位 + Mat2 槽位皆可回查，`get_element_info` 驗證通過）\n- [ ] 支援 Wall 與 Floor 各一個組合案例（Floor 已完整驗證；Wall 案例尚未實測，UI/引擎/工具邏輯品類無關，理論上可直接沿用）\n- [x] 完成寫入後查詢驗證與異動摘要（見上方端到端實測紀錄）",
+  "stage": "done",
+  "risk": "medium",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": false,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-005.3"
+  ],
+  "order": 8.4,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

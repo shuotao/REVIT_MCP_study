@@ -1,8 +1,0 @@
-{
-    "git.path": "C:\\Program Files\\Git\\bin\\git.exe",
-    "git.enabled": true,
-    "git.autorefresh": true,
-    "git.autofetch": true,
-    "scm.defaultViewMode": "tree",
-    "workbench.colorTheme": "Light+"
-}

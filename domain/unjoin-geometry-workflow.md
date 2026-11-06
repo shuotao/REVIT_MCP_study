@@ -1,9 +1,9 @@
 ---
 name: unjoin-geometry-workflow
-description: "批次解除 Revit 幾何接合（Join Geometry）的 SOP：三代工具演化（unjoin_wall_joins / unjoin_column_joins / unjoin_element_joins）、BoundingBox 外擴搜尋策略、跑兩次驗證與 session-scoped 還原限制。觸發：解除接合、unjoin geometry、白模準備、render preparation。"
+description: "批次解除 Revit 幾何接合（Join Geometry）的 SOP：以 unjoin_element_joins 為唯一入口（前兩代已於 2026-10 自 MCP registry 退場）、BoundingBox 外擴搜尋策略、跑兩次驗證與 session-scoped 還原限制。觸發：解除接合、unjoin geometry、白模準備、render preparation。"
 metadata:
-  version: "1.0"
-  updated: "2026-04-21"
+  version: "1.1"
+  updated: "2026-10-23"
   created: "2026-04-21"
   contributors:
     - "lesleyliuke"
@@ -23,11 +23,20 @@ metadata:
 
 | 工具 | 範圍 | 對稱性 | 使用時機 |
 |------|------|--------|----------|
-| `unjoin_wall_joins` | 牆 → 鄰近柱（BBox 外擴 1ft） | 牆本位（單向） | 只處理牆-柱，已被下一代涵蓋 |
-| `unjoin_column_joins` | 柱 → 鄰近牆/樓板/結構樑 | 柱本位（多 target） | 專注柱子，比 wall_joins 多 target |
-| `unjoin_element_joins` | 任一類別 → 任一類別陣列 | **通用版** | 新任務優先用此 |
+| `unjoin_wall_joins` | 牆 → 鄰近柱（BBox 外擴 1ft） | 牆本位（單向） | **2026-10 已自 registry 退場**（#138 C3） |
+| `unjoin_column_joins` | 柱 → 鄰近牆/樓板/結構樑 | 柱本位（多 target） | **2026-10 已自 registry 退場**（#138 C3） |
+| `unjoin_element_joins` | 任一類別（或類別陣列）→ 任一類別陣列 | **通用版** | 唯一入口 |
 
-**本 domain 文件以 `unjoin_element_joins` 為核心**。前兩代保留是為向後相容與現有 `/element-coloring` skill 的依賴。
+**本 domain 文件以 `unjoin_element_joins` 為核心**。前兩代的行為都能用它表達，對照如下：
+
+| 舊工具呼叫 | 等價的 `unjoin_element_joins` 呼叫 |
+|---|---|
+| `unjoin_wall_joins(wallIds, viewId)` | `sourceCategory: "Walls"`、`targetCategories: ["Columns", "StructuralColumns"]`、`elementIds: wallIds`、`viewId` |
+| `unjoin_column_joins(columnIds, viewId)` | `sourceCategories: ["Columns", "StructuralColumns"]`、`targetCategories: ["Walls", "Floors", "StructuralFraming"]`、`elementIds: columnIds`、`viewId` |
+
+`sourceCategories`（陣列）是為了讓「建築柱＋結構柱」這種成對類別一次呼叫就涵蓋——沒有它，通用版就不是舊柱本位工具的真超集，退場會掉能力。
+
+**退場邊界**：兩個舊命令名在 add-in 的 dispatcher 仍保留為相容 shim，內部轉呼叫通用版，所以舊版 MCP-Server 與直接送命令名的既有腳本不會壞；AI client 的工具清單裡則已看不到它們。shim 保留了舊牆本位工具的兩個契約：未給 `wallIds` 也未給 `viewId` 時拋錯（不會擴及全專案）、開始前清空還原儲存（`rejoin_wall_joins` 只還原這一次）。直接呼叫 `unjoin_element_joins` 則是**累加**——多次解除後一次 rejoin 全部還原。
 
 ## 核心設計
 
@@ -40,7 +49,7 @@ source element 的 bbox → 外擴 1 ft（30.48 cm）→ 作為搜尋範圍
   → 若為 true 則 UnjoinGeometry
 ```
 
-**為什麼 1 ft？** 沿用 `unjoin_wall_joins` 的經驗值，可涵蓋絕大部分實際接合情境。
+**為什麼 1 ft？** 沿用第一代 `unjoin_wall_joins` 的經驗值，可涵蓋絕大部分實際接合情境。
 
 **盲點：** 若接合的兩元素 bbox 實際上完全不重疊（極罕見，通常是建模異常），會被搜尋漏掉。但 `AreElementsJoined` 的布林檢查仍會正確過濾 bbox 內的**假陽性**（碰到但沒 join）。
 
@@ -116,7 +125,7 @@ StructuralFraming, StructuralFoundation, Roofs, Ceilings
 ## 與其他 Skill 的互動
 
 - **`/batch-material`（渲染白模）**：先解除接合再換材質，避免接合導致顏色混淆
-- **`/element-coloring`**：`unjoin_wall_joins` 是既有依賴，新流程可用 `unjoin_element_joins` 替代
+- **`/element-coloring`**：牆上色前以 `unjoin_element_joins`（`sourceCategory: "Walls"`、`targetCategories: ["Columns", "StructuralColumns"]`）解除牆-柱接合
 - **`/fire-safety-check`**：防火時效視覺化前，若接合導致顏色邊界不清，可先解除
 
 ## 實戰數據參考

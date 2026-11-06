@@ -24,6 +24,12 @@ namespace RevitMCP.Core
         /// </summary>
         private object ExportFamilies(JObject parameters)
         {
+            if (parameters["replaceGreenFence"] is JObject replacement)
+                return ReplaceSelectedGreenFence(parameters,replacement);
+            if (parameters["familyConstraints"] is JObject constraints)
+                return ExportConstrainedFamily(parameters, constraints);
+            if (parameters["constructionFence"] is JObject fence)
+                return ExportConstructionFence(parameters, fence);
             Document doc = _uiApp.ActiveUIDocument.Document;
 
             string outputFolder = parameters["outputFolder"]?.Value<string>();

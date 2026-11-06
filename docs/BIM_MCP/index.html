@@ -1,18 +1,34 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>try{if(localStorage.getItem("bim-theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}</script>
 <title>BIM_MCP Reference Hub</title>
 <meta property="og:title" content="BIM_MCP Reference Hub">
-<meta property="og:description" content="BIM_MCP 的 reference、月度封存與 hands-on 入口。">
+<meta property="og:description" content="安裝 Revit MCP、做第一次只讀查詢，再依任務找方法的入口。">
+<meta name="description" content="安裝 Revit MCP、做第一次只讀查詢，再依任務找方法的入口。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://shuotao.github.io/REVIT_MCP_study/docs/BIM_MCP/index.html">
+<meta property="og:site_name" content="BIM_MCP">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://shuotao.github.io/REVIT_MCP_study/docs/BIM_MCP/images/index__og__hub.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="BIM_MCP 首頁：用自然語言查詢與操作 Revit，認識、安裝、第一次查詢、找方法、貢獻五步">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="BIM_MCP Reference Hub">
+<meta name="twitter:description" content="安裝 Revit MCP、做第一次只讀查詢，再依任務找方法的入口。">
+<meta name="twitter:image" content="https://shuotao.github.io/REVIT_MCP_study/docs/BIM_MCP/images/index__og__hub.jpg">
+<meta name="twitter:image:alt" content="BIM_MCP 首頁：用自然語言查詢與操作 Revit，認識、安裝、第一次查詢、找方法、貢獻五步">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="nav.css">
 <style>
-  .bim-hero-figure,.bim-figure{margin:var(--gap-lg) 0 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:#000}
+  .bim-hero-figure,.bim-figure{margin:var(--gap-lg) 0 0;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--figure-bg)}
   .bim-hero-figure img,.bim-figure img{display:block;width:100%;height:auto}
   .hub-card{min-height:190px;display:flex;flex-direction:column;justify-content:space-between;border-bottom:none;color:inherit}
   .hub-card:hover{border-color:var(--accent-border)}
@@ -20,10 +36,21 @@
   .archive-row{display:grid;grid-template-columns:160px 1fr auto;gap:18px;padding:16px 0;border-bottom:1px solid var(--border);align-items:center}
   .archive-row:last-child{border-bottom:none}
   .archive-date{font-family:var(--font-tech);color:var(--accent);letter-spacing:1px}
-  @media(max-width:700px){.archive-row{grid-template-columns:1fr}.bim-topnav-actions{display:none}}
+  .hub-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
+  .hub-hero-grid{display:grid;grid-template-columns:3fr 2fr;gap:var(--gap-lg);align-items:center;margin-top:var(--gap-lg)}
+  .hub-hero-grid .bim-figure{margin:0}
+  .hub-path-list{margin:0;padding-left:1.4em;line-height:1.9;color:var(--text-body)}
+  .hub-group{font-family:var(--font-tech);font-size:13px;letter-spacing:2px;color:var(--accent);margin:var(--gap-lg) 0 12px;font-weight:500}
+  @media(max-width:900px){.hub-hero-grid{grid-template-columns:1fr}}
+  @media(max-width:700px){.archive-row{grid-template-columns:1fr}.bim-topnav-actions{flex-wrap:nowrap}.bim-topnav-actions a:nth-child(1),.bim-topnav-actions a:nth-child(3),.bim-topnav-actions a:nth-child(4){display:none}.hub-hero-grid{grid-template-columns:1fr}}
 </style>
 </head>
-<body data-next="reference/philosophy-22-propositions.html">
+<!-- 導覽鏈：hub 是入口，不是章節。
+     本頁的 next 是進入 reference 導覽的入口匝道；末頁 personal-llm-wiki 的 next 指回本頁，是出口匝道。
+     兩條匝道刻意不對稱 —— 請勿為了「補齊互指」而給本頁補上 prev 屬性，
+     那會讓站點入口長出「上一篇」卡片，且 ← 鍵會跳進導覽末頁。
+     （此註解刻意不寫出屬性的完整字面形式，以免被掃描 data-* 的工具誤讀。） -->
+<body>
 <nav class="bim-topnav">
   <div class="bim-topnav-left">
     <a href="index.html" class="bim-topnav-home">BIM_MCP</a>
@@ -35,77 +62,119 @@
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
       GitHub
     </a>
-    <a href="reference/philosophy-22-propositions.html" class="bim-topnav-btn">22 propositions</a>
+    <a href="reference/deployment-guide.html" class="bim-topnav-btn">安裝</a>
     <a href="reference/domain-index.html" class="bim-topnav-btn">Domain</a>
     <a href="reference/contributor-template.html" class="bim-topnav-btn">Contribute</a>
-    <a data-meetup-link class="bim-topnav-btn bim-topnav-btn-primary" title="本月小聚報名表單（每月更新）">📝 報名小聚</a>
+    <a data-meetup-link class="bim-topnav-btn bim-topnav-btn-primary" title="小聚報名（開放時才可點）">📝 小聚報名</a>
   </div>
 </nav>
 
 <header class="bim-hero">
-  <div class="bim-hero-eyebrow">BIM_MCP <span class="accent">reference / archive / latest</span></div>
-  <h1 class="bim-hero-title">把 Revit MCP 的知識、SOP、Demo 流程放在同一個入口</h1>
-  <p class="bim-hero-sub">Revit MCP 的文件總覽：reference 是長期基礎，月度封存保留每月簡報與閱讀材料，hands-on 入口放實作流程與現場演示素材（最新 2026-07-09：單日五波 fork 收編，工具 103→146）。</p>
-  <div style="margin-top:18px;"><a class="bim-topnav-btn bim-topnav-btn-primary" href="reference/deployment-guide.html#skill-install" title="把 hj-pr-proposal 一鍵裝進 Claude Code（跨平台、純文字、不會被防毒攔）">🧩 想一鍵裝 Skill？這裡有小白教學</a></div>
-  <figure class="bim-hero-figure">
-    <img src="images/index__hero__three-layer.svg" alt="BIM_MCP three layer navigation mark" width="1600" height="900">
-  </figure>
+  <div class="bim-hero-eyebrow">BIM_MCP <span class="accent">安裝 → 第一次查詢 → 找方法</span></div>
+  <h1 class="bim-hero-title">用自然語言查詢與操作 Revit</h1>
+  <p class="bim-hero-sub">先裝好，做一次只讀的查詢，再依你的任務找方法。這個站放的是 Revit MCP 的安裝步驟、方法（Domain）、工作流程（Skill）與工具（Tool）索引。</p>
+  <div class="hub-cta">
+    <a class="bim-topnav-btn bim-topnav-btn-primary" href="reference/deployment-guide.html#quick">安裝並完成第一次查詢</a>
+    <a class="bim-topnav-btn" href="reference/deployment-guide.html#verify">已安裝，直接做第一次查詢</a>
+  </div>
+  <div class="hub-hero-grid">
+    <figure class="bim-figure bim-illustration">
+      <img src="images/index__hero__first-success-path.webp" alt="從安裝、第一次唯讀查詢，到選擇方法與貢獻的使用路徑" width="1600" height="901">
+      <figcaption>概念示意圖（AI 生成），非軟體畫面</figcaption>
+    </figure>
+    <ol class="hub-path-list">
+      <li><strong>認識</strong>：看懂 Skill、Domain、Tool 各管什麼</li>
+      <li><strong>安裝</strong>：把外掛裝進你的 Revit</li>
+      <li><strong>第一次查詢</strong>：只讀，不改模型</li>
+      <li><strong>找方法</strong>：依任務找 Domain 與 Skill</li>
+      <li><strong>貢獻</strong>：補方法、補流程、補工具</li>
+    </ol>
+  </div>
 </header>
 
 <section class="bim-section">
-  <p class="bim-section-desc">一句話：BIM_MCP 讓你用講人話的方式操作 Revit——AI 讀懂需求，透過 166 個工具直接改模型、查資料、跑法規檢核。</p>
-  <p class="bim-section-desc">三層：Skill（50・何時觸發）→ Domain（72・方法與法規）→ Tool（166・實際動 Revit）。</p>
-  <p class="bim-section-desc">第一次來？先看 <a href="reference/architecture-v2.html">三層架構 V2</a>（5 分鐘懂全貌），再挑一個 <a href="reference/skills-index.html">Skill</a> 試跑。完整哲學看 <a href="reference/philosophy-22-propositions.html">22 命題</a>。</p>
+  <p class="bim-section-desc">一句話：BIM_MCP 讓你用講人話的方式操作 Revit——AI 讀懂需求，透過 239 個工具直接改模型、查資料、跑法規檢核。</p>
+  <p class="bim-section-desc">三層：Skill（61・何時觸發）→ Domain（94・方法與法規）→ Tool（239・實際動 Revit）。</p>
+  <p class="bim-section-desc">第一次來？先看 <a href="reference/architecture-v2.html">Skill / Domain / Tool 如何分工</a>（5 分鐘懂全貌），再挑一個 <a href="reference/skills-index.html">Skill</a> 試跑。完整哲學看 <a href="reference/philosophy-22-propositions.html">22 命題</a>。</p>
   <p class="bim-section-desc"><a href="2026-07/harvest-waves.html">收編波</a>＝把 fork 貢獻一波波手動搬進主線的流程。</p>
 </section>
 
 <section class="bim-section bim-anchor" id="paths">
-  <div class="bim-section-eyebrow">SECTION 01 / ROUTES</div>
-  <h2 class="bim-section-title">三個入口，各自承擔不同節奏</h2>
-  <figure class="bim-figure">
-    <img src="images/index__section01__site-map.svg" alt="Reference archive and latest route map" width="1600" height="600" loading="lazy">
-  </figure>
+  <div class="bim-section-eyebrow">SECTION 01 / START HERE</div>
+  <h2 class="bim-section-title">你現在要做什麼</h2>
   <div class="bim-grid bim-grid-3">
-    <a class="bim-card hub-card" href="#reference">
-      <small>reference</small>
-      <h4>穩定知識庫</h4>
-      <p>架構、哲學、三條憲法、產業證據、技能與 domain 索引。</p>
+    <a class="bim-card hub-card" href="reference/architecture-v2.html">
+      <small>1 · 認識</small>
+      <h3>先看懂全貌</h3>
+      <p>Skill / Domain / Tool 的分工，5 分鐘讀完。</p>
     </a>
-    <a class="bim-card hub-card" href="#archive">
-      <small>archive</small>
-      <h4>月度材料</h4>
-      <p>依月份保存簡報、讀書材料與 demo 前後脈絡。</p>
+    <a class="bim-card hub-card" href="reference/deployment-guide.html#quick">
+      <small>2 · 安裝</small>
+      <h3>安裝到你的 Revit</h3>
+      <p>從部署指南的快速安裝開始，裝好外掛與 MCP 伺服器。</p>
     </a>
-    <a class="bim-card hub-card" href="#latest">
-      <small>latest</small>
-      <h4>Hands-on</h4>
-      <p>用於現場操作的最新練習與流程入口。</p>
+    <a class="bim-card bim-card-accent hub-card" href="reference/deployment-guide.html#verify">
+      <small>3 · 第一次成功</small>
+      <h3>做一次只讀查詢</h3>
+      <p>用查詢工具核對專案與視圖名稱，確認連線沒問題；不會改動模型。</p>
+    </a>
+    <a class="bim-card hub-card" href="reference/domain-index.html">
+      <small>4 · 找方法</small>
+      <h3>依任務找 Domain 與 Skill</h3>
+      <p>法規檢討、數量、編號、視圖整理……先找方法，再找流程。</p>
+    </a>
+    <a class="bim-card hub-card" href="reference/contributor-template.html#proposal-skill">
+      <small>5 · 貢獻</small>
+      <h3>補上你的方法或流程</h3>
+      <p>想把 hj-pr-proposal 裝進 Claude Code，或提案新增 SOP、Skill、工具。</p>
+    </a>
+    <a class="bim-card hub-card" href="reference/troubleshooting.html">
+      <small>卡住了</small>
+      <h3>排錯</h3>
+      <p>看不到外掛、無法連線、結果不符合預期，從症狀找入口。</p>
     </a>
   </div>
 </section>
 
 <section class="bim-section bim-anchor" id="reference">
   <div class="bim-section-eyebrow">SECTION 02 / REFERENCE</div>
-  <h2 class="bim-section-title">Reference 頁面</h2>
+  <h2 class="bim-section-title">Reference 頁面：依用途找</h2>
+
+  <h3 class="hub-group">安裝與排錯</h3>
   <div class="bim-grid bim-grid-3">
-    <a class="bim-card hub-card" href="reference/architecture-v2.html"><small>architecture</small><h4>三層架構 V2</h4><p>Skill / CLAUDE.md / Domain 的分工。</p></a>
-    <a class="bim-card hub-card" href="reference/philosophy-22-propositions.html"><small>philosophy</small><h4>22 propositions</h4><p>Revit MCP 的設計命題。</p></a>
-    <a class="bim-card hub-card" href="reference/three-constitutions.html"><small>guard rails</small><h4>四條憲法</h4><p>被動就緒 / 資料誠實 / Domain method / Active Re-Anchoring。2026-05-22 新增第四條。</p></a>
-    <a class="bim-card hub-card" href="reference/industry-evidence.html"><small>evidence</small><h4>產業證據</h4><p>成本曲線、返工、early mover 論述。</p></a>
-    <a class="bim-card hub-card" href="reference/spectrum-decision.html"><small>decision</small><h4>Spectrum Decision</h4><p>把 FAIL 從 0/1 改成可談判的 A/B/C/D。</p></a>
-    <a class="bim-card hub-card" href="reference/skills-index.html"><small>skills</small><h4>50 Skills</h4><p>AI workflow orchestration 索引。</p></a>
-    <a class="bim-card hub-card" href="reference/domain-index.html"><small>domain</small><h4>Domain SOP</h4><p>由 repo 內 domain/*.md 建出的 SOP 索引。</p></a>
-    <a class="bim-card hub-card" href="reference/deployment-guide.html"><small>deploy</small><h4>部署指南</h4><p>Nice3point、Release.R{YY}、setup.ps1。</p></a>
+    <a class="bim-card hub-card" href="reference/deployment-guide.html"><small>deploy</small><h4>部署指南</h4><p>安裝到你的 Revit：Nice3point、Release.R{YY}、setup.ps1。</p></a>
     <a class="bim-card hub-card" href="reference/troubleshooting.html"><small>debug</small><h4>Troubleshooting</h4><p>5 個經典問題與 5/18 demo 4 個修復。</p></a>
+  </div>
+
+  <h3 class="hub-group">理解架構與設計理由</h3>
+  <div class="bim-grid bim-grid-3">
+    <a class="bim-card hub-card" href="reference/architecture-v2.html"><small>architecture</small><h4>工作流程、方法與工具如何分工</h4><p>Skill / Domain / Tool 的分工。</p></a>
+    <a class="bim-card hub-card" href="reference/three-constitutions.html"><small>guard rails</small><h4>四條憲法</h4><p>被動就緒 / 資料誠實 / Domain method / Active Re-Anchoring。2026-05-22 新增第四條。</p></a>
+    <a class="bim-card hub-card" href="reference/philosophy-22-propositions.html"><small>philosophy</small><h4>22 propositions</h4><p>Revit MCP 的設計命題。</p></a>
+    <a class="bim-card hub-card" href="reference/spectrum-decision.html"><small>decision</small><h4>Spectrum Decision</h4><p>把 FAIL 從 0/1 改成可談判的 A/B/C/D。</p></a>
+    <a class="bim-card hub-card" href="reference/industry-evidence.html"><small>evidence</small><h4>產業證據</h4><p>成本曲線、返工、early mover 論述。</p></a>
+  </div>
+
+  <h3 class="hub-group">找方法、流程與工具</h3>
+  <div class="bim-grid bim-grid-3">
+    <a class="bim-card hub-card" href="reference/domain-index.html"><small>domain</small><h4>Domain SOP</h4><p>由 repo 內 domain/*.md 建出的 SOP 索引。</p></a>
+    <a class="bim-card hub-card" href="reference/skills-index.html"><small>skills</small><h4>61 Skills</h4><p>AI workflow orchestration 索引。</p></a>
+    <a class="bim-card hub-card" href="reference/tools-index.html"><small>tools</small><h4>239 Tools</h4><p>執行層完整索引，由 registerRevitTools() 產生；標示哪些會動到模型。</p></a>
+    <a class="bim-card hub-card" href="reference/mep-playbook.html"><small>playbook</small><h4>機電教戰手冊</h4><p>一次實作演練寫成三章：量從哪裡來、怎麼進模型、怎麼自己檢核自己。</p></a>
+  </div>
+
+  <h3 class="hub-group">貢獻、紀錄與個人知識庫</h3>
+  <div class="bim-grid bim-grid-3">
     <a class="bim-card hub-card" href="reference/contributor-template.html"><small>contribute</small><h4>Contributor Template</h4><p>新增 SOP、Skill、工具前的寫作順序。</p></a>
-    <a class="bim-card hub-card" href="reference/contributors.html"><small>credits</small><h4>建置協助人 · 致謝</h4><p>15 位貢獻者：真名 + @handle + 對應 PR／收編波次。</p></a>
+    <a class="bim-card hub-card" href="reference/contributors.html"><small>credits</small><h4>建置協助人 · 致謝</h4><p>27 位貢獻者：GitHub handle + 對應 PR／收編波次。</p></a>
+    <a class="bim-card hub-card" href="reference/kanban-index.html"><small>dev record</small><h4>看板卡索引</h4><p>綠建材工具鏈的 23 張開發紀錄：每張卡連到它產出的 domain／skill／工具與當時實測 ID。</p></a>
     <a class="bim-card hub-card" href="reference/personal-llm-wiki.html"><small>personal wiki</small><h4>個人 LLM Wiki</h4><p>把 Domain pull 回家，用 Obsidian 長成自己的知識庫，再回饋上游。</p></a>
   </div>
 </section>
 
 <section class="bim-section bim-anchor" id="archive">
   <div class="bim-section-eyebrow">SECTION 03 / ARCHIVE</div>
-  <h2 class="bim-section-title">月度封存</h2>
+  <h2 class="bim-section-title">延伸閱讀與封存</h2>
   <div class="archive-row"><div class="archive-date">2026-04</div><div><strong>Karpathy wiki reading</strong><br><span style="color:var(--text-muted)">AI agent 與工作流材料。</span></div><a class="bim-topnav-btn" href="reference/external/karpathy-wiki-reading.html">Open</a></div>
   <div class="archive-row"><div class="archive-date">2026-05</div><div><strong>五月小聚 — MCP × Revit：限制顯現器</strong><br><span style="color:var(--text-muted)">22 條命題、Live Demo、跟著做的 10 個 Prompt。</span></div><a class="bim-topnav-btn" href="../0523-monthly.html">Open</a></div>
   <div class="archive-row"><div class="archive-date">2026-06</div><div><strong>六月小聚 — Obsidian 個人 LLM Wiki（主軸）</strong><br><span style="color:var(--text-muted)">把 Domain 全庫（當時 61 檔）變成你的個人 Wiki；DWG 自動建柱與族群盤點的實作見下方 hands-on。含抽籤與報名。</span></div><a class="bim-topnav-btn" href="../0621-presentation.html">Open</a></div>
@@ -113,40 +182,67 @@
 </section>
 
 <section class="bim-section bim-anchor" id="latest">
-  <div class="bim-section-eyebrow">SECTION 04 / LATEST · 2026-07</div>
-  <h2 class="bim-section-title">Hands-on 最新入口</h2>
+  <div class="bim-section-eyebrow">SECTION 04 / LATEST · 2026-10</div>
+  <h2 class="bim-section-title">更新公告與歷史練習</h2>
+
+  <h3 class="hub-group">更新公告</h3>
   <div class="bim-grid bim-grid-3">
-    <a class="bim-card bim-card-accent hub-card" href="2026-07/harvest-waves.html">
-      <small style="font-family:var(--font-tech);color:var(--text-faint);letter-spacing:2px;text-transform:uppercase">2026-07-09 · 里程碑</small>
-      <h4>五波收編：103→146 工具</h4>
-      <p>任遠、朱宣宇、劉可、鈺傑四位貢獻者的 fork 內容逐波手動移植：+43 工具、+6 domain、+17 skill，dispatcher 零移除，跨版本 build 全過。</p>
+    <a class="bim-card bim-card-accent hub-card" href="2026-10/fork-harvest.html">
+      <small>2026-10-23 · 更新公告</small>
+      <h4>五個 fork 收編</h4>
+      <p>工具 220→239、domain 90→94。逐 commit 列出收了什麼、沒收什麼（附紀錄中的理由或「未記錄理由」），並明講只在 macOS 驗過。</p>
     </a>
-    <a class="bim-card bim-card-accent hub-card" href="2026-07/beam-penetration.html">
-      <small style="font-family:var(--font-tech);color:var(--text-faint);letter-spacing:2px;text-transform:uppercase">本月出貨 · hands-on</small>
+    <a class="bim-card bim-card-accent hub-card" href="2026-10/revit-ui-update.html">
+      <small>2026-10-12 · 更新公告</small>
+      <h4>Ribbon 狀態圖示＋相機管理面板</h4>
+      <p>工具 192→221。改的是 add-in 本體，<strong>只 git pull 不會有任何變化</strong>——頁內有四步升級流程、停靠面板用法、以及 29 支新工具清單。</p>
+    </a>
+    <a class="bim-card bim-card-accent hub-card" href="2026-07/harvest-waves.html">
+      <small>2026-07-09 · 里程碑</small>
+      <h4>五波收編：103→146 工具</h4>
+      <p>四位貢獻者的 fork 內容逐波手動移植：+43 工具、+6 domain、+17 skill，dispatcher 零移除，跨版本 build 全過。名單見致謝頁。</p>
+    </a>
+  </div>
+
+  <h3 class="hub-group">歷史練習</h3>
+  <div class="bim-grid bim-grid-3">
+    <a class="bim-card hub-card" href="2026-07/beam-penetration.html">
+      <small>2026-07 · hands-on</small>
       <h4>穿梁套管自動檢核</h4>
       <p>掃描視圖套管 → 幾何萃取分類 → RC 法規判定（H/3、禁開區、相鄰淨距）；PR #68 收編 + v2 續行。</p>
     </a>
     <a class="bim-card hub-card" href="2026-06/dwg-column.html">
-      <small style="font-family:var(--font-tech);color:var(--text-faint);letter-spacing:2px;text-transform:uppercase">2026-06 · hands-on</small>
+      <small>2026-06 · hands-on</small>
       <h4>DWG 圖層自動建柱</h4>
       <p>掃描圖層 → 預覽健檢 → 批次建模；Wave 1 批次建模 + Wave 2 柱號對應三模式、自動單位偵測、DXF/DWG 降級。</p>
     </a>
     <a class="bim-card hub-card" href="2026-06/family-inventory.html">
-      <small style="font-family:var(--font-tech);color:var(--text-faint);letter-spacing:2px;text-transform:uppercase">2026-06 · hands-on</small>
+      <small>2026-06 · hands-on</small>
       <h4>族群盤點與清整</h4>
       <p>雙軸盤點 → 簽章比對 → 你來把關；從一根「名字寫 30、其實是 24」的柱看簽章鐵則。</p>
+    </a>
+    <a class="bim-card hub-card" href="../0523-handson.html">
+      <small>2026-05 · 五月練習</small>
+      <h4>跟著做的 Prompt 練習頁</h4>
+      <p>五月小聚的實作頁，直接打開就能照著做。</p>
+    </a>
+    <a class="bim-card hub-card" href="2026-05/handson.html">
+      <small>2026-05 · 導讀</small>
+      <h4>五月練習導讀</h4>
+      <p>練習前先讀：這份練習要你觀察什麼。</p>
     </a>
   </div>
 </section>
 
 <footer class="bim-footer">
   <div class="bim-footer-actions">
-    <a class="bim-footer-btn primary" href="reference/philosophy-22-propositions.html">Start reference</a>
-    <a class="bim-footer-btn" href="reference/domain-index.html">Domain</a>
-    <a class="bim-footer-btn" href="reference/contributor-template.html">Contribute</a>
-    <a data-meetup-link class="bim-footer-btn" title="本月小聚報名（表單每月更新）">📝 本月小聚報名</a>
+    <a class="bim-footer-btn primary" href="reference/deployment-guide.html">安裝並完成第一次查詢</a>
+    <a class="bim-footer-btn" href="reference/domain-index.html">找方法</a>
+    <a class="bim-footer-btn" href="reference/contributor-template.html">貢獻</a>
+    <a class="bim-footer-btn" href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener">GitHub 原始碼</a>
+    <a data-meetup-link class="bim-footer-btn" title="小聚報名（開放時才可點）">📝 小聚報名</a>
   </div>
-  <p>BIM_MCP / hub / 2026-07-09</p>
+  <p>BIM_MCP / hub / 最後審閱 2026-10-23</p>
 </footer>
 <script src="shared.js"></script>
 <script>initAll({home:"index.html"});</script>

@@ -6,6 +6,34 @@
 
 ---
 
+## [1.6.0] - 2026-07-31
+
+### 🆕 新增 — MCP 2026-07-28 升級（Path-A dual-era + WP-F Apps）
+
+- **工具標註**：全 167 工具補上 `title` + `readOnlyHint`/`destructiveHint`（`MCP-Server/src/tools/annotations.ts` 於 `registerRevitTools()` 中央注入）；77 唯讀 / 90 寫入 / 2 破壞性（`delete_element`、`dedup_detail_elements_in_view`）。純 metadata，舊客戶端會忽略。
+- **`tools/list` 決定性排序**：依工具名稱 codepoint 排序（locale-independent），每次啟動/呼叫順序一致。
+- **MCP Apps 互動式 UI（extension `io.modelcontextprotocol/ui`）**：第一個互動工具 —— `detect_clashes` 的 clash viewer（碰撞摘要 + 清單、「在 Revit 上色」→ `colorize_clashes`、逐列「定位」→ `zoom_to_element`）。以低階 `Server` 手動接線（`resources` capability + `ListResources`/`ReadResource`，MIME `text/html;profile=mcp-app`）；UI 為單一自我包含 HTML（esbuild）。需宿主支援該 extension 才會 render，否則忽略 `_meta.ui`、工具照常回傳文字。
+- **SDK 升級**：`@modelcontextprotocol/sdk` 1.22 → 1.30（協定 2025-11-25，仍保留 2025-06-18 → dual-era 相容）；新增相依 `@modelcontextprotocol/ext-apps`、`zod`，devDep `esbuild`。
+
+### 🔧 CI / QAQC
+
+- **`.github/workflows/check-pr.yml`**：knowledge-only 限制改為僅套用外部 fork PR（`head.repo.fork == true`）；維護者同倉庫 PR 可修改程式碼與設定。
+- **`scripts/verify-qaqc.ps1`**：新增 **Phase 9**（9-1 工具 annotation 覆蓋 + destructive 白名單；9-2 Apps `ui://` 資源解析 / MIME / 自我包含），與既有 8 phase 併存。
+
+### ⏳ 延後（等官方 SDK 釋出 2026-07-28 協定）
+
+- Stateless 連線、`server/discover`、`resultType`、Tasks core、HTTP / OAuth 傳輸與授權 —— 由每日雲端 watcher 追蹤上游 SDK，條件成立即接手（需本機 build + live-Revit red→green）。
+
+### 📌 版號說明
+
+- 本版將 npm 套件版號對齊專案版號線：CHANGELOG 前一版為 1.5.2，npm 套件先前停在 1.0.2，本次一併追上至 **1.6.0**（`package.json` / `server.json` / npm 三處同步）。
+
+### 🙏 遷移
+
+- 詳見 `docs/MIGRATION_GUIDE.md`「MCP 2026-07-28 雙時代相容升級」章節。
+
+---
+
 ## [1.5.2] - 2026-07-16
 
 ### 🐛 Bug 修正（PowerShell 部署腳本）

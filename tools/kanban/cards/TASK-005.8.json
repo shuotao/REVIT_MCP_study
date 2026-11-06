@@ -1,0 +1,36 @@
+{
+  "id": "TASK-005.8",
+  "title": "情境 8｜天花板系統 Set 導入（OST_Ceilings）",
+  "content": "### 任務說明\n將吸音天花板、矽酸鈣天花板與礦纖板等 Set 導入 Ceiling Type，面層配置於 Finish 1 [4]，並同步吸音性能與綠建材履歷。\n\n### 2026-08-12 開發中發現並修正的關鍵 bug\n研究時發現 `generate_revit_injection_plan.py` 的 `GreenMaterial_AcousticNRC` 寫入邏輯是錯的：`0.75 if \"吸音\" in sub_cat else 0.0`，但天花板類材料的 `subCategory` 實際值是「天花板類」，字面上從不包含「吸音」兩字，導致所有天花板材料的 AcousticNRC 永遠被硬寫成 0.0——即使 `tabc_master_database.json` 71 筆天花板類記錄的 `testItems` 裡都有真實數值（如「降噪係數 NRC：0.75」）。新增 `_extract_acoustic_nrc()` 改用正則從 `testItems` 擷取真實數字。\n\n過程中另外發現 `load_shared_parameters`（`CommandExecutor.GreenMaterial.cs`）有更深層的既有 bug：判斷「參數是否已綁定」時只比對參數名稱＋Type/Instance 綁定型態是否相符，**沒有檢查現有綁定的 `CategorySet` 是否真的涵蓋這次要求的品類**。因為 GreenMaterial 參數之前已綁定過 Walls/Floors，這次要求 Ceilings 時被誤判為「已存在相符綁定」直接跳過，導致 Ceilings 從未真正被加入 CategorySet，寫入天花板 Type 時 11 個參數全部 `MissingParameters`。已修正為：綁定型態相符時額外比對 CategorySet，缺少的品類用 `CategorySet.Insert` + `BindingMap.ReInsert` 擴充（而非略過）。此 bug 影響範圍不限天花板，任何「參數已綁定過但要求新品類」的情境都會受影響，已一併修正。\n\n### 2026-08-12 端到端實測\nSet【天花板測試】GBM0104186「Knauf Ceiling Solutions(KCS)岩棉裝飾吸音板」，各別建立情境，複製來源 TypeId 19847「礦纖天花板 600x600mmx19mm」：`create_single_material_type` 建立新 Type（Element ID 264422）與材質（Element ID 264424）；`load_shared_parameters` 重新綁定 Ceilings 品類，67 個參數確認「已擴充綁定至新品類」；`set_green_material_type_parameters` 寫入 11 個欄位（含修正後的 `GreenMaterial_AcousticNRC: 0.75` 真實值）、0 缺漏；`get_element_info` 逐欄核對相符，`get_all_materials` 確認材質命名正確。\n\n### 驗收條件\n- [x] 以 subCategory 判定天花板，避免牆板誤分類（`analyze_material_mapping()` 依 subCategory=\"天花板類\" 分派 OST_Ceilings，本次實測確認正確）\n- [x] 面板厚度預設範圍 9–15 mm，並允許規格覆寫（計畫預設 12mm 落在範圍內；本次用「各別建立」情境沿用來源 Type 構造，厚度覆寫能力已在 Scenario 3 `create_multi_layer_type` 的 `thicknessMm` 參數驗證過，屬共用機制）\n- [x] GreenMaterial_AcousticNRC 與試驗資料正確寫入（修正 bug 後寫入真實值 0.75，並經 `get_element_info` 核對）\n- [x] 可複製既有 Ceiling Type 並套用獨立 Material（TypeId 264422 + MaterialId 264424，來源 Type 19847 未受影響）\n- [x] 完成 Revit 查詢驗證與異動摘要（見上方端到端實測記錄）",
+  "stage": "done",
+  "risk": "medium",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": false,
+  "createdAt": "2026-08-03",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-005.3",
+    "TASK-005.6"
+  ],
+  "order": 8.8,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

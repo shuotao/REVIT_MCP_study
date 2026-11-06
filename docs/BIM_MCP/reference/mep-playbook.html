@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>try{if(localStorage.getItem("bim-theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}</script>
+<title>機電設計教戰手冊 · BIM_MCP</title>
+<meta property="og:title" content="機電設計教戰手冊：把一份方法論走成可依循的三章">
+<meta property="og:description" content="從 domain/mep-space-demand-matrix.md 長出來的教學版。量從哪裡來、怎麼進模型、怎麼組成系統並自己檢核自己。演練標的是 Autodesk 認證課程模型，非任何客戶案件。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../nav.css">
+<style>
+  .ch-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+    margin-bottom: var(--gap-sm);
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: 22px;
+    align-items: start;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .ch-card:hover { border-color: var(--accent-border); transform: translateX(4px); }
+  .ch-num {
+    font-family: var(--font-tech);
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--text-faint);
+  }
+  .ch-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+  .ch-meta {
+    font-family: var(--font-tech);
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+  }
+  .ch-lead { font-size: 14.5px; line-height: 1.85; color: var(--text-body); }
+  .ch-sections {
+    margin-top: 12px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.95;
+  }
+  .ch-sections code { font-size: 11.5px; }
+  .kind-table td:first-child { white-space: nowrap; font-weight: 700; }
+  .warn-row td { color: var(--accent); }
+  .prov {
+    border-left: 3px solid var(--accent-border);
+    padding: 14px 20px;
+    background: var(--bg-card);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    margin: var(--gap-sm) 0;
+  }
+  .prov p { margin: 6px 0; font-size: 14px; }
+  @media (max-width: 720px) {
+    .ch-card { grid-template-columns: 1fr; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="bim-topnav">
+  <div class="bim-topnav-left">
+    <a href="../index.html" class="bim-topnav-home">BIM_MCP</a>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-section">reference</span>
+    <span class="bim-topnav-sep">/</span>
+    <span class="bim-topnav-current">機電教戰手冊</span>
+  </div>
+  <div class="bim-topnav-actions" data-route-nav="top">
+    <a href="https://github.com/shuotao/REVIT_MCP_study" target="_blank" rel="noopener" class="bim-topnav-btn bim-topnav-btn-github" title="View source on GitHub">GitHub</a>
+  </div>
+</nav>
+
+<header class="bim-hero">
+  <div class="bim-hero-eyebrow">MEP PLAYBOOK <span class="accent">三章 + 配套模型</span></div>
+  <h1 class="bim-hero-title">機電設計教戰手冊<br><span class="accent">量從哪裡來</span>，以及它怎麼變成可被檢核的東西</h1>
+  <p class="bim-hero-sub">多數機電教材從「怎麼畫」開始。這一份不是——它從<strong>畫之前</strong>開始：那些數字的來歷。<br>它是 <a href="domain-index.html#mep-space-demand-matrix">domain/mep-space-demand-matrix</a> 的教學版，把一份方法論走成年輕工程師能實際依循的步驟。</p>
+</header>
+
+<section class="bim-section" style="padding-top:24px;padding-bottom:0;border-bottom:none;">
+<aside class="bim-callout" aria-label="從哪一章開始">
+  <div class="bim-callout-title">從哪一章開始</div>
+  <ul style="margin-bottom:0">
+    <li><a href="#playbook-ch1">第一章：設計之前，量從哪裡來</a>——先弄清楚數字的來歷</li>
+    <li><a href="#playbook-ch2">第二章：把數字放進模型</a>——需求如何變成可被檢核的東西</li>
+    <li><a href="#playbook-ch3">第三章：設備與空間組成系統之後才解鎖的檢核</a>——見下方章節卡</li>
+  </ul>
+</aside>
+</section>
+
+<section class="bim-section">
+  <h2 class="bim-section-title">先講清楚它是什麼、不是什麼</h2>
+
+  <div class="prov">
+    <p><strong>演練標的</strong>：Autodesk MEP 認證課程的 Revit 2026 教學模型（門診型醫療建築）。<strong>非真實專案、非任何客戶案件</strong>——文中所有房間名稱與數值皆出自該教學模型。</p>
+    <p><strong>方法出處</strong>：<code>domain/mep-space-demand-matrix.md</code>。<strong>方法定義以 domain 為準，兩者衝突時 domain 優先。</strong></p>
+    <p><strong>樣本數</strong>：一次完整實作演練，<strong>非跨案驗證的通則</strong>。案例數字皆為實測，錯誤紀錄照實保留。</p>
+  </div>
+
+  <p>這三件事要一起讀。第一件說它不會洩漏任何客戶資訊；第二件說它不是方法的最終定義，只是那份定義的教學展開；第三件說它的普適性有上限——<strong>在單一案例上成立的東西，不會因為寫得詳細就變成通則</strong>。</p>
+
+  <p style="color:var(--text-muted);font-size:13px;">每一章末尾都有自己的「誠實邊界」小節，以類別列出該章自身的限制（第一章談引用等級與查證時效，第三章最細，逐項區分「模型讀回確認過」與「依 SOP 應該要有但尚未落地」）。那些小節不是免責聲明，是<strong>閱讀時該一起帶著的限制條件</strong>。</p>
+</section>
+
+<section class="bim-section">
+  <h2 class="bim-section-title">三章各自解決什麼</h2>
+
+  <div class="ch-card" id="playbook-ch1">
+    <div>
+      <div class="ch-num">CHAPTER 01</div>
+      <div class="ch-title">設計之前<br>量從哪裡來</div>
+      <div class="ch-meta">
+        <a href="https://github.com/shuotao/REVIT_MCP_study/blob/main/docs/mep-design-playbook-ch1.zh-TW.md" target="_blank" rel="noopener">讀原文 ↗</a>
+      </div>
+    </div>
+    <div>
+      <div class="ch-lead">如果你不知道那些數字從哪來，畫得再漂亮，被問一句「為什麼是 8」就答不出來——而三個月後你自己也答不出來。這一章不教畫圖，教你在動手之前把數字的來歷弄清楚。</div>
+      <div class="ch-sections">
+        先破除一個誤解 · <strong>五種量：每個數字都要說得出它從哪來</strong> · 流程循環：機電與建築怎麼咬合 · 開工前的三道關卡 · 常見錯誤（本案全部真實發生過） · 檢查表
+      </div>
+    </div>
+  </div>
+
+  <div class="ch-card" id="playbook-ch2">
+    <div>
+      <div class="ch-num">CHAPTER 02</div>
+      <div class="ch-title">把數字放進模型<br>需求如何變成可被檢核的東西</div>
+      <div class="ch-meta">
+        <a href="https://github.com/shuotao/REVIT_MCP_study/blob/main/docs/mep-design-playbook-ch2.zh-TW.md" target="_blank" rel="noopener">讀原文 ↗</a>
+      </div>
+    </div>
+    <div>
+      <div class="ch-lead">第一章結束時，你其實什麼都還沒檢查——數字只是躺在表格裡。這一章把它們寫進模型，讓模型第一次能自己檢查自己。</div>
+      <div class="ch-sections">
+        拓樸先於數值 · 通風先做、空調後做 · <strong>值要進哪一欄——法規的款別決定，不是格式問題</strong> · 寫入模型的兩個陷阱（內部單位、明細表在前景） · 實作：放風口 · 模型第一次自己檢查自己 · 附錄：模型裡沒有這個族群怎麼辦
+      </div>
+    </div>
+  </div>
+
+  <div class="ch-card" id="playbook-ch3">
+    <div>
+      <div class="ch-num">CHAPTER 03</div>
+      <div class="ch-title">設備與空間<br>組成系統之後才解鎖的檢核</div>
+      <div class="ch-meta">
+        <a href="https://github.com/shuotao/REVIT_MCP_study/blob/main/docs/mep-design-playbook-ch3.zh-TW.md" target="_blank" rel="noopener">讀原文 ↗</a>
+      </div>
+    </div>
+    <div>
+      <div class="ch-lead">第二章結束時，模型有一堆風口卻沒有任何系統。這一章把元件組成系統，並處理一件反直覺的事：<strong>系統建立之後，數值還不能用</strong>。</div>
+      <div class="ch-sections">
+        先決定系統型式（這是獨立的一步） · 分組依據有兩種來源 · 設備身分怎麼判定 · 系統的識別欄位分兩層 · <strong>配管解鎖的檢核：系統流量 vs 端點需求加總</strong> · <strong>旗標誠實，但問題問錯了</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="ch-card">
+    <div>
+      <div class="ch-num">附冊</div>
+      <div class="ch-title">第一章結案模型<br>開啟導覽</div>
+      <div class="ch-meta">
+        <a href="https://github.com/shuotao/REVIT_MCP_study/blob/main/docs/mep-design-playbook-ch1-model-guide.zh-TW.md" target="_blank" rel="noopener">讀原文 ↗</a>
+      </div>
+    </div>
+    <div>
+      <div class="ch-lead">第一章的終點是一個可開啟的 Revit 模型。這份導覽告訴你打開之後該看什麼——以及<strong>它還沒做什麼</strong>，避免誤讀。</div>
+      <div class="ch-sections">
+        這個模型處於哪個狀態 · 開場驗收：確認你拿到的檔沒壞 · 明細表的欄位各自在教什麼 · <strong>模型裡的 <code>0</code> 有兩種，要分得出來</strong> · 這個模型還沒做的事 · 常見誤讀
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="bim-section">
+  <h2 class="bim-section-title">全書的脊椎：五種量</h2>
+
+  <p>第一章的核心是一張分類法。它的用途不是學術分類，而是<strong>每個數字都要說得出它從哪來</strong>——當有人問「為什麼是這個數」，你要能立刻指出它屬於哪一種。</p>
+
+  <table class="kind-table">
+    <thead>
+      <tr><th>種類</th><th>來源</th><th>被問到時你要說得出</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>要來的</td><td>建築、業主</td><td>誰給的、哪一版</td></tr>
+      <tr><td>查來的</td><td>法規、標準</td><td>條號，以及你是讀原文還是轉引</td></tr>
+      <tr><td>算來的</td><td>由前兩種推導</td><td>公式，以及代進去的每一個輸入屬於哪一種</td></tr>
+      <tr class="warn-row"><td>決定的 ⚠️</td><td><strong>判斷，沒有出處</strong></td><td>決定了什麼、依據什麼、誰決定的、日期與影響範圍</td></tr>
+      <tr class="warn-row"><td>查無的 🔴</td><td><strong>沒有基準，不是你沒找到</strong></td><td>你查過哪些管道、給的是下限還是提出值、追蹤到哪</td></tr>
+    </tbody>
+  </table>
+
+  <p style="color:var(--text-muted);font-size:13px;">你可能在附冊的模型導覽看到「教學假設」這個字眼——那不是第六種量。它是 <code>MEP_用途類別狀態</code> 欄的其中一個值，把第四種「決定的」再細分成「技師判定」與「教學假設」兩級，只用來標記本演練模型裡哪些判定不具法律效力，不是這張表分類法的一員。</p>
+
+  <p><strong>第四種是整套方法的重心。</strong>「決定的量」沒有出處可查——它是判斷。危險在於它一旦寫進模型，外觀就跟前三種一模一樣：都是欄位裡的一個數字。分不出來，就會把「有人決定過」誤讀成「查得到依據」。</p>
+
+  <p style="color:var(--text-muted);font-size:13px;">第三章有一節叫「<strong>旗標誠實，但問題問錯了</strong>」，處理的是同一件事的下游版本：工具回傳的布林旗標沒有說謊，它精確回答了自己被設計來回答的問題——問題在於那不是你以為它在回答的問題。</p>
+</section>
+
+<section class="bim-section">
+  <h2 class="bim-section-title">它與 Domain、Skill、Tool 的關係</h2>
+
+  <p>這份手冊<strong>不是第四層</strong>。它是 Domain 層的一份教學展開：</p>
+
+  <ul>
+    <li><a href="domain-index.html#mep-space-demand-matrix"><code>domain/mep-space-demand-matrix</code></a> —— <strong>方法的定義</strong>。原則、矩陣、轉換鏈、硬限制。衝突時以它為準。</li>
+    <li><a href="domain-index.html#space-centroid-placement"><code>domain/space-centroid-placement</code></a> —— 同一批風口若要改成逐室批次放置（而非第二章的手動點擊），方法在這裡；第二章用的是手動放置，該節的重點在欄位住在哪一層（Instance/Type/Family），不是批次自動化。</li>
+    <li>本手冊 —— <strong>同一套方法的教學語氣版</strong>，補上 domain 不寫的東西：踩過的坑、錯誤的樣子、以及每一步為什麼是那個順序。</li>
+  </ul>
+
+  <p>兩者的分工可以用一句話說完：<strong>domain 回答「方法是什麼」，手冊回答「第一次做的人會在哪裡卡住」</strong>。前者要精確，後者要誠實。</p>
+
+  <p style="color:var(--text-muted);font-size:13px;">手冊教的是 Revit UI 的操作順序；同樣這些步驟若要改由工具執行，<a href="tools-index.html">Tools 索引</a>會標出哪一支是唯讀、哪一支會動模型。第三章的檢核之所以要等配管畫完才能跑，正是因為那些數值在那之前根本還沒被算出來。</p>
+</section>
+
+<section class="bim-section">
+  <h2 class="bim-section-title">誠實邊界</h2>
+
+  <ul>
+    <li><strong>單一案例</strong>。全書原則來自一次演練，不是跨案驗證的通則。</li>
+    <li><strong>部分法規為轉引</strong>。第一章與第三章（及附冊的結案模型導覽）以「法條明列／比照判定」標示 §102 的落點，但<strong>未逐條標明自身引用是讀原文或轉引</strong>——正式引用前請自行核對。</li>
+    <li><strong>「四類角色」等分類法無法源</strong>，屬工作方法。對業主不可以法規為由主張其必要性。</li>
+    <li><strong>查證有時效</strong>。第一章「台灣查無機房面積基準」是特定日期的查證結果，若日後取得公會設計手冊等來源，該節須更新。</li>
+    <li><strong>涵蓋範圍止於通風</strong>。空調設備選型、冷源架構、機房面積反算尚未定案，不在三章範圍內。</li>
+    <li><strong>本頁的「讀原文」連結指向 <code>main</code> 分支</strong>。手冊目前在待合併的分支上，連結會與這一頁同時生效。</li>
+  </ul>
+
+  <p style="color:var(--text-muted);font-size:13px;">最完整的限制條件在各章末尾的「誠實邊界」小節。<strong>第三章</strong>另外區分了兩種陳述：哪些數字是模型讀回確認過的、哪些是「依 SOP 應該要有但尚未落地」的規範性主張。<strong>讀到後者時不應把它當成前者。</strong></p>
+</section>
+
+<footer class="bim-footer">
+  <div class="bim-footer-actions" data-route-nav="foot">
+    <a href="https://github.com/shuotao/REVIT_MCP_study/blob/main/domain/mep-space-demand-matrix.md" target="_blank" rel="noopener" class="bim-footer-btn">方法原文 ↗</a>
+    <a href="../index.html" class="bim-footer-btn">回首頁</a>
+  </div>
+  <p>BIM_MCP · reference / mep-playbook</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">機電設計教戰手冊導覽頁。演練標的為 Autodesk 認證課程教學模型，非任何客戶案件；方法定義以 domain/mep-space-demand-matrix.md 為準。</p>
+</footer>
+
+<script src="../shared.js"></script>
+<script>initAll();</script>
+</body>
+</html>

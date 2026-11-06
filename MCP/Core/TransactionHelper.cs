@@ -30,5 +30,17 @@ namespace RevitMCP.Core
             t.SetFailureHandlingOptions(opts);
             return t;
         }
+
+        /// <summary>
+        /// 2026-09-26 相機管理稽核：Commit 並確認真的提交。SilentFailuresPreprocessor 對「錯誤」回 Continue，
+        /// 無法解決的錯誤會讓 Commit() 回傳 RolledBack 而不丟例外——呼叫端若不檢查，就會把已不存在的元素 Id
+        /// 當成功結果回傳（或在回滾後的元素上讀屬性而丟例外）。未提交 → 丟 InvalidOperationException，交給既有 catch。
+        /// </summary>
+        internal static void CommitOrThrow(Transaction t)
+        {
+            TransactionStatus st = t.Commit();
+            if (st != TransactionStatus.Committed)
+                throw new System.InvalidOperationException($"交易「{t.GetName()}」未提交（狀態 {st}），Revit 已回滾本次變更。");
+        }
     }
 }

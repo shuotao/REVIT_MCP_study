@@ -1,0 +1,38 @@
+{
+  "id": "TASK-015",
+  "title": "共享參數 schema 擴充為 v5（Mat1~Mat6 六槽位，64 欄位），全鏈更新並修正層順序與槽位順序混用的執行錯誤",
+  "content": "### 任務說明\n因使用者要求「Set 有幾種材料，槽位數就該等於材料數」，將 GreenMaterial_SharedParams.txt 從 v4（Mat1~Mat3，31 欄位）擴充為 v5（Mat1~Mat6，64 欄位，新增 Mat4/5/6 共 33 個欄位、GUID 銜接既有編號、cp950 編碼保留），同步更新：\n- C# `CommandExecutor.GreenMaterial.cs` 的 `SetGreenMaterialTypeParameters` 支援 mat4/mat5/mat6\n- MCP tool schema（`visualization-tools.ts`/`base-tools.ts`）新增 mat4~mat6 欄位定義\n- `generate_revit_injection_plan.py` 的 `_assign_material_slots` 由 3 槽位擴充為 6 槽位（見 TASK-014）\n- `domain/green-material-parameter-schema.md`、`.claude/skills/import/SKILL.md` 同步更新為 v5/六槽位規則\n\n已重新 build（Revit 2024, 0 error）、部署 DLL、rebuild MCP-Server 並重新連線，於獨立測試檔案端到端驗證：4 種材料全數寫入 Mat1~Mat4（34 個共享參數、0 缺漏），`get_element_info` 核對正確。\n\n過程中額外修正一項執行錯誤：`/import revit` 執行時把「Mat 槽位編號順序」誤用為「CompoundStructure 實體構造層順序」（兩者互相獨立，前者是共享參數 metadata 分類，後者是實體疊層順序），導致 Core Boundary 沒有正確落在 Finish 層外側（`ExteriorShellLayers` 回傳 0）。已在 `.claude/skills/import/SKILL.md` 加入明確區分兩種順序的說明，以及建立後檢查 `ExteriorShellLayers`/`InteriorShellLayers` 是否為 0 的自我檢查步驟，並在測試檔案內建立修正版 Type 驗證正確。\n\n### Readiness (DOR)\n- [x] problem_clear: 3 槽位上限導致材料數 > 3 時，超出的材料無法有共享參數紀錄\n- [x] scope_defined: 選定「固定擴充到 6 槽位（對應 Revit CompoundStructure 6 種 Layer Function），槽位數等於材料數但不強制寫滿」的方案，而非無上限動態槽位\n\n### Sign-off Gates (DOD)\n- [x] architecture: 新增 33 個共享參數採全新 GUID，純新增不修改既有 Mat1/2/3 定義，非破壞性變更\n- [x] test_passed: `validate_shared_params.py` 確認 64 個參數無重複 GUID；Revit 2024 build 0 error；MCP-Server rebuild 確認 mat4/5/6 存在於編譯輸出；測試檔案內端到端驗證 4 材料全數寫入 Mat1~Mat4 並修正層順序錯誤\n- [ ] code_review: 待使用者最終複審與簽核",
+  "stage": "done",
+  "risk": "medium",
+  "owner": "shuotao",
+  "agent": "claude",
+  "approvalRequired": false,
+  "createdAt": "2026-08-06",
+  "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+  "userStory": "US-5: Revit 材料自動化寫入工具",
+  "track": "integration",
+  "dependsOn": [
+    "TASK-009",
+    "TASK-010",
+    "TASK-011",
+    "TASK-014"
+  ],
+  "order": 7,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

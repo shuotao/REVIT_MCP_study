@@ -1,0 +1,1141 @@
+{
+  "_comment": "Curated site copy for scripts/gen-skills-index.py (docs/BIM_MCP/reference/skills-index.html). Skill SET must equal .claude/skills/*/SKILL.md dirs; card order = key order per group; quick-table order = 'quickOrder'.",
+  "groups": [
+    {
+      "id": "A",
+      "title": "法規檢核",
+      "short": "法規"
+    },
+    {
+      "id": "B",
+      "title": "設計協作",
+      "short": "設計"
+    },
+    {
+      "id": "C",
+      "title": "文件生產",
+      "short": "文件"
+    },
+    {
+      "id": "D",
+      "title": "模型分析",
+      "short": "分析"
+    },
+    {
+      "id": "E",
+      "title": "開發運維",
+      "short": "運維"
+    },
+    {
+      "id": "F",
+      "title": "進階開發 / 文件作者",
+      "short": "進階"
+    },
+    {
+      "id": "G",
+      "title": "綠建材 GM_",
+      "short": "綠建材"
+    }
+  ],
+  "skills": {
+    "fire-safety-check": {
+      "group": "A",
+      "desc": "消防安全檢討：防火時效視覺化、走廊防火分析、外牆開口距離檢討（建技 §49、§110）。",
+      "triggers": [
+        "防火",
+        "fire rating",
+        "走廊",
+        "外牆開口",
+        "鄰地距離"
+      ],
+      "domains": [
+        "fire-rating-check",
+        "corridor-analysis-protocol",
+        "exterior-wall-opening-check"
+      ],
+      "quick": {
+        "purpose": "防火時效 / 走廊 / 外牆開口",
+        "domain": "fire-rating / corridor / exterior-wall"
+      }
+    },
+    "smoke-exhaust": {
+      "group": "A",
+      "desc": "排煙窗法規檢討：無窗居室判定、無開口樓層判定、排煙有效面積計算、剖面標註、Excel 報告匯出（建技 §101、消防 §188）。",
+      "triggers": [
+        "排煙",
+        "無窗居室",
+        "無開口樓層",
+        "smoke exhaust",
+        "天花板下80cm"
+      ],
+      "domains": [
+        "smoke-exhaust-review"
+      ],
+      "quick": {
+        "purpose": "無窗居室 / 排煙有效面積",
+        "domain": "smoke-exhaust-review"
+      }
+    },
+    "building-compliance": {
+      "group": "A",
+      "desc": "建築法規檢討：居室採光比（§41）、容積率與樓地板面積計算、停車位尺寸與數量檢核。",
+      "triggers": [
+        "採光",
+        "daylight",
+        "容積率",
+        "FAR",
+        "樓地板面積",
+        "送審"
+      ],
+      "domains": [
+        "daylight-area-check",
+        "floor-area-review"
+      ],
+      "quick": {
+        "purpose": "採光比 / 容積率 / 停車",
+        "domain": "daylight / floor-area"
+      }
+    },
+    "parking-check": {
+      "group": "A",
+      "desc": "停車場檢討：停車位淨空高度檢查（>210cm）與停車位數量分類統計（法定、無障礙、增設等八類）。",
+      "triggers": [
+        "停車場",
+        "停車位",
+        "parking",
+        "clearance",
+        "機車位"
+      ],
+      "domains": [
+        "parking-clearance-check",
+        "parking-space-review"
+      ],
+      "quick": {
+        "purpose": "淨空高度 / 數量分類",
+        "domain": "parking-clearance / parking-space-review"
+      }
+    },
+    "wall-orientation-check": {
+      "group": "A",
+      "desc": "牆壁內外方向檢查：檢測外牆的 Exterior/Interior Side 是否正確，錯誤方向會影響飾面位置與容積計算。",
+      "triggers": [
+        "牆壁方向",
+        "內外側",
+        "wall orientation",
+        "Exterior Side"
+      ],
+      "domains": [
+        "wall-check"
+      ],
+      "quick": {
+        "purpose": "外牆 Exterior/Interior Side",
+        "domain": "wall-check"
+      }
+    },
+    "smoke-detector-check": {
+      "group": "A",
+      "desc": "消防偵煙探測器設置法規檢討：出風口距離、壁樑距、天花板貼附、區格涵蓋、探測面積五項規定檢核（工具：analyze_smoke_detectors、visualize_detector_results）。",
+      "triggers": [
+        "偵煙探測器",
+        "smoke detector check",
+        "探測面積",
+        "消防探測器"
+      ],
+      "domains": [
+        "smoke-detector-check"
+      ],
+      "quick": {
+        "purpose": "偵煙探測器五項規定檢核",
+        "domain": "smoke-detector-check"
+      }
+    },
+    "curtain-wall": {
+      "group": "B",
+      "desc": "帷幕牆面板配置：設計帷幕牆面板排列模式並透過網頁預覽確認後套用到 Revit。",
+      "triggers": [
+        "帷幕牆",
+        "curtain wall",
+        "面板",
+        "panel pattern",
+        "玻璃面板"
+      ],
+      "domains": [
+        "curtain-wall-pattern"
+      ],
+      "quick": {
+        "purpose": "帷幕牆面板配置",
+        "domain": "curtain-wall-pattern"
+      }
+    },
+    "facade-generation": {
+      "group": "B",
+      "desc": "立面面板生成：透過 AI 照片分析設計立面面板，套用到 Revit 牆面。支援弧形面板、斜切凹窗、傾斜平板、圓角開口、平面面板五種幾何。",
+      "triggers": [
+        "立面",
+        "facade",
+        "弧形面板",
+        "凹窗",
+        "DirectShape"
+      ],
+      "domains": [
+        "facade-generation"
+      ],
+      "quick": {
+        "purpose": "AI 立面面板生成",
+        "domain": "facade-generation"
+      }
+    },
+    "element-coloring": {
+      "group": "B",
+      "desc": "元素上色工作流程：根據參數值對 Revit 元素進行顏色標記與視覺化。",
+      "triggers": [
+        "上色",
+        "color code",
+        "highlight",
+        "參數上色"
+      ],
+      "domains": [
+        "element-coloring-workflow"
+      ],
+      "quick": {
+        "purpose": "依參數值上色",
+        "domain": "element-coloring-workflow"
+      }
+    },
+    "element-query": {
+      "group": "B",
+      "desc": "元素查詢與視覺化：三階段查詢協議（探索→對齊→擷取），支援依參數篩選與上色標記。",
+      "triggers": [
+        "查詢",
+        "篩選",
+        "element query",
+        "filter",
+        "find elements"
+      ],
+      "domains": [
+        "element-query-workflow"
+      ],
+      "quick": {
+        "purpose": "三階段查詢協議",
+        "domain": "element-query-workflow"
+      }
+    },
+    "auto-dimension": {
+      "group": "C",
+      "desc": "自動標註尺寸：使用 Ray-Casting 或 BoundingBox 方法，在平面視圖中自動建立房間、走廊、MEP 設備的尺寸標註。",
+      "triggers": [
+        "標註",
+        "尺寸",
+        "dimension",
+        "淨寬",
+        "淨高"
+      ],
+      "domains": [
+        "auto-dimension-workflow"
+      ],
+      "quick": {
+        "purpose": "Ray-Cast / BoundingBox 標註",
+        "domain": "auto-dimension-workflow"
+      }
+    },
+    "detail-component-sync": {
+      "group": "C",
+      "desc": "2D 詳圖元件同步：將詳圖圖頭（AE-numbering）的編號與圖紙號碼自動同步。",
+      "triggers": [
+        "詳圖同步",
+        "圖頭",
+        "AE-numbering",
+        "detail component"
+      ],
+      "domains": [
+        "detail-component-sync"
+      ],
+      "quick": {
+        "purpose": "AE-numbering 編號同步",
+        "domain": "detail-component-sync"
+      }
+    },
+    "dependent-view-crop": {
+      "group": "C",
+      "desc": "從屬視圖批次裁剪：依網格線為邊界，批次建立從屬視圖並設定裁剪範圍。適用於大型專案分區出圖。",
+      "triggers": [
+        "從屬視圖",
+        "dependent view",
+        "分區出圖",
+        "網格裁剪"
+      ],
+      "domains": [
+        "dependent-view-crop-workflow"
+      ],
+      "quick": {
+        "purpose": "網格邊界批次裁剪",
+        "domain": "dependent-view-crop-workflow"
+      }
+    },
+    "sheet-management": {
+      "group": "C",
+      "desc": "圖紙與視圖埠管理：批次建立圖紙、自動修正圖號衝突、語義化重新排序、依網格裁剪建立從屬視圖。",
+      "triggers": [
+        "圖紙",
+        "圖號",
+        "titleblock",
+        "renumber",
+        "viewport"
+      ],
+      "domains": [
+        "sheet-viewport-management"
+      ],
+      "quick": {
+        "purpose": "批建圖紙 / 圖號修正 / 視埠",
+        "domain": "sheet-viewport-management"
+      }
+    },
+    "stair-hidden-line": {
+      "group": "C",
+      "desc": "剖面隱藏樓梯可視化：在剖面視圖中，自動為被側板遮擋的樓梯梯級繪製虛線詳圖線。",
+      "triggers": [
+        "樓梯隱藏線",
+        "stair hidden line",
+        "剖面樓梯",
+        "虛線"
+      ],
+      "domains": [
+        "stair-hidden-line-workflow"
+      ],
+      "quick": {
+        "purpose": "剖面樓梯虛線",
+        "domain": "stair-hidden-line-workflow"
+      }
+    },
+    "wall-section-batch": {
+      "group": "C",
+      "desc": "牆面套管剖面批次建立：先確認命名前綴與排序方式，再依牆面套管／開孔位置批次建立平行剖面視圖並輸出摘要（工具：batch_create_wall_sections、create_parallel_section_view）。",
+      "triggers": [
+        "牆面套管剖面",
+        "wall section batch",
+        "平行剖面",
+        "批次剖面"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "牆面套管批次平行剖面",
+        "domain": "—"
+      }
+    },
+    "copy-detail-items": {
+      "group": "C",
+      "desc": "批次複製詳圖項目（DetailCurve、TextNote、FilledRegion、DetailComponent、Dimension）從一個來源視圖到一或多個目標視圖，支援類別過濾、XY 偏移、dryRun 預覽。",
+      "triggers": [
+        "批次複製詳圖",
+        "copy details to views",
+        "複製標註",
+        "batch copy annotations"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "批次複製詳圖項目到多視圖",
+        "domain": "—"
+      }
+    },
+    "dedup-detail-elements": {
+      "group": "C",
+      "desc": "找出並刪除視圖中重複的 detail element（同 Type + 位置量化後相同），優先保留 Detail Group 內副本；dryRun 預覽 → 使用者確認 → 執行刪除的兩階段 SOP。",
+      "triggers": [
+        "刪除重複詳圖",
+        "dedup detail",
+        "清理重複",
+        "duplicate detail elements"
+      ],
+      "domains": [
+        "dedup-detail-elements-workflow"
+      ],
+      "quick": {
+        "purpose": "刪除重複 detail element",
+        "domain": "dedup-detail-elements-workflow"
+      }
+    },
+    "text-note-batch": {
+      "group": "C",
+      "desc": "在多個 DraftingView 中依文字內容搜尋 TextNote 並批次平移。適用於跨圖面統一調整法規文字、表格附註等重複出現的位置。",
+      "triggers": [
+        "批次移動 TextNote",
+        "move text notes",
+        "跨視圖移動文字",
+        "batch text"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "跨視圖批次移動 TextNote",
+        "domain": "—"
+      }
+    },
+    "align-views-on-sheets": {
+      "group": "C",
+      "desc": "批次對齊 view 範圍 + viewport 在 sheet 上的位置：三階段流程結合 ScopeBox 綁定裁剪範圍、可選的 titleblock 對齊、viewport 錨點定位。適用於跨專案複製後對齊新 view、批次統一系列圖紙 layout、出圖前最後對齊。",
+      "triggers": [
+        "對齊 view",
+        "套用 scope box",
+        "align views to scope box",
+        "position viewports on sheet",
+        "titleblock 對齊"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "批次對齊 view 範圍 + viewport 位置",
+        "domain": "—"
+      }
+    },
+    "batch-apply-view-template": {
+      "group": "C",
+      "desc": "批次將指定的 ViewTemplate 套用到多個 view：支援以 sheets 或 view 名稱/ID 選取目標，可搭配 viewTypeFilter 過濾類型，並提供 dryRun 預覽與 skipIfSameTemplate 避免重複套用。",
+      "triggers": [
+        "批次套用 view template",
+        "apply view template to sheets",
+        "batch view template",
+        "視圖樣版批次修改"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "批次套用 ViewTemplate",
+        "domain": "—"
+      }
+    },
+    "viewport-arrangement": {
+      "group": "C",
+      "desc": "視埠排列與管理：在圖紙上放置、排列、移動 DraftingView 視埠。支援自動放置（從專案查找 view 並放到圖紙）、跨圖紙移動、水平/垂直排列、邊緣對齊、負間距重疊。",
+      "triggers": [
+        "排列視埠",
+        "viewport arrangement",
+        "align viewports",
+        "edge-to-edge",
+        "move viewport"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "圖紙視埠排列與對齊",
+        "domain": "—"
+      }
+    },
+    "scale-drafting-width": {
+      "group": "C",
+      "desc": "DraftingView 表格縮放：支援寬度（X 軸）和行高（Y 軸）獨立縮放，寬度以左邊緣為錨點、行高以上邊緣為錨點，將 DetailCurve 與 TextNote 座標按比例縮放。適用於 Excel 匯入後微調表格欄寬、行高。",
+      "triggers": [
+        "縮放",
+        "scale width",
+        "scale height",
+        "表格寬度",
+        "行高"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "DraftingView 表格寬 / 高縮放",
+        "domain": "—"
+      }
+    },
+    "floor-plan-from-template": {
+      "group": "C",
+      "desc": "以指定的 FloorPlan 視圖為範本，在多個 Level 上批次建立樓層平面視圖（複製 ViewFamilyType、View Template、Phase、Phase Filter），並可選擇性將新 view 的 CropBox 對齊到指定 Detail Group（例如圖框）。適用於補齊缺漏的正式建築圖系列。",
+      "triggers": [
+        "批次建立樓層平面",
+        "補齊平面圖",
+        "create floor plans",
+        "align cropbox 到圖框"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "依範本批次建立樓層平面",
+        "domain": "—"
+      }
+    },
+    "copy-sheets-cross-project": {
+      "group": "C",
+      "desc": "跨專案複製含 model views 的圖紙：Revit 原生「Insert Views from File」無法匯入含 model view 的 sheets，本 skill 用兩階段流程（讀取→確認衝突→執行）自動化重建，處理 view 四級分類、ScheduleSheetInstance 重建、Sheet custom parameters 一併複製。",
+      "triggers": [
+        "跨專案複製圖紙",
+        "Insert Views from File",
+        "cross-document",
+        "source.rvt",
+        "移植視圖"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "跨專案複製含 model views 圖紙",
+        "domain": "—"
+      }
+    },
+    "excel-to-legend": {
+      "group": "C",
+      "desc": "將 Excel worksheet 批次匯入 Revit Drafting View，忠實還原合併儲存格、表格框線、原始 column/row 尺寸與長文字 wrap 行為，覆蓋舊 view 時自動還原所有 sheet 上的 viewport 位置。優先使用一站式 import_excel_to_drafting_views 命令。",
+      "triggers": [
+        "excel 表格",
+        "excel to drafting",
+        "表格匯入 revit",
+        "面積計算表匯入"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "Excel 表格匯入 Drafting View",
+        "domain": "—"
+      }
+    },
+    "detect-clashes": {
+      "group": "D",
+      "desc": "MEP 管線與結構（CSA）碰撞偵測，使用 Curve-to-Solid 策略進行干涉分析、視覺化與報告匯出。",
+      "triggers": [
+        "碰撞",
+        "clash",
+        "MEP",
+        "管線穿牆",
+        "套管",
+        "penetration"
+      ],
+      "domains": [
+        "mep-csa-clash-detection"
+      ],
+      "quick": {
+        "purpose": "MEP × CSA 碰撞",
+        "domain": "mep-csa-clash-detection"
+      }
+    },
+    "qa-review": {
+      "group": "D",
+      "desc": "專案品質檢核：圖紙編號一致性、詳圖元件完整性、視圖組織、參數正確性、MCP 系統健康度。",
+      "triggers": [
+        "QA",
+        "品質檢查",
+        "驗證",
+        "一致性",
+        "系統健康"
+      ],
+      "domains": [
+        "qa-checklist"
+      ],
+      "quick": {
+        "purpose": "專案品質檢核",
+        "domain": "qa-checklist"
+      }
+    },
+    "dwg-beam-import": {
+      "group": "D",
+      "desc": "從 CAD/DWG 圖層批次建立結構樑：掃描圖層 → 確認批次與模式 → 放樣健檢 → 批次建樑。支援全正交與含非正交（斜樑），兩波處理防呆，分批大樑／次樑／地樑。",
+      "triggers": [
+        "dwg 建樑",
+        "樑翻模",
+        "大樑",
+        "次樑",
+        "beam from dwg"
+      ],
+      "domains": [
+        "dwg-beam-import"
+      ],
+      "quick": {
+        "purpose": "CAD/DWG 圖層批次建樑",
+        "domain": "dwg-beam-import"
+      }
+    },
+    "dwg-column-import": {
+      "group": "D",
+      "desc": "從 CAD/DWG 圖層批次建立結構柱／建築柱：單位/放樣健檢 → 選模式 → 批次建模。三模式（自動建型別／既有族群尺寸／柱號對應）依情境選用，強制斷點分步協作。",
+      "triggers": [
+        "dwg 建柱",
+        "cad 柱",
+        "圖層建柱",
+        "column from dwg",
+        "柱號對應"
+      ],
+      "domains": [
+        "dwg-column-import"
+      ],
+      "quick": {
+        "purpose": "CAD/DWG 圖層批次建柱",
+        "domain": "dwg-column-import"
+      }
+    },
+    "family-inventory-cleanup": {
+      "group": "D",
+      "desc": "族群盤點與清整：雙軸盤點（載入 vs 放置）、參數簽章比對、purge 未使用／merge 重複／rename；破壞性動作前 12 項強制前置檢查。",
+      "triggers": [
+        "族群整理",
+        "類型盤點",
+        "未使用類型",
+        "重複類型",
+        "purge"
+      ],
+      "domains": [
+        "family-inventory-cleanup"
+      ],
+      "quick": {
+        "purpose": "族群盤點、purge / merge / rename",
+        "domain": "family-inventory-cleanup"
+      }
+    },
+    "unjoin-geometry": {
+      "group": "D",
+      "desc": "批次解除 Revit 幾何接合（Join Geometry），以任一類別為中心解除與 8 大預設 target 類別的接合，適用於白模準備、幾何分析、上色前清理。",
+      "triggers": [
+        "解除接合",
+        "unjoin geometry",
+        "白模",
+        "render preparation"
+      ],
+      "domains": [
+        "unjoin-geometry-workflow"
+      ],
+      "quick": {
+        "purpose": "批次解除幾何接合",
+        "domain": "unjoin-geometry-workflow"
+      }
+    },
+    "batch-room-height": {
+      "group": "D",
+      "desc": "批次調整房間上限高度：依房間名稱或用途分組，指定目標高度（mm）後一次套用到所有符合的 Room（Upper Limit + Limit Offset），不動樓層。",
+      "triggers": [
+        "房間高度",
+        "room height",
+        "upper limit",
+        "批次房高"
+      ],
+      "domains": [
+        "room-height-limit"
+      ],
+      "quick": {
+        "purpose": "批次調整房間上限高度",
+        "domain": "room-height-limit"
+      }
+    },
+    "view-category-visibility": {
+      "group": "D",
+      "desc": "視圖類別可見性控制：在指定視圖中隱藏或顯示整個類別（含連結模型），支援批次多視圖操作。",
+      "triggers": [
+        "隱藏",
+        "顯示",
+        "category visibility",
+        "連結模型隱藏"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "視圖類別可見性批次控制",
+        "domain": "—"
+      }
+    },
+    "batch-material": {
+      "group": "D",
+      "desc": "批次材質修改（複製原材質模式）：為每個 Type 的原材質建立複本，只修改複本的 Appearance diffuse color，保留 Graphics 顏色與其他屬性。適用於渲染白模（Enscape/V-Ray 看到白色，平面圖切割圖案維持原材質）。也支援復原。",
+      "triggers": [
+        "材質",
+        "white model",
+        "批次換材質",
+        "restore material"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "批次材質修改（複製原材質）",
+        "domain": "—"
+      }
+    },
+    "partition-takeoff": {
+      "group": "D",
+      "desc": "輕隔間牆數量計算與 CSV 報表更新：以 TYPE 牆為候選，只扣除 host 可驗證的門窗開口，牆面積以 Revit 牆面積為基準，輸出可稽核算式。",
+      "triggers": [
+        "輕隔間",
+        "partition takeoff",
+        "TYPE 牆",
+        "扣除開口",
+        "數量計算"
+      ],
+      "domains": [
+        "revit-partition-takeoff"
+      ],
+      "quick": {
+        "purpose": "輕隔間牆數量計算 + CSV",
+        "domain": "revit-partition-takeoff"
+      }
+    },
+    "quantity-takeoff-excel": {
+      "group": "D",
+      "desc": "建立／檢核可稽核的 Revit 數量計算 Excel：輕隔間、踢腳、內牆粉刷、空間表、施工架，以房間邊界、host 開口證據、淨高鏈與材料代碼建立算式。",
+      "triggers": [
+        "數量計算",
+        "算量",
+        "quantity takeoff",
+        "room perimeter",
+        "opening deductions"
+      ],
+      "domains": [
+        "quantity-takeoff-excel"
+      ],
+      "quick": {
+        "purpose": "可稽核數量計算 Excel",
+        "domain": "quantity-takeoff-excel"
+      }
+    },
+    "scaffold-takeoff": {
+      "group": "D",
+      "desc": "施工架數量計算：室外採人工描繪外周長、室內房間以周長×高、樓梯／電梯室內裝修以長×寬×高，含防護設施與地下室外牆防水毯周長共用規則。",
+      "triggers": [
+        "施工架",
+        "scaffold",
+        "外部周長",
+        "室內施工架",
+        "周長x高"
+      ],
+      "domains": [
+        "scaffold-takeoff"
+      ],
+      "quick": {
+        "purpose": "室內外施工架數量計算",
+        "domain": "scaffold-takeoff"
+      }
+    },
+    "tall-partition-index": {
+      "group": "D",
+      "desc": "輕隔間高牆（>6m）結構回饋索引圖：analyze_tall_partition_rooms 篩 TYPE 高牆與共牆房間、複製交付視圖、藍色房間填滿＋紅色牆線標示，交付前 QA。",
+      "triggers": [
+        "高牆",
+        "tall partition",
+        "結構回饋",
+        "索引圖",
+        "與細節一起複製"
+      ],
+      "domains": [
+        "tall-partition-index-workflow"
+      ],
+      "quick": {
+        "purpose": "高牆（>6m）結構回饋索引圖",
+        "domain": "tall-partition-index-workflow"
+      }
+    },
+    "threshold-opening-takeoff": {
+      "group": "D",
+      "desc": "依房間關聯統計門/窗數量：任一側房間或類型命中排除規則即整樘排除，依類型備註（門編號）彙總，用於不鏽鋼門檻數量與開口計算。",
+      "triggers": [
+        "門檻",
+        "threshold",
+        "門窗統計",
+        "房間排除",
+        "不鏽鋼門檻"
+      ],
+      "domains": [
+        "threshold-opening-takeoff"
+      ],
+      "quick": {
+        "purpose": "房間關聯門窗/門檻統計",
+        "domain": "threshold-opening-takeoff"
+      }
+    },
+    "room-numbering": {
+      "group": "D",
+      "desc": "房間重新排序編號與批次自動編號：優先 renumber_rooms_by_level，中心點由上而下、由左而右排序，dry-run → 寫入 → 驗證。",
+      "triggers": [
+        "房間編號",
+        "renumber rooms",
+        "自動編號",
+        "從 B134 開始",
+        "只排 B1F"
+      ],
+      "domains": [
+        "room-numbering-workflow"
+      ],
+      "quick": {
+        "purpose": "房間重新排序 / 自動編號",
+        "domain": "room-numbering-workflow"
+      }
+    },
+    "ifc-structural-sync": {
+      "group": "D",
+      "desc": "IFC 結構同步至 Revit 原生 StructuralFraming／StructuralColumns：dry-run 檢查 b/h 與貼樓板底、replaceExisting 重建同源元素、apply 後回讀驗證。",
+      "triggers": [
+        "IFC 結構",
+        "sync_ifc_structural_to_native",
+        "StructuralColumns",
+        "b/h",
+        "replaceExisting"
+      ],
+      "domains": [
+        "ifc-structural-native-sync"
+      ],
+      "quick": {
+        "purpose": "IFC 同步原生梁柱",
+        "domain": "ifc-structural-native-sync"
+      }
+    },
+    "finish-schedule-governance": {
+      "group": "D",
+      "desc": "治理房間粉刷明細表與 F/B/W/C 材料代碼：盤點、跳號重排、批次回寫房間參數、同步 AE-材料版，並以外部 CSV 比對房間欄位。",
+      "triggers": [
+        "粉刷明細表",
+        "材料編號",
+        "finish code remap",
+        "AE-材料版",
+        "粉刷比對 CSV"
+      ],
+      "domains": [
+        "finish-schedule-governance"
+      ],
+      "quick": {
+        "purpose": "粉刷明細表材料代碼治理",
+        "domain": "finish-schedule-governance"
+      }
+    },
+    "set-project-units": {
+      "group": "D",
+      "desc": "一鍵切換整個專案的顯示單位（mode=taiwan＝公制＋Air Flow m³/h，對齊建技 §102 通風量）。單一 Transaction 可 Ctrl+Z，避免手動逐 discipline 漏設（Air Flow 常被漏成 CFM）。",
+      "triggers": [
+        "專案單位",
+        "單位轉換",
+        "set project units",
+        "公制",
+        "m³/h"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "一鍵切換專案顯示單位",
+        "domain": "mep-mechanical-settings"
+      }
+    },
+    "mep-settings-curation": {
+      "group": "D",
+      "desc": "盤點與增減 Mechanical Settings 的尺寸目錄（管段 / 風管 Rect·Oval·Round）、角度、坡度、流體。四階段：目錄盤點 → 模型實際用量 → 標準對帳 → 增減。核心規則是「目錄 ≠ 用量」：增無限，減只能刪模型沒用到的，且走 列表 → 執行 → QC → 誤刪復原 四步。",
+      "triggers": [
+        "盤點管徑",
+        "風管尺寸表",
+        "segments and sizes",
+        "刪掉沒用到的尺寸",
+        "mechanical settings",
+        "CNS 對帳"
+      ],
+      "domains": [
+        "mep-mechanical-settings"
+      ],
+      "quick": {
+        "purpose": "管徑/風管尺寸目錄盤點與增刪",
+        "domain": "mep-mechanical-settings"
+      }
+    },
+    "build-revit": {
+      "group": "E",
+      "desc": "Build the RevitMCP Revit add-in for one or all Revit versions (2022–2026) using the unified RevitMCP.csproj.",
+      "triggers": [
+        "build",
+        "Release.R{YY}",
+        "Nice3point",
+        "多版本"
+      ],
+      "domains": [
+        "deployment-guide.html"
+      ],
+      "quick": {
+        "purpose": "多版本 build",
+        "domain": "(deployment-guide)"
+      }
+    },
+    "deploy-addon": {
+      "group": "E",
+      "desc": "Deploy the built RevitMCP.dll to the correct Revit Add-ins folder for a specified version (Windows only).",
+      "triggers": [
+        "deploy",
+        "AppData",
+        "DLL",
+        "Addins folder"
+      ],
+      "domains": [
+        "deployment-guide.html"
+      ],
+      "quick": {
+        "purpose": "DLL 部署",
+        "domain": "(deployment-guide)"
+      }
+    },
+    "loop-up": {
+      "group": "E",
+      "desc": "多模型分工的自動迴圈修正：Fable 規劃、Sonnet 實作、Haiku 唯讀觀察記錄、高階模型唯讀稽核驗收；失敗時從最前端的 prompt 回頭修正再重跑，同階段三次不過就升級 Fable advisor。全程 human out of the loop，但 commit／push／發佈／刪除仍須停下來問人。修改驗證工具本身時，驗收強制包含負向測試以防「永遠 PASS」的假綠燈。",
+      "triggers": [
+        "loop-up",
+        "多模型分工",
+        "自動迴圈修正",
+        "prompt-first correction",
+        "迴圈驗收"
+      ],
+      "domains": [
+        "qa-checklist"
+      ],
+      "quick": {
+        "purpose": "多模型分工自動迴圈修正",
+        "domain": "qa-checklist"
+      }
+    },
+    "claude-md-sync": {
+      "group": "E",
+      "desc": "CLAUDE.md 雙向同步驗證：當合併外部 PR、Domain 升級 Skill、或 Tools 異動後，執行正向（作業→CLAUDE.md）與反向（CLAUDE.md→作業）的比對與修正迴圈。",
+      "triggers": [
+        "claude.md 同步",
+        "驗證一致性",
+        "merge 後檢查",
+        "skill 新增後"
+      ],
+      "domains": [
+        "path-maintenance-qa"
+      ],
+      "quick": {
+        "purpose": "CLAUDE.md 雙向同步",
+        "domain": "path-maintenance-qa"
+      }
+    },
+    "hj-pr-proposal": {
+      "group": "E",
+      "desc": "將使用者自己的 domain、skill 與 tool 內容轉譯為 HJPLUS 台灣建築師知識庫可提交的 PR 草案，涵蓋 fork 檢查、內容對齊、檔案重編、作者確認與提交流程。",
+      "triggers": [
+        "HJ PR",
+        "fork",
+        "提案草案",
+        "domain 轉 skill",
+        "貢獻草案"
+      ],
+      "domains": [
+        "skill-authoring-standard"
+      ],
+      "quick": {
+        "purpose": "domain/skill 轉譯為 HJ PR 草案",
+        "domain": "skill-authoring-standard"
+      }
+    },
+    "core-reload-dev": {
+      "group": "F",
+      "desc": "opt-in 熱重載開發迭代工作流：不重啟 Revit 即可重建 CoreRuntime → 部署 → 重載 → 驗證，加速 CommandExecutor 類修改的迭代。",
+      "triggers": [
+        "熱重載",
+        "core reload",
+        "CoreRuntime",
+        "不重啟 Revit"
+      ],
+      "domains": [
+        "core-reload-boundary"
+      ],
+      "quick": {
+        "purpose": "opt-in 熱重載開發迭代",
+        "domain": "core-reload-boundary"
+      }
+    },
+    "domain-diagram": {
+      "group": "F",
+      "desc": "引導把 domain SOP 流程圖像化：先做流程健檢（迴圈／死路／缺口），再過 scripts/mermaid_from_spec.py 確定性地產出 mermaid 圖並回嵌 domain。",
+      "triggers": [
+        "流程圖像化",
+        "mermaid",
+        "流程健檢",
+        "visualize domain"
+      ],
+      "domains": [
+        "domain-flow-visualization"
+      ],
+      "quick": {
+        "purpose": "domain SOP 流程圖像化",
+        "domain": "domain-flow-visualization"
+      }
+    },
+    "dll-to-mcp-tool": {
+      "group": "F",
+      "desc": "把獨立的 Revit IExternalCommand（.cs / DLL，可含 WPF 對話框）封裝為 revit-mcp 工具：產生 C# command handler + dispatcher case + TypeScript 工具定義，建置、雙路徑部署、引導重啟、自動驗證工具上線，最後提交（不 push）。",
+      "triggers": [
+        "DLL 封裝",
+        "封裝成 MCP 工具",
+        "wrap command as tool",
+        "IExternalCommand"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "把 DLL/.cs 封裝為 MCP 工具",
+        "domain": "—"
+      }
+    },
+    "archicad-skill-adapter": {
+      "group": "F",
+      "desc": "把既有 Revit-oriented BIM Skill 的意圖與名詞轉譯為受控的 Archicad MCP workflow，同時保留原始 Domain 方法與 Revit 路徑不變。opt-in 分支，只有明確選定 Archicad 或雙 backend 情境才會進入 discovery／translate／verify 流程；目前僅 3 個 Skill 有正式 pilot 規格，尚未經 Skill 層級的 live test 驗證。",
+      "triggers": [
+        "Archicad",
+        "backend 轉譯",
+        "GUID",
+        "Zone",
+        "Tapir"
+      ],
+      "domains": [
+        {
+          "to": "tool-capability-boundary",
+          "label": "tool-capability-boundary（L11）"
+        }
+      ],
+      "quick": {
+        "purpose": "Revit Skill 轉譯為 Archicad MCP workflow",
+        "domain": "tool-capability-boundary"
+      }
+    },
+    "GM_import": {
+      "group": "G",
+      "desc": "解析從 green-material-showcase.html「對齊需求與擬訂計畫」複製的 Set 對齊請求，產生 Revit 綠建材注入計畫（規劃／報告用途；純材料 Set 額外做唯讀 Revit 查詢供挑選目標 Type，本身不寫入 Revit）。",
+      "triggers": [
+        "/GM_import",
+        "Set 對齊",
+        "注入計畫"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "解析 Set 對齊請求，產生 Revit 注入計畫",
+        "domain": "—"
+      }
+    },
+    "GM_inject": {
+      "group": "G",
+      "desc": "/GM_inject revit——把已對齊的綠建材 Set 實際寫入目前開啟的 Revit 專案：支援 Wall 單一組合／各別建立／Material 純材料三種 Set，以及門窗 RFA 家族注入與柱樑結構材質指派。",
+      "triggers": [
+        "/GM_inject revit",
+        "綠建材寫入",
+        "RFA 注入"
+      ],
+      "domains": [
+        "GM_parameter-schema",
+        "GM_rfa-family-injection"
+      ],
+      "quick": {
+        "purpose": "把已對齊 Set 實際寫入 Revit（材質/Type/參數）",
+        "domain": "GM_parameter-schema / GM_rfa-family-injection"
+      }
+    },
+    "GM_query": {
+      "group": "G",
+      "desc": "查詢與檢視 Revit 模型中已寫入的綠建材認證資訊：依品類彙整已寫入的 Type、證書字號與槽位內容（或柱樑結構材質名稱），並可依認證狀態上色標記。",
+      "triggers": [
+        "查詢綠建材",
+        "green material query",
+        "GreenMaterial_Mat"
+      ],
+      "domains": [
+        "GM_parameter-schema",
+        "GM_catalog",
+        "GM_rfa-family-injection"
+      ],
+      "quick": {
+        "purpose": "查詢模型中已寫入的綠建材認證資訊",
+        "domain": "GM_parameter-schema / GM_catalog / GM_rfa-family-injection"
+      }
+    },
+    "GM_set": {
+      "group": "G",
+      "desc": "/GM_set compare——比對 exported_material_sets.json 已存的 Set 與最新 tabc_master_database.json 快照（缺失／過期／改名的材料），為使用者確認過的 Set 更新其注入計畫。不寫入 Revit。",
+      "triggers": [
+        "/GM_set compare",
+        "Set 過期檢查",
+        "憑證過期"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "比對已存 Set 與最新 TABC 快照，更新過期計畫",
+        "domain": "—"
+      }
+    },
+    "GM_update": {
+      "group": "G",
+      "desc": "從 TABC 官方網站（tabcmgr.hopto.org）更新本機 tabc_master_database.json 並重新同步展示網頁離線快取；也是全新 clone 後的初次啟動指令，兩份本機檔皆不存在時會從零建立。",
+      "triggers": [
+        "GM_update",
+        "更新 TABC 資料庫",
+        "第一次抓取"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "從 TABC 官網更新本機資料庫 + 展示網頁快取",
+        "domain": "—"
+      }
+    },
+    "GM_web": {
+      "group": "G",
+      "desc": "直接以單一 open 參數開啟綠建材檢索平台與 Set Manager 網頁（assets/green-material-showcase.html，透過 local_server.py 於 http://localhost:8888 提供服務）。僅限 Windows。",
+      "triggers": [
+        "GM_web open",
+        "開啟檢索平台網頁",
+        "Set Manager"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "開啟綠建材檢索平台與 Set Manager 網頁",
+        "domain": "—"
+      }
+    },
+    "GM_kanban": {
+      "group": "G",
+      "desc": "開啟專案看板（tools/green-material/GM_kanban.html）。Windows 專用，透過 PowerShell Start-Process 開啟。",
+      "triggers": [
+        "GM_kanban",
+        "專案看板",
+        "kanban"
+      ],
+      "domains": [],
+      "quick": {
+        "purpose": "開啟專案看板",
+        "domain": "—"
+      }
+    }
+  },
+  "quickOrder": [
+    "fire-safety-check",
+    "smoke-exhaust",
+    "building-compliance",
+    "parking-check",
+    "wall-orientation-check",
+    "smoke-detector-check",
+    "curtain-wall",
+    "facade-generation",
+    "element-coloring",
+    "element-query",
+    "auto-dimension",
+    "detail-component-sync",
+    "dependent-view-crop",
+    "sheet-management",
+    "stair-hidden-line",
+    "wall-section-batch",
+    "copy-detail-items",
+    "dedup-detail-elements",
+    "text-note-batch",
+    "align-views-on-sheets",
+    "batch-apply-view-template",
+    "viewport-arrangement",
+    "scale-drafting-width",
+    "floor-plan-from-template",
+    "copy-sheets-cross-project",
+    "excel-to-legend",
+    "detect-clashes",
+    "mep-settings-curation",
+    "set-project-units",
+    "qa-review",
+    "dwg-beam-import",
+    "dwg-column-import",
+    "family-inventory-cleanup",
+    "unjoin-geometry",
+    "batch-room-height",
+    "view-category-visibility",
+    "batch-material",
+    "partition-takeoff",
+    "quantity-takeoff-excel",
+    "scaffold-takeoff",
+    "tall-partition-index",
+    "threshold-opening-takeoff",
+    "room-numbering",
+    "ifc-structural-sync",
+    "finish-schedule-governance",
+    "build-revit",
+    "deploy-addon",
+    "claude-md-sync",
+    "loop-up",
+    "hj-pr-proposal",
+    "core-reload-dev",
+    "domain-diagram",
+    "dll-to-mcp-tool",
+    "archicad-skill-adapter",
+    "GM_import",
+    "GM_inject",
+    "GM_query",
+    "GM_set",
+    "GM_update",
+    "GM_web",
+    "GM_kanban"
+  ]
+}

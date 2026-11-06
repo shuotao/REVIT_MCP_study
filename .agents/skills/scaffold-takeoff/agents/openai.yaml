@@ -1,7 +1,0 @@
-interface:
-  display_name: "Scaffold Takeoff"
-  short_description: "Revit scaffold quantity workflow"
-  default_prompt: "Use $scaffold-takeoff to calculate exterior and indoor scaffold quantities from Revit."
-
-policy:
-  allow_implicit_invocation: true

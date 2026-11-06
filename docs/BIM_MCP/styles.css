@@ -17,7 +17,8 @@
   --text-primary: #fff;
   --text-secondary: rgba(255,255,255,0.7);
   --text-muted: rgba(255,255,255,0.5);
-  --text-faint: rgba(255,255,255,0.3);
+  --text-faint: rgba(255,255,255,0.46);  /* A2: 對比 ≥ 4.5:1（原 0.30 約 2.5:1） */
+  --text-body: rgba(255,255,255,0.82);
 
   --accent: #60a5fa;
   --accent-bg: rgba(96,165,250,0.08);
@@ -35,6 +36,54 @@
   --bad: #ef4444;
   --bad-bg: rgba(239,68,68,0.06);
   --bad-border: rgba(239,68,68,0.3);
+
+  /* Run C P0a — 主題代幣（深色值＝原先寫死的字面值，渲染不變；淺色覆寫見下方 html[data-theme="light"]） */
+  color-scheme: dark;
+  --on-accent: #000;                       /* 實心 accent 底上的文字色 */
+  --figure-bg: #000;                       /* 插圖底板：兩種主題都維持黑（素材皆畫在黑底） */
+  --plate-text-muted: rgba(255,255,255,0.5); /* 黑底板上的圖說文字，兩種主題相同 */
+  --nav-bg: rgba(0,0,0,0.85);
+  --bar-bg: rgba(0,0,0,0.92);
+  --overlay: rgba(0,0,0,0.7);
+  --glass: rgba(10,10,10,0.55);
+  --code-fg: #e0e0e0;
+  --ctx-bar-h: 51px;                       /* 手機目錄面板定位用：含 32px 目錄鈕的 context bar 高度（701–900px）；≤700px 見下方 */
+
+  --tint-0: rgba(255,255,255,0.02);
+  --tint-1: rgba(255,255,255,0.04);
+  --tint-2: rgba(255,255,255,0.05);
+  --tint-3: rgba(255,255,255,0.06);
+  --tint-4: rgba(255,255,255,0.08);
+  --border-mid: rgba(255,255,255,0.15);
+  --border-hover: rgba(255,255,255,0.35);
+  --glyph-faint: rgba(255,255,255,0.2);
+  --glyph-hover: rgba(255,255,255,0.4);
+  --text-quote: rgba(255,255,255,0.85);
+
+  --accent-bg-faint: rgba(96,165,250,0.06);
+  --accent-bg-soft: rgba(96,165,250,0.1);
+  --accent-bg-mid: rgba(96,165,250,0.12);
+  --accent-border-strong: rgba(96,165,250,0.6);
+  --accent-fade: rgba(96,165,250,0.4);
+
+  --warn-bg-faint: rgba(251,191,36,0.04);
+  --warn-bg-soft: rgba(251,191,36,0.1);
+  --warn-bg-strong: rgba(251,191,36,0.15);
+  --warn-border-mid: rgba(251,191,36,0.35);
+  --ok-bg-strong: rgba(74,222,128,0.15);
+  --ok-border-mid: rgba(74,222,128,0.35);
+  --ok-border-strong: rgba(74,222,128,0.4);
+  --bad-bg-faint: rgba(239,68,68,0.04);
+  --bad-bg-strong: rgba(239,68,68,0.15);
+  --bad-border-faint: rgba(239,68,68,0.2);
+  --bad-border-mid: rgba(239,68,68,0.35);
+
+  /* 類別色（Domain 五大類；頁面以 var(--cat-*) 取代內嵌十六進位） */
+  --cat-compliance: #ef4444;
+  --cat-workflow: #60a5fa;
+  --cat-ops: #fbbf24;
+  --cat-mep: #4ade80;
+  --cat-ref: #a78bfa;
 
   /* 字型 — 加入 JetBrains Mono 編碼感（GENAI 借鏡） */
   --font-sans: 'Helvetica Neue', 'Inter', 'Noto Sans TC', sans-serif;
@@ -54,6 +103,95 @@
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-pill: 100px;
+}
+
+/* ===== 淺色主題（Run C P0a）=====
+   預設為深色（網站識別）。刻意不跟隨 prefers-color-scheme：只有使用者按切換鈕
+   （initTheme，localStorage["bim-theme"]）才會在 <html> 加 data-theme="light"。
+   對比（sRGB 線性化，淺色 --bg #fff）：text-primary 18.9、body 13.6、secondary 8.5、
+   muted 6.2、faint 4.94；accent/on-accent 6.70；bad 6.47。
+   --ok #166534 / --warn #92400e 比分類色（--cat-mep #15803d、--cat-ops #b45309，5.02）更深：
+   它們要當文字放在 .06–.15 的同色淡底上（pass-tag、lingo、copy-btn.copied），須 ≥ 4.5:1。 */
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg: #fff;
+  --bg-elevated: #f6f7f9;
+  --bg-card: rgba(0,0,0,0.03);
+  --bg-card-hover: rgba(0,0,0,0.06);
+  --border: rgba(0,0,0,0.12);
+  --border-strong: rgba(0,0,0,0.28);
+
+  --text-primary: #111;
+  --text-secondary: rgba(0,0,0,0.7);
+  --text-muted: rgba(0,0,0,0.62);
+  --text-faint: rgba(0,0,0,0.56);
+  --text-body: rgba(0,0,0,0.82);
+
+  --accent: #1d4ed8;
+  --on-accent: #fff;
+  --accent-bg: rgba(29,78,216,0.08);
+  --accent-bg-strong: rgba(29,78,216,0.15);
+  --accent-border: rgba(29,78,216,0.3);
+
+  --warn: #92400e;
+  --warn-bg: rgba(180,83,9,0.06);
+  --warn-border: rgba(180,83,9,0.25);
+  --ok: #166534;
+  --ok-bg: rgba(21,128,61,0.06);
+  --ok-border: rgba(21,128,61,0.25);
+  --bad: #b91c1c;
+  --bad-bg: rgba(185,28,28,0.06);
+  --bad-border: rgba(185,28,28,0.3);
+
+  --nav-bg: rgba(255,255,255,0.9);
+  --bar-bg: rgba(255,255,255,0.95);
+  --overlay: rgba(0,0,0,0.5);
+  --glass: rgba(255,255,255,0.7);
+  --code-fg: #1f2937;
+
+  --tint-0: rgba(0,0,0,0.02);
+  --tint-1: rgba(0,0,0,0.04);
+  --tint-2: rgba(0,0,0,0.05);
+  --tint-3: rgba(0,0,0,0.06);
+  --tint-4: rgba(0,0,0,0.08);
+  --border-mid: rgba(0,0,0,0.15);
+  --border-hover: rgba(0,0,0,0.35);
+  --glyph-faint: rgba(0,0,0,0.2);
+  --glyph-hover: rgba(0,0,0,0.4);
+  --text-quote: rgba(0,0,0,0.85);
+
+  --accent-bg-faint: rgba(29,78,216,0.06);
+  --accent-bg-soft: rgba(29,78,216,0.1);
+  --accent-bg-mid: rgba(29,78,216,0.12);
+  --accent-border-strong: rgba(29,78,216,0.6);
+  --accent-fade: rgba(29,78,216,0.4);
+
+  --warn-bg-faint: rgba(180,83,9,0.04);
+  --warn-bg-soft: rgba(180,83,9,0.1);
+  --warn-bg-strong: rgba(180,83,9,0.15);
+  --warn-border-mid: rgba(180,83,9,0.35);
+  --ok-bg-strong: rgba(21,128,61,0.15);
+  --ok-border-mid: rgba(21,128,61,0.35);
+  --ok-border-strong: rgba(21,128,61,0.4);
+  --bad-bg-faint: rgba(185,28,28,0.04);
+  --bad-bg-strong: rgba(185,28,28,0.15);
+  --bad-border-faint: rgba(185,28,28,0.2);
+  --bad-border-mid: rgba(185,28,28,0.35);
+
+  --cat-compliance: #b91c1c;
+  --cat-workflow: #1d4ed8;
+  --cat-ops: #b45309;
+  --cat-mep: #15803d;
+  --cat-ref: #6d28d9;
+  /* --figure-bg / --plate-text-muted 刻意不覆寫：插圖底板兩種主題都維持黑 */
+}
+
+/* M1「尚未開放報名」停用按鈕（基底規則在 nav.css）：淺色主題只覆寫代幣，文字 ≥ 4.5:1 */
+html[data-theme="light"] .bim-topnav-btn.is-disabled,
+html[data-theme="light"] .bim-footer-btn.is-disabled {
+  color: var(--text-muted);
+  border-color: var(--border-strong);
+  background: var(--tint-1);
 }
 
 /* ===== RESET ===== */
@@ -80,7 +218,7 @@ a:hover { border-color: var(--accent); }
 /* ===== TOP NAV — 統一 breadcrumb 回 BIM_MCP/index ===== */
 .bim-topnav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  background: rgba(0,0,0,0.85);
+  background: var(--nav-bg);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
   padding: 14px 32px;
@@ -103,7 +241,7 @@ a:hover { border-color: var(--accent); }
 .bim-topnav-btn {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 5px 12px; border-radius: var(--radius-pill);
-  background: rgba(255,255,255,0.04);
+  background: var(--tint-1);
   border: 1px solid var(--border);
   color: var(--text-secondary);
   font-size: 12px;
@@ -111,17 +249,17 @@ a:hover { border-color: var(--accent); }
 .bim-topnav-btn:hover {
   border-color: var(--text-primary);
   color: var(--text-primary);
-  background: rgba(255,255,255,0.08);
+  background: var(--tint-4);
 }
 .bim-topnav-btn-primary {
-  background: rgba(96,165,250,0.12);
-  border-color: rgba(96,165,250,0.6);
+  background: var(--accent-bg-mid);
+  border-color: var(--accent-border-strong);
   color: var(--accent);
 }
 .bim-topnav-btn-primary:hover {
   background: var(--accent);
   border-color: var(--accent);
-  color: #000;
+  color: var(--on-accent);
 }
 .bim-topnav-btn-github svg {
   width: 14px; height: 14px; fill: currentColor; display: block;
@@ -203,7 +341,7 @@ blockquote cite {
 code {
   font-family: var(--font-mono);
   font-size: 0.9em;
-  background: rgba(96,165,250,0.12);
+  background: var(--accent-bg-mid);
   color: var(--accent);
   padding: 2px 7px;
   border-radius: var(--radius-sm);
@@ -220,7 +358,7 @@ pre {
 }
 pre code {
   background: transparent;
-  color: #e0e0e0;
+  color: var(--code-fg);
   padding: 0;
   font-size: 13px;
   line-height: 1.75;
@@ -242,7 +380,7 @@ th, td {
   border-bottom: 1px solid var(--border);
 }
 th {
-  background: rgba(255,255,255,0.04);
+  background: var(--tint-1);
   color: var(--text-primary);
   font-weight: 600;
   font-size: 13px;
@@ -314,25 +452,25 @@ tr:last-child td { border-bottom: none; }
   display: inline-block;
   padding: 2px 9px; border-radius: var(--radius-pill);
   font-size: 11px; font-weight: 700; letter-spacing: 1px;
-  background: rgba(74,222,128,0.15); color: var(--ok);
-  border: 1px solid rgba(74,222,128,0.35);
+  background: var(--ok-bg-strong); color: var(--ok);
+  border: 1px solid var(--ok-border-mid);
 }
 .fail-tag {
   display: inline-block;
   padding: 2px 9px; border-radius: var(--radius-pill);
   font-size: 11px; font-weight: 700; letter-spacing: 1px;
-  background: rgba(239,68,68,0.15); color: var(--bad);
-  border: 1px solid rgba(239,68,68,0.35);
+  background: var(--bad-bg-strong); color: var(--bad);
+  border: 1px solid var(--bad-border-mid);
 }
 
 /* User quote (使用者原文) */
 .user-quote {
   border: 1px solid var(--border-strong);
-  background: rgba(255,255,255,0.02);
+  background: var(--tint-0);
   padding: 24px 32px;
   margin: var(--gap-md) 0;
   font-style: italic;
-  color: rgba(255,255,255,0.85);
+  color: var(--text-quote);
   line-height: 1.8;
   border-radius: var(--radius-md);
   position: relative;
@@ -341,7 +479,7 @@ tr:last-child td { border-bottom: none; }
   content: '"';
   position: absolute; top: -8px; left: 14px;
   font-size: 48px;
-  color: rgba(255,255,255,0.2);
+  color: var(--glyph-faint);
   font-family: serif;
 }
 .user-quote-attr {
@@ -370,7 +508,7 @@ tr:last-child td { border-bottom: none; }
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
-  background: #000;
+  background: var(--figure-bg);
 }
 .bim-figure {
   margin-bottom: var(--gap-lg);
@@ -397,7 +535,7 @@ tr:last-child td { border-bottom: none; }
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
-  background: #000;
+  background: var(--figure-bg);
 }
 .quote-backdrop {
   margin-bottom: var(--gap-md);
@@ -443,7 +581,7 @@ tr:last-child td { border-bottom: none; }
 /* Copy button for pre/code */
 .copy-btn {
   position: absolute; top: 8px; right: 8px;
-  background: rgba(96,165,250,0.1);
+  background: var(--accent-bg-soft);
   border: 1px solid var(--accent-border);
   color: var(--accent);
   padding: 4px 10px;
@@ -454,8 +592,8 @@ tr:last-child td { border-bottom: none; }
 }
 .copy-btn:hover { background: var(--accent-bg-strong); }
 .copy-btn.copied {
-  background: rgba(74,222,128,0.15);
-  border-color: rgba(74,222,128,0.4);
+  background: var(--ok-bg-strong);
+  border-color: var(--ok-border-strong);
   color: var(--ok);
 }
 
@@ -502,7 +640,7 @@ tr:last-child td { border-bottom: none; }
   display: inline-flex; align-items: center; gap: 8px;
   padding: 10px 20px;
   border-radius: var(--radius-pill);
-  background: rgba(255,255,255,0.04);
+  background: var(--tint-1);
   border: 1px solid var(--border);
   color: var(--text-secondary);
   font-size: 13px; font-weight: 600;
@@ -513,7 +651,7 @@ tr:last-child td { border-bottom: none; }
 }
 .bim-footer-btn.primary {
   background: var(--accent);
-  color: var(--bg);
+  color: var(--on-accent);
   border-color: var(--accent);
 }
 .bim-footer-btn.primary:hover { background: var(--text-primary); border-color: var(--text-primary); }
@@ -531,8 +669,8 @@ tr:last-child td { border-bottom: none; }
 .how-tech {
   margin: var(--gap-lg) 0;
   padding: 22px 26px;
-  border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(10,10,10,0.55);
+  border: 1px solid var(--border-mid);
+  background: var(--glass);
   backdrop-filter: blur(10px);
   border-radius: var(--radius-md);
   display: grid;
@@ -558,7 +696,7 @@ tr:last-child td { border-bottom: none; }
   font-size: 13px;
   color: var(--accent);
   letter-spacing: 0.5px;
-  background: rgba(96,165,250,0.06);
+  background: var(--accent-bg-faint);
   padding: 8px 12px;
   border-radius: var(--radius-sm);
   border-left: 2px solid var(--accent-border);
@@ -580,7 +718,7 @@ tr:last-child td { border-bottom: none; }
   margin: var(--gap-lg) 0;
   padding: 28px 36px;
   border-left: 3px solid var(--warn);
-  background: rgba(251,191,36,0.04);
+  background: var(--warn-bg-faint);
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
   position: relative;
 }
@@ -646,7 +784,7 @@ tr:last-child td { border-bottom: none; }
 }
 .further-reading-list li {
   padding: 8px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid var(--tint-1);
   font-size: 14px;
   line-height: 1.6;
   display: flex;
@@ -666,7 +804,7 @@ tr:last-child td { border-bottom: none; }
   text-transform: uppercase;
   margin-right: 6px;
   padding: 2px 6px;
-  background: rgba(255,255,255,0.04);
+  background: var(--tint-1);
   border-radius: var(--radius-sm);
   display: inline-block;
 }
@@ -682,8 +820,8 @@ tr:last-child td { border-bottom: none; }
 .pitfalls {
   margin: var(--gap-lg) 0;
   padding: 22px 28px;
-  border: 1px solid rgba(239,68,68,0.2);
-  background: rgba(239,68,68,0.04);
+  border: 1px solid var(--bad-border-faint);
+  background: var(--bad-bg-faint);
   border-left: 3px solid var(--bad);
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
@@ -757,14 +895,14 @@ tr:last-child td { border-bottom: none; }
   transition: border-color 0.3s ease, background 0.3s ease;
 }
 .user-quote:hover {
-  border-color: rgba(255,255,255,0.35);
-  background: rgba(255,255,255,0.04);
+  border-color: var(--border-hover);
+  background: var(--tint-1);
 }
 .user-quote::before {
   transition: color 0.3s ease, transform 0.3s ease;
 }
 .user-quote:hover::before {
-  color: rgba(255,255,255,0.4);
+  color: var(--glyph-hover);
   transform: scale(1.1);
 }
 
@@ -779,9 +917,9 @@ tr:last-child td { border-bottom: none; }
 .lingo {
   display: inline-block;
   padding: 2px 8px;
-  background: rgba(251,191,36,0.1);
+  background: var(--warn-bg-soft);
   color: var(--warn);
-  border: 1px dashed rgba(251,191,36,0.35);
+  border: 1px dashed var(--warn-border-mid);
   border-radius: var(--radius-sm);
   font-family: var(--font-tech);
   font-size: 11px;
@@ -868,6 +1006,242 @@ tr:last-child td { border-bottom: none; }
   .harvest-step:hover {
     transform: translateY(-2px);
     transition: transform 0.3s;
+  }
+}
+
+/* ===== A2: READABILITY / FOCUS / CALLOUT / ILLUSTRATION / SEARCH / STEPS / PRINT (additive) ===== */
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 必讀區塊：永遠在文流內，不可被收進抽屜（不要與抽屜類別共用） */
+.bim-callout {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-bg);
+  padding: 18px 22px;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  margin: var(--gap-md) 0;
+  color: var(--text-body);
+}
+.bim-callout-title {
+  font-family: var(--font-tech);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.bim-callout ol, .bim-callout ul { font-size: 15px; padding-left: 1.4em; }
+
+/* AI 生成概念插圖 */
+.bim-illustration figcaption {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.bim-illustration img { width: 100%; height: auto; }
+.bim-figure.bim-illustration { margin-bottom: var(--gap-lg); }
+
+/* 搜尋／篩選（initSearch 的樣式；無 JS 時整塊不影響內容） */
+.bim-search { margin: var(--gap-md) 0; }
+.bim-search input[type=search] {
+  width: 100%;
+  font-size: 16px;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+}
+.bim-search input[type=search]:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--accent);
+}
+.bim-search-chips { display: flex; flex-wrap: wrap; gap: var(--gap-xs); margin-top: var(--gap-sm); }
+.bim-search-chips button {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  cursor: pointer;
+}
+.bim-search-chips button[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.bim-search-status { font-size: 13px; color: var(--text-muted); margin-top: var(--gap-sm); }
+
+/* 通用編號步驟（複製自 deployment-guide.html 的內嵌規則，供其他頁重用） */
+.bim-steps { counter-reset: step; list-style: none; padding: 0; }
+.bim-steps li { counter-increment: step; margin: 0 0 14px; padding: 18px 22px 18px 64px; border: 1px solid var(--border); border-radius: var(--radius-md); position: relative; background: var(--bg-card); }
+.bim-steps li:before { content: counter(step); position: absolute; left: 20px; top: 18px; width: 28px; height: 28px; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); border-radius: 50%; font-family: var(--font-tech); font-weight: 700; }
+.bim-steps li strong { display: block; margin-bottom: 4px; color: var(--text-primary); }
+.bim-steps li code { font-size: 12px; }
+.bim-steps li p { font-size: 13px; margin: 6px 0 0 0; color: var(--text-muted); }
+
+@media print {
+  /* T20：html[data-theme="light"]（0,1,1）會勝過 :root（0,1,0），所以列印代幣必須同時掛在
+     :root, html[data-theme] 兩個選擇器上；原本只有文字代幣的 :root 規則保持不動（在下方）。 */
+  :root, html[data-theme] {
+    color-scheme: light; /* 紙張一律淺色：否則 :root 的 color-scheme:dark 會讓頁邊畫布變深灰 */
+    --bg: #fff;
+    --bg-elevated: #f6f7f9;
+    --bg-card: rgba(0,0,0,0.03);
+    --bg-card-hover: rgba(0,0,0,0.06);
+    --border: rgba(0,0,0,0.12);
+    --border-strong: rgba(0,0,0,0.28);
+    --accent: #1d4ed8;
+    --on-accent: #fff;
+    --accent-bg: rgba(29,78,216,0.08);
+    --accent-bg-strong: rgba(29,78,216,0.15);
+    --accent-border: rgba(29,78,216,0.3);
+    --warn: #92400e;
+    --warn-bg: rgba(180,83,9,0.06);
+    --warn-border: rgba(180,83,9,0.25);
+    --ok: #166534;
+    --ok-bg: rgba(21,128,61,0.06);
+    --ok-border: rgba(21,128,61,0.25);
+    --bad: #b91c1c;
+    --bad-bg: rgba(185,28,28,0.06);
+    --bad-border: rgba(185,28,28,0.3);
+    --nav-bg: rgba(255,255,255,0.9);
+    --bar-bg: rgba(255,255,255,0.95);
+    --overlay: rgba(0,0,0,0.5);
+    --glass: rgba(255,255,255,0.7);
+    --code-fg: #1f2937;
+    --tint-0: rgba(0,0,0,0.02);
+    --tint-1: rgba(0,0,0,0.04);
+    --tint-2: rgba(0,0,0,0.05);
+    --tint-3: rgba(0,0,0,0.06);
+    --tint-4: rgba(0,0,0,0.08);
+    --border-mid: rgba(0,0,0,0.15);
+    --border-hover: rgba(0,0,0,0.35);
+    --glyph-faint: rgba(0,0,0,0.2);
+    --glyph-hover: rgba(0,0,0,0.4);
+    --text-quote: rgba(0,0,0,0.85);
+    --accent-bg-faint: rgba(29,78,216,0.06);
+    --accent-bg-soft: rgba(29,78,216,0.1);
+    --accent-bg-mid: rgba(29,78,216,0.12);
+    --accent-border-strong: rgba(29,78,216,0.6);
+    --accent-fade: rgba(29,78,216,0.4);
+    --warn-bg-faint: rgba(180,83,9,0.04);
+    --warn-bg-soft: rgba(180,83,9,0.1);
+    --warn-bg-strong: rgba(180,83,9,0.15);
+    --warn-border-mid: rgba(180,83,9,0.35);
+    --ok-bg-strong: rgba(21,128,61,0.15);
+    --ok-border-mid: rgba(21,128,61,0.35);
+    --ok-border-strong: rgba(21,128,61,0.4);
+    --bad-bg-faint: rgba(185,28,28,0.04);
+    --bad-bg-strong: rgba(185,28,28,0.15);
+    --bad-border-faint: rgba(185,28,28,0.2);
+    --bad-border-mid: rgba(185,28,28,0.35);
+    --cat-compliance: #b91c1c;
+    --cat-workflow: #1d4ed8;
+    --cat-ops: #b45309;
+    --cat-mep: #15803d;
+    --cat-ref: #6d28d9;
+    --text-primary: #000;
+    --text-secondary: #222;
+    --text-muted: #444;
+    --text-faint: #666;
+    --text-body: #111;
+  }
+  :root {
+    --text-primary: #000;
+    --text-secondary: #222;
+    --text-muted: #444;
+    --text-faint: #666;
+    --text-body: #111;
+  }
+  #__section_drawer_templates { display: block !important; }
+  .bim-drawer, .bim-drawer-overlay, .bim-context-bar, .bim-progress, .section-drawer-bar { display: none !important; }
+}
+
+/* ===== Run C P0a：主題切換鈕、手機目錄、插圖底板（additive）===== */
+
+/* 主題切換鈕（initTheme 注入 .bim-topnav-actions）：外觀與 .bim-topnav-btn 同系 */
+.bim-theme-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: var(--radius-pill);
+  background: var(--tint-1);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: inherit; font-size: 12px; line-height: inherit;
+  cursor: pointer;
+  transition: border-color 0.3s, color 0.3s, background 0.3s;
+}
+.bim-theme-toggle:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+  background: var(--tint-4);
+}
+.bim-theme-toggle[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+/* 插圖底板：素材皆畫在黑底，兩種主題都維持黑 */
+.bim-illustration img,
+.bim-figure img,
+.bim-hero-figure img,
+.bim-card-figure img { background: var(--figure-bg); }
+.bim-figure figcaption,
+.bim-hero-figure figcaption,
+.bim-card-figure figcaption,
+.bim-figure.bim-illustration figcaption { color: var(--plate-text-muted); }
+
+@media (max-width: 700px) { :root { --ctx-bar-h: 49px; } }
+
+/* 手機目錄（initMobileToc）：>900px 完全隱藏，桌機側欄目錄不變 */
+.bim-toc-toggle { display: none; }
+.bim-toc-tasks { display: none; }
+
+@media (max-width: 900px) {
+  .bim-toc-toggle {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 32px; padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--accent-border);
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-family: var(--font-tech); font-size: 11px; letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .bim-toc-toggle[aria-expanded="true"] {
+    background: var(--accent); border-color: var(--accent); color: var(--on-accent);
+  }
+  /* 展開：固定在 topnav + context bar 之下、橫跨全寬；z-index 95 高於 context bar(90)、低於 topnav(100) */
+  .bim-toc.open {
+    display: block;
+    position: fixed;
+    top: calc(51px + var(--ctx-bar-h));
+    left: 0; right: 0;
+    width: auto;
+    max-height: 60vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    z-index: 95;
+    border-radius: 0;
+    border-left: 0; border-right: 0;
+    padding: 16px 20px;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+  }
+  .bim-toc.open a { padding-top: 8px; padding-bottom: 8px; } /* 觸控目標 */
+  .bim-toc.open .bim-toc-tasks {
+    display: grid; gap: 4px;
+    margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .bim-toc-tasks a {
+    color: var(--text-secondary);
+    font-family: var(--font-tech); font-size: 12px;
   }
 }
 

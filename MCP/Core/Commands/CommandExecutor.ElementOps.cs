@@ -21,6 +21,20 @@ namespace RevitMCP.Core
         /// </summary>
         private object MoveElement(JObject parameters)
         {
+            if (parameters["avoidDoorTagOverlap"]?.Value<bool>() == true)
+            {
+                if (parameters["avoidBeamTagOverlap"]?.Value<bool>() == true || parameters["centerBeamTags"]?.Value<bool>() == true || parameters["elementId"] != null)
+                    throw new ArgumentException("Choose one tag operation.");
+                return AvoidDoorTagOverlap(parameters);
+            }
+            if (parameters["avoidBeamTagOverlap"]?.Value<bool>() == true)
+            {
+                if (parameters["centerBeamTags"]?.Value<bool>() == true)
+                    throw new ArgumentException("Choose one tag operation.");
+                return AvoidBeamTagOverlap(parameters);
+            }
+            if (parameters["centerBeamTags"]?.Value<bool>() == true)
+                return CenterBeamTags(parameters);
             Document doc = _uiApp.ActiveUIDocument.Document;
             IdType elementId = parameters["elementId"]?.Value<IdType>() ?? 0;
             double dx = parameters["dx"]?.Value<double>() ?? 0;

@@ -49,6 +49,17 @@ namespace RevitMCP.Configuration
         public int CommandTimeout { get; set; } = 30000;
 
         /// <summary>
+        /// 是否啟用連線獨佔鎖：已鎖定時拒絕新連線 (409)，避免多個 client 互相搶走連線。
+        /// 逃生旗標，關閉後回退成舊行為 (新連線直接覆蓋)。
+        /// </summary>
+        public bool ExclusiveLock { get; set; } = true;
+
+        /// <summary>
+        /// 相機管理停靠面板的本機設定（人視高預設值等）。只存本機，不隨 .rvt 走。
+        /// </summary>
+        public RevitMCP.Core.CameraManagerSettings CameraManager { get; set; } = new RevitMCP.Core.CameraManagerSettings();
+
+        /// <summary>
         /// 驗證並修正設定值。回傳 true 表示有修正（需存檔）。
         /// </summary>
         public bool ValidateAndFix()
@@ -69,6 +80,23 @@ namespace RevitMCP.Configuration
             {
                 Port = DefaultPort;
                 changed = true;
+            }
+
+            // 相機管理：室外範圍半徑（m）超出 [5, 1000] 或非有限值 → 回預設 60 m
+            if (CameraManager == null)
+            {
+                CameraManager = new RevitMCP.Core.CameraManagerSettings();
+                changed = true;
+            }
+            else
+            {
+                double r = CameraManager.OutdoorRadiusM;
+                if (double.IsNaN(r) || double.IsInfinity(r) ||
+                    r < RevitMCP.Core.CameraManagerSettings.MinOutdoorRadiusM || r > RevitMCP.Core.CameraManagerSettings.MaxOutdoorRadiusM)
+                {
+                    CameraManager.OutdoorRadiusM = RevitMCP.Core.CameraManagerSettings.DefaultOutdoorRadiusM;
+                    changed = true;
+                }
             }
 
             return changed;

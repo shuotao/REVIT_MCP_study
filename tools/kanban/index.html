@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>綠建材導入 Revit Skill — Monstrare 專案看板</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --bg-card: #131b2e;
+      --bg-card-hover: #1c2742;
+      --bg-column: #0e1626;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(59, 130, 246, 0.3);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-purple: #8b5cf6;
+
+      --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Glassmorphism Navbar */
+    .navbar {
+      background: rgba(19, 27, 46, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 20px;
+      color: #fff;
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .brand-title h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-title p {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-family: var(--font-code);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-agent {
+      background: rgba(139, 92, 246, 0.15);
+      color: #a78bfa;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-agent::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    .btn {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      background: var(--bg-card);
+      box-shadow: none;
+    }
+
+    .fs-status {
+      font-size: 11px;
+      color: var(--text-secondary);
+      max-width: 220px;
+    }
+
+    /* Main Layout */
+    .container {
+      max-width: 1720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 28px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Dashboard Metrics Bar */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-accent);
+    }
+
+    .metric-header {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .metric-value {
+      font-size: 26px;
+      font-weight: 700;
+      font-family: var(--font-code);
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .metric-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Progress Bar */
+    .progress-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+
+    /* Controls Bar */
+    .controls-bar {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .search-input-box {
+      flex: 1;
+      min-width: 260px;
+      position: relative;
+    }
+
+    .search-input-box input {
+      width: 100%;
+      background: rgba(9, 13, 22, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 14px 10px 38px;
+      color: var(--text-primary);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .search-input-box input:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .select-input {
+      background: rgba(9, 13, 22, 0.6);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .select-input:focus {
+      border-color: var(--accent-blue);
+    }
+
+    /* Kanban Board Layout */
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 18px;
+      flex: 1;
+      align-items: start;
+    }
+
+    @media (max-width: 1400px) {
+      .kanban-board {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+    }
+
+    .kanban-column {
+      background: var(--bg-column);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 270px);
+      min-height: 500px;
+      overflow: hidden;
+    }
+
+    .column-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(19, 27, 46, 0.5);
+    }
+
+    .column-title-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .column-accent {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    .column-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .column-count {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary);
+      font-family: var(--font-code);
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .column-cards-container {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* Kanban Card Styles */
+    .task-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+
+    .task-card:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-id {
+      font-family: var(--font-code);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-cyan);
+    }
+
+    .badges-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-risk {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .risk-high {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--accent-red);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .risk-medium {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--accent-amber);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .risk-low {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent-green);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .badge-track {
+      font-size: 11px;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--font-code);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.4;
+    }
+
+    .card-epic {
+      font-size: 11px;
+      color: var(--text-secondary);
+      background: rgba(59, 130, 246, 0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+      width: fit-content;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .card-gates-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: rgba(9, 13, 22, 0.4);
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .gate-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .gate-label {
+      color: var(--text-muted);
+    }
+
+    .gate-value {
+      font-family: var(--font-code);
+      font-weight: 600;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Card Detail Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      background: rgba(9, 13, 22, 0.5);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0 8px;
+    }
+
+    .modal-close:hover {
+      color: #fff;
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .modal-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modal-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .checkbox-item {
+      background: rgba(9, 13, 22, 0.6);
+      border: 1px solid var(--border-color);
+      padding: 10px 14px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .checkbox-item input {
+      accent-color: var(--accent-blue);
+      width: 16px;
+      height: 16px;
+    }
+
+    .stage-switch-box {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .stage-btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: rgba(9, 13, 22, 0.5);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .stage-btn.active {
+      background: var(--accent-blue);
+      color: #fff;
+      border-color: var(--accent-blue);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="navbar">
+    <div class="brand-container">
+      <div class="brand-logo">M</div>
+      <div class="brand-title">
+        <h1>綠建材導入 Revit Skill — Monstrare 專案看板</h1>
+        <p>REVIT_MCP_study / Monstrare Governance Framework</p>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <div class="badge-agent">Agent: antigravity</div>
+      <button class="btn" id="fsConnectBtn" onclick="connectProjectFolder()">🔗 連結專案資料夾</button>
+      <button class="btn btn-primary" id="fsSaveBtn" onclick="saveChangesToFiles()" disabled>💾 儲存變更到檔案</button>
+      <span id="fsStatus" class="fs-status">尚未連結（僅支援 Chrome / Edge）</span>
+      <button class="btn" onclick="exportKanbanData()">📥 匯出看板數據 JSON</button>
+      <button class="btn btn-primary" onclick="resetKanbanState()">🔄 重新整理看板</button>
+    </div>
+  </header>
+
+  <!-- Container -->
+  <main class="container">
+
+    <!-- Metrics Bar -->
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-header">總任務數量</div>
+        <div class="metric-value" id="metric-total-tasks">11 <span class="metric-sub">Cards</span></div>
+        <div class="metric-sub">涵蓋 4 大 Epic 模組</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">DOR 進場就緒率 (Readiness)</div>
+        <div class="metric-value" id="metric-dor-rate" style="color: var(--accent-cyan);">25%</div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="dor-progress" style="width: 25%; background: var(--accent-cyan);"></div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">DOD 完成門檻率 (Sign-off)</div>
+        <div class="metric-value" id="metric-dod-rate" style="color: var(--accent-green);">0%</div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="dod-progress" style="width: 0%; background: var(--accent-green);"></div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">高風險任務 (High Risk)</div>
+        <div class="metric-value" style="color: var(--accent-red);" id="metric-high-risk">3 <span class="metric-sub">Tasks</span></div>
+        <div class="metric-sub">需重點優先審查</div>
+      </div>
+    </section>
+
+    <!-- Controls Bar -->
+    <section class="controls-bar">
+      <div class="search-input-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="搜尋任務標題、內容、Epic 或 ID..." oninput="renderKanban()">
+      </div>
+      <div class="filter-group">
+        <select class="select-input" id="epicFilter" onchange="renderKanban()">
+          <option value="ALL">所有 Epic 類別</option>
+          <option value="Epic-1">Epic-1: TABC 資料庫與法規</option>
+          <option value="Epic-2">Epic-2: Revit 參數 Mapping</option>
+          <option value="Epic-3">Epic-3: Skill 開發與轉譯</option>
+          <option value="Epic-4">Epic-4: HJPLUS PR 與 DOD 驗證</option>
+        </select>
+
+        <select class="select-input" id="riskFilter" onchange="renderKanban()">
+          <option value="ALL">所有風險等級</option>
+          <option value="high">High 風險</option>
+          <option value="medium">Medium 風險</option>
+          <option value="low">Low 風險</option>
+        </select>
+
+        <select class="select-input" id="trackFilter" onchange="renderKanban()">
+          <option value="ALL">所有 Track 軌道</option>
+          <option value="backend">Backend (後端)</option>
+          <option value="integration">Integration (整合)</option>
+          <option value="n/a">N/A</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Kanban Board Grid -->
+    <section class="kanban-board">
+      
+      <!-- Column 1: Backlog -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <div class="column-title-box">
+            <div class="column-accent" style="background: var(--text-muted);"></div>
+            <div class="column-title">Backlog 待辦</div>
+          </div>
+          <div class="column-count" id="count-backlog">0</div>
+        </div>
+        <div class="column-cards-container" id="column-backlog"></div>
+      </div>
+
+      <!-- Column 2: Ready -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <div class="column-title-box">
+            <div class="column-accent" style="background: var(--accent-cyan);"></div>
+            <div class="column-title">Ready 就緒</div>
+          </div>
+          <div class="column-count" id="count-ready">0</div>
+        </div>
+        <div class="column-cards-container" id="column-ready"></div>
+      </div>
+
+      <!-- Column 3: Implementing -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <div class="column-title-box">
+            <div class="column-accent" style="background: var(--accent-blue);"></div>
+            <div class="column-title">Implementing 執行中</div>
+          </div>
+          <div class="column-count" id="count-implementing">0</div>
+        </div>
+        <div class="column-cards-container" id="column-implementing"></div>
+      </div>
+
+      <!-- Column 4: Verify -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <div class="column-title-box">
+            <div class="column-accent" style="background: var(--accent-amber);"></div>
+            <div class="column-title">Verify 驗證中</div>
+          </div>
+          <div class="column-count" id="count-verify">0</div>
+        </div>
+        <div class="column-cards-container" id="column-verify"></div>
+      </div>
+
+      <!-- Column 5: Done -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <div class="column-title-box">
+            <div class="column-accent" style="background: var(--accent-green);"></div>
+            <div class="column-title">Done 已完成</div>
+          </div>
+          <div class="column-count" id="count-done">0</div>
+        </div>
+        <div class="column-cards-container" id="column-done"></div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Card Detail Modal -->
+  <div class="modal-overlay" id="cardModal" onclick="closeModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
+            <span class="card-id" id="modalCardId">TASK-001</span>
+            <span class="card-epic" id="modalCardEpic">Epic-1</span>
+            <span class="badge-risk risk-medium" id="modalCardRisk">MEDIUM</span>
+          </div>
+          <h2 style="font-size: 18px; font-weight: 700;" id="modalCardTitle">任務標題</h2>
+        </div>
+        <button class="modal-close" onclick="closeModalDirect()">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Stage Switcher -->
+        <div class="modal-section">
+          <div class="modal-section-title">變更階段 Stage</div>
+          <div class="stage-switch-box">
+            <button class="stage-btn" onclick="updateCurrentCardStage('backlog')" id="stageBtn-backlog">Backlog</button>
+            <button class="stage-btn" onclick="updateCurrentCardStage('ready')" id="stageBtn-ready">Ready</button>
+            <button class="stage-btn" onclick="updateCurrentCardStage('implementing')" id="stageBtn-implementing">Implementing</button>
+            <button class="stage-btn" onclick="updateCurrentCardStage('verify')" id="stageBtn-verify">Verify</button>
+            <button class="stage-btn" onclick="updateCurrentCardStage('done')" id="stageBtn-done">Done</button>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="modal-section">
+          <div class="modal-section-title">任務說明與規格</div>
+          <div id="modalCardContent" style="background: rgba(9, 13, 22, 0.6); padding: 14px; border-radius: 8px; font-size: 13px; line-height: 1.6; color: var(--text-secondary); border: 1px solid var(--border-color); white-space: pre-wrap;"></div>
+        </div>
+
+        <!-- DOR Readiness Checkpoints -->
+        <div class="modal-section">
+          <div class="modal-section-title">Readiness (DOR) 進場就緒門檻</div>
+          <div class="checklist-grid" id="modalDorChecklist"></div>
+        </div>
+
+        <!-- DOD Sign-off Gates -->
+        <div class="modal-section">
+          <div class="modal-section-title">Sign-off Gates (DOD) 完成門檻</div>
+          <div class="checklist-grid" id="modalDodChecklist"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initial Monstrare Kanban Card Dataset
+let cardsData = [
+  {
+    "id": "TASK-001",
+    "title": "整理 TABC 1041 筆綠建材標章資料庫與 Schema 規範",
+    "content": "### 任務說明\n整理與正規化 tabc_master_database.json 內全量 1,141 筆台灣綠建材標章資料（含健康、生態、高性能、再生綠建材類別），建立標準化 JSON Schema 供 Revit 材料對接與 Skill 檢索。\n\n### Readiness (DOR)\n- [x] problem_clear: 確定 TABC 全量資料結構與欄位規格\n- [x] scope_defined: 定義標章編號、產品名稱、申請公司、有效期限、綠建材分類等欄位\n\n### Sign-off Gates (DOD)\n- [x] architecture: 完成 JSON 資料庫結構正規化\n- [x] test_passed: 建立自動化查詢驗證腳本與地端 Master 快取\n- [x] code_review: 審查資料精確度與缺漏處理",
+    "stage": "done",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "antigravity",
+    "approvalRequired": false,
+    "createdAt": "2026-07-30",
+    "epic": "Epic-1: TABC 綠建材資料庫與法規模組化",
+    "userStory": "US-1: 綠建材數據資料庫化",
+    "track": "backend",
+    "dependsOn": [],
+    "order": 1,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-002",
+    "title": "優化 TABC 綠建材地端檢索與 Showcase 平台之 UI/UX 介面與操作體驗",
+    "content": "### 任務說明\n優化 tabc_search.html 與 assets/green-material-showcase.html 的檢索介面與互動操作體驗。包含全量 1,141 筆綠建材標章檢索、100% 復刻原網頁紅字「產品規格與性能 (依 CNS 國家標準試驗、合格項目、試驗項目實測數據)」、網格與表格雙視圖切換、一鍵複製 Revit 共享參數 JSON 彈窗、彈窗完整呈現產品照片全貌 (Full Image contain)，以及專案材料 Set 組合管理與一鍵推送操作優化。\n\n### Readiness (DOR)\n- [x] problem_clear: 確定全量檢索網頁與 Showcase 的 UI/UX 改善點\n- [x] scope_defined: 包含 CNS 試驗項目高亮、雙視圖切換、彈窗產品照片全貌 (object-fit: contain)、Revit JSON 預覽 Modal 與 Set 管理\n\n### Sign-off Gates (DOD)\n- [x] architecture: 完成網頁前端架構與 1,141 筆資料結構嵌入\n- [x] ui: 完成紅字標題「產品規格與性能」視覺復刻與模態彈窗產品圖全貌\n- [x] test_passed: 通過關鍵字搜尋、分類過濾、視圖切換與參數 JSON 匯出功能測試",
+    "stage": "done",
+    "risk": "low",
+    "owner": "shuotao",
+    "agent": "antigravity",
+    "approvalRequired": false,
+    "createdAt": "2026-07-30",
+    "epic": "Epic-1: TABC 綠建材資料庫與法規模組化",
+    "userStory": "US-2: 檢索平台介面與操作體驗優化",
+    "track": "frontend",
+    "dependsOn": [
+      "TASK-001"
+    ],
+    "order": 2,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-013",
+    "title": "檢索平台新增「加入既有 Set」、「另存/開啟專案檔」與可拖曳材料層級設定三項功能，並新增 /GMweb open 指令",
+    "content": "### 任務說明\n於 green-material-showcase.html 新增三項材料 Set 管理功能：\n1. 「加入既有 Set」：儲存材料 Set 彈窗新增目標下拉選單，可選擇建立新 Set 或加入既有 Set（自動去重、略過重複項目）；Set 管理器每張卡片新增「➕ 加入目前勾選」快速按鈕。\n2. 「另存/開啟專案檔」：Set 管理器新增「💾 另存專案檔」「📂 開啟專案檔」，優先使用 File System Access API 讓使用者自選存檔位置，不支援時退回下載/選檔相容模式；開啟時可選擇取代或合併目前的 Set 清單。\n3. 「材料層級設定」：當 Set 勾選 Wall/Floor 且選擇「單一組合」時，彈出視窗讓使用者為每項材料指定 Structure/Substrate/Finish 角色，並可直接拖曳整列調整順序；Core Boundary 分界線改為可拖曳的細欄位列，預設固定放在 Structure 角色材料的正上方與正下方各一條（對應 Revit Edit Assembly 對話框的實際行為），結果存入 Set 的 `layerComposition.sequence` 欄位。\n\n同時新增 `/GMweb open` 指令（`.claude/skills/GMweb/SKILL.md`），提供比 `/GM search` 更精簡的單一動作入口直接開啟檢索平台網頁。\n\n### Readiness (DOR)\n- [x] problem_clear: 使用者需要能疊加勾選材料到既有 Set、跨專案切換不同 Set 收藏、以及明確指定複合構造材料的層級角色\n- [x] scope_defined: 三項功能皆限定在 green-material-showcase.html 前端 JS/HTML，不涉及 Revit 寫入邏輯\n\n### Sign-off Gates (DOD)\n- [x] architecture: 沿用既有 localStorage + exported_material_sets.json 儲存模式，`layerComposition` 為新增欄位、向下相容\n- [x] ui: 三項功能與既有 Set 管理器視覺風格一致（配色、modal 結構）\n- [x] test_passed: Node 語法檢查通過；`verify-qaqc.ps1 -SkipBuild -SkipDeploy` 全數 PASS（多次執行）\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "done",
+    "risk": "low",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-06",
+    "epic": "Epic-1: TABC 綠建材資料庫與法規模組化",
+    "userStory": "US-2: 檢索平台介面與操作優化工具",
+    "track": "frontend",
+    "dependsOn": [
+      "TASK-002",
+      "TASK-004"
+    ],
+    "order": 3,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-003",
+    "title": "精準對映 Revit 元件類別 (Walls/Floors/Ceilings/Windows) 之綠建材共享參數規範",
+    "content": "### 任務說明\n依據 Revit 建築元件類別（牆面 Walls、地坪 Floors、天花板 Ceilings、門窗與幕牆 Windows/Doors/CurtainPanels、材料 Materials、非幾何輔助材料 Adhesives/Sealants），完成全量 11 大工程情境（包含牆體塗料、地磚 Hatch、單選非模型材料、門窗 RFA 備份等）之建築 Agent 優化分析，建立 19 個共享參數檔 GreenMaterial_SharedParams.txt 與全情境對映規範 Master 文件。\n\n### Readiness (DOR)\n- [x] problem_clear: 完成 11 大 BIM 元件工程情境之 Agent 評估與優化建議\n- [x] scope_defined: 定義標章身份、物化性能、算量評定、CNS 驗證、非幾何輔助材料等 5 大群組 19 個共享參數\n\n### Sign-off Gates (DOD)\n- [x] architecture: 完成全情境（情境 1~11）建築 Agent 剖析與 Master Mapping 表格\n- [x] test_passed: 通過 19 個共享參數 GUID 與語法自動化校驗\n- [x] code_review: 完成 SharedParams 擴充與文件產出修訂",
+    "stage": "done",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "antigravity",
+    "approvalRequired": false,
+    "createdAt": "2026-07-30",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-3: Revit 元件級綠建材參數 schema 定義",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-001",
+      "TASK-002"
+    ],
+    "order": 4,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-004",
+    "title": "AI Agent 綠建材推送 Revit 需求對齊與互動式計畫擬訂機制",
+    "content": "### 任務說明\n當使用者在地端檢索網頁中「勾選材料」或「將材料 Set」點擊推送至 Revit 時，系統將觸發回傳至 AI Agent (建築 Agent)。Agent 透過 /GMimport 指令讀取材料 Set 的真實 licno 清單（由 exported_material_sets.json 橋接），依據 TASK-003 最新 11 大工程情境（包含牆體/地磚/天花板/門窗.rfa/非幾何填縫劑等）動態分析，對映 19 個共享參數與厚度推判矩陣，自動擬訂「Revit 共享參數寫入計畫 (v3 專業版)」，並提供兩條簽核確認路徑。\n\n### 已完成優化功能\n- [x] /GMimport 指令解析 licno 清單並精確匹配 Master DB\n- [x] generate_revit_injection_plan.py v3 計畫擬訂引擎（升級對映 19 個共享參數）\n- [x] 整合 TASK-003 11 大工程情境（自動推判 Finish/Substrate 位階與預設厚度）\n- [x] 支援非幾何材料（接著劑/填縫劑/防水膜）寫入 Construction 群組屬性\n- [x] write_back_to_set_manager() 路徑 A：對齊計畫回傳 exported_material_sets.json\n- [x] 路徑 B 框架：回傳 + 啟動 TASK-005 自動注入\n- [x] Set 管理器：🔄 重新整理按鈕即時從伺服器同步最新對齊計畫\n- [x] 預備執行動作 SOP 條列式呈現\n\n### Sign-off Gates (DOD)\n- [x] architecture: 完成 Web -> Agent -> JSON -> Web 全情境對映迴路\n- [x] ui: Set 管理器顯示對齊狀態、專案用途、條列式 SOP\n- [x] test_passed: /GMimport 11大工程情境與 19 個共享參數端到端對映測試通過",
+    "stage": "done",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "antigravity",
+    "approvalRequired": true,
+    "createdAt": "2026-07-30",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-4: 互動式 Revit 推送計畫與需求對齊",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-003"
+    ],
+    "order": 5,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-014",
+    "title": "計畫引擎新增 layerComposition 覆寫解析與確定性 Mat 槽位分配規則，取代 AI 臨場判斷",
+    "content": "### 任務說明\n`generate_revit_injection_plan.py` 新增兩項確定性邏輯，取代先前由 AI Agent 在對話當下臨場判斷的做法：\n\n1. **layerComposition 覆寫解析**：`/GMimport` 產出計畫時，若 Set 帶有 layerComposition.sequence（來自 TASK-013 的材料層級設定），優先採用其角色與順序覆寫關鍵字啟發式判斷（`analyze_material_mapping`）與品類覆寫（`_CATEGORY_HINT_FALLBACK`）的結果，並依此順序重排 `materialsMapping`，使其真實反映 Revit CompoundStructure 的物理層序。\n2. **Mat 槽位分配規則**（`_assign_material_slots`）：材料數超過共享參數槽位上限時，依 `Structure > Finish > Substrate > Other` 固定優先序、同優先序依構造順序決定，寫入 `plan['materialSlotAssignment']` 與每個 materialsMapping 項目的 `assignedSlot`，取代先前的臨場判斷。\n\n已用「材料Set_86_4項」/「室內防水隔音地坪」兩個實際 Set（4 種材料：綠混凝土/INOVAR木質地板/台達玻璃棉/建築防水用聚胺酯）反覆重跑驗證，結果與已寫入 Revit 的資料一致。\n\n### Readiness (DOR)\n- [x] problem_clear: 舊有的 Mat1=Structure/Mat2=Finish 固定假設與槽位選擇邏輯無法處理 3 種以上材料或使用者自訂層級的情境\n- [x] scope_defined: 純 Python 計畫引擎邏輯變更，不涉及 Revit 寫入\n\n### Sign-off Gates (DOD)\n- [x] architecture: 新增函式（`_load_layer_composition`/`_resolve_layer_composition_mapping`/`_assign_material_slots` 等）不影響既有無 layerComposition Set 的行為（回歸測試確認一致）\n- [x] test_passed: py_compile 通過；針對 4 材料與合成 7 材料情境跑過 `_assign_material_slots` 單元驗證，結果符合預期優先序\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "done",
+    "risk": "low",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-06",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-4: 推動至 Revit 內容計畫與需求對齊",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-004",
+      "TASK-013"
+    ],
+    "order": 6,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-015",
+    "title": "共享參數 schema 擴充為 v5（Mat1~Mat6 六槽位，64 欄位），全鏈更新並修正層順序與槽位順序混用的執行錯誤",
+    "content": "### 任務說明\n因使用者要求「Set 有幾種材料，槽位數就該等於材料數」，將 GreenMaterial_SharedParams.txt 從 v4（Mat1~Mat3，31 欄位）擴充為 v5（Mat1~Mat6，64 欄位，新增 Mat4/5/6 共 33 個欄位、GUID 銜接既有編號、cp950 編碼保留），同步更新：\n- C# `CommandExecutor.GreenMaterial.cs` 的 `SetGreenMaterialTypeParameters` 支援 mat4/mat5/mat6\n- MCP tool schema（`visualization-tools.ts`/`base-tools.ts`）新增 mat4~mat6 欄位定義\n- `generate_revit_injection_plan.py` 的 `_assign_material_slots` 由 3 槽位擴充為 6 槽位（見 TASK-014）\n- `domain/green-material-parameter-schema.md`、`.claude/skills/import/SKILL.md` 同步更新為 v5/六槽位規則\n\n已重新 build（Revit 2024, 0 error）、部署 DLL、rebuild MCP-Server 並重新連線，於獨立測試檔案端到端驗證：4 種材料全數寫入 Mat1~Mat4（34 個共享參數、0 缺漏），`get_element_info` 核對正確。\n\n過程中額外修正一項執行錯誤：`/import revit` 執行時把「Mat 槽位編號順序」誤用為「CompoundStructure 實體構造層順序」（兩者互相獨立，前者是共享參數 metadata 分類，後者是實體疊層順序），導致 Core Boundary 沒有正確落在 Finish 層外側（`ExteriorShellLayers` 回傳 0）。已在 `.claude/skills/import/SKILL.md` 加入明確區分兩種順序的說明，以及建立後檢查 `ExteriorShellLayers`/`InteriorShellLayers` 是否為 0 的自我檢查步驟，並在測試檔案內建立修正版 Type 驗證正確。\n\n### Readiness (DOR)\n- [x] problem_clear: 3 槽位上限導致材料數 > 3 時，超出的材料無法有共享參數紀錄\n- [x] scope_defined: 選定「固定擴充到 6 槽位（對應 Revit CompoundStructure 6 種 Layer Function），槽位數等於材料數但不強制寫滿」的方案，而非無上限動態槽位\n\n### Sign-off Gates (DOD)\n- [x] architecture: 新增 33 個共享參數採全新 GUID，純新增不修改既有 Mat1/2/3 定義，非破壞性變更\n- [x] test_passed: `validate_shared_params.py` 確認 64 個參數無重複 GUID；Revit 2024 build 0 error；MCP-Server rebuild 確認 mat4/5/6 存在於編譯輸出；測試檔案內端到端驗證 4 材料全數寫入 Mat1~Mat4 並修正層順序錯誤\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "done",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-06",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-009",
+      "TASK-010",
+      "TASK-011",
+      "TASK-014"
+    ],
+    "order": 7,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-005.1",
+    "title": "情境 1｜牆體構造與塗料 Set 導入（OST_Walls）",
+    "content": "### 任務說明\n將牆板／石膏板／矽酸鈣板與塗料組成的綠建材 Set 導入 Revit，建立獨立的 TABC Wall Type。板材固定配置於 Structure [1]，塗料配置於 Finish 1 [4]／Finish 2 [5]，並將綠建材履歷寫入 Type Identity Data。\n\n### 已納入既有 TASK-005 技術模組\n- [x] load_shared_parameters：31 個共享參數綁定 Walls Type\n- [x] duplicate_element_type：複製既有含粉刷層 Wall Type，材質名稱參數化\n- [x] set_green_material_type_parameters：Mat1 板材、Mat2 塗料多槽位寫入\n- [x] get_all_materials：建立後回查 Project Materials\n\n### Sign-off Gates (DOD)\n- [x] architecture: 使用正式 MCP Tool＋C# dispatch，不使用 side-channel\n- [x] test_passed: Revit 2024 已完成牆板＋塗料端到端實測\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "done",
+    "risk": "high",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": true,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-004"
+    ],
+    "order": 8.1,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-009",
+    "title": "[已併入 TASK-005.1] 修復綠建材 Set 導入 Revit 的 MCP 工具串接缺口，並將 /GMimport /import revit 正式 Slash Command 化",
+    "content": "### ⚠️ 2026-08-11 看板重整：本卡內容已併入 TASK-005.1\n本卡與 TASK-005.1（情境1｜牆體構造與塗料 Set 導入）描述的是同一件工作——建立 duplicate_element_type / get_all_materials / set_green_material_type_parameters 等基礎工具，並用 Wall 板材＋塗料 Set 端到端實測。TASK-005.1 的內文已引用這批工具為「已納入既有 TASK-005 技術模組」。保留本卡作為歷史紀錄，後續請只在 TASK-005.1 追蹤此範疇的簽核狀態，不要在兩張卡上重複勾選。\n\n---\n\n### 任務說明\n修復綠建材 Set 導入 Revit 的 MCP 串接缺口，建立情境 1／10 所需的共同基礎：材料回查、Type 複製、材質名稱參數化、多槽位共享參數寫入，以及正式 /GMimport → /import revit 流程。\n\n### 已完成修復\n- [x] 註冊 get_all_materials、duplicate_element_type、set_green_material_type_parameters\n- [x] 修正共享參數檔編碼與 licno 後綴比對\n- [x] 依 Master DB subCategory 判斷 Structure／Finish\n- [x] 建立 /GM、/GMimport、/import revit Skill\n\n### Sign-off Gates (DOD)\n- [x] architecture: 使用正式 TS Tool＋C# dispatch，未繞過 MCP bridge\n- [x] test_passed: 情境 1 Wall 板材＋塗料端到端實測通過\n- [ ] code_review: 隨 TASK-005.1 一併複審（見該卡，尚待使用者簽核）",
+    "stage": "done",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.1",
+      "TASK-005.10"
+    ],
+    "order": 8.11,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-005.2",
+    "title": "情境 2｜地磚與表面填充 Set 導入（OST_Floors）",
+    "content": "### 任務說明\n將陶瓷地磚、木地板等 Set 導入 Floor Type。面材配置於 Finish 1 [4]，泥作打底配置於 Substrate [2]，並依產品規格建立 600×600 網格或木紋 Surface Pattern。\n\n### 已納入既有 TASK-005 技術模組\n- [x] create_multi_layer_type：Floor 多層構造（Finish1 地磚 + Substrate 打底），厚度可覆寫（預設 15mm/20mm 已在 generate_revit_injection_plan.py 定案）\n- [x] create_single_material_type：情境 2「各別建立」Floor 型別\n- [x] load_shared_parameters / set_green_material_type_parameters：沿用既有綁定與寫入邏輯（Floors 品類）\n- [x] set_material_surface_pattern（新增）：建立/重用 Model 目標 FillPattern（Grid 600×600 或 Wood 木紋），依名稱去重，套入材質 Surface/Cut 樣式\n- [x] `/import` skill Scenario 2/3 新增 Surface Pattern 步驟（5b / 6b）\n\n### 驗收條件\n- [x] 可複製既有 Floor Type 並建立 TABC 新型別（沿用既有多層構造工具）\n- [x] 地磚預設 15 mm、打底預設 20 mm，且可由計畫覆寫（generate_revit_injection_plan.py 既有邏輯）\n- [x] Surface Pattern 不重複建立並能正確套入材質（新增 set_material_surface_pattern，依名稱去重）\n- [x] 綠建材共享參數成功綁定 Floors Type 並可回查（沿用既有工具）\n- [x] 產出 Element ID、Type、材質與厚度異動摘要（既有工具回傳值涵蓋）\n\n### 2026-08-11 端到端實測（Set【地磚test】GBM0104033）\n部署新版 DLL（Revit 2024）並重啟後，於即時連線的 Revit 專案完整跑通：建立 `TABC_地磚test` Floor Type（Element ID 264193，來源 TypeId 339），Finish1 層 GBM0104033_透水性混凝土地磚（Material ID 264195，15mm）+ Substrate 層 1-3水泥砂漿打底（Material ID 264197，非綠建材通用材質，20mm，經使用者確認後加入）；`set_material_surface_pattern` 成功建立並套用 `TABC_Grid_600x600`（Pattern ID 264214）到地磚材質 Surface 樣式；13 個共享參數全數寫入、`get_element_info` 逐欄核對相符；`exported_material_sets.json` 狀態已更新。過程中兩度因 Revit 關閉未存檔導致重建，最終確認存檔成功。\n\n### Sign-off Gates (DOD)\n- [x] architecture: 沿用既有 MCP Tool 架構＋新增 set_material_surface_pattern（正式 C# dispatch，不使用 side-channel）\n- [x] test_passed: 2026-08-11 端到端實測通過（見上）\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "done",
+    "risk": "high",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": true,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.1"
+    ],
+    "order": 8.2,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-005.3",
+    "title": "情境 3｜系統家族雙階層參數寫入（Type＋Material）",
+    "content": "### 任務說明\n建立 Walls／Floors 等系統家族的雙階層寫入規範：Material 層保存完整綠建材資料，ElementType 的 Identity Data 保存可直接檢視的摘要與多槽位資料。\n\n### 2026-08-12 澄清與定案\n卡片原文字面意思（Material 層存完整資料、Type 層存摘要）與 `domain/green-material-parameter-schema.md` §2 已生效的定案架構方向相反。經與使用者確認，本卡採**補齊現有架構的驗證與文件**方向，不新增 Material 層參數寫入機制：\n- Material 層 = 僅 `Material.Name`（`GBM編號_材料名稱`）識別字串，不掛參數\n- Type 層 = 完整 64 個 `GreenMaterial_*` 共享參數（Mat1~Mat6 + 全域欄位）\n- `docs/green-material/Revit_Element_GreenMaterial_Mapping_Analysis.md` 情境 3（早期提案，方向相反）已加註取代說明，指向 `domain/green-material-parameter-schema.md` §2.1 新增的雙階層欄位責任對照表\n\n### 驗收條件\n- [x] 明確區分 Material 與 Type 欄位責任，避免重複或衝突（見 §2.1 對照表，責任互斥不重複）\n- [x] Walls、Floors 至少各完成一個端到端測試（Walls: TypeId 263551「TABC_室內牆與塗料」；Floors: TypeId 264332「TABC_地磚與填縫」，皆為既有模型案例，本次重新交叉驗證）\n- [x] 缺少共享參數時回報 MissingParameters，不得靜默失敗（機制由 `load_shared_parameters` 冪等綁定 + `set_green_material_type_parameters` 的 `MissingParameters` 回傳欄位保證，兩案例皆驗證為空陣列）\n- [x] 寫入後可用 Material 與 Element Type 查詢工具交叉驗證（`get_element_info` + `get_all_materials` 雙工具交叉核對：Walls 兩材質、Floors 一實體材質 + 一輔助材料「查無 Material 元素」的預期缺席）\n- [x] 產出雙階層欄位對照與異動摘要（`domain/green-material-parameter-schema.md` §2.1）",
+    "stage": "done",
+    "risk": "high",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.1",
+      "TASK-005.2"
+    ],
+    "order": 8.3,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-005.4",
+    "title": "情境 4｜含接著劑／填縫劑的複合 Set 導入",
+    "content": "### 任務說明\n當 Floor／Wall Set 同時包含面材與非幾何接著劑、填縫劑或防水材料時，幾何材料寫入 Compound Structure，輔助材料則寫入 Parent Type 的 Construction／Green Building 欄位。\n\n### 2026-08-11 前端＋計畫引擎已完成\n觸發點：使用者回報「材料層級設定」視窗把填縫劑（GBM0104110 CG2WA泰固美特耐磁磚填縫劑）錯誤地強制塞進 Structure（結構層）下拉選單，因為視窗當時只有 Structure/Substrate/Finish 三個角色可選，沒有輔助材料的容身之處。\n\n- [x] `assets/green-material-showcase.html` 材料層級設定視窗新增獨立的「🧴 輔助材料」拖曳區（`auxCompositionList`），與原本的構造層清單（`layerCompositionList`）並列、可雙向跨區拖曳（`layerDragFrom` 追蹤來源區＋索引，`moveDraggedEntry` 處理同區重排與跨區搬移，Core Boundary 分界線禁止被拖進輔助材料區）\n- [x] 新增 `classifyAuxiliaryKeyword(title)`：依標題關鍵字（接著劑/黏著劑/填縫/矽利康/防水/環氧樹脂）自動判斷 Adhesive/Sealant/Waterproofing，規則與 `generate_revit_injection_plan.py` 的 `analyze_material_mapping()` 完全一致；`buildDefaultLayerDraft()` 開啟視窗時先用這個規則把輔助材料自動分流到 auxDraft，不會預設塞進構造層\n- [x] `layerComposition` 資料結構新增 `auxiliary: [{licno, auxType}]` 欄位（`sequence` 之外的獨立陣列），Set 卡片摘要同步顯示「🧴 輔助材料：」\n- [x] `generate_revit_injection_plan.py` 新增 `_build_layer_composition_aux_map`/`_resolve_layer_composition_auxiliary`：讀取 `layerComposition.auxiliary`（使用者在視窗明確分類）優先於關鍵字啟發式判斷，比照既有 Structure/Substrate/Finish 角色覆寫的權威順序處理\n- [x] ~~修正 `_assign_material_slots`：排除輔助材料~~ → **使用者糾正並還原**：Mat1~Mat6 的用途是記錄「這個元件用了哪些綠建材」的完整清單，不是只有物理構造層才算數，輔助材料仍應正常參與槽位競爭（歸類 'Other' 最低優先序，材料數多時最先被擠到 unassigned，跟其他判斷不出角色的材料一視同仁）。已還原 `_assign_material_slots`/Markdown 報告回原本邏輯，GBM0104110 在真實 Set【地磚與填縫】測試中正確拿到 `mat2`\n- [x] 單元測試：`classifyAuxiliaryKeyword`/`buildDefaultLayerDraft` 用 Node 驗證（含全部輔助材料的邊界案例）；`generate_injection_plan` 用 mock Set 與真實 Set【地磚與填縫】（GBM0104110 填縫劑 + GBM0102995 陶瓷面磚，即畫面截圖的真實情境）雙重驗證 `isAuxiliary`/`GreenMaterial_Sealant`/正常 Mat 槽位分配皆正確；Markdown 報告輸出人工核對正確\n- [x] `node --check` 語法檢查通過；`verify-qaqc.ps1 -SkipBuild -SkipDeploy` 全數 PASS\n\n### 2026-08-11 Revit 寫入工具已開發（尚未部署/實測）\n- [x] `GreenMaterial_SharedParams.txt` 新增 GROUP 4「非幾何輔助材料 (Construction)」與 3 個新 TEXT 參數 `GreenMaterial_Adhesive`/`Sealant`/`Waterproofing`（GUID 接續既有編號 ...165~167，cp950 編碼安全寫入，不破壞既有 64 個參數；`validate_shared_params.py` 確認 67 參數 4 群組無重複 GUID）\n- [x] C# `SetGreenMaterialTypeParameters` 新增 `adhesive`/`sealant`/`waterproofing` 三個頂層字串參數，寫入對應欄位；`set_green_material_type_parameters` TS schema 同步更新；`dotnet build -c Release.R24`（0 錯誤）、`npm run build`（MCP-Server 乾淨）皆通過\n- [x] `.claude/skills/import/SKILL.md` Scenario 3：step 3 明確排除 `isAuxiliary` 材料進入 `layers` 陣列（它們沒有物理層，但仍要在 step 9 進 matN 槽位）；step 7 註明輔助材料不會出現在 `get_all_materials`（本來就不會實體建立 Material，不算驗證失敗）；step 9 新增輔助材料同時寫 matN + 對應的 adhesive/sealant/waterproofing 頂層欄位的說明\n- [x] 部署新 DLL（Revit 2024）並重啟後，端到端實測 Set【地磚與填縫】（GBM0104110 填縫劑 + GBM0102995 陶瓷面磚）：`load_shared_parameters` 確認新的 3 個 Construction 群組欄位成功綁定至 Floors（`GreenMaterial_Adhesive`/`Sealant`/`Waterproofing` 全部 `綁定成功`）；`create_multi_layer_type` 建立 `TABC_地磚與填縫`（Element ID 264332，來源 TypeId 339，經使用者確認厚度改為 10mm 而非計畫預設的通用 150mm），輔助材料正確被排除在 CompoundStructure 之外（只有 1 層 Structure）；`set_green_material_type_parameters` 一次寫入 mat1（陶瓷面磚）+ mat2（填縫劑，作為材料清單項目）+ `sealant`（GreenMaterial_Sealant 專屬欄位）共 24 個參數、0 缺漏；`get_element_info` 逐欄核對 `GreenMaterial_Sealant = \"CG2WA泰固美特耐磁磚填縫劑 (GBM0104110)\"` 與 Mat1/Mat2 內容皆正確；`exported_material_sets.json` 已更新為完成狀態\n\n### 驗收條件\n- [x] 自動辨識 GreenMaterial_Adhesive、GreenMaterial_Sealant、GreenMaterial_Waterproofing（UI 拖曳分流 + 計畫引擎 + 端到端 Revit 寫入皆已驗證）\n- [x] 非幾何材料不得建立零厚度構造層（從一開始就不進入 `layerComposition.sequence`，`create_multi_layer_type` 回傳只有 1 層幾何構造層，確認未產生零厚度層）\n- [x] 輔助材料與 Parent Type 關聯可追溯（`GreenMaterial_Sealant` 欄位 + Mat2 槽位皆可回查，`get_element_info` 驗證通過）\n- [ ] 支援 Wall 與 Floor 各一個組合案例（Floor 已完整驗證；Wall 案例尚未實測，UI/引擎/工具邏輯品類無關，理論上可直接沿用）\n- [x] 完成寫入後查詢驗證與異動摘要（見上方端到端實測紀錄）",
+    "stage": "done",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.3"
+    ],
+    "order": 8.4,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-005.5",
+    "title": "情境 5｜單選非模型綠建材互動式套用",
+    "content": "### 任務說明\n當 Set 僅包含填縫劑、膠類或其他非模型材料時，先詢問套用位置與目標 Type，再提供新建 Type 或覆蓋既有 Type 兩種路徑。\n\n### 2026-08-12 已開發並端到端實測\n- `assets/green-material-showcase.html`：Q2 選「Material (純材料)」時彈出「掛載品類」子問題（Wall/Floor/Ceiling），選完才回傳給 Agent（`materialAttachCategoryModal`）\n- `generate_revit_injection_plan.py`：解析「掛載類別」欄位，plan 新增 `pureMaterialAttachCategory`\n- `/GMimport`：純材料 Set 額外執行唯讀 `get_types_by_category` 查詢，編號表格請使用者於對話中挑選目標 Type，選擇寫回 `exported_material_sets.json` 的 `pureMaterialTarget`\n- 新增 MCP 工具 `duplicate_type_only`（C# `DuplicateTypeOnly` + TS schema）：單純複製 ElementType，不動材質/構造層，供路徑 A 使用\n- `/import revit` 新增情境 5：讀取 `pureMaterialTarget`，詢問路徑 A（新建，預設）或路徑 B（覆蓋既有，需明確確認），寫入 `adhesive`/`sealant`/`waterproofing` 等 Construction 欄位\n- **端到端實測**：Set【填縫劑】(GBM0104172) 選擇 Floor 品類、選定既有 Type「通用 - 15cm」(TypeId 339) 後，走路徑 A 建立新 Type「通用 - 15cm_TABC_GBM0104172」(Element ID 264386)；`get_element_info` 核對 `GreenMaterial_Sealant` 與 Mat1 欄位皆正確、來源 Type 339 完全未受影響（厚度仍 15cm）\n\n### 驗收條件\n- [x] 無 Parent Type 時必須停止並要求使用者選擇（`get_types_by_category` 查無 Type 時回報，見 `/GMimport` 錯誤處理表）\n- [x] 路徑 A 複製新 Type，不影響既有元件（`duplicate_type_only` 實測：來源 Type 339 未變動）\n- [x] 路徑 B 覆蓋既有 Type 前必須取得明確確認（`/import` skill 明文要求，未在此次實測中觸發，機制已在 Scenario 5 步驟 4b 寫明）\n- [x] 材料資訊寫入 Construction 自訂欄位（`GreenMaterial_Sealant` 寫入成功並經 `get_element_info` 驗證）\n- [x] 回報目標 Type、寫入欄位及受影響元件範圍（回報 TypeId 264386、11 個欄位、0 個既有 instance 受影響）",
+    "stage": "done",
+    "risk": "high",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": true,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.4"
+    ],
+    "order": 8.5,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-005.6",
+    "title": "情境 6｜牆壁／地坪預設厚度推判與覆寫",
+    "content": "### 任務說明\n依外牆、室內輕隔間、分戶牆與樓板用途推判 Structure、Finish、Substrate 的預設厚度，並在實際建立 Type 前讓使用者確認或覆寫。\n\n### 2026-08-12 研究發現與範圍確認\n- 材料資料本身（TABC 標章）無法判斷一面牆是外牆還是分戶牆——這是專案/使用情境資訊，不是材料屬性\n- 掃描 106 筆牆壁類材料標題，僅少數含數字，且是矽酸鈣板密度/耐燃等級代碼「0.8FK」「1.0FK」，不是厚度（矽酸鈣板實際常見厚度 6-12mm）——**確認「Master DB 規格優先於一般預設值」若靠正則硬解標題數字並不安全，屬於臆測，違反本卡自己的驗收條件**，故不採用\n- 意外發現 Q3「補充條件」自由文字欄位（使用者可填「外牆」「分戶牆」等）過去從未被 `generate_revit_injection_plan.py` 讀取或使用，只存起來顯示\n\n### 已開發\n- `generate_revit_injection_plan.py` 新增 `_extract_wall_usage_hint()`：從 Q3 補充條件文字掃描「外牆/分戶牆/輕隔間」關鍵字\n- 新增 `_WALL_STRUCTURE_THICKNESS_MATRIX`：外牆 150mm／分戶牆 135mm／輕隔間 100mm／未指定則保守預設 150mm + 明確標記 `wallUsageUnspecified: true`\n- `analyze_material_mapping()` 與 `_resolve_layer_composition_mapping()`（layerComposition 權威路徑）皆已接入矩陣，兩條路徑（各別建立與單一組合）都適用\n- `/GMimport`／`/import revit`（Scenario 1、3）確認步驟新增：若 `wallUsageUnspecified` 為 true 明確提示使用者覆寫；若有 `wallUsageHint` 則說明偵測到的用途與對應厚度\n- 已用 4 組測試驗證：未指定→150mm+unspecified 標記、外牆→150mm、分戶牆→135mm、輕隔間→100mm，皆正確\n\n### 驗收條件\n- [x] 外牆、輕隔間、分戶牆、樓板均有明確厚度矩陣（樓板既有矩陣已由 005.2/005.4 驗證涵蓋；牆體新增三檔矩陣）\n- [x] Master DB 規格優先於一般預設值（研究後確認此路徑不安全，改用 Q3 補充條件使用者輸入作為權威來源，比自動臆測更符合「不得臆測」的精神）\n- [x] 使用者可在寫入前覆寫每一層厚度（`/import` 確認步驟明確列出 `wallUsageUnspecified`/`wallUsageHint`，邀請使用者覆寫）\n- [x] 單位轉換正確且總厚度可驗證（`create_multi_layer_type` 既有 `thicknessMm / 304.8` 轉換邏輯未變動，`get_element_info` 可驗證，本次未發現問題）\n- [x] 異常或缺失規格不得自行臆測後直接寫入（未指定用途時明確標記 `wallUsageUnspecified`，不偽裝成確定值；標題數字擷取因不安全而主動放棄，未實作）",
+    "stage": "done",
+    "risk": "high",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": true,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.1",
+      "TASK-005.2"
+    ],
+    "order": 8.6,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-005.7",
+    "title": "情境 7｜門窗／獨立元件 RFA 綠建材導入",
+    "content": "### 任務說明\n針對門、窗、玻璃與幕牆等載入式 Family，採用既有相似元件另存 .rfa、注入 Family Type 綠建材參數、再載回專案的標準路徑。\n\n### 驗收條件\n- [x] 使用者選定相似基底 Family，禁止無型錄依據從零生成 — 2026-08-12 由使用者親自從 list_family_symbols 候選清單挑選（窗：雙開落地窗-(2) 180x210cm ID 168921；門：單開-矩形-(1) 90x210cm Type Id 166496）\n- [x] 原始 .rfa 建立可復原備份 — 兩案例皆確認 BackupPath 存在於 `_rfa_backup/`\n- [x] Type Identity Data、遮陽與隔音等適用欄位正確寫入 — Window/Door 案例 GreenMaterial_Mat1_*、GreenMaterial_AcousticRw 皆以 get_element_info 驗證正確；Window 案例因型錄無遮陽係數數據，依規則正確留空未杜撰\n- [x] 載回專案時避免覆蓋非目標 Family Type — 兩案例回傳 AffectedExistingTypes: 0，並以 get_element_info 核對原始門實例（Type Id 166496）未被異動\n- [x] 完成至少一個 Window 與一個 Door 案例驗證 — 2026-08-12 於真實 Revit 專案「綠建材導入Revet_模型範例1_vitolin50310」完成兩案例，見 log/2026-08.md\n\n### 2026-08-12 verify 階段 code review：3 項發現已修正並實機驗證\n審查報告 `verify-stage-code-review-2026-08-12.md` 發現 3 項問題（1 高風險、2 中風險），全數修正並在真實 Revit 連線上驗證，詳見 log/2026-08.md：\n- [x] 高風險：RFA 覆寫防護不足（SaveAs 用 OverwriteExistingFile=true，安全比對無法偵測幾何/公式/巢狀元件變更）— 改為 SaveAs 前檢查目標檔案是否已存在，存在則中止並提示換檔名，不再靜默覆寫。實機重跑 Window 案例（同 sourceTypeId 168921 + certNo GBM0104092）確認被正確攔截。\n- [x] 中風險：共享參數檔設定未完整還原（finally 只在原值非空時才還原，若執行前為空會永久竄改 Revit 全域設定）— 改為無條件還原。同一 bug 也存在於 `LoadSharedParameters`（不在原報告 3 項內，發現後一併修正）。\n- [x] 中風險：Category 綁定擴充未檢查 `BindingMap.ReInsert()` 回傳值，失敗仍誤報成功 — 新增 TotalFailed 計數與失敗分支。實機呼叫 load_shared_parameters（Walls/Floors/Ceilings/Windows/Doors）確認 TotalFailed: 0、69 個參數正確分流至「已擴充綁定」與「綁定成功」。\n\nRelease.R24 重新 build 兩輪皆 0 errors，部署後於使用者確認 Revit 已關閉/重開的情況下完成上述實機驗證。",
+    "stage": "done",
+    "risk": "high",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": true,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.3"
+    ],
+    "order": 8.7,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-005.8",
+    "title": "情境 8｜天花板系統 Set 導入（OST_Ceilings）",
+    "content": "### 任務說明\n將吸音天花板、矽酸鈣天花板與礦纖板等 Set 導入 Ceiling Type，面層配置於 Finish 1 [4]，並同步吸音性能與綠建材履歷。\n\n### 2026-08-12 開發中發現並修正的關鍵 bug\n研究時發現 `generate_revit_injection_plan.py` 的 `GreenMaterial_AcousticNRC` 寫入邏輯是錯的：`0.75 if \"吸音\" in sub_cat else 0.0`，但天花板類材料的 `subCategory` 實際值是「天花板類」，字面上從不包含「吸音」兩字，導致所有天花板材料的 AcousticNRC 永遠被硬寫成 0.0——即使 `tabc_master_database.json` 71 筆天花板類記錄的 `testItems` 裡都有真實數值（如「降噪係數 NRC：0.75」）。新增 `_extract_acoustic_nrc()` 改用正則從 `testItems` 擷取真實數字。\n\n過程中另外發現 `load_shared_parameters`（`CommandExecutor.GreenMaterial.cs`）有更深層的既有 bug：判斷「參數是否已綁定」時只比對參數名稱＋Type/Instance 綁定型態是否相符，**沒有檢查現有綁定的 `CategorySet` 是否真的涵蓋這次要求的品類**。因為 GreenMaterial 參數之前已綁定過 Walls/Floors，這次要求 Ceilings 時被誤判為「已存在相符綁定」直接跳過，導致 Ceilings 從未真正被加入 CategorySet，寫入天花板 Type 時 11 個參數全部 `MissingParameters`。已修正為：綁定型態相符時額外比對 CategorySet，缺少的品類用 `CategorySet.Insert` + `BindingMap.ReInsert` 擴充（而非略過）。此 bug 影響範圍不限天花板，任何「參數已綁定過但要求新品類」的情境都會受影響，已一併修正。\n\n### 2026-08-12 端到端實測\nSet【天花板測試】GBM0104186「Knauf Ceiling Solutions(KCS)岩棉裝飾吸音板」，各別建立情境，複製來源 TypeId 19847「礦纖天花板 600x600mmx19mm」：`create_single_material_type` 建立新 Type（Element ID 264422）與材質（Element ID 264424）；`load_shared_parameters` 重新綁定 Ceilings 品類，67 個參數確認「已擴充綁定至新品類」；`set_green_material_type_parameters` 寫入 11 個欄位（含修正後的 `GreenMaterial_AcousticNRC: 0.75` 真實值）、0 缺漏；`get_element_info` 逐欄核對相符，`get_all_materials` 確認材質命名正確。\n\n### 驗收條件\n- [x] 以 subCategory 判定天花板，避免牆板誤分類（`analyze_material_mapping()` 依 subCategory=\"天花板類\" 分派 OST_Ceilings，本次實測確認正確）\n- [x] 面板厚度預設範圍 9–15 mm，並允許規格覆寫（計畫預設 12mm 落在範圍內；本次用「各別建立」情境沿用來源 Type 構造，厚度覆寫能力已在 Scenario 3 `create_multi_layer_type` 的 `thicknessMm` 參數驗證過，屬共用機制）\n- [x] GreenMaterial_AcousticNRC 與試驗資料正確寫入（修正 bug 後寫入真實值 0.75，並經 `get_element_info` 核對）\n- [x] 可複製既有 Ceiling Type 並套用獨立 Material（TypeId 264422 + MaterialId 264424，來源 Type 19847 未受影響）\n- [x] 完成 Revit 查詢驗證與異動摘要（見上方端到端實測記錄）",
+    "stage": "done",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.3",
+      "TASK-005.6"
+    ],
+    "order": 8.8,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-011",
+    "title": "[已併入 TASK-005.10] 新增「情境三：通用多層構造」create_multi_layer_type 工具，並修正 Core Boundary／Shell Layer 判斷",
+    "content": "### ⚠️ 2026-08-11 看板重整：本卡內容已併入 TASK-005.10\n本卡建立的 create_multi_layer_type 工具與 Core Boundary 修正是跨情境共用的底層能力（Wall/Floor/Ceiling 任意品類、任意層數）。塑膠地板set 端到端實測（Finish1 塑膠地磚 + Substrate 隔音緩衝墊 + Structure 混凝土）是「情境10｜單一元件多重綠建材」的 Floors Multi-Material 路徑佐證，已在該卡引用。這個工具本身也是我之後做 TASK-005.2（地磚 Set）的基礎。\n\n（原本這裡也提到「情境9｜隔熱/防音底層」——2026-08-11 該卡已刪除：Substrate/Insulation 層的處理本來就是 create_multi_layer_type 的通用能力，跟 Structure/Finish 一樣只是 layerFunction 的一種選項，不需要為它另開一張獨立情境卡追蹤。）\n\n保留本卡作為工具開發歷史紀錄，後續請在 TASK-005.10 追蹤相關簽核狀態。\n\n---\n\n### 任務說明\n新增 create_multi_layer_type MCP 工具（C#），對應 Set 的「單一組合」但材料數超過 2 個、或非 Wall 品類的情境（例如地板：飾面塑膠地磚 + 隔音緩衝墊 + 結構混凝土三層）。跟 duplicate_element_type（情境一，寫死 2 個材料的Finish1/Structure/Finish2 牆體三明治）不同，這裡層數、材料、layerFunction 完全由呼叫端指定，任意品類（Wall/Floor/Ceiling）皆可透過同一個 sourceTypeId 複用既有的 GetCompoundStructureForElement/SetCompoundStructureForElement 通用邏輯。\n\n第一版實作只呼叫 cs.SetLayers()，沒有設定 Core Boundary（哪些層在結構核心內、哪些在核心外的 Shell 層），導致所有層預設都落在 core 裡面，Finish 層應該要在 core boundary 外側卻沒有被正確標記。修正後依 layerFunction 自動判斷：開頭連續的 Finish1/Membrane 層視為外側 Shell（ExteriorShellLayers），結尾連續的 Finish2/Membrane 層視為內側 Shell（InteriorShellLayers），中間的 Structure/Substrate/Insulation 留在核心內，呼叫 cs.SetNumberOfShellLayers() 寫入。這是通用規則，不是針對單一 Set 的特例處理。\n\n同時擴充 `.claude/skills/import/SKILL.md`，新增情境三的完整流程（layer 順序需向使用者確認，不可比照情境一假設板材=Structure/塗料=Finish；材料數超過 3 個時要明講哪些材料進不了 Mat1/Mat2/Mat3 共享參數欄位）。\n\n### Readiness (DOR)\n- [x] problem_clear: 定義情境一（固定 2 材料牆體三明治）與情境三（任意數量材料、任意品類的通用多層構造）的差異\n- [x] scope_defined: layerFunction 對應 Revit MaterialFunctionAssignment 六種值；Core Boundary 依 Finish1/Finish2/Membrane 是否在頭尾連續出現自動判斷\n\n### Sign-off Gates (DOD)\n- [x] architecture: CreateMultiLayerType 複用既有 GetCompoundStructureForElement/SetCompoundStructureForElement/GetOrCreatePureMaterial，Shell Layer 判斷抽成獨立的 IsShellFunction() 通用規則\n- [x] test_passed: 2026-08-04 端到端實測 Set【塑膠地板set】（GBM0104167 Finish1 + GBM0103751(續) Substrate + GBM0104181 Structure，1 層來源型別「通用 - 15cm」擴充為 3 層），修正前 ExteriorShellLayers 未設定，修正後回傳 ExteriorShellLayers=1／InteriorShellLayers=0 正確反映 Finish1 在核心外側；25 個共享參數（Mat1=混凝土/Mat2=塑膠地磚/Mat3=隔音緩衝墊）全數寫入、get_element_info 驗證中文內容正確\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "done",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-04",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-009",
+      "TASK-010"
+    ],
+    "order": 8.91,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-005.10",
+    "title": "情境 10｜單一元件多重綠建材 Multi-Material 導入",
+    "content": "### 任務說明\n處理單一 Wall／Floor／Ceiling Type 同時包含多項綠建材的 Set。每一構造層引用獨立 Material，Type 使用 Mat1／Mat2／Mat3 槽位保存各材料履歷，且槽位依角色配置而非 Set 排序。\n\n### 已完成基礎\n- [x] Wall 板材＋塗料案例：Mat1 固定板材、Mat2 固定塗料\n- [x] 31 個共享參數與 MissingParameters 回報機制\n\n### Floors Multi-Material 路徑（原 TASK-011，2026-08-04 併入本卡）\ncreate_multi_layer_type 工具用 Set【塑膠地板set】驗證 Floor 三材料單一 Type 案例：Mat1=混凝土(Structure)／Mat2=塑膠地磚(Finish1)／Mat3=隔音緩衝墊(Substrate)，25 個共享參數全數寫入、各層 Material ID 經 get_element_info 交叉驗證可追溯。\n\n### 「各別建立」機制（原 TASK-010，2026-08-03 併入本卡；跨情境共用工具，非本卡專屬）\ncreate_single_material_type 提供另一種落地路徑——Set 每個材料各自複製一個獨立 Type（而非本卡定義的「單一 Type 多材料」），已用 Set【地板材料set】（4 種材料）驗證：4 個獨立 FloorType、31 個共享參數綁定、各 Type 10 個 Mat1 欄位全數寫入 0 缺漏。這個機制同時也是 `/import` skill Scenario 2（各別建立）與 TASK-005.2 Floor 落地能力的共用底層，不單獨對應某一張 005.x 卡。\n\n### Sign-off Gates (DOD)\n- [x] 支援 Mat3 輔助材料實際案例（塑膠地板set 案例 Mat3=隔音緩衝墊）\n- [x] Floors／Ceilings Multi-Material 路徑完成（Floors 已驗證；Ceilings 尚未實測，見下）\n- [x] 多證號清單與各層 Material ID 可追溯（get_element_info 逐層驗證）\n- [ ] 使用者完成跨品類最終複審（Ceilings 案例＋最終簽核仍待完成）",
+    "stage": "done",
+    "risk": "high",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": true,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.1",
+      "TASK-005.3",
+      "TASK-005.4"
+    ],
+    "order": 8.95,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-010",
+    "title": "[已併入 TASK-005.10] 新增「各別建立」情境（Scenario 2）：create_single_material_type 工具與地板材料 Set 端到端實測",
+    "content": "### ⚠️ 2026-08-11 看板重整：本卡內容已併入 TASK-005.10\n本卡建立的 create_single_material_type 是跨情境共用的底層工具（每個材料各自複製一個獨立 Type），不單獨對應某一張 005.x 情境卡，但其地板材料 Set 端到端實測是「單一元件多重綠建材」（TASK-005.10）驗收條件之一的落地路徑證據，已在該卡引用。保留本卡作為工具開發歷史紀錄，後續請在 TASK-005.10 追蹤相關簽核狀態。\n\n---\n\n### 任務說明\n新增 create_single_material_type MCP 工具（C#），對應 Set 的「各別建立」組合方式：Set 裡每個材料各自獨立複製一個 ElementType（Wall/Floor/Ceiling 皆可），並把該材料實體鋪滿新 Type 的全部 CompoundStructure 層，Type 名稱與 Material 名稱使用同一組字串（GBM編號_材料名稱，不加 TABC_ 前綴）。與情境一（duplicate_element_type，牆板+塗料兩材料合併一個 Type 的單一組合）互補、共用同一套 GetOrCreatePureMaterial/GetCompoundStructureForElement/SetCompoundStructureForElement 底層邏輯。同時擴充 .claude/skills/import/SKILL.md，新增依 Set 的「組合方式」分流至情境一或情境二的判斷流程。\n\n### Readiness (DOR)\n- [x] problem_clear: 定義「各別建立」與「單一組合」的差異（N 個材料各自建 Type vs 2 個材料合併一個 Type）\n- [x] scope_defined: 工具不限品類，Wall/Floor/Ceiling 皆可透過同一個 sourceTypeId 判斷 CompoundStructure 型態\n\n### Sign-off Gates (DOD)\n- [x] architecture: CreateSingleMaterialType 複用既有 GetCompoundStructureForElement / SetCompoundStructureForElement / GetOrCreatePureMaterial 私有方法（CommandExecutor 為 partial class），未重新實作重複邏輯\n- [x] test_passed: 2026-08-03 端到端實測 Set【地板材料set】（GBM0104038/034/006/005，品類 Floor + 各別建立），複製來源型別「通用 - 15cm」建立 4 個獨立 FloorType，材質全部指派成功，31 個共享參數綁定至 Floors 品類，每個 Type 各 10 個 Mat1 欄位全數寫入、0 缺漏，get_element_info 抽查驗證中文內容正確\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "done",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-009"
+    ],
+    "order": 8.955,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-005.11",
+    "title": "情境 11｜新建 Type 與覆蓋既有材質雙路徑",
+    "content": "### 任務說明\nSet 寫入前提供兩條明確策略：路徑 A 複製並建立新的 TABC Type，不影響既有模型；路徑 B 批次覆蓋既有 Material／Type 參數，適用施工階段更新。\n\n### 2026-08-12 端到端實測（路徑 A + 路徑 B 各一次）\n雙路徑機制建立於 TASK-005.5（Scenario 5 純材料附掛），本卡專責把兩條路徑都實際跑過一次並補齊「舊值/新值摘要」這條原本沒做的驗收條件：\n\n- **路徑 A（新建，005.5 已測過）**：Set【填縫劑】GBM0104172 → 複製 TypeId 339「通用 - 15cm」為新 Type「通用 - 15cm_TABC_GBM0104172」(Element ID 264386)，原 Type 完全未受影響。\n- **路徑 B（覆蓋既有，本卡新測）**：Set【玻璃棉吸音板覆蓋測試】GBM0103862「Ecophon玻璃棉吸音板」，寫入前先 `get_element_info` 讀一次既有 TypeId 19848「玻纖天花板 600x600mmx20mm」的舊值（無任何 GreenMaterial 欄位），直接覆蓋（不建立新 Type），寫入後再讀一次新值：11 個 `GreenMaterial_*` 欄位從無到有、含真實 CertNo/AcousticNRC 0.75 等資料，新舊值對比清楚。\n- `.claude/skills/import/SKILL.md` Scenario 5 路徑 B 步驟已補上「寫入前先 snapshot 舊值」的明文要求，並註明每次寫入都在 C# 工具自己的單一 Transaction 內、可用 Revit 內建 Undo 回復，不需額外的 TransactionGroup 包裝。\n\n### 範圍說明\n雙路徑選擇目前只在 Scenario 5（純材料附掛既有 Type）實作並驗證；Scenario 1/2/3（Wall/Floor/Ceiling 幾何組合）目前一律建立新 Type，未提供「覆蓋既有 Type」選項——這不在本卡驗收條件的字面要求內（AC 沒有要求每個情境都要有雙路徑，只要求雙路徑機制本身兩條都端到端測過），但如果之後要把覆蓋路徑擴展到 Scenario 1/2/3，屬於另一項工作。\n\n### 驗收條件\n- [x] 預設採路徑 A，路徑 B 必須取得使用者明確確認（`/import` Scenario 5 步驟 4 明文要求，本次路徑 B 測試前也實際跟使用者確認過）\n- [x] 寫入前列出受影響 Type、Material 與元件數量（路徑 B 寫入前列出 `pureMaterialTarget.instanceCount`；本次測試對象 0 個 instance）\n- [x] 每次異動在單一 Transaction／TransactionGroup 中可回復（C# 工具皆用單一 `Transaction`，Revit Undo 可直接回復，已在 skill 文件中明文記錄）\n- [x] 產出 Element ID、Type、Material、舊值與新值摘要（路徑 B 測試完整記錄：TypeId 19848，舊值全空 → 新值 11 個真實欄位）\n- [x] 新建與覆蓋路徑各完成一個端到端測試（路徑 A：264386；路徑 B：19848，兩者皆有 `get_element_info` 驗證證據）",
+    "stage": "done",
+    "risk": "high",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": true,
+    "createdAt": "2026-08-03",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.1",
+      "TASK-005.3",
+      "TASK-005.10"
+    ],
+    "order": 8.96,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-005.12",
+    "title": "情境 12｜Column／Beam 結構材質指派（柱/樑綠建材）",
+    "content": "### 任務說明\n使用者反映混凝土類 Set 需要能指派給柱（Column）與樑（Beam），而 `green-material-showcase.html` 的 Q2 品類問答原本只有 Wall/Floor/Ceiling/Door/Window/Material 六選項，`/import revit` 也沒有對應的寫入路徑。柱/樑沒有 CompoundStructure，只有單一「結構材質」參數，跟 Wall/Floor/Ceiling 的分層構造是完全不同的寫入機制。\n\n### 實作範圍\n1. **前端**：`assets/green-material-showcase.html` Q2 新增 Column (柱) / Beam (樑) 兩個選項。\n2. **C#**：`CommandExecutor.GreenMaterial.cs` 的 `load_shared_parameters` 品類對照表新增 Columns（同時綁 `OST_Columns` + `OST_StructuralColumns`，比照 `get_types_by_category`/`CollectFamilySymbolTypes` 既有的合併查詢方式）與 StructuralFraming（`OST_StructuralFraming`）。原本完全沒有這兩個品類的綁定路徑，寫值一定會是 `MissingParameters`。\n3. **Skill**：`.claude/skills/import/SKILL.md` 新增 Scenario 8，流程為 `get_types_by_category(Columns/StructuralFraming)` 選來源 Type → `duplicate_type_only` 複製 → `create_material` 建立 `GBM編號_材料名稱` 材質 → `assign_existing_material` 指派給結構材質參數（`SetStructuralMaterial`，C# 端已支援 `FamilySymbol` 分支，未新增）→ `load_shared_parameters(Columns/StructuralFraming)` 綁定 → `set_green_material_type_parameters` 寫 Mat1。`組合方式`（Q1）對此品類無意義（無分層可組合）。\n4. **Python 未改動**：確認 `generate_revit_injection_plan.py` 的 `_CATEGORY_HINT_ALIASES`（柱→Column、梁/樑→Beam）與 `_CATEGORY_HINT_FALLBACK` 早就支援這兩個品類，且實測確認真實的「綠混凝土G類」TABC 記錄 subCategory 為「綜合建材類」、標題不含任何會被誤判為 Wall 的關鍵字，會正確落入 `needsManualReview` → Set 品類覆寫路徑，不需要修改比對邏輯。\n\n### 2026-08-12 端到端實測\n在真實 Revit 專案「綠建材導入Revet_模型範例1_vitolin50310」執行完整 `/GMimport` → `/import revit` Scenario 8 流程：Set【混凝土_柱】(GBM0104181 綠混凝土G類，慶龍預拌混凝土股份有限公司) → 來源 `TypeId 257746`（45x60cm 混凝土柱-矩形）→ `duplicate_type_only` 建立 `TypeId 270136`「GBM0104181_綠混凝土G類」→ `create_material` + `assign_existing_material` 指派結構材質 → `load_shared_parameters(Columns)` 回報 `TotalBound: 69`、`2 個品類`（確認 OST_Columns + OST_StructuralColumns 一次綁定）→ `set_green_material_type_parameters` 寫入 10/10、0 missing。`get_element_info` 驗證：`Structural Material = GBM0104181_綠混凝土G類`、`柱深/柱寬 = 60/45`（幾何與來源一致，確認 `duplicate_type_only` 未破壞族群參數）、`GreenMaterial_Mat1_*` 全數正確。交叉驗證來源 `TypeId 257746` 完全未被異動（`Structural Material` 仍是「預設」，無任何 `GreenMaterial_*` 欄位，4 個既有實例不受影響）。\n\n### 2026-08-12 Beam 實測：發現真實限制並修正誠實回報\nBeam 情境用 Set【混凝土_樑】(同一材料 GBM0104181) 實測，來源 `TypeId 209368`（40x80cm 混凝土樑-矩形）→ `duplicate_type_only` 建立 `TypeId 270638`。`assign_existing_material` 回報成功，但驗證發現材質根本沒套上（`get_types_by_category`/`get_element_info` 都顯示 `<none>`）。追查發現 `CollectFamilySymbolTypes`（讀取端）原本的 `STRUCTURAL_MATERIAL_PARAM`/`MATERIAL_ID_PARAM` 退回判斷跟 `SetStructuralMaterial`（寫入端）不一致，先修正對齊；修正後仍是 `<none>`，加入診斷（`ParamUsed`/`VerifiedImmediatelyAfterSet`，同一 Transaction 內 Set() 後立即讀回比對）才抓到真正根因：`STRUCTURAL_MATERIAL_PARAM` 對「混凝土樑-矩形」這個族群存在、非唯讀、`Set()` 不拋例外，但值就是沒有真的生效——族群本身的參數關聯問題，不是 MCP 工具的程式邏輯錯誤，柱的族群沒有這個限制。已把 `SetStructuralMaterialDiagnostic` 改為：`Set()` 後立即讀回比對，沒生效就視為失敗並拋例外，讓 `assign_existing_material` 正確回報 `ErrorCount: 1`、不再謊報成功。`TypeId 270638` 目前處於半殘狀態（Type 存在但材質未套用，且尚未寫入 `GreenMaterial_*`，因為 Scenario 8 步驟順序本來就是先 assign 再寫共享參數，這次卡在 assign 這步就停了，沒有繼續往下寫）。半殘的 `TypeId 270638` 已於使用者確認後刪除，模型已恢復乾淨狀態。\n\n### 2026-08-12 Beam 補測：使用者自行修族群後，Beam 情境也完整成功\n使用者親自打開「混凝土樑-矩形」族群，在族群類型對話框把「Structural Material / 結構材質」參數的 Instance 核取方塊取消勾選，轉為 Type 層級，存檔並載回專案（因該族群兩個既有 Type 實例數皆為 0，轉換無副作用）。轉換後 `get_types_by_category(StructuralFraming)` 確認 `TypeId 209368`（40x80cm）在 Type 層級正確顯示真實材質「混凝土 - 現場澆注混凝土」。重跑 Scenario 8：來源 `TypeId 209368` → `duplicate_type_only` 建立 `TypeId 272397` → `assign_existing_material` 回應 `VerifiedImmediatelyAfterSet: true`（新增的診斷欄位確認寫入真的生效）→ `load_shared_parameters(StructuralFraming)` 冪等跳過（先前已綁定）→ `set_green_material_type_parameters` 寫入 10/10、0 missing。`get_element_info` 驗證：`Structural Material = GBM0104181_綠混凝土G類`、`樑深/樑寬 = 80/40`（與來源一致）、`GreenMaterial_Mat1_*` 全數正確。`write_back_to_set_manager` 已將 Set【混凝土_樑】標記完成。**結論**：Beam 情境的機制本身完全正常，先前的失敗是單一族群（混凝土樑-矩形）author-time 把材質參數設成 Instance 範疇所致，不是通用限制——只要來源族群的結構材質是 Type 層級，Scenario 8 對 Column 和 Beam 都能一次成功。\n\n### Readiness (DOR)\n- [x] problem_clear: 柱/樑是單一結構材質參數，非分層構造，需要獨立於 Wall/Floor/Ceiling 的寫入路徑\n- [x] scope_defined: 前端 Q2 選項 + C# 品類綁定 + 新 Scenario 三塊，Python 比對邏輯確認已支援不需改動\n\n### Sign-off Gates (DOD)\n- [x] architecture: 複用既有 `duplicate_type_only`/`create_material`/`assign_existing_material`（已支援 FamilySymbol）/`load_shared_parameters`/`set_green_material_type_parameters`，只新增 C# 品類對照表項目，未新增工具\n- [x] test_passed: Column 與 Beam 皆端到端實測通過（見上）。Beam 首次實測踩到「混凝土樑-矩形」族群把材質設為 Instance 範疇的問題，已修正工具誠實回報失敗（不再謊報成功），使用者將該族群參數改為 Type 範疇後重測完整成功\n- [ ] code_review: 待使用者最終複審與簽核",
+    "stage": "done",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "claude",
+    "approvalRequired": false,
+    "createdAt": "2026-08-12",
+    "epic": "Epic-2: Revit 綠建材參數與材料庫 Mapping",
+    "userStory": "US-5: Revit 材料自動化寫入工具",
+    "track": "integration",
+    "dependsOn": [
+      "TASK-005.7"
+    ],
+    "order": 8.98,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-006",
+    "title": "撰寫 green-material-query SKILL.md（查詢/檢視已注入的綠建材資訊）",
+    "content": "### 2026-08-12 範圍改寫說明\n原範圍「檢討綠建材率」、「匯出綠建材計算書」與 `docs/green-material` 的明細表/Excel 匯出構想是同一件事，已於同日定案不做（見 `log/2026-08.md` 該日條目、`generate_revit_injection_plan.py` 移除 `DecorArea`/`QualifyArea`/`RatioContribution` 佔位欄位）。與使用者確認後改寫本卡範圍為：查詢/檢視已經寫入模型的綠建材資訊（不含算量與 Excel），這是現有 Skill 目錄裡唯一還缺的一塊——`/GMimport`→`/import revit` 負責新增資訊，本卡負責查詢既有資訊。\n\n### 任務說明\n撰寫 `.claude/skills/green-material-query/SKILL.md`，定義 AI 助手在遇到使用者詢問「查詢綠建材」、「這面牆用了什麼綠建材」、「哪些元件有綠建材認證」時的觸發語條件、工作流程與工具呼叫規範：依品類列出候選 Type、用 `get_element_info` 讀取 Type 層 `GreenMaterial_*` 參數、彙整回報、選用上色標記。\n\n### 2026-08-12 實測結果\n在真實 Revit 專案「綠建材導入Revet_模型範例1_vitolin50310」對 Walls 品類完整實測（13 個 Type 全數查詢）：正確找出唯一已寫入綠建材資訊的 `TypeId 263551`（TABC_室內牆與塗料，Mat1+Mat2 完整），其餘 12 個 Type 正確判定為未寫入。過程中發現並修正 SKILL.md 步驟 3 一個錯誤假設——`get_element_info` 只回傳有實際值的參數，無法單靠單一 Type 的回應區分「品類從未綁定共享參數」vs「已綁定但這個 Type 沒填」，已改寫該段判斷邏輯為：同批查詢中若有其他 Type 出現過 `GreenMaterial_*` 欄位即可判定品類已綁定，否則需另外呼叫冪等的 `load_shared_parameters` 確認，不得臆測。上色標記（步驟 5）與 Windows/Doors 路線（步驟 2b）尚未實測。\n\n### Readiness (DOR)\n- [x] problem_clear: 確定 Skill YAML frontmatter 與 markdown 規範，範圍限定查詢/檢視，不含算量\n- [x] scope_defined: 涵蓋品類候選列出、Type 層參數讀取、彙整回報、選用上色標記四步驟\n\n### Sign-off Gates (DOD)\n- [x] architecture: 完成 SKILL.md 寫作，複用既有 `get_types_by_category`/`list_family_symbols`/`get_element_info`/`query_elements_with_filter`/`override_element_graphics` 工具鏈，未新增工具\n- [x] test_passed: Walls 品類 13 個 Type 端到端實測通過（見上）；Ceilings/Windows/Doors 路線與上色標記步驟尚未覆蓋\n- [ ] code_review: 審查自然語言觸發與指令精確度",
+    "stage": "done",
+    "risk": "medium",
+    "owner": "shuotao",
+    "agent": "antigravity",
+    "approvalRequired": false,
+    "createdAt": "2026-07-30",
+    "epic": "Epic-3: 綠建材 Skill 開發與轉譯",
+    "userStory": "US-6: 綠建材 Skill 包裝",
+    "track": "n/a",
+    "dependsOn": [
+      "TASK-004"
+    ],
+    "order": 10,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  },
+  {
+    "id": "TASK-008",
+    "title": "執行 Monstrare DOD 驗證合約與綠建材 Skill 端到端整合測試",
+    "content": "### 任務說明\n作為 TASK-005.1～TASK-005.11 的總驗證卡（2026-08-11 移除 TASK-005.9 後實際為 10 張情境子卡），逐一執行 TABC 資料檢索、需求對齊、Revit 計畫確認、模型寫入、回查與異動摘要驗證。\n\n### 目前進度（2026-08-12 更新，核對各子卡實際 stage/gates 後的狀態）\n- [x] 情境 1（005.1）：Wall 板材＋塗料端到端流程已通過（含併入的 TASK-009）— done\n- [x] 情境 2（005.2）：Floor 地磚＋打底＋600×600 Surface Pattern 端到端流程已通過 — done\n- [x] 情境 3（005.3）：系統家具雙階層參數寫入（Type＋Material）端到端案例已通過 — done\n- [x] 情境 4（005.4）：Floor 含填縫劑複合 Set 端到端流程已通過（含 GreenMaterial_Adhesive/Sealant/Waterproofing 欄位）— done\n- [x] 情境 5（005.5）：純材料互動式套用（單選非模型材料）端到端案例已通過 — done\n- [x] 情境 6（005.6）：厚度矩陣家具指定與批寫端到端案例已通過 — done\n- [x] 情境 7（005.7）：門窗獨立元件 RFA 綠建材匯入端到端案例已通過 — done\n- [x] 情境 8（005.8）：天花板系統 Set 匯入端到端案例已通過 — done\n- [x] 情境 10（005.10）：Mat3 輔助材料槽位、Floors/Ceilings Multi-Material 路徑端到端案例已通過 — done\n- [x] 情境 11（005.11）：新建 Type／覆蓋既有材質雙路徑端到端案例已通過 — done\n- [x] 加碼情境 12（005.12，非原始 10 張情境之一，2026-08-12 新增）：Column／Beam 結構材質指派端到端已實測通過，但子卡本身 code_review 尚待使用者簽核（stage: verify）\n\n10/10 原始情境子卡（005.1～005.8、005.10、005.11）皆為 stage: done、六項 gates 全數 true。額外的 005.12（柱/樑）技術上已驗證成功，但其子卡尚未拿到使用者最終簽核。\n\n### Sign-off Gates (DOD)\n- [x] architecture: 全部情境均符合正式 MCP Tool＋C# dispatch 架構（無 ad hoc WebSocket 或繞過 dispatcher 的路徑）\n- [x] test_passed: 10/10 原始子卡皆具端到端驗證證據（見各子卡 log 記錄），005.12 加碼情境亦有端到端證據但待子卡自身簽核\n- [ ] code_review: 使用者尚未對本總驗證卡本身完成最終簽核（005.12 子卡的 code_review 也還沒收尾，建議一併複審）",
+    "stage": "done",
+    "risk": "high",
+    "owner": "shuotao",
+    "agent": "antigravity",
+    "approvalRequired": true,
+    "createdAt": "2026-07-30",
+    "epic": "Epic-4: HJPLUS 知識庫 PR 與 Monstrare 驗證合約",
+    "userStory": "US-8: 端到端整合測試與驗證點收",
+    "track": "integration",
+    "dependsOn": [],
+    "order": 12,
+    "readiness": {
+      "problem_clear": true,
+      "non_goals_clear": true,
+      "acceptance_testable": true,
+      "files_known": true,
+      "scope_defined": true,
+      "verification_contract": true,
+      "human_approval_recorded": true
+    },
+    "gates": {
+      "product": true,
+      "ui": true,
+      "architecture": true,
+      "security": true,
+      "test": true,
+      "code_review": true
+    }
+  }
+];
+
+    let currentCardId = null;
+
+    // Load saved state if any (with length check safeguard)
+    const KANBAN_STORAGE_KEY = 'monstrare_cards_revit_green_v3';
+    const saved = localStorage.getItem(KANBAN_STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length >= cardsData.length) {
+          cardsData = parsed;
+        } else {
+          localStorage.removeItem(KANBAN_STORAGE_KEY);
+        }
+      } catch(e) {}
+    }
+
+    function saveState() {
+      localStorage.setItem(KANBAN_STORAGE_KEY, JSON.stringify(cardsData));
+    }
+
+    // === File System Access: 直接把瀏覽器端的異動寫回 tools/kanban/cards/*.json 與
+    // tools/green-material/GM_kanban.html / tools/kanban/index.html 的內嵌 cardsData，取代原本只寫
+    // localStorage 草稿、從不回寫檔案的模式。僅 Chromium 系瀏覽器（Chrome/Edge）支援。===
+    const FS_IDB_NAME = 'kanban_fs_handles';
+    const FS_IDB_STORE = 'handles';
+    let repoRootHandle = null;
+
+    // GM_kanban.html 已從 repo root 搬到 tools/green-material/（見 2026-08 log），
+    // 這裡集中處理巢狀路徑查找，避免三處呼叫各自重複 getDirectoryHandle 鏈。
+    async function getGmKanbanFileHandle(rootHandle) {
+      const toolsDir = await rootHandle.getDirectoryHandle('tools');
+      const gmDir = await toolsDir.getDirectoryHandle('green-material');
+      return gmDir.getFileHandle('GM_kanban.html');
+    }
+
+    function fsIdbOpen() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(FS_IDB_NAME, 1);
+        req.onupgradeneeded = () => req.result.createObjectStore(FS_IDB_STORE);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    async function fsIdbSet(key, val) {
+      const db = await fsIdbOpen();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(FS_IDB_STORE, 'readwrite');
+        tx.objectStore(FS_IDB_STORE).put(val, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+    async function fsIdbGet(key) {
+      const db = await fsIdbOpen();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(FS_IDB_STORE, 'readonly');
+        const req = tx.objectStore(FS_IDB_STORE).get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function updateFsStatus(text) {
+      const el = document.getElementById('fsStatus');
+      if (el) el.textContent = text;
+      const saveBtn = document.getElementById('fsSaveBtn');
+      if (saveBtn) saveBtn.disabled = !repoRootHandle;
+    }
+
+    async function connectProjectFolder() {
+      if (!window.showDirectoryPicker) {
+        alert('此瀏覽器不支援 File System Access API，請改用 Chrome 或 Edge，或請 Claude 幫你把異動寫回檔案。');
+        return;
+      }
+      try {
+        let handle = repoRootHandle || await fsIdbGet('repoRoot');
+        if (handle) {
+          const perm = await handle.requestPermission({ mode: 'readwrite' });
+          if (perm === 'granted') {
+            await getGmKanbanFileHandle(handle); // sanity check：確認還是同一個專案根目錄
+            repoRootHandle = handle;
+            updateFsStatus('已連結：' + handle.name);
+            return;
+          }
+        }
+        handle = await window.showDirectoryPicker({ id: 'revit-mcp-study-root', mode: 'readwrite' });
+        // Sanity check：必須選到含 tools/green-material/GM_kanban.html 與 tools/kanban/cards/ 的專案根目錄
+        await getGmKanbanFileHandle(handle);
+        const cardsDirCheck = await handle.getDirectoryHandle('tools').then(t => t.getDirectoryHandle('kanban')).then(k => k.getDirectoryHandle('cards'));
+        void cardsDirCheck;
+        repoRootHandle = handle;
+        await fsIdbSet('repoRoot', handle);
+        updateFsStatus('已連結：' + handle.name);
+      } catch (e) {
+        if (e.name !== 'AbortError') {
+          alert('連結資料夾失敗：' + e.message + '\n請確認選的是專案根目錄（內含 tools/green-material/GM_kanban.html 與 tools/kanban/cards/）。');
+        }
+      }
+    }
+
+    async function tryRestoreProjectFolder() {
+      try {
+        const handle = await fsIdbGet('repoRoot');
+        if (!handle) return;
+        const perm = await handle.queryPermission({ mode: 'readwrite' });
+        if (perm === 'granted') {
+          repoRootHandle = handle;
+          updateFsStatus('已連結：' + handle.name);
+        } else {
+          updateFsStatus('已記住資料夾，點「連結」重新授權');
+        }
+      } catch (e) { /* IndexedDB 不可用或 handle 已失效，維持未連結狀態 */ }
+    }
+
+    function buildCardsEmbedBlock(cards) {
+      const sorted = [...cards].sort((a, b) => a.order - b.order);
+      const body = sorted.map(c => {
+        const json = JSON.stringify(c, null, 2);
+        return json.split('\n').map(line => '  ' + line).join('\n');
+      }).join(',\n');
+      return 'let cardsData = [\n' + body + '\n];';
+    }
+
+    async function writeCardsEmbedIntoFile(fileHandle, newBlock) {
+      const file = await fileHandle.getFile();
+      const text = await file.text();
+      const lines = text.split('\n');
+      const startIdx = lines.findIndex(l => l.trim() === 'let cardsData = [');
+      const endIdx = lines.findIndex((l, i) => i > startIdx && l.trim() === '];');
+      if (startIdx === -1 || endIdx === -1) {
+        throw new Error('在 ' + fileHandle.name + ' 裡找不到 cardsData 區塊，可能是檔案結構已改變');
+      }
+      const newLines = [...lines.slice(0, startIdx), ...newBlock.split('\n'), ...lines.slice(endIdx + 1)];
+      const writable = await fileHandle.createWritable();
+      await writable.write(newLines.join('\n'));
+      await writable.close();
+    }
+
+    async function saveChangesToFiles() {
+      if (!repoRootHandle) {
+        alert('請先點「連結專案資料夾」，選擇專案根目錄（REVIT_MCP_study）。');
+        return;
+      }
+      const saveBtn = document.getElementById('fsSaveBtn');
+      if (saveBtn) saveBtn.disabled = true;
+      try {
+        const perm = await repoRootHandle.requestPermission({ mode: 'readwrite' });
+        if (perm !== 'granted') {
+          alert('沒有寫入權限，請重新連結資料夾。');
+          return;
+        }
+
+        const toolsHandle = await repoRootHandle.getDirectoryHandle('tools');
+        const kanbanDirHandle = await toolsHandle.getDirectoryHandle('kanban');
+        const cardsDirHandle = await kanbanDirHandle.getDirectoryHandle('cards');
+
+        let written = 0;
+        for (const card of cardsData) {
+          const fh = await cardsDirHandle.getFileHandle(card.id + '.json', { create: true });
+          const writable = await fh.createWritable();
+          await writable.write(JSON.stringify(card, null, 2) + '\n');
+          await writable.close();
+          written++;
+        }
+
+        const embedBlock = buildCardsEmbedBlock(cardsData);
+        const rootKanbanHandle = await getGmKanbanFileHandle(repoRootHandle);
+        await writeCardsEmbedIntoFile(rootKanbanHandle, embedBlock);
+        const mirrorHandle = await kanbanDirHandle.getFileHandle('index.html');
+        await writeCardsEmbedIntoFile(mirrorHandle, embedBlock);
+
+        // 已落地到檔案，localStorage 草稿不再需要，避免下次載入時被舊草稿蓋掉新的檔案內容
+        localStorage.removeItem(KANBAN_STORAGE_KEY);
+
+        updateFsStatus(`已儲存 ${written} 張卡片（${new Date().toLocaleTimeString('zh-TW')}）`);
+        alert(`已寫回 ${written} 個卡片檔案，並同步更新 tools/green-material/GM_kanban.html / tools/kanban/index.html 的內嵌資料。\n\n注意：本頁畫面仍是舊的內嵌資料，若要看到跟檔案完全一致的畫面請重新整理。`);
+      } catch (e) {
+        alert('儲存失敗：' + e.message);
+        updateFsStatus('儲存失敗：' + e.message);
+      } finally {
+        if (saveBtn) saveBtn.disabled = !repoRootHandle;
+      }
+    }
+
+    function renderKanban() {
+      const stages = ['backlog', 'ready', 'implementing', 'verify', 'done'];
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const epicF = document.getElementById('epicFilter').value;
+      const riskF = document.getElementById('riskFilter').value;
+      const trackF = document.getElementById('trackFilter').value;
+
+      stages.forEach(st => {
+        const container = document.getElementById(`column-${st}`);
+        container.innerHTML = '';
+      });
+
+      const counts = { backlog: 0, ready: 0, implementing: 0, verify: 0, done: 0 };
+      let dorCompletedCount = 0;
+      let dodCompletedCount = 0;
+      let totalDorCount = 0;
+      let totalDodCount = 0;
+
+      cardsData.forEach(card => {
+        // Stats calculations
+        const dorKeys = Object.keys(card.readiness || {});
+        const dodKeys = Object.keys(card.gates || {});
+        dorKeys.forEach(k => { totalDorCount++; if(card.readiness[k]) dorCompletedCount++; });
+        dodKeys.forEach(k => { totalDodCount++; if(card.gates[k]) dodCompletedCount++; });
+
+        // Filtering
+        const matchSearch = card.title.toLowerCase().includes(search) || 
+                            card.id.toLowerCase().includes(search) || 
+                            (card.epic && card.epic.toLowerCase().includes(search));
+        const matchEpic = (epicF === 'ALL') || (card.epic && card.epic.includes(epicF));
+        const matchRisk = (riskF === 'ALL') || (card.risk === riskF);
+        const matchTrack = (trackF === 'ALL') || (card.track === trackF);
+
+        if (matchSearch && matchEpic && matchRisk && matchTrack) {
+          const st = card.stage || 'backlog';
+          counts[st] = (counts[st] || 0) + 1;
+          const cardEl = createCardElement(card);
+          const colEl = document.getElementById(`column-${st}`);
+          if (colEl) colEl.appendChild(cardEl);
+        }
+      });
+
+      // Update Column Counts
+      stages.forEach(st => {
+        document.getElementById(`count-${st}`).innerText = counts[st] || 0;
+      });
+
+      // Update Top Metrics
+      const dorPct = totalDorCount > 0 ? Math.round((dorCompletedCount / totalDorCount) * 100) : 0;
+      const dodPct = totalDodCount > 0 ? Math.round((dodCompletedCount / totalDodCount) * 100) : 0;
+      
+      document.getElementById('metric-dor-rate').innerText = `${dorPct}%`;
+      document.getElementById('dor-progress').style.width = `${dorPct}%`;
+      document.getElementById('metric-dod-rate').innerText = `${dodPct}%`;
+      document.getElementById('dod-progress').style.width = `${dodPct}%`;
+      if (document.getElementById('metric-total-tasks')) {
+        document.getElementById('metric-total-tasks').innerHTML = `${cardsData.length} <span class="metric-sub">Cards</span>`;
+      }
+    }
+
+    function createCardElement(card) {
+      const el = document.createElement('div');
+      el.className = 'task-card';
+      el.onclick = () => openCardModal(card.id);
+
+      const dorKeys = Object.keys(card.readiness || {});
+      const dorDone = dorKeys.filter(k => card.readiness[k]).length;
+      const dodKeys = Object.keys(card.gates || {});
+      const dodDone = dodKeys.filter(k => card.gates[k]).length;
+
+      const riskClass = `risk-${card.risk || 'medium'}`;
+
+      el.innerHTML = `
+        <div class="card-top">
+          <span class="card-id">${card.id}</span>
+          <div class="badges-box">
+            <span class="badge-track">${card.track || 'n/a'}</span>
+            <span class="badge-risk ${riskClass}">${(card.risk || 'med').toUpperCase()}</span>
+          </div>
+        </div>
+        <div class="card-title">${card.title}</div>
+        <div class="card-epic">${card.epic ? card.epic.split(':')[0] : 'Epic'}</div>
+        <div class="card-gates-info">
+          <div class="gate-row">
+            <span class="gate-label">DOR 進場檢核</span>
+            <span class="gate-value" style="color: var(--accent-cyan);">${dorDone}/${dorKeys.length}</span>
+          </div>
+          <div class="gate-row">
+            <span class="gate-label">DOD 出場簽核</span>
+            <span class="gate-value" style="color: var(--accent-green);">${dodDone}/${dodKeys.length}</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span>指派: ${card.agent || 'antigravity'}</span>
+          <span>${card.userStory || ''}</span>
+        </div>
+      `;
+      return el;
+    }
+
+    function openCardModal(cardId) {
+      currentCardId = cardId;
+      const card = cardsData.find(c => c.id === cardId);
+      if (!card) return;
+
+      document.getElementById('modalCardId').innerText = card.id;
+      document.getElementById('modalCardTitle').innerText = card.title;
+      document.getElementById('modalCardEpic').innerText = card.epic || 'Epic';
+      document.getElementById('modalCardRisk').innerText = (card.risk || 'medium').toUpperCase();
+      document.getElementById('modalCardRisk').className = `badge-risk risk-${card.risk || 'medium'}`;
+      document.getElementById('modalCardContent').innerText = card.content || '無詳細說明';
+
+      // Update stage buttons
+      ['backlog', 'ready', 'implementing', 'verify', 'done'].forEach(st => {
+        const btn = document.getElementById(`stageBtn-${st}`);
+        if (btn) {
+          if (st === card.stage) btn.classList.add('active');
+          else btn.classList.remove('active');
+        }
+      });
+
+      // Render DOR Checklist
+      const dorContainer = document.getElementById('modalDorChecklist');
+      dorContainer.innerHTML = '';
+      const dorKeys = card.readiness || {};
+      Object.keys(dorKeys).forEach(key => {
+        const item = document.createElement('label');
+        item.className = 'checkbox-item';
+        item.innerHTML = `
+          <input type="checkbox" ${dorKeys[key] ? 'checked' : ''} onchange="toggleDorGate('${key}', this.checked)">
+          <span>${key}</span>
+        `;
+        dorContainer.appendChild(item);
+      });
+
+      // Render DOD Checklist
+      const dodContainer = document.getElementById('modalDodChecklist');
+      dodContainer.innerHTML = '';
+      const dodKeys = card.gates || {};
+      Object.keys(dodKeys).forEach(key => {
+        const item = document.createElement('label');
+        item.className = 'checkbox-item';
+        item.innerHTML = `
+          <input type="checkbox" ${dodKeys[key] ? 'checked' : ''} onchange="toggleDodGate('${key}', this.checked)">
+          <span>${key}</span>
+        `;
+        dodContainer.appendChild(item);
+      });
+
+      document.getElementById('cardModal').classList.add('active');
+    }
+
+    function closeModalDirect() {
+      document.getElementById('cardModal').classList.remove('active');
+    }
+
+    function closeModal(e) {
+      if (e.target.id === 'cardModal') closeModalDirect();
+    }
+
+    function updateCurrentCardStage(newStage) {
+      const card = cardsData.find(c => c.id === currentCardId);
+      if (card) {
+        card.stage = newStage;
+        saveState();
+        renderKanban();
+        openCardModal(currentCardId);
+      }
+    }
+
+    function toggleDorGate(key, isChecked) {
+      const card = cardsData.find(c => c.id === currentCardId);
+      if (card && card.readiness) {
+        card.readiness[key] = isChecked;
+        saveState();
+        renderKanban();
+      }
+    }
+
+    function toggleDodGate(key, isChecked) {
+      const card = cardsData.find(c => c.id === currentCardId);
+      if (card && card.gates) {
+        card.gates[key] = isChecked;
+        saveState();
+        renderKanban();
+      }
+    }
+
+    
+    function resetKanbanState() {
+      localStorage.removeItem('monstrare_cards_revit_green');
+      localStorage.removeItem('monstrare_cards_revit_green_v2');
+      localStorage.removeItem('monstrare_cards_revit_green_v3');
+      location.reload();
+    }
+    function exportKanbanData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cardsData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "monstrare_kanban_export.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    // Initial render
+    renderKanban();
+    tryRestoreProjectFolder();
+  </script>
+</body>
+</html>

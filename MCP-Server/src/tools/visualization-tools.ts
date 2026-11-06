@@ -7,6 +7,370 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 
 export const visualizationTools: Tool[] = [
     {
+        name: "create_green_material",
+        description: "在 Revit 專案材質庫 (OST_Materials) 中實體發動 Duplicate/Create 獨立建立純淨綠建材或測試 Material (如 'test材質' 或 'GBM0104106_水性漆(居室外用)')。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                materialName: {
+                    type: "string",
+                    description: "材質名稱，例如 'test材質' 或 'GBM0104106_水性漆(居室外用)'",
+                },
+                r: { type: "number", default: 235 },
+                g: { type: "number", default: 245 },
+                b: { type: "number", default: 240 },
+                dryRun: {
+                    type: "boolean",
+                    description: "true = 只回報材質是否已存在、實際執行會不會新建，不建立任何 Material。預設 false = 正常執行建立。",
+                },
+            },
+            required: ["materialName"],
+        },
+    },
+    {
+        name: "create_material",
+        description: "在 Revit 專案資料庫 (OST_Materials) 中建立獨立 Material 並關聯獨立 AppearanceAssetElement。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                materialName: {
+                    type: "string",
+                    description: "材質名稱，例如 'test材質'",
+                },
+                dryRun: {
+                    type: "boolean",
+                    description: "true = 只回報材質是否已存在、實際執行會不會新建，不建立任何 Material。預設 false = 正常執行建立。",
+                },
+            },
+            required: ["materialName"],
+        },
+    },
+    {
+        name: "create_material_by_domain",
+        description: "遵循 Domain 規範建立純淨獨立的 Revit Material（不加前綴、絕不上預設牆字串）。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                materialName: {
+                    type: "string",
+                    description: "材質名稱，例如 'GBM0103810_NICHIAS矽酸鈣板材'",
+                },
+                dryRun: {
+                    type: "boolean",
+                    description: "true = 只回報材質是否已存在、實際執行會不會新建，不建立任何 Material。預設 false = 正常執行建立。",
+                },
+            },
+            required: ["materialName"],
+        },
+    },
+    {
+        name: "get_all_materials",
+        description: "查詢 Project Materials（材質瀏覽器）清單中所有現存材質，用於在建立材質後主動驗收確認是否已實體存在。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                searchKeyword: {
+                    type: "string",
+                    description: "依名稱關鍵字篩選（如 'GBM'）。留空或 '*' 表示回傳全部材質。",
+                },
+            },
+        },
+    },
+    {
+        name: "duplicate_element_type",
+        description: "複製指定 ElementType 建立新類型（如綠建材 Set 專屬牆類型），並依指定的飾面/結構材質名稱實體建立 2 個獨立 Material，套入 Finish1/Structure/Finish2 三層 CompoundStructure 構造層。用於將牆板＋塗料組合 Set 導入為單一牆體 Element Type。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                sourceTypeId: { type: "number", description: "來源類型 Element ID（優先選用含粉刷層的型號）" },
+                newTypeName: { type: "string", description: "新類型名稱，例如 'TABC_test牆'（禁用中括號）" },
+                finishMaterialName: {
+                    type: "string",
+                    description: "飾面塗料材質名稱，格式須為 'GBM編號_材料名稱'，例如 'GBM0104106_水性漆(居室外用)'",
+                },
+                structureMaterialName: {
+                    type: "string",
+                    description: "結構板材材質名稱，格式須為 'GBM編號_材料名稱'，例如 'GBM0103810_無機質NICHIAS NA LUX矽酸鈣板(0.8FK)'",
+                },
+                finishThicknessMm: { type: "number", description: "飾面層厚度 (mm)", default: 20 },
+                structureThicknessMm: { type: "number", description: "結構層厚度 (mm)", default: 150 },
+                dryRun: {
+                    type: "boolean",
+                    description: "true = 只回報會建立的新類型名稱、會建立/重用的材質、CompoundStructure 分層計畫，不開啟 Transaction、不複製類型、不建立任何材質。預設 false = 正常執行。",
+                },
+            },
+            required: ["sourceTypeId", "newTypeName", "finishMaterialName", "structureMaterialName"],
+        },
+    },
+    {
+        name: "duplicate_type_only",
+        description: "單純複製指定 ElementType（Wall/Floor/Ceiling 皆可），不修改 CompoundStructure、不建立或指派任何 Material，新類型與來源類型構造層完全一致。用於 TASK-005.5 情境 5「單選非模型綠建材」路徑 A：先複製出一個不影響既有元件的新 Type，再另外呼叫 set_green_material_type_parameters 寫入 adhesive/sealant/waterproofing 等 Construction 欄位。與 duplicate_element_type（寫死板材+塗料兩種材料）、create_single_material_type/create_multi_layer_type（會重新指派構造層材質）不同。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                sourceTypeId: { type: "number", description: "來源類型 Element ID（任意 Wall/Floor/Ceiling Type）" },
+                newTypeName: { type: "string", description: "新類型名稱" },
+                dryRun: {
+                    type: "boolean",
+                    description: "true = 只回報會建立的新類型名稱，不開啟 Transaction、不複製類型。預設 false = 正常執行。",
+                },
+            },
+            required: ["sourceTypeId", "newTypeName"],
+        },
+    },
+    {
+        name: "set_green_material_type_parameters",
+        description: "將綠建材共享參數 Schema（GreenMaterial_SharedParams.txt，Mat1~Mat6 六槽位 + Construction 群組共 67 個欄位）實體寫入指定 ElementType 的 Identity Data。參數須已透過 load_shared_parameters 綁定至該 Type 所屬品類（如 Walls），否則對應欄位會列在回傳的 MissingParameters 中。Mat1=主體/牆板，Mat2=面材/塗料，Mat3=附屬/膠材（僅有基本欄位，無 TVOC/Formaldehyde/CNS），Mat4/Mat5/Mat6=追加構造層（欄位與 Mat1/Mat2 同樣完整）。一個 Set 有幾種材料就只傳幾個 matN 物件，其餘留空，不必寫滿 6 組；哪個材料進哪個槽位請依 GM_generate_revit_injection_plan.py 產出的 plan['materialSlotAssignment'] 決定，不要自行猜測順序——非幾何輔助材料（接著劑/填縫劑/防水材料）一樣要填一個 matN 物件（Mat 槽位記錄的是「這個元件用了哪些綠建材」的完整清單，不是只有物理構造層才算數），另外再用 adhesive/sealant/waterproofing 額外補記它們的施工用途，兩者並存不衝突、不是二選一。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                typeId: { type: "number", description: "目標 ElementType Element ID（如 duplicate_element_type 建立的新型別）" },
+                certified: { type: "boolean", description: "GreenMaterial_Certified：全牆綠建材評定合格狀態" },
+                recycledRatio: { type: "number", description: "GreenMaterial_RecycledRatio：再生材料回收摻配率 (%)" },
+                acousticNRC: { type: "number", description: "GreenMaterial_AcousticNRC：吸音係數 (NRC / SAA)" },
+                mat1: {
+                    type: "object",
+                    description: "材料1（主體/牆板）",
+                    properties: {
+                        name: { type: "string" },
+                        certNo: { type: "string", description: "綠建材標章證書字號，如 'GBM0103810'" },
+                        category: { type: "string" },
+                        subCategory: { type: "string" },
+                        applicant: { type: "string" },
+                        validUntil: { type: "string" },
+                        tvoc: { type: "number", description: "TVOC 逸散率 (mg/m2.h)" },
+                        formaldehyde: { type: "number", description: "甲醛逸散率 (mg/m2.h)" },
+                        cnsSpec: { type: "string" },
+                        testItems: { type: "string" },
+                        qualifiedItems: { type: "string" },
+                    },
+                },
+                mat2: {
+                    type: "object",
+                    description: "材料2（面材/塗料）",
+                    properties: {
+                        name: { type: "string" },
+                        certNo: { type: "string" },
+                        category: { type: "string" },
+                        subCategory: { type: "string" },
+                        applicant: { type: "string" },
+                        validUntil: { type: "string" },
+                        tvoc: { type: "number" },
+                        formaldehyde: { type: "number" },
+                        cnsSpec: { type: "string" },
+                        testItems: { type: "string" },
+                        qualifiedItems: { type: "string" },
+                    },
+                },
+                mat3: {
+                    type: "object",
+                    description: "材料3（附屬/膠材，選填，僅基本欄位）",
+                    properties: {
+                        name: { type: "string" },
+                        certNo: { type: "string" },
+                        category: { type: "string" },
+                        subCategory: { type: "string" },
+                        applicant: { type: "string" },
+                        validUntil: { type: "string" },
+                    },
+                },
+                mat4: {
+                    type: "object",
+                    description: "材料4（追加構造層，欄位與 Mat1/Mat2 同樣完整）",
+                    properties: {
+                        name: { type: "string" },
+                        certNo: { type: "string" },
+                        category: { type: "string" },
+                        subCategory: { type: "string" },
+                        applicant: { type: "string" },
+                        validUntil: { type: "string" },
+                        tvoc: { type: "number" },
+                        formaldehyde: { type: "number" },
+                        cnsSpec: { type: "string" },
+                        testItems: { type: "string" },
+                        qualifiedItems: { type: "string" },
+                    },
+                },
+                mat5: {
+                    type: "object",
+                    description: "材料5（追加構造層，欄位與 Mat1/Mat2 同樣完整）",
+                    properties: {
+                        name: { type: "string" },
+                        certNo: { type: "string" },
+                        category: { type: "string" },
+                        subCategory: { type: "string" },
+                        applicant: { type: "string" },
+                        validUntil: { type: "string" },
+                        tvoc: { type: "number" },
+                        formaldehyde: { type: "number" },
+                        cnsSpec: { type: "string" },
+                        testItems: { type: "string" },
+                        qualifiedItems: { type: "string" },
+                    },
+                },
+                mat6: {
+                    type: "object",
+                    description: "材料6（追加構造層，欄位與 Mat1/Mat2 同樣完整）",
+                    properties: {
+                        name: { type: "string" },
+                        certNo: { type: "string" },
+                        category: { type: "string" },
+                        subCategory: { type: "string" },
+                        applicant: { type: "string" },
+                        validUntil: { type: "string" },
+                        tvoc: { type: "number" },
+                        formaldehyde: { type: "number" },
+                        cnsSpec: { type: "string" },
+                        testItems: { type: "string" },
+                        qualifiedItems: { type: "string" },
+                    },
+                },
+                adhesive: { type: "string", description: "GreenMaterial_Adhesive：附著黏貼之接著劑標章資訊，格式 '產品名稱 (標章編號)'（Construction 群組，非幾何輔助材料專用，該材料仍須另外填入對應的 matN）" },
+                sealant: { type: "string", description: "GreenMaterial_Sealant：附著填縫之矽利康/密封膠資訊，格式同上" },
+                waterproofing: { type: "string", description: "GreenMaterial_Waterproofing：附著塗佈之防水膜資訊，格式同上" },
+                dryRun: {
+                    type: "boolean",
+                    description: "true = 只回報哪些欄位會被寫入、哪些欄位因尚未綁定而會列入 MissingParameters，不開啟 Transaction、不呼叫任何 Parameter.Set()。預設 false = 正常執行寫入。",
+                },
+            },
+            required: ["typeId"],
+        },
+    },
+    {
+        name: "create_single_material_type",
+        description: "情境 2「各別建立」：複製指定 ElementType（Wall/Floor/Ceiling Type）建立新類型，並實體建立一個純淨綠建材 Material，指派到新 Type 的全部 CompoundStructure 層。Type 名稱與 Material 名稱使用同一組字串（GBM編號_材料名稱），不套 TABC_ 前綴。用於一個 Set 裡每個材料各自獨立建 Type 的情境（例如地板材料各別建立），跟 duplicate_element_type（牆板+塗料兩材料合併一個 Type 的單一組合情境）是不同情境，不要混用。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                sourceTypeId: { type: "number", description: "來源類型 Element ID（需與目標品類相同，如同為 FloorType）" },
+                materialName: {
+                    type: "string",
+                    description: "同時作為新 Type 名稱與 Material 名稱，格式須為 'GBM編號_材料名稱'，例如 'GBM0104038_托斯卡尼 TOSCANA複合木質地板'",
+                },
+                dryRun: {
+                    type: "boolean",
+                    description: "true = 只回報會建立的新類型/材質名稱與會指派的層數，不開啟 Transaction、不複製類型、不建立材質。預設 false = 正常執行。",
+                },
+            },
+            required: ["sourceTypeId", "materialName"],
+        },
+    },
+    {
+        name: "create_multi_layer_type",
+        description: "通用多材料構造層工具：複製指定 ElementType（Wall/Floor/Ceiling 皆可），依任意數量的材料清單建立獨立綠建材 Material，依序套入 CompoundStructure 各層。跟 duplicate_element_type（寫死 2 個材料的牆體 Finish1/Structure/Finish2 三明治）不同，這裡層數、材料、層位機能完全由呼叫端指定，適用於 2 個以上材料、或非 Wall 品類的單一組合情境（例如地板：飾面地磚 Finish1 + 隔音緩衝墊 Substrate + 混凝土 Structure 三層）。layers 陣列請依實際構造由上到下（或由外到內）的順序排列。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                sourceTypeId: { type: "number", description: "來源類型 Element ID（需與目標品類相同，如同為 FloorType）" },
+                newTypeName: { type: "string", description: "新類型名稱，例如 'TABC_塑膠地板set'" },
+                layers: {
+                    type: "array",
+                    description: "依構造順序排列的層清單",
+                    items: {
+                        type: "object",
+                        properties: {
+                            materialName: { type: "string", description: "格式須為 'GBM編號_材料名稱'" },
+                            layerFunction: {
+                                type: "string",
+                                enum: ["Structure", "Substrate", "Insulation", "Finish1", "Finish2", "Membrane"],
+                                description: "對應 Revit MaterialFunctionAssignment：Structure=結構核心層，Substrate=底材/緩衝層，Finish1/Finish2=飾面層，Insulation=隔熱層，Membrane=防水膜",
+                            },
+                            thicknessMm: { type: "number", description: "該層厚度 (mm)，預設 20", default: 20 },
+                        },
+                        required: ["materialName", "layerFunction"],
+                    },
+                },
+                dryRun: {
+                    type: "boolean",
+                    description: "true = 只回報會建立的新類型名稱與每層材質/厚度計畫，不開啟 Transaction、不複製類型、不建立任何材質。預設 false = 正常執行。",
+                },
+            },
+            required: ["sourceTypeId", "newTypeName", "layers"],
+        },
+    },
+    {
+        name: "inject_green_material_into_family",
+        description: "門窗／獨立元件 RFA 綠建材導入（TASK-005.7 / domain/GM_rfa-family-injection.md）：以使用者指定的既有相似 FamilySymbol 為基底，開啟該家族文件 → 立即另存可復原備份（規則2，先於任何修改）→ 在家族文件內新增一個 Type，絕不改動來源 Type（規則1）→ 寫入 Identity Data 與 GreenMaterial_Mat1_* 共享參數、嘗試寫入 GreenMaterial_Certified 全域欄位（best-effort，部分家族會被 Revit 拒絕新增此 YESNO 欄位，屬已知限制，失敗不影響 Mat1 資料）+ 遮陽係數/隔音等級門窗專屬欄位（規則3）→ 另存為新家族檔名 → LoadFamily 載回專案，且在同一個 Transaction 內做載入前後同名家族 Type 參數簽章快照比對，一偵測到非目標 Type 被異動就整批回滾並報錯，不會靜默覆蓋（規則4）。單一原子呼叫涵蓋整個家族文件生命週期（開啟→備份→編輯→另存→關閉→載回），因為家族文件物件無法跨多次 MCP 呼叫保持開啟。呼叫前必須已由使用者明確指定 sourceTypeId——規則1禁止 AI 自行臆測或無型錄依據挑選基底 Family。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                sourceTypeId: { type: "number", description: "使用者指定的基底 FamilySymbol（門或窗，或幕牆嵌板等載入式族群）Element ID，必須是既有的、經使用者確認過的相似型號，不可由 AI 自行挑選" },
+                newTypeName: { type: "string", description: "家族文件內新建 Type 的名稱" },
+                backupFolder: { type: "string", description: "備份根目錄絕對路徑（也是新家族檔案的存放目錄）。預設專案檔所在目錄下的 _rfa_backup/（若專案尚未儲存過則退回系統暫存目錄）" },
+                newFamilySuffix: { type: "string", description: "新家族檔名後綴，預設 '_TABC'，會再接上 mat1.certNo 組成完整後綴以避免撞名", default: "_TABC" },
+                sharedParamFilePath: { type: "string", description: "GreenMaterial_SharedParams.txt 的絕對路徑（位於 tools/green-material/）" },
+                identityData: {
+                    type: "object",
+                    description: "Family Type 內建 Identity Data。依 Revit 版本與族群樣板不保證每個欄位都存在，缺的欄位會列在回傳的 MissingParameters",
+                    properties: {
+                        manufacturer: { type: "string" },
+                        model: { type: "string" },
+                        description: { type: "string" },
+                        url: { type: "string" },
+                    },
+                },
+                mat1: {
+                    type: "object",
+                    description: "門/窗主材料（玻璃或門扇）綠建材資料，寫入 GreenMaterial_Mat1_*，格式與 set_green_material_type_parameters 的 mat1 相同",
+                    properties: {
+                        name: { type: "string" },
+                        certNo: { type: "string", description: "綠建材標章證書字號，如 'GBM0103810'" },
+                        category: { type: "string" },
+                        subCategory: { type: "string" },
+                        applicant: { type: "string" },
+                        validUntil: { type: "string" },
+                        tvoc: { type: "number", description: "TVOC 逸散率 (mg/m2.h)，只在有實際數據時才填，不得估算" },
+                        formaldehyde: { type: "number", description: "甲醛逸散率 (mg/m2.h)，只在有實際數據時才填，不得估算" },
+                        cnsSpec: { type: "string" },
+                        testItems: { type: "string" },
+                        qualifiedItems: { type: "string" },
+                    },
+                    required: ["name", "certNo"],
+                },
+                certified: { type: "boolean", description: "GreenMaterial_Certified：這個 Type 整體的綠建材評定合格狀態（YESNO 全域欄位），語意與 set_green_material_type_parameters 的 certified 相同。通常傳 true。best-effort：部分家族會被 Revit 拒絕新增此欄位並回傳 'Shared parameter creation failed.'，此時會列在回應的 MissingParameters，Mat1 等其餘欄位不受影響。" },
+                shadingCoefficient: { type: "number", description: "GreenMaterial_Window_ShadingCoefficient：遮陽係數 Sc。僅 Window/Curtain Wall 案例填，Door 案例應留空（不適用）" },
+                acousticRw: { type: "number", description: "GreenMaterial_AcousticRw：隔音等級 Rw (dB)。Window 與 Door 皆適用，只在型錄/測試報告有明確數據時才填" },
+                dryRun: {
+                    type: "boolean",
+                    description: "true = 只回報計畫（來源家族/類別、預計的備份路徑與新家族檔路徑、預計寫入的欄位清單），完全不開啟家族文件（不呼叫 EditFamily/SaveAs/LoadFamily），保證不會寫出任何 .rfa 檔案（含備份檔）。代價是無法得知欄位是否真的已綁定於該家族（MissingParameters 需要實際執行才知道）。預設 false = 正常執行整個家族注入流程。",
+                },
+            },
+            required: ["sourceTypeId", "newTypeName", "sharedParamFilePath", "mat1"],
+        },
+    },
+    {
+        name: "set_material_surface_pattern",
+        description: "為綠建材 Material 建立（或重用既有，依名稱去重不重複建立）Model 目標的 Surface Pattern 並套入該材質的表面／剖切樣式。用於地磚 600×600 網格縫線、木地板木紋等依產品規格需要在平面/剖面顯示紋理的飾面材料（TASK-005.2 情境 2）。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                materialId: { type: "number", description: "目標材質 Element ID（與 materialName 至少提供一個，優先使用 materialId）" },
+                materialName: { type: "string", description: "目標材質名稱，格式須為 'GBM編號_材料名稱'" },
+                patternType: {
+                    type: "string",
+                    enum: ["Grid", "Wood", "None"],
+                    description: "Grid=網格縫線（如地磚），Wood=木紋單向紋理線（如木地板），None=清除既有樣式",
+                },
+                spacingMm: {
+                    type: "number",
+                    description: "Grid 為縫線間距 (mm)，預設 600（600×600 網格）；Wood 為紋理線間距 (mm)，預設 100",
+                },
+                target: {
+                    type: "string",
+                    enum: ["Surface", "Cut", "Both"],
+                    description: "套用範圍：Surface=表面樣式（預設，平面圖可見）、Cut=剖切樣式、Both=兩者皆套用",
+                    default: "Surface",
+                },
+                dryRun: {
+                    type: "boolean",
+                    description: "true = 只回報會套用/建立的樣式名稱、該樣式是否已存在，不開啟 Transaction、不建立 FillPatternElement、不修改材質。預設 false = 正常執行。",
+                },
+            },
+            required: ["patternType"],
+        },
+    },
+
+    {
         name: "override_element_graphics",
         description: "在指定視圖中覆寫元素的圖形顯示（填滿顏色、圖樣、線條顏色等）。",
         inputSchema: {
@@ -57,12 +421,55 @@ export const visualizationTools: Tool[] = [
         },
     },
     {
+        name: "get_view_graphics_diagnostics",
+        description: "唯讀診斷『這張圖現在為什麼長這樣』：依 Revit 覆寫優先序一次回報視覺型式 (DisplayStyle)、套用中的視圖樣板與它鎖住的參數、視圖篩選器（含是否抓到目標元素、是否把它隱藏）、指定元素的個別圖形覆寫、其品類覆寫與可見性，以及該元素材料的 Surface/Cut 填充樣式與顏色。Verdict 會列出『所有』命中的成因並依優先序排序（不是只回第一個），涵蓋填滿顏色、線色、線寬、半色調、透明度與隱藏，每筆附影響範圍與修正方式。用於接手他人模型時追查表現法被誰改掉，省去逐層手動比對。不開 Transaction、不修改模型。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                viewId: { type: "number", description: "要診斷的視圖 Element ID（省略 = 目前作用中的視圖）" },
+                elementId: { type: "number", description: "要追查的元素 Element ID（選填）。省略時只回報視圖層級資訊，不含元素覆寫與材料。" },
+            },
+        },
+    },
+    {
         name: "get_view_templates",
         description: "取得專案中所有視圖樣版的完整設定。可用於視圖樣版比對與整併分析。",
         inputSchema: {
             type: "object",
             properties: {
                 includeDetails: { type: "boolean", description: "是否包含詳細設定", default: true },
+            },
+        },
+    },
+    {
+        name: "set_view_template_controls",
+        description: "列出或切換視圖樣版（View Template）的「控制參數」清單，對應 Revit「View Template」對話框每一列的 Include 勾選框。常見用途：使用者在視圖上看不到篩選器上色，原因是樣版正在控制『V/G Overrides Filters』——把該項目從控制中排除（uncontrol），使用者才能在個別視圖自行開關篩選器。不帶 uncontrol/control 時為純唯讀列表模式，用來查出合法的參數名稱（比對用，不分大小寫）；不確定名稱時應先這樣呼叫一次。dryRun=true 只預覽變更、不寫入模型。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                templateId: {
+                    type: "number",
+                    description: "目標視圖樣版的 ElementId（與 templateName 二擇一）",
+                },
+                templateName: {
+                    type: "string",
+                    description: "目標視圖樣版的名稱（與 templateId 二擇一；精確比對，IsTemplate=true 的 view 中查找）",
+                },
+                uncontrol: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "要讓樣版『停止控制』的參數名稱清單（Include 勾掉），例如 [\"V/G Overrides Filters\"]。名稱不分大小寫，找不到時會回傳相近名稱建議。",
+                },
+                control: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "要讓樣版『開始控制』的參數名稱清單（Include 勾上）。與 uncontrol 用同一份可控參數名單，同一名稱不可同時出現在兩邊。",
+                },
+                dryRun: {
+                    type: "boolean",
+                    description: "true = 只計算並回傳變更結果，不寫入模型。預設 false。",
+                    default: false,
+                },
             },
         },
     },
@@ -77,6 +484,104 @@ export const visualizationTools: Tool[] = [
                 viewId: { type: "number", description: "視圖 ID（若不指定則使用當前視圖）" },
             },
             required: ["category"],
+        },
+    },
+    {
+        name: "get_filterable_parameters",
+        description: "列出指定類別可以拿來當「視圖篩選器規則」的參數清單（唯讀）。回傳的就是 Revit 篩選器對話框下拉選單的實際內容，用 ParameterFilterUtilities.GetFilterableParametersInCommon 取得，所以不必憑印象猜某個參數能不能拿來篩（例如樓層型的 Base Constraint / Reference Level 是否可用）。每筆附 StorageType 與該型別支援的運算子，可直接餵給 create_view_filter。多個類別時回傳的是「共同可用」的交集。專案中若該類別沒有任何實例，StorageType 會是 None（規則仍可建，但建議先放一個元素再查）。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                categories: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "類別名稱陣列，如 [\"Walls\", \"Structural Columns\"]。名稱可用 list_categories 查詢",
+                },
+                contains: { type: "string", description: "只回傳名稱包含此字串的參數（不分大小寫），用於縮小清單" },
+            },
+            required: ["categories"],
+        },
+    },
+    {
+        name: "create_view_filter",
+        description: "建立視圖篩選器（ParameterFilterElement）並套用到指定視圖，含圖形覆寫。這是「規則式」上色：規則命中哪些元素就套哪種表現法，新增的元素會自動納入，改參數值就改顏色——與 override_element_graphics 的逐個元素覆寫不同，後者不是規則、不涵蓋新元素、也看不出意圖。回傳 MatchedElementCount 讓你立刻知道規則在該視圖內實際命中幾個元素（0 代表規則沒抓到東西，通常是參數值寫錯或元素不在視圖範圍內）。參數名稱請先用 get_filterable_parameters 確認。同名篩選器存在時預設報錯，帶 overwriteExisting=true 才會沿用並更新。視圖若被視圖樣板控制 V/G 篩選器，會在 Warnings 提醒（不擋執行）。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                name: { type: "string", description: "篩選器名稱（專案內唯一）" },
+                categories: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "套用的類別名稱陣列，如 [\"Walls\", \"Structural Columns\"]",
+                },
+                rules: {
+                    type: "array",
+                    description: "規則清單（多條為 AND）。每筆 { parameter, operator, value }",
+                    items: {
+                        type: "object",
+                        properties: {
+                            parameter: { type: "string", description: "參數名稱，需在 get_filterable_parameters 的清單中" },
+                            operator: {
+                                type: "string",
+                                enum: ["equals", "not_equals", "contains", "not_contains", "begins_with", "ends_with", "greater_than", "greater_or_equal", "less_than", "less_or_equal"],
+                                description: "運算子。可用範圍依參數 StorageType 而定：ElementId 型只支援 equals/not_equals；數值型支援比較類；字串型支援 contains 類",
+                            },
+                            value: { type: "string", description: "比較值。ElementId 型參數可給名稱（如 \"2F Level\"）或數字 ID" },
+                        },
+                        required: ["parameter", "operator", "value"],
+                    },
+                },
+                viewId: { type: "number", description: "要套用的視圖 ID（省略 = 當前視圖）" },
+                applyToView: { type: "boolean", description: "是否套用到視圖；false = 只建立篩選器不套用", default: true },
+                visible: { type: "boolean", description: "命中的元素在視圖中是否可見。false = 隱藏（用於把干擾元素移出畫面）", default: true },
+                fillColor: {
+                    type: "object",
+                    description: "前景填滿顏色 RGB (0-255)。未指定 patternName 時搭配實心填滿。",
+                    properties: { r: { type: "number" }, g: { type: "number" }, b: { type: "number" } },
+                },
+                patternName: {
+                    type: "string",
+                    description: "前景填充樣式名稱（如 'Earth'、'Sand - Dense'、'Diagonal Crosshatch'）。省略 = 實心填滿。同名有 Model 與 Drafting 兩種時優先取 Model（隨視圖比例縮放）。名稱請先用 list_fill_patterns 查，填錯會直接報錯而不是靜默退回實心。",
+                },
+                backgroundPatternName: {
+                    type: "string",
+                    description: "背景填充樣式名稱。典型用法：前景放 hatch 線條、背景放 'Solid fill' 當底色（例如草地＝淺綠底＋土壤紋）。",
+                },
+                backgroundColor: {
+                    type: "object",
+                    description: "背景填滿顏色 RGB (0-255)，搭配 backgroundPatternName 使用",
+                    properties: { r: { type: "number" }, g: { type: "number" }, b: { type: "number" } },
+                },
+                lineColor: {
+                    type: "object",
+                    description: "線條顏色 RGB (0-255)，同時套用投影線與切割線",
+                    properties: { r: { type: "number" }, g: { type: "number" }, b: { type: "number" } },
+                },
+                lineWeight: { type: "number", description: "線寬 1-16", minimum: 1, maximum: 16 },
+                transparency: { type: "number", description: "表面透明度 0-100", minimum: 0, maximum: 100 },
+                halftone: { type: "boolean", description: "是否套用半色調（把命中元素壓成背景參考）" },
+                patternMode: {
+                    type: "string",
+                    enum: ["auto", "surface", "cut"],
+                    description: "填滿層：auto（平面類視圖用切割、其餘用表面）、surface（強制表面，適用於位於剖切面之下以投影顯示的元素，如平面圖裡的樓板/屋頂/梁）、cut（強制切割，適用於被剖切面切到的牆/柱）",
+                    default: "auto",
+                },
+                overwriteExisting: { type: "boolean", description: "同名篩選器已存在時是否沿用並更新其類別與規則", default: false },
+            },
+            required: ["name", "categories", "rules"],
+        },
+    },
+    {
+        name: "remove_view_filter",
+        description: "把篩選器從指定視圖移除；deleteFilter=true 時一併從專案刪除該篩選器本身。用於還原 create_view_filter 的變更。以 name 或 filterId 指定其中之一。",
+        inputSchema: {
+            type: "object",
+            properties: {
+                name: { type: "string", description: "篩選器名稱（與 filterId 擇一）" },
+                filterId: { type: "number", description: "篩選器 Element ID（與 name 擇一）" },
+                viewId: { type: "number", description: "視圖 ID（省略 = 當前視圖）" },
+                deleteFilter: { type: "boolean", description: "true = 連同專案中的篩選器元素一起刪除；false = 只從這張視圖移除", default: false },
+            },
         },
     },
     {

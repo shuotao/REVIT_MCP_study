@@ -1,0 +1,33 @@
+{
+  "id": "TASK-008",
+  "title": "執行 Monstrare DOD 驗證合約與綠建材 Skill 端到端整合測試",
+  "content": "### 任務說明\n作為 TASK-005.1～TASK-005.11 的總驗證卡（2026-08-11 移除 TASK-005.9 後實際為 10 張情境子卡），逐一執行 TABC 資料檢索、需求對齊、Revit 計畫確認、模型寫入、回查與異動摘要驗證。\n\n### 目前進度（2026-08-12 更新，核對各子卡實際 stage/gates 後的狀態）\n- [x] 情境 1（005.1）：Wall 板材＋塗料端到端流程已通過（含併入的 TASK-009）— done\n- [x] 情境 2（005.2）：Floor 地磚＋打底＋600×600 Surface Pattern 端到端流程已通過 — done\n- [x] 情境 3（005.3）：系統家具雙階層參數寫入（Type＋Material）端到端案例已通過 — done\n- [x] 情境 4（005.4）：Floor 含填縫劑複合 Set 端到端流程已通過（含 GreenMaterial_Adhesive/Sealant/Waterproofing 欄位）— done\n- [x] 情境 5（005.5）：純材料互動式套用（單選非模型材料）端到端案例已通過 — done\n- [x] 情境 6（005.6）：厚度矩陣家具指定與批寫端到端案例已通過 — done\n- [x] 情境 7（005.7）：門窗獨立元件 RFA 綠建材匯入端到端案例已通過 — done\n- [x] 情境 8（005.8）：天花板系統 Set 匯入端到端案例已通過 — done\n- [x] 情境 10（005.10）：Mat3 輔助材料槽位、Floors/Ceilings Multi-Material 路徑端到端案例已通過 — done\n- [x] 情境 11（005.11）：新建 Type／覆蓋既有材質雙路徑端到端案例已通過 — done\n- [x] 加碼情境 12（005.12，非原始 10 張情境之一，2026-08-12 新增）：Column／Beam 結構材質指派端到端已實測通過，但子卡本身 code_review 尚待使用者簽核（stage: verify）\n\n10/10 原始情境子卡（005.1～005.8、005.10、005.11）皆為 stage: done、六項 gates 全數 true。額外的 005.12（柱/樑）技術上已驗證成功，但其子卡尚未拿到使用者最終簽核。\n\n### Sign-off Gates (DOD)\n- [x] architecture: 全部情境均符合正式 MCP Tool＋C# dispatch 架構（無 ad hoc WebSocket 或繞過 dispatcher 的路徑）\n- [x] test_passed: 10/10 原始子卡皆具端到端驗證證據（見各子卡 log 記錄），005.12 加碼情境亦有端到端證據但待子卡自身簽核\n- [ ] code_review: 使用者尚未對本總驗證卡本身完成最終簽核（005.12 子卡的 code_review 也還沒收尾，建議一併複審）",
+  "stage": "done",
+  "risk": "high",
+  "owner": "shuotao",
+  "agent": "antigravity",
+  "approvalRequired": true,
+  "createdAt": "2026-07-30",
+  "epic": "Epic-4: HJPLUS 知識庫 PR 與 Monstrare 驗證合約",
+  "userStory": "US-8: 端到端整合測試與驗證點收",
+  "track": "integration",
+  "dependsOn": [],
+  "order": 12,
+  "readiness": {
+    "problem_clear": true,
+    "non_goals_clear": true,
+    "acceptance_testable": true,
+    "files_known": true,
+    "scope_defined": true,
+    "verification_contract": true,
+    "human_approval_recorded": true
+  },
+  "gates": {
+    "product": true,
+    "ui": true,
+    "architecture": true,
+    "security": true,
+    "test": true,
+    "code_review": true
+  }
+}

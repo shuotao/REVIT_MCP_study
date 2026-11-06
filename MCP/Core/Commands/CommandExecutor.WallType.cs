@@ -51,6 +51,7 @@ namespace RevitMCP.Core
         /// </summary>
         private object ChangeElementType(JObject parameters)
         {
+            if (parameters["keepOuterFace"]?.Value<bool>() == true) return ResizeWallsKeepingFace(parameters);
             Document doc = _uiApp.ActiveUIDocument.Document;
             IdType? singleElementId = parameters["elementId"]?.Value<IdType>();
             var elementIdsArray = parameters["elementIds"] as JArray;
@@ -299,3 +300,4 @@ namespace RevitMCP.Core
         #endregion
     }
 }
+

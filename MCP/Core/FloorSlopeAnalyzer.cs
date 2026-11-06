@@ -15,7 +15,12 @@ namespace RevitMCP.Core
     /// <summary>
     /// 樓板表面坡度分析。
     /// 以 Solid → PlanarFace 的法向量與 Z 軸夾角，計算每片「朝上頂面」的坡度百分比，
-    /// 可批次處理指定樓板，或自動收集 Function=Exterior 的樓板，並將 Min/Max 坡度回寫至指定參數。
+    /// 可批次處理指定樓板，或自動收集 Function=Exterior 的樓板。
+    ///
+    /// 寫入政策（issue #137）：**預設完全不寫入模型**，只回傳分析結果。
+    /// 只有呼叫端明確給了 paramName 才會開 Transaction 回寫。
+    /// 修正前 paramName 預設為 "Comments" 且無條件 p.Set(...)，等於一支名為 analyze_ 的工具
+    /// 會默默覆寫全模型 Function=Exterior 樓板的註解欄（很多團隊把人工備註放在那裡）。
     ///
     /// 獨立靜態類別，不影響既有 CommandExecutor 邏輯，遵循現有 case-routing 模式。
     /// 原始需求、演算法與實測來源：Issue #45 by yunchen-kt。
@@ -28,16 +33,17 @@ namespace RevitMCP.Core
         private const double UpwardNormalThreshold = 0.7;
 
         /// <summary>
-        /// 命令入口。解析 parameters（elementIds / paramName），分析坡度並回寫，回傳結構化結果。
+        /// 命令入口。解析 parameters（elementIds / paramName），分析坡度，
+        /// 並**僅在 paramName 有明確指定時**回寫，回傳結構化結果。
         /// </summary>
         public static object Run(Document doc, JObject parameters)
         {
             if (doc == null)
                 return new { Success = false, Message = "無可用文件 (ActiveUIDocument.Document == null)。" };
 
+            // paramName 不再有預設值。未指定 = 純分析，不開 Transaction、不動模型。
             string paramName = parameters["paramName"]?.Value<string>();
-            if (string.IsNullOrWhiteSpace(paramName))
-                paramName = "Comments";
+            bool writeRequested = !string.IsNullOrWhiteSpace(paramName);
 
             List<Floor> floors = CollectFloors(doc, parameters);
             if (floors.Count == 0)
@@ -52,71 +58,128 @@ namespace RevitMCP.Core
             var results = new List<object>();
             var errors = new List<string>();
             int processed = 0;
+            int writtenCount = 0;
 
-            using (Transaction trans = new Transaction(doc, "分析樓板坡度"))
+            if (writeRequested)
             {
-                trans.Start();
-
-                foreach (Floor floor in floors)
+                using (Transaction trans = new Transaction(doc, "分析樓板坡度並回寫參數"))
                 {
-                    try
-                    {
-                        var slope = ComputeSlope(floor);
-                        if (slope == null)
-                        {
-                            errors.Add($"樓板 {floor.Id.GetIdValue()} 無可分析的朝上平面（可能為曲面或無 PlanarFace）。");
-                            continue;
-                        }
-
-                        double minPct = slope.Item1;
-                        double maxPct = slope.Item2;
-                        int faceCount = slope.Item3;
-
-                        string written = null;
-                        Parameter p = floor.LookupParameter(paramName);
-                        if (p != null && !p.IsReadOnly && p.StorageType == StorageType.String)
-                        {
-                            written = $"Slope {minPct:F2}%~{maxPct:F2}%";
-                            p.Set(written);
-                        }
-                        else if (p != null && !p.IsReadOnly && p.StorageType == StorageType.Double)
-                        {
-                            // 數值欄位以「比例值」寫入最大坡度（例如 2% → 0.02）。
-                            p.Set(maxPct / 100.0);
-                            written = $"{maxPct:F2}% (max, numeric)";
-                        }
-                        else
-                        {
-                            errors.Add($"樓板 {floor.Id.GetIdValue()} 的參數 '{paramName}' 不存在 / 唯讀 / 型別不符，坡度未回寫（數值仍於回傳中提供）。");
-                        }
-
-                        results.Add(new
-                        {
-                            ElementId = floor.Id.GetIdValue(),
-                            MinSlopePercent = Math.Round(minPct, 2),
-                            MaxSlopePercent = Math.Round(maxPct, 2),
-                            UpwardFaceCount = faceCount,
-                            Written = written
-                        });
-                        processed++;
-                    }
-                    catch (Exception ex)
-                    {
-                        errors.Add($"樓板 {floor.Id.GetIdValue()} 分析失敗: {ex.Message}");
-                    }
+                    trans.Start();
+                    Analyze(floors, paramName, results, errors, ref processed, ref writtenCount);
+                    trans.Commit();
                 }
-
-                trans.Commit();
+            }
+            else
+            {
+                // 純分析路徑：不開 Transaction，模型零異動。
+                Analyze(floors, null, results, errors, ref processed, ref writtenCount);
             }
 
             return new
             {
                 Success = errors.Count == 0,
                 ProcessedCount = processed,
-                ParameterName = paramName,
+                ParameterName = writeRequested ? paramName : (string?)null,
+                WrittenCount = writtenCount,
+                WriteSkipped = !writeRequested,
+                Message = writeRequested
+                    ? (string?)null
+                    : "未指定 paramName：本次僅回傳分析結果，未寫入任何 Revit 參數。若要回寫，請明確指定 paramName（例如 \"Comments\" 會寫入內建註解參數，或填自訂參數名稱）。",
                 Floors = results,
                 Errors = errors
             };
+        }
+
+        /// <summary>
+        /// 逐片樓板計算坡度；paramName 為 null 時只蒐集結果不回寫。
+        /// 呼叫端負責 Transaction（只有要回寫時才需要）。
+        /// </summary>
+        private static void Analyze(
+            List<Floor> floors,
+            string? paramName,
+            List<object> results,
+            List<string> errors,
+            ref int processed,
+            ref int writtenCount)
+        {
+            foreach (Floor floor in floors)
+            {
+                try
+                {
+                    var slope = ComputeSlope(floor);
+                    if (slope == null)
+                    {
+                        errors.Add($"樓板 {floor.Id.GetIdValue()} 無可分析的朝上平面（可能為曲面或無 PlanarFace）。");
+                        continue;
+                    }
+
+                    double minPct = slope.Item1;
+                    double maxPct = slope.Item2;
+                    int faceCount = slope.Item3;
+
+                    string written = null;
+                    if (paramName != null)
+                    {
+                        Parameter p = ResolveWriteParameter(floor, paramName);
+                        if (p != null && !p.IsReadOnly && p.StorageType == StorageType.String)
+                        {
+                            written = $"Slope {minPct:F2}%~{maxPct:F2}%";
+                            p.Set(written);
+                            writtenCount++;
+                        }
+                        else if (p != null && !p.IsReadOnly && p.StorageType == StorageType.Double)
+                        {
+                            // 數值欄位以「比例值」寫入最大坡度（例如 2% → 0.02）。
+                            p.Set(maxPct / 100.0);
+                            written = $"{maxPct:F2}% (max, numeric)";
+                            writtenCount++;
+                        }
+                        else
+                        {
+                            string why = p == null
+                                ? "找不到該參數（內建 Comments 以 BuiltInParameter 解析、其餘名稱以 LookupParameter 解析本地化顯示名）"
+                                : (p.IsReadOnly ? "參數為唯讀" : $"型別不支援（StorageType={p.StorageType}，僅支援 String / Double）");
+                            errors.Add($"樓板 {floor.Id.GetIdValue()} 的參數 '{paramName}' 無法寫入：{why}，坡度未回寫（數值仍於回傳中提供）。");
+                        }
+                    }
+
+                    results.Add(new
+                    {
+                        ElementId = floor.Id.GetIdValue(),
+                        MinSlopePercent = Math.Round(minPct, 2),
+                        MaxSlopePercent = Math.Round(maxPct, 2),
+                        UpwardFaceCount = faceCount,
+                        Written = written
+                    });
+                    processed++;
+                }
+                catch (Exception ex)
+                {
+                    errors.Add($"樓板 {floor.Id.GetIdValue()} 分析失敗: {ex.Message}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 解析回寫目標參數。
+        ///
+        /// "Comments" 走 BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS（Floor 是模型元件 instance，
+        /// 其「註解」欄位即此內建參數；本專案 StairCompliance / FillPatterns / RoomFilledRegions
+        /// 皆用同一枚舉）。原本只用 LookupParameter("Comments") 是比對**本地化顯示名**：
+        /// 英文 Revit 會命中並覆寫使用者備註，zh-TW Revit（顯示名為「註解」）則完全命中不到、
+        /// 靜默不寫入 —— 同一組參數在不同語言介面行為不同（issue #137 回報者 test A / test B）。
+        /// 其他名稱仍走 LookupParameter，以支援自訂／共用參數與本地化顯示名（例如直接填「註解」）。
+        /// </summary>
+        private static Parameter? ResolveWriteParameter(Floor floor, string paramName)
+        {
+            if (string.Equals(paramName, "Comments", StringComparison.OrdinalIgnoreCase))
+            {
+                Parameter builtIn = floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
+                if (builtIn != null)
+                    return builtIn;
+            }
+
+            return floor.LookupParameter(paramName);
         }
 
         /// <summary>

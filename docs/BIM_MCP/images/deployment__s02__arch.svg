@@ -8,15 +8,9 @@
     .sub{fill:rgba(255,255,255,.5)}
     .lbl{fill:rgba(255,255,255,.82)}
     .muted{fill:rgba(255,255,255,.45)}
-    .up{opacity:0;animation:up .7s cubic-bezier(.16,1,.3,1) forwards}
-    .fade{opacity:0;animation:fade .8s ease forwards}
-    .pop{transform-box:fill-box;transform-origin:center;opacity:0;animation:pop .6s cubic-bezier(.16,1,.3,1) forwards}
-    .draw{stroke-dasharray:2400;stroke-dashoffset:2400;animation:draw 1.8s ease forwards}
+.up,.fade,.pop{opacity:1}
+    .draw{stroke-dasharray:none;stroke-dashoffset:0}
     .pulse{animation:pulse 3.6s ease-in-out infinite}
-    @keyframes fade{to{opacity:1}}
-    @keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes pop{0%{opacity:0;transform:scale(.5)}60%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
-    @keyframes draw{to{stroke-dashoffset:0}}
     @keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
     .mono{font-family:'JetBrains Mono',Consolas,monospace}
   </style>
@@ -37,7 +31,7 @@
   <!-- main flow boxes -->
   <rect class="up" x="250" y="70" width="300" height="80" rx="14" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.14)" stroke-width="1.5" style="animation-delay:.1s"/>
   <rect class="up" x="250" y="260" width="300" height="80" rx="14" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.14)" stroke-width="1.5" style="animation-delay:.3s"/>
-  <rect class="up" x="210" y="450" width="380" height="80" rx="14" fill="#60a5fa" stroke="#60a5fa" stroke-width="1.5" style="animation-delay:.5s"/>
+  <rect class="up" x="120" y="450" width="560" height="80" rx="14" fill="#60a5fa" stroke="#60a5fa" stroke-width="1.5" style="animation-delay:.5s"/>
 
   <!-- side input boxes -->
   <rect class="pop" x="70" y="250" width="120" height="48" rx="10" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.14)" stroke-width="1.5" style="animation-delay:.7s"/>
@@ -47,7 +41,7 @@
   <g class="mono" text-anchor="middle" font-size="24" font-weight="700">
     <text class="ttl up" x="400" y="120" style="animation-delay:.15s">setup.ps1</text>
     <text class="ttl up" x="400" y="310" style="animation-delay:.35s">build + deploy</text>
-    <text class="up" x="400" y="500" fill="#0a0a0a" font-weight="800" style="animation-delay:.55s">%AppData%\Revit\Addins\{ver}</text>
+    <text class="up" x="400" y="500" fill="#0a0a0a" font-weight="800" font-size="20" style="animation-delay:.55s">%APPDATA%\Autodesk\Revit\Addins\{ver}</text>
   </g>
 
   <!-- side labels -->

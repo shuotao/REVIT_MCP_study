@@ -102,7 +102,7 @@ RevitMCP\
 
 ```powershell
 # 刪除整個專案資料夾
-Remove-Item -Recurse -Force "C:\Users\Use\Desktop\REVIT_MCP"
+Remove-Item -Recurse -Force "C:\Users\<YOUR_USERNAME>\Desktop\REVIT_MCP"
 ```
 
 ⚠️ **警告**：這會刪除所有專案檔案，請確認已備份重要資料！
@@ -141,7 +141,7 @@ Remove-Item -Recurse -Force "C:\Users\Use\Desktop\REVIT_MCP"
 | `mcp_config.json` | Antigravity 的 MCP Server 設定檔 | ✅ 必須 |
 | `RevitMCP.csproj` | C# 統一專案建置檔 (Revit 2022–2026, Nice3point SDK) | ✅ 必須 |
 | `package.json` | Node.js 專案設定 | 📖 參考 |
-| `install-addon-bom.ps1` | 自動安裝腳本 | 🔧 選用 |
+| `install-addon.ps1` | 自動安裝腳本（唯一的主要安裝器） | 🔧 選用 |
 
 ---
 
@@ -314,7 +314,7 @@ dotnet --version
 
 ```powershell
 # 進入您想要存放專案的目錄
-cd C:\Users\Use\Desktop
+cd C:\Users\<YOUR_USERNAME>\Desktop
 
 # Clone 專案（請替換成實際的 Git Repository URL）
 git clone https://github.com/您的帳號/REVIT_MCP.git REVIT_MCP
@@ -327,7 +327,7 @@ cd REVIT_MCP
 
 1. 前往 GitHub Repository
 2. 點選「Code」→「Download ZIP」
-3. 解壓縮到 `C:\Users\Use\Desktop\REVIT_MCP`
+3. 解壓縮到 `C:\Users\<YOUR_USERNAME>\Desktop\REVIT_MCP`
 
 ---
 
@@ -349,7 +349,7 @@ cd REVIT_MCP
 
 ```powershell
 # 進入 C# 專案目錄
-cd C:\Users\Use\Desktop\REVIT_MCP\MCP
+cd C:\Users\<YOUR_USERNAME>\Desktop\REVIT_MCP\MCP
 
 # 執行建置（以 Revit 2024 為例）
 dotnet build -c Release.R24 RevitMCP.csproj
@@ -388,23 +388,27 @@ dir MCP\bin\Release.R24\RevitMCP.dll
 
 ```powershell
 # 回到專案根目錄
-cd C:\Users\Use\Desktop\REVIT_MCP
+cd C:\Users\<YOUR_USERNAME>\Desktop\REVIT_MCP
 
-# 執行安裝腳本
-.\scripts\install-addon-bom.ps1
+# 執行安裝腳本（可用 -Version 直接指定版本，或不帶參數讓腳本偵測並詢問）
+.\scripts\install-addon.ps1 -Version 2024
 ```
 
-**互動流程**：
+**互動流程**（未指定 `-Version` 且偵測到多個 Revit 版本時）：
 ```
 請選擇 Revit 版本:
 1) 2022
 2) 2023
 3) 2024
-請輸入選項 (1-3): 3
+4) 2025
+5) 2026
+請輸入選項: 3
 
-正在複製檔案到 C:\ProgramData\Autodesk\Revit\Addins\2024\RevitMCP\...
+正在複製檔案到 %APPDATA%\Autodesk\Revit\Addins\2024\RevitMCP\...
 ✓ 安裝完成！
 ```
+
+> 其他常用參數：`-All`（對所有已安裝且已建置的版本逐一部署）、`-NonInteractive`（CI 用，以 exit code 回報）。
 
 #### 選項 B：手動部署
 
@@ -444,7 +448,7 @@ C:\ProgramData\Autodesk\Revit\Addins\2024\RevitMCP\
 
 ```powershell
 # 進入 MCP-Server 目錄
-cd C:\Users\Use\Desktop\REVIT_MCP\MCP-Server
+cd C:\Users\<YOUR_USERNAME>\Desktop\REVIT_MCP\MCP-Server
 
 # 安裝依賴
 npm install
@@ -653,7 +657,7 @@ where.exe node
 # 輸出：C:\Program Files\nodejs\node.exe
 
 # 檢查 MCP Server 入口檔案是否存在
-Test-Path "C:\Users\Use\Desktop\REVIT_MCP\MCP-Server\build\index.js"
+Test-Path "C:\Users\<YOUR_USERNAME>\Desktop\REVIT_MCP\MCP-Server\build\index.js"
 # 應該輸出：True
 ```
 
@@ -857,7 +861,7 @@ C:\Users\您的使用者名稱\AppData\Local\Autodesk\Revit\<版本>\Journals\
 4. **檔案檢查**：
    ```powershell
    # 產生檔案清單
-   dir C:\Users\Use\Desktop\REVIT_MCP\MCP-Server\build
+   dir C:\Users\<YOUR_USERNAME>\Desktop\REVIT_MCP\MCP-Server\build
    dir "C:\ProgramData\Autodesk\Revit\Addins\2024\RevitMCP"
    ```
 

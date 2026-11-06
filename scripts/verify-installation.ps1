@@ -100,14 +100,17 @@ else {
 # Check 4: Install Script
 Write-Host ""
 Write-Host "[Check 4] Install Script..." -ForegroundColor Cyan
-if (Test-Path "$scriptDir\install-addon-bom.ps1") {
-    $scriptContent = Get-Content "$scriptDir\install-addon-bom.ps1" -Raw
+if (Test-Path "$scriptDir\install-addon.ps1") {
+    $scriptContent = Get-Content "$scriptDir\install-addon.ps1" -Raw
     if ($scriptContent -match 'MCP\\\\MCP\\\\') {
         Write-Host "  ERROR: Script still contains MCP\\MCP\\ paths" -ForegroundColor Red
     }
     else {
         Write-Host "  PASS: Script paths corrected" -ForegroundColor Green
     }
+}
+else {
+    Write-Host "  ERROR: install-addon.ps1 not found (it is the one primary installer)" -ForegroundColor Red
 }
 
 # Summary
@@ -128,7 +131,7 @@ if (-not $foundDll) {
 }
 
 Write-Host "2. Run installation:" -ForegroundColor Yellow
-Write-Host "   .\scripts\install-addon-bom.ps1" -ForegroundColor Gray
+Write-Host "   .\scripts\install-addon.ps1 -Version 2024   # or -All" -ForegroundColor Gray
 Write-Host ""
 
 Write-Host "3. Verify in Revit:" -ForegroundColor Yellow

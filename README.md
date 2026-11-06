@@ -14,7 +14,7 @@ Revit MCP lets AI clients call Autodesk Revit tools through the Model Context Pr
 
 ## What is this?
 
-Talk to Revit in plain language. Ask your AI client to *"dimension every wall on this view"* or *"check the curtain-wall elevations"*, and Revit does it — through **166 MCP tools** backed by **72 professional BIM SOPs** (building code, quantity take-off, compliance checks).
+Talk to Revit in plain language. Ask your AI client to *"dimension every wall on this view"* or *"check the curtain-wall elevations"*, and Revit does it — through **253 MCP tools** backed by **94 professional BIM SOPs** (building code, quantity take-off, compliance checks).
 
 **Who it's for:** BIM engineers and architects who use Revit and want AI-assisted, standards-based workflows. You'll need Revit (2022–2026) on Windows and to be comfortable installing an add-in.
 
@@ -33,15 +33,25 @@ Questions or want to show what you built? → **[Discussions](https://github.com
 
 | Item | Count | Source |
 |---|---:|---|
-| Runtime MCP tools | 166 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 72 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
-| Claude skills | 50 | `.claude/skills/*/SKILL.md` |
+| Runtime MCP tools | 253 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 94 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
+| Claude skills | 61 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.zh-TW.md`, this file, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and run:
 
 ```powershell
 .\scripts\verify-qaqc.ps1 -SkipBuild -SkipDeploy
 ```
+
+## New: Interactive Clash Viewer (MCP Apps)
+
+`detect_clashes` can now render an interactive clash-review UI inline in the conversation, via the [MCP Apps](https://modelcontextprotocol.io/) extension (`io.modelcontextprotocol/ui`). This requires an MCP host that supports the extension. It is purely additive:
+
+- Interactive rendering only happens in **GUI hosts** that support MCP Apps (Claude Desktop, the claude.ai web app, VS Code GitHub Copilot). A terminal CLI like **Claude Code can't render the panel and always shows the text result — this is expected, not a fault**.
+- Hosts without MCP Apps support keep getting `detect_clashes`'s normal text result — nothing changes for them.
+- The stdio connection and the existing Revit add-in are unaffected; no reinstall or reconfiguration is needed.
+
+See `docs/MIGRATION_GUIDE.md` for the full MCP 2026-07-28 upgrade notes.
 
 ## Architecture
 
@@ -150,8 +160,17 @@ MCP/bin/Release.R24/RevitMCP.dll
 Recommended:
 
 ```powershell
-.\scripts\install-addon.ps1
+# Pick the Revit version explicitly. With several installed and no -Version, the script asks;
+# in -NonInteractive mode it fails rather than guessing (it never silently picks the highest).
+.\scripts\install-addon.ps1 -Version 2024
+
+# Deploy to every installed version that has a matching build
+.\scripts\install-addon.ps1 -All
 ```
+
+The script copies **every DLL in the build output** (13 for R22-R24, 8 for R25-R26 — both are correct),
+checks the build generation matches the target Revit before copying, verifies each file by SHA256
+afterwards, and rotates old backups.
 
 For manual deployment, place the `.addin` file and DLL under the matching Revit Addins directory, and keep the relative assembly path in `RevitMCP.addin`:
 
@@ -209,11 +228,14 @@ Replace `<YOUR_PROJECT_PATH>` in the templates with the actual project path on y
 
 ### Switching Between AI Clients
 
-The Revit-side WebSocket service accepts only one MCP connection at a time: a newly connected MCP server replaces the previous connection. Multiple AI clients are therefore used by switching, not concurrently:
+The Revit-side WebSocket service holds an exclusive lock: only one AI client can be connected at a time. A second client that tries to connect is cleanly rejected (HTTP 409), not swapped in — the first connection stays stable. Multiple AI clients are therefore used by switching, not concurrently:
 
-1. Close the current AI client (or disable its MCP server).
-2. Start the other AI client; once its MCP server connects to `localhost:8964`, it takes over.
-3. If the connection misbehaves, restart the MCP service from the Revit ribbon to reset it.
+Before that lock check even runs, any handshake carrying a browser `Origin` header is rejected outright with HTTP 403. This closes a separate risk: a malicious page open in your browser could otherwise drive the add-in without your knowledge, since WebSocket handshakes aren't covered by the browser's same-origin policy. It has no settings opt-out and does not affect the MCP bridge, which never sends an `Origin` header.
+
+1. In the Revit ribbon, click the **"切換/釋放連線" (Switch/Release Connection)** button to release the current connection.
+2. Start or reconnect the other AI client; once its MCP server connects to `localhost:8964`, it takes the lock.
+3. The **"MCP 設定"** dialog shows which client currently holds the connection (e.g. `claude-code`, `claude-ai`).
+4. If the connection misbehaves, use the same ribbon button, or restart the MCP service from the Revit ribbon to reset it.
 
 ## Startup Flow
 
@@ -356,3 +378,37 @@ Confirm the `.addin` file and DLL were deployed under the matching `%APPDATA%\Au
 ## License
 
 MIT License
+
+### Copy parameters by group
+
+The MCP tool `copy_parameter_by_group` matches instance parameters by exact name and
+`Definition.GetGroupTypeId()`. Defaults: source `頂部約束` / `約束` (Constraints), target
+`牆頂至` / `文字` (Text), category Walls, and scope `project` (current document instances only).
+
+Call with `{}` to preview. To write, pass `{"dryRun":false,"apply":true}`.
+Both flags are required for writes; `apply=true` alone still previews.
+`overwrite` defaults to true. Group inputs accept the Chinese defaults,
+Constraints/Text, PG_CONSTRAINTS/PG_TEXT, or a full built-in Forge group TypeId.
+
+Empty sources (including whitespace strings) are skipped; numeric zero is a value.
+Missing/ambiguous parameters, read-only targets and incompatible storage/data types
+are reported as skips. The default valueTransform=afterColon reads AsString for strings or
+AsValueString otherwise, extracts everything after the first ':' or '：', and trims whitespace.
+It requires a String target. Missing delimiters and empty suffixes are skipped.
+Use valueTransform=raw for direct copies with matching storage/data types and Revit internal units.
+Writes use one transaction, with the whole planned batch rolled back on a write failure.
+`Planned` counts eligible changes even after commit/rollback; `Updated` counts only
+committed changes. `Unchanged`, `Skipped`, `Failed`, `ByCategory`, `ByReason`,
+`Results` and `ValueChanges` provide detailed outcomes and old/new value counts.
+Inspect `Success`, `Committed`, `RolledBack` and `Error` in the returned data.
+
+CAD beam number schedules are supported by create_beams_from_dwg with mappingMode=numericSchedule.
+The explicit case-sensitive schedule reuses cm-named types after checking their actual dimensions:
+FWB1..5 and Fb/Fg+digits use 60x270; FB/FG+digits use 70x270; exact Fb0 uses 50x270.
+Provide familyName, line/text layers and cadUnits. Numeric mode previews by default and writes only
+with dryRun=false and apply=true. Legacy behavior remains unchanged.
+
+
+### Abby: 梁柱封閉區域批次建板
+使用 list_floor_types 選擇現有類型，再以 create_floors_from_framing_regions 預覽梁／梁柱內側封閉區域並批次建立樓板。含柱洞、重疊跳過、預覽驗證與交易回滾。詳見 [使用方式與限制](docs/ABBY-FRAMING-FLOORS.md)。
+

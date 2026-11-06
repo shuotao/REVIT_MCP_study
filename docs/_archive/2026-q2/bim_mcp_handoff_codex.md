@@ -8,7 +8,7 @@
 > - 設計 system：`docs/BIM_MCP/styles.css`（已完備，不要動）
 > - 品質標準樣本：`docs/BIM_MCP/reference/philosophy-22-propositions.html`（GENAI 等級品質目標）
 > - 結構樣本：`docs/BIM_MCP/reference/three-constitutions.html`（小而完整，模仿這個）
-> - GENAI 借鏡來源：`C:/Users/Admin/Desktop/GENAI-main/GENAI-main/web/`
+> - GENAI 借鏡來源：`C:/Users/<YOUR_USERNAME>/Desktop/GENAI-main/GENAI-main/web/`
 
 ---
 
@@ -240,7 +240,7 @@
 
 ## 3. Part 2 — GENAI/web 借鏡分析
 
-> 來源：`C:/Users/Admin/Desktop/GENAI-main/GENAI-main/web/`（13 個 HTML 頁，11 張核心插畫）。
+> 來源：`C:/Users/<YOUR_USERNAME>/Desktop/GENAI-main/GENAI-main/web/`（13 個 HTML 頁，11 張核心插畫）。
 > 探察結果（已驗證）：
 
 ### 3.1 GENAI/web 的高品質做法
@@ -477,5 +477,5 @@ Codex 完工後，5/23 demo 預計這樣用：
 如有疑問參考：
 - `CLAUDE.md`（專案憲法 + Skill / Domain 對應表）
 - `log/2026-05.md`（5 月事件日誌）
-- `C:\Users\Admin\.claude\plans\brench-a-merge-floofy-owl.md`（完整原版規劃）
+- `C:\Users\<YOUR_USERNAME>\.claude\plans\brench-a-merge-floofy-owl.md`（完整原版規劃）
 - 已存在 6 頁的原始碼（直接模仿結構）

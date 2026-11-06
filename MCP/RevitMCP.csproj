@@ -20,6 +20,17 @@
     <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="$(RevitVersion).*" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="ClosedXML" Version="0.102.3" />
+    <PackageReference Include="NetTopologySuite" Version="2.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\icon-32-on.png" />
+    <Resource Include="Resources\icon-32-off.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\icon-32-on.png" />
+    <Resource Include="Resources\icon-32-off.png" />
   </ItemGroup>
 
 </Project>

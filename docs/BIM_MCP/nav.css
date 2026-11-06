@@ -6,23 +6,30 @@
 
 /* ===== Scroll Snap（每節一個視窗，像簡報滾動）===== */
 html {
-  scroll-snap-type: y proximity;
   scroll-padding-top: 120px;  /* 避免被 topnav + context bar 遮住 */
+}
+/* 簡報式吸附改為選用：只有帶快照橫幅（body 直屬 div）的活動頁才啟用 */
+html:has(body > div[data-snapshot]) {
+  scroll-snap-type: y proximity;
 }
 .bim-hero,
 .bim-section {
   scroll-snap-align: start;
 }
 .bim-section.bim-anchor {
-  min-height: calc(100vh - 130px);
+  min-height: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   padding-top: var(--gap-xl);
   padding-bottom: var(--gap-xl);
 }
+body:has(> div[data-snapshot]) .bim-section.bim-anchor {
+  min-height: calc(100vh - 130px);
+}
 /* 不要對 .bim-section.no-snap 強制最小高度（給 frame / 索引這類短 section） */
-.bim-section.bim-anchor.no-snap {
+.bim-section.bim-anchor.no-snap,
+body:has(> div[data-snapshot]) .bim-section.bim-anchor.no-snap {
   min-height: 0;
   scroll-snap-align: none;
 }
@@ -30,8 +37,8 @@ html {
 
 @media (max-width: 700px) {
   /* mobile: 不強制 snap，讓 thumb scroll 自然 */
-  html { scroll-snap-type: none; }
-  .bim-section.bim-anchor { min-height: 0; padding-top: var(--gap-lg); padding-bottom: var(--gap-lg); }
+  html, html:has(body > div[data-snapshot]) { scroll-snap-type: none; }
+  .bim-section.bim-anchor, body:has(> div[data-snapshot]) .bim-section.bim-anchor { min-height: 0; padding-top: var(--gap-lg); padding-bottom: var(--gap-lg); }
 }
 
 /* ===== Floating Progress Rail（右側細長 scroll 進度）===== */
@@ -41,14 +48,14 @@ html {
   top: 0;
   width: 3px;
   height: 100vh;
-  background: rgba(255,255,255,0.04);
+  background: var(--tint-1);
   z-index: 99;
   pointer-events: none;
 }
 .bim-progress-fill {
   width: 100%;
   height: 0;
-  background: linear-gradient(180deg, var(--accent) 0%, rgba(96,165,250,0.4) 100%);
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-fade) 100%);
   transition: height 0.1s linear;
 }
 
@@ -57,7 +64,7 @@ html {
   position: sticky;
   top: 51px; /* 緊貼 topnav 下方 */
   z-index: 90;
-  background: rgba(0,0,0,0.92);
+  background: var(--bar-bg);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
   padding: 9px 32px;
@@ -224,7 +231,7 @@ html {
 .bim-drawer-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: var(--overlay);
   backdrop-filter: blur(6px);
   z-index: 1000;
   opacity: 0;
@@ -252,6 +259,8 @@ html {
   flex-direction: column;
 }
 .bim-drawer.open { transform: translateX(0); }
+.bim-drawer[aria-hidden="true"] { visibility: hidden; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 0.4s; }
+.bim-drawer.open[aria-hidden="false"] { visibility: visible; }
 
 .bim-drawer-head {
   position: sticky;
@@ -281,7 +290,7 @@ html {
   letter-spacing: 0;
 }
 .bim-drawer-close {
-  background: rgba(255,255,255,0.05);
+  background: var(--tint-2);
   border: 1px solid var(--border);
   color: var(--text-secondary);
   width: 36px;
@@ -438,7 +447,7 @@ html {
   transform: rotate(90deg);
 }
 .section-drawer-trigger .count {
-  background: rgba(255,255,255,0.06);
+  background: var(--tint-3);
   padding: 1px 6px;
   border-radius: 8px;
   font-size: 10px;
@@ -542,17 +551,19 @@ html {
 }
 
 /* ===== 五分類彩色 section eyebrow（給 domain-index 用）===== */
-.bim-section[data-cat="compliance"] .bim-section-eyebrow { color: #ef4444; }
-.bim-section[data-cat="workflow"] .bim-section-eyebrow { color: #60a5fa; }
-.bim-section[data-cat="ops"] .bim-section-eyebrow { color: #fbbf24; }
-.bim-section[data-cat="mep"] .bim-section-eyebrow { color: #4ade80; }
-.bim-section[data-cat="frame"] .bim-section-eyebrow { color: #a78bfa; }
+.bim-section[data-cat="compliance"] .bim-section-eyebrow { color: var(--cat-compliance); }
+.bim-section[data-cat="workflow"] .bim-section-eyebrow { color: var(--cat-workflow); }
+.bim-section[data-cat="ops"] .bim-section-eyebrow { color: var(--cat-ops); }
+.bim-section[data-cat="mep"] .bim-section-eyebrow { color: var(--cat-mep); }
+.bim-section[data-cat="frame"] .bim-section-eyebrow { color: var(--cat-ref); }
+.bim-section[data-cat="ref"] .bim-section-eyebrow { color: var(--cat-ref); }
 
 .bim-section[data-cat="compliance"] .bim-section-title::before,
 .bim-section[data-cat="workflow"] .bim-section-title::before,
 .bim-section[data-cat="ops"] .bim-section-title::before,
 .bim-section[data-cat="mep"] .bim-section-title::before,
-.bim-section[data-cat="frame"] .bim-section-title::before {
+.bim-section[data-cat="frame"] .bim-section-title::before,
+.bim-section[data-cat="ref"] .bim-section-title::before {
   content: '';
   display: inline-block;
   width: 10px;
@@ -561,11 +572,14 @@ html {
   margin-right: 12px;
   transform: translateY(-3px);
 }
-.bim-section[data-cat="compliance"] .bim-section-title::before { background: #ef4444; }
-.bim-section[data-cat="workflow"] .bim-section-title::before { background: #60a5fa; }
-.bim-section[data-cat="ops"] .bim-section-title::before { background: #fbbf24; }
-.bim-section[data-cat="mep"] .bim-section-title::before { background: #4ade80; }
-.bim-section[data-cat="frame"] .bim-section-title::before { background: #a78bfa; }
+.bim-section[data-cat="compliance"] .bim-section-title::before { background: var(--cat-compliance); }
+.bim-section[data-cat="workflow"] .bim-section-title::before { background: var(--cat-workflow); }
+.bim-section[data-cat="ops"] .bim-section-title::before { background: var(--cat-ops); }
+.bim-section[data-cat="mep"] .bim-section-title::before { background: var(--cat-mep); }
+.bim-section[data-cat="frame"] .bim-section-title::before { background: var(--cat-ref); }
+.bim-section[data-cat="ref"] .bim-section-title::before { background: var(--cat-ref); }
+.bim-section[data-cat="ref"] .domain-card { border-left-color: var(--cat-ref); }
+.bim-section[data-cat="ref"] .contrib-card { border-left-color: var(--cat-ref); }
 
 /* Domain card 強化 — 加 trigger tag 顯示 */
 .domain-meta {
@@ -581,7 +595,7 @@ html {
   font-size: 10px;
   letter-spacing: 0.3px;
   color: var(--text-muted);
-  background: rgba(255,255,255,0.04);
+  background: var(--tint-1);
   padding: 1px 7px;
   border-radius: var(--radius-sm);
 }
@@ -597,3 +611,66 @@ html {
   border-bottom: none;
 }
 .domain-skill:hover { background: var(--accent-bg-strong); }
+
+/* ===== 搜尋 / 篩選：以 hidden 屬性隱藏，且不被元件自己的 display 規則蓋掉 ===== */
+[data-search-item][hidden],
+[data-search-group][hidden] { display: none !important; }
+
+/* ===== Run C P0b：Domain 卡片控制項（容器為 div，內含獨立的連結／按鈕）===== */
+.domain-card:focus-within { border-color: var(--accent); }
+.domain-source {
+  font-family: var(--font-tech);
+  font-size: 10px;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  padding: 1px 7px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+}
+.domain-source:hover { color: var(--text-primary); border-color: var(--text-primary); }
+.domain-open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 7px 12px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-pill);
+  color: var(--accent);
+  font-family: var(--font-tech);
+  font-size: 11px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.3s, border-color 0.3s;
+}
+/* 箭頭由 ::after 提供；按鈕文字本身不含箭頭 */
+.domain-open::after { content: '→'; }
+.domain-open:hover { background: var(--accent-bg-strong); border-color: var(--accent); }
+
+/* ===== Run C P0b：context bar 內的目錄鈕（initMobileToc 注入；顯示與否由 styles.css 控制，>900px 隱藏）===== */
+.bim-context-bar .bim-toc-toggle { flex-shrink: 0; margin-left: auto; }
+@media (max-width: 900px) {
+  /* 展開的目錄面板（95）高於 context bar（90）、低於 topnav（100） */
+  .bim-toc.open { z-index: 95; }
+}
+
+/* ===== Run C P0b：淺色主題覆寫（代幣見 styles.css）===== */
+html[data-theme="light"] .bim-drawer-head { background: var(--bar-bg); }
+html[data-theme="light"] .bim-drawer { box-shadow: -20px 0 60px rgba(0,0,0,0.25); }
+/* ===== 小聚報名按鈕：沒有現行連結時停用（shared.js initMeetupLinks 設 aria-disabled） =====
+   文字色 #8a8a8a 約 5.8:1（對按鈕實際底色，≥ 3:1）；不用 opacity，避免再被稀釋。 */
+[data-meetup-link][aria-disabled="true"].bim-topnav-btn,
+[data-meetup-link][aria-disabled="true"].bim-footer-btn {
+  background: rgba(255,255,255,0.03);
+  border-color: var(--border);
+  border-style: dashed;
+  color: #8a8a8a;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
+  box-shadow: none;
+}

@@ -2,10 +2,12 @@
 name: door-window-legend-workflow
 description: 門窗圖例表 seed-based Legend Component 建立流程，主入口為 door-window-legend-tools，缺少 seed 時透過 list_seeds 取得候選並等待使用者選擇。
 metadata:
-  version: "1.5"
-  updated: "2026-06-18"
+  version: "2.2"
+  updated: "2026-10-23"
   created: "2026-05-20"
-  references: []
+  references:
+    - "Issue #74（@yunchen-kt）：門窗圖例 Key 的承載位置 A/B 架構對照與 Revit API 設計約束 — https://github.com/shuotao/REVIT_MCP_study/issues/74"
+    - "penny116889 fork penny/main 的 door-window-legend-template-workflow 文件 — 樣板格位填表參考設計（尚未實作）"
   related:
     - element-query-workflow.md
     - tool-capability-boundary.md
@@ -14,10 +16,12 @@ metadata:
     - list_seeds
   contributors:
     - "OpenAI Codex"
+    - "@yunchen-kt（issue #74：A/B 架構取捨分析與 Revit API 設計約束）"
   tags: [door, window, legend, type-mark, legend-component, seed, workflow]
 ---
 
 # 門窗圖例表 Workflow
+- `mode=migrate`：先 preview legacy item，再明確套用 A+ ownership migration。
 
 ## 目的
 
@@ -26,6 +30,7 @@ metadata:
 - `mode=list`：列出專案中已放置實例使用到的 door/window type。
 - `mode=create`：使用指定的 seed Legend 視圖建立門表或窗表。
 - `mode=update`：更新既有門表或窗表，補新增 type、刪除已不使用 type，並同步 Type Mark。
+- `mode=scaffold_template`：從使用者選定的 seed Legend 複製出一張空白門窗圖例樣板視圖（格線、FFL 線、佔位文字、佔位圖例），不讀明細表、不填資料（資料填表功能尚未實作）。
 - 若 create 缺少 seed，tool 必須回 workflow state，對話層再呼叫 `list_seeds` 並等待使用者選擇。
 - 若 create 缺少 `layoutDirection` 或 `maxPerLine`，tool 必須回 workflow state，要求對話層詢問使用者。
 - 若 create/update 缺少 `dimensionTypeId` 且無法由既有視圖推斷，tool 必須要求對話層呼叫 `list_dimension_types`。
@@ -33,6 +38,116 @@ metadata:
 - 不得自動補排版方向或每排/欄數量。
 - 不得自動輪流測試 seed。
 
+## 架構取捨：圖例 Key 要承載在哪裡（A vs B）
+
+> 本節的分析由 [@yunchen-kt](https://github.com/yunchen-kt) 於 issue [#74](https://github.com/shuotao/REVIT_MCP_study/issues/74) 提出，
+> 經維護者確認後收錄。原始討論保留在該 issue。
+
+本 SOP 目前採 **A 方案**。B 是實務上另一種可行架構，兩者取捨不同、不必二選一，
+但選錯會在「更新期」付出代價，所以動手前要先想清楚。
+
+| | **A：Key 放在 view 內**（本 SOP 現行） | **B：Key 提升到 view 邊界** |
+|---|---|---|
+| 結構 | 一張 Legend view 承載整份門表／窗表，各 type 並排 | 一型一 Legend view，**view 名＝門窗編號＝Key** |
+| Key 載體 | view 內的 `TextNote` | view 名稱本身 |
+| 排版 | `layoutDirection` + `maxPerLine` | 由 seed 模板固定欄位位置 |
+| 更新方式 | 解析 per-note ＋ 位置配對 | 讀 view 名 → 查外部資料對應列 → 按模板位置覆寫 |
+| view 數量 | 少 | 多 |
+
+### A 的脆弱點是結構性的，不是實作沒寫好
+
+當編號活在 view 內的 text note 時：
+
+1. 編號可能被使用者手動改動而與實際 type 脫鉤。
+2. 更新流程必須逐一解析 text note、再做位置配對來決定「哪個編號對哪個 component」，一旦配對失敗就產生孤兒文字。
+
+本檔中大量的 metadata 標記、fallback 位置推斷，以及〈錯誤規則〉裡 `window_ffl_missing_same_type_still_used`
+這類 skip 規則，某種程度上都是在補這個結構性缺口 —— 它們是症狀，不是原因。
+
+### B 把字串匹配換成容器邊界匹配
+
+Revit 強制 view 名唯一、使用者改不掉；欄位位置由模板固定。於是更新退化成
+「讀 view 名 → 查資料 → 按模板位置覆寫值」，不需要解析 per-note、不需要位置配對，
+**孤兒文字問題從定義上消失**。代價是要建立較多 Legend view。
+
+這也讓 regenerate 天然冪等：Key 與欄位位置都是 deterministic 座標，重跑同一份輸入會得到同一份輸出，
+適合「里程碑整批重生」而非 live link 的使用模式。
+
+### 怎麼選
+
+- **只需要 Key 與門窗立面的對應** → A 就夠，每次刪除、完全重生即可。
+- **門窗表還要記載防火等級、表面處理、五金配件等欄位** → A 要維持這些欄位的一致性，複雜度極高；B 較穩。
+
+### 設計約束（Revit API 事實，實作前必讀）
+
+- Legend Component **無法被 tag**，附屬資料只能用 text note 或圖內 dimension 呈現。
+- API **無法從零建立 Legend view**，也無法直接建立 Legend Component（長期限制）。可靠繞路是
+  「template 預埋空白 seed → 複製 seed → 改 type／改名」—— 這也是本 SOP 依賴 seed 的原因。
+- Type Image／Image 入 schedule 是**靜態點陣**，不依比例、不隨元件更新，不能拿來當 B 的欄位載體。
+- Generic Annotation 可放入 Legend view 與 Section view，適合當「模板固定位置的欄位值」載體。
+
+> B 方案目前**只有架構分析，沒有對應的工具實作**。若要落地，需先補一份跨環境的 B 方案 SOP
+> 與相應的 tool contract；在那之前不要宣稱本專案支援 B。
+
+
+## A+：Item Detail Group 容器與 ownership
+
+A+ 保留 A 方案「一張 Legend view 放全部門窗 item」的操作方式，但不再把 `TextNote` 或空間距離當作 item 身份。每個成功建立的 item 都必須成為一個 Revit `Detail Group`：
+
+- 外層原生容器：`Detail Group`。
+- 邏輯 ownership root：該 item 的 `Legend Component`。
+- 完整 members：Legend Component、Type Mark、FFL line/text、寬高 Dimension、窗台高 Dimension，以及 Dimension fallback reference curves。
+- `GroupType` 名稱固定使用 `RMCP_DWL_{ItemGuid短碼}`；Type Mark 不是身份。
+- container 只記錄產出圖例所需的 ownership／role／target 資訊，不複製防火等級、材質、五金等門窗業務性質。
+
+v2 `ExtensibleStorage` 使用固定 schema，主要欄位如下：
+
+- component：`ItemGuid`、`DesiredKey`、`TargetType`、`GroupUniqueId`、child `UniqueId[]` 與 role[]。
+- group／group type：`ItemGuid`、owner component `UniqueId`、schema version。
+- child：`ItemGuid`、owner component `UniqueId`、`MemberRole`。
+- 持久參照一律使用 `UniqueId`；`ElementId` 只在當次 Revit transaction 內作索引。
+
+完整性 gate：
+
+1. 每個 item 在自己的 `SubTransaction` 內先生成完整內容。
+2. 呼叫 `NewGroup()`，並核對 Revit 實際 group members 是否包含所有預期元素。
+3. 任一必要 member 無法成組，rollback 該 item，並將整次 create/update/migrate 回報為 `group_capability_gate_failed`；不得留下「只有部分元素成組」的版本。
+4. R24／R26 宿主整合案例仍是正式啟用 gate；純編譯成功不等於宿主 gate 已通過。
+
+新制 update 規則：
+
+- managed item 只依 v2 metadata 找 owner、group 與 children；不得使用最近文字、最近 FFL 或 bbox 猜成員。
+- append source 若來自 managed item，先複製整個 group，再對副本 `UngroupMembers()`，只保留獨立 source component；來源 group 不得被修改。
+- damaged item owner 唯一時，清除同 item 殘餘並重建。正常時保留原 FFL 中心；FFL 已損壞時使用 component bottom-center。
+- stale managed item 刪除 group instance，讓 Revit 原生 cascade 移除 members；之後清除零 instance 且帶 RMCP metadata 的 orphan `GroupType`。
+- 手動 copy 造成重複 `ItemGuid`，或同一 view 出現重複 `DesiredKey`，均為 conflict。conflict 優先於 stale deletion、damage repair 與 Type Mark sync：只回報並跳過，不自動刪除或改寫任何副本。
+- 第一版不註冊 `IUpdater`；create/update/migrate 執行 reconciliation 與 orphan GroupType sweep。
+
+`list_legend_views` 額外回傳：
+
+- `managedItemCount`
+- `legacyItemCount`
+- `damagedItemCount`
+- `conflictCount`
+
+update 額外回傳：
+
+- `RebuiltCount`
+- `StaleGroupDeletedCount`
+- `DamagedRepairedCount`
+- `ConflictItems[]`
+- `OrphansRemovedCount`
+
+## Legacy migration
+
+`mode=migrate` 是唯一允許使用舊位置推斷建立 ownership 的流程：
+
+- `apply=false`：純預覽，不開修改 transaction；回傳 `Ready`、`Ambiguous`、`Overlap`、`Unresolved`。
+- `apply=true`：只轉換同一次辨識中判定為 ready 的 item；`Ambiguous`、`Overlap`、`Unresolved` 永遠跳過。
+- `itemKeys[]`：可限制本次 apply 的 ready item；省略或空陣列代表全部 ready。
+- migration 成功後立即寫入 v2 metadata；後續 update 不再使用位置推斷。
+- 任一 selected ready item 無法完整 `NewGroup()`，整個 migration transaction rollback，`AppliedCount=0`。
+- legacy view 必須先 `apply=false` 取得 preview，再由使用者明確改用 `apply=true`；tool 不會自行從 preview 進入 apply。
 ## Tool Contract
 
 ### `door-window-legend-tools`
@@ -40,24 +155,33 @@ metadata:
 輸入：
 
 - `targetType`: `door` 或 `window`
-- `mode`: `list`、`create` 或 `update`
+- `mode`: `list`、`create`、`update`、`migrate` 或 `scaffold_template`
 - `layoutDirection`: `horizontal` 或 `vertical`，create/update 必填
 - `maxPerLine`: 大於等於 1，create/update 必填
-- `seedLegendViewId`: create 使用的 seed Legend 視圖 ID
+- `seedLegendViewId`: create 使用的 seed Legend 視圖 ID；`scaffold_template` 亦必填
 - `legendViewId`: update 使用的既有 Legend 視圖 ID
 - `dimensionTypeId`: create/update 使用的 Revit `DimensionType` ID
+- `columns`: 僅 `scaffold_template`，1..20，預設 7
+- `rows`: 僅 `scaffold_template`，1..20，預設 3
+- `templateName`: 僅 `scaffold_template`，預設 `01_門窗圖例表樣板`
+- `flLineStyleName`: 僅 `scaffold_template`，FFL 線的細部線型名稱，預設 `中級線0.3`
+- `targetType`（`scaffold_template`）：只決定標頭文字前綴（`door` 為 D、其餘為 W），預設 `window`
 
 create 若缺少 `seedLegendViewId`，回傳：
 
 - `WorkflowState = "awaiting_seed_selection"`
 - `NextAction = "call_list_seeds"`
 - `SeedTypeRequired = "legend"`
+- `apply`: migrate 使用，預設 `false`
+- `itemKeys`: migrate apply 的 optional item key 限定清單
 - `RequiresUserInput = true`
 - `DoNotAutoSelectSeed = true`
 - `DoNotRetryWithOtherSeeds = true`
 - `PromptToUser = "請先從 list_seeds 的結果中選擇一個 ViewName 作為 seed。"`
 
 此狀態不是錯誤，也不是 fallback 訊號。對話層只能呼叫 `list_seeds` 後停下來問使用者。
+
+`scaffold_template` 缺少 `seedLegendViewId` 時（同名樣板不存在時），同樣回傳 `awaiting_seed_selection` 狀態，欄位為 `Success = false`、`WorkflowState`、`NextAction`、`SeedTypeRequired`、`RequiresUserInput`、`DoNotAutoSelectSeed`、`DoNotRetryWithOtherSeeds`、`PromptToUser`、`Message`（不含 `TargetType`、`DisplayName`）。
 
 create 若 seed 已有，但缺少 `layoutDirection` 或 `maxPerLine`，回傳：
 
@@ -348,13 +472,45 @@ window list/create 額外輸出重點：
 - `AttemptDebug.WindowSillDimensionFailureReason`
 - `AttemptDebug.WindowTypeMarkOffsetCm = 400`
 
+## 搭建空白樣板（mode=scaffold_template）
+
+`scaffold_template` 在同名檢查通過、`seedLegendViewId` 有效（必須是 Legend 視圖）後，於單一 Transaction 內依下列順序建立：
+
+1. `Duplicate` seed Legend 視圖，並命名為 `templateName`。
+2. 清空新視圖內 `OwnerViewId` 為新視圖的元素（刪除失敗時靜默略過，seed 內容可能殘留）。
+3. 畫 `rows`+1 條橫線、`columns`+1 條直線（每條格線只畫一次）。
+4. 每列的標頭區與參數區分隔線（橫跨整列寬度）。
+5. 每格一條 FFL 線；找到 `flLineStyleName` 才套用該線型，找不到則用預設線型並在 `Message` 提示。
+6. 每格標頭文字：W01、W02…（`targetType` 為 `door` 時為 D01、D02…）。
+7. 每格佔位參數文字。
+8. 若專案中有 Legend Component（優先取 seed 視圖內的），複製一個到每格。
+
+同名樣板已存在時，不寫入，回傳 `Success = true`、`Message`、`ViewId`、`ViewName`、`AlreadyExisted = true`。
+
+成功時輸出欄位：`Success`、`Message`、`ViewId`、`ViewName`、`Columns`、`Rows`、`TotalSlots`、`FlLineStyleName`、`FlLineStyleFound`、`HasPlaceholderComponents`、`FailedLines`、`FailedTexts`、`FailedComponents`、`AlreadyExisted`（為 false）。
+
+子步驟（線、文字、圖例）失敗只累計到 `FailedLines`／`FailedTexts`／`FailedComponents` 並寫入 `Message`，不回滾整張樣板；Transaction 本身未提交時會丟出例外。
+
+邊界：以明細表資料填入樣板、自動尺寸標註、同編號合併等功能尚未實作；參考設計見 frontmatter references 所列 penny116889 fork 的文件。
+
 ## Update 既有門窗圖例表
+
+> 本章保留的 bbox／FFL／TextNote 位置辨識，會在下列情形對 legacy（未 migrate、`IsManaged=false`）item 觸發，v2 managed item（`IsManaged=true`）一律不會：
+>
+> 1. `mode=migrate` 的 preview／apply（見上方〈Legacy migration〉一節）。
+> 2. `mode=update` 對既有 legacy item 的 Type Mark 同步 fallback（`SyncDoorWindowLegendTypeMarkTextNote` → `FindDoorWindowLegendTypeMarkTextNote`，只在 `item.IsManaged` 為 false 時才會走到位置／metadata-text fallback 分支）。
+> 3. `CollectExistingDoorWindowLegendItems` 對 legacy item 的身份與窗台高辨識（`FindNearestDoorWindowFflLine`）——這是 **`list`／`create`／`update`／`migrate` 全部 mode 共用**的收集入口，不只 update；下方「Update 比對」一節「`detectedSillHeightCm` 由 component bbox bottom 與附近 FFL line Y 差推回」描述的正是這個行為。
+> 4. `mode=update` 刪除 stale legacy item 時的成員收集（`CollectDoorWindowLegendItemRelatedElementIds` 的 bbox 掃描，經 `DeleteDoorWindowLegendItemGroup` 進入）——下方「Update 行為」一節「stale 關聯元素包含...」「每個 stale item 使用 `SubTransaction` 刪除」描述的正是這個行為。
+>
+> v2 managed item（`IsManaged=true`）不論在 update 或 migrate 內，一律只用 `TryPopulateManagedExistingItem` 讀回的 A+ ownership metadata 辨識成員，兩者衝突時 A+ 規則優先。換句話說：legacy item 在被 `mode=migrate` 明確轉換前，`update`／`list` 仍會用舊規則辨識與同步（不會拒絕服務、也不會自動升級成 managed item）；只有 `mode=migrate` 的 `apply=true` 會把位置推斷結果寫成新 ownership metadata。
+
+> **驗證狀態（2026-08-29，本次 PR #119 採用時記錄）**：以下屬於本次在此環境自行覆核、可重現的 build-time／靜態證據 —— `dotnet build -c Release.R24` 與 `-c Release.R26` 皆 0 error（新增警告集中在本檔內，且都是專案既有的 nullable/obsolete 警告類別，不是新警告類型）；`MCP-Server` 的 `npm run build`（`tsc` + `build-apps.mjs`）與 `npm run test:opening-candidate-contract` 皆通過；`scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy` 在套用本次變更前後結果一致，180 個工具數與 tools-index 卡片數不變。**以下屬於貢獻者回報、本環境無 Revit 執行階段故未能重現** —— 實際在 Revit 內生成 Detail Group、ExtensibleStorage 往返讀寫是否如預期成組、重複執行 update 是否真的不重複生成、是否會殘留臨時 source 元素或無實體 GroupType，這些「已驗證」的敘述目前僅止於 PR 描述，尚待有 Revit 執行環境者實測。
 
 `door-window-legend-tools` 支援 `mode=update`，用於更新既有門表/窗表，不重新生成整張表。
 
 Tool contract：
 
-- `mode`: `list | create | update`
+- `mode`: `list | create | update | migrate`
 - `legendViewId`: update 使用的既有 Legend View ID
 - `layoutDirection`: update 必填，`horizontal | vertical`
 - `maxPerLine`: update 必填，每列或每欄數量
