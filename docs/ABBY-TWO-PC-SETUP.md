@@ -7,7 +7,7 @@
 | 用途 | 前置項目 |
 |---|---|
 | 日常使用及自動更新 | Windows、需要的Revit版本、Node.js22以上、Codex或其他MCP用戶端，以及可連線GitHub／npm |
-| 同時開發工具 | 再安裝Git for Windows；本機要編譯時加.NET8 SDK。GitHub登入必須有此庫的寫入權限 |
+| 同時開發工具 | 再安裝Git for Windows；本機要編譯時加.NET10 SDK（建置工具需求，Revit2025／2026仍以.NET8為目標）。GitHub登入必須有此庫的寫入權限 |
 | CAD文字與DWG | Python3、ezdxf、ODA File Converter；不使用此功能可稍後安裝 |
 | 族群生成 | 對應Revit版本的公制族群範本，路徑依該電腦實際位置指定 |
 
