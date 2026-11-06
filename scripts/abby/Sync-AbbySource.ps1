@@ -14,5 +14,5 @@ if($Action -eq 'Upstream'){
 }else{
  Invoke-AbbyNative git @('-C',$SourceRoot,'fetch','origin',($channel.Branch+':refs/remotes/origin/'+$channel.Branch))
  if($Action -eq 'Pull'){Invoke-AbbyNative git @('-C',$SourceRoot,'merge','--ff-only',$remoteRef);Write-Host 'Abby source synchronized. Use Abby-Update.cmd for installed tools.'}
- else{Invoke-AbbyNative git @('-C',$SourceRoot,'merge-base','--is-ancestor',$remoteRef,'HEAD');Invoke-AbbyNative git @('-C',$SourceRoot,'push','origin',('HEAD:refs/heads/'+$channel.Branch));Write-Host 'Only my-revit-tool was pushed. GitHub Actions will build the Abby release.'}
+ else{Invoke-AbbyNative git @('-C',$SourceRoot,'merge-base','--is-ancestor',$remoteRef,'HEAD');Push-Location $SourceRoot;try{Invoke-AbbyNative node @((Join-Path $SourceRoot 'scripts\abby\check-public-source.cjs'),'--range',($remoteRef+'..HEAD'))}finally{Pop-Location};Invoke-AbbyNative git @('-C',$SourceRoot,'push','origin',('HEAD:refs/heads/'+$channel.Branch));Write-Host 'Only my-revit-tool was pushed. GitHub Actions will build the Abby release.'}
 }

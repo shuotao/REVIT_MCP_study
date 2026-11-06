@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 # Revit MCP QA/QC Verification Script
 # Usage: .\scripts\verify-qaqc.ps1 [-SkipBuild] [-SkipDeploy] [-Version 2024] [-AddinsRoot <path>] [-QaToday YYYY-MM-DD]
 #

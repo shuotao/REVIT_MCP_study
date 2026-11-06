@@ -30,7 +30,7 @@ jobs:
           node scripts/abby/check-public-source.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Public source check failed' }
           ./tests/abby-update-safety.ps1
-          node --test tests/abby-launcher.test.cjs
+          node --test tests/abby-*.test.cjs
           if ($LASTEXITCODE -ne 0) { throw 'Launcher tests failed' }
       - name: Build all three Revit versions and package
         shell: pwsh

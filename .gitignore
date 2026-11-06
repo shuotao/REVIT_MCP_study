@@ -1,4 +1,18 @@
 # Build outputs
+# Local BIM/CAD documents and compiled payloads are never source publications.
+*.rvt
+*.rfa
+*.rte
+*.rft
+*.dwg
+*.dxf
+*.ifc
+*.nwd
+*.nwc
+*.pdf
+*.dll
+*.pdb
+*.exe
 MCP/MCP/bin/
 MCP/MCP/obj/
 MCP-Server/build/

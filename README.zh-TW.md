@@ -372,7 +372,7 @@ powershell -ExecutionPolicy Bypass -File scripts\release-port.ps1
 | [scripts/README.md](./scripts/README.md) | 腳本說明 |
 | [docs/DOCUMENT_AUDIENCE_INVENTORY.md](./docs/DOCUMENT_AUDIENCE_INVENTORY.md) | 文件受眾盤點 |
 | [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | docs 目錄說明 |
-| [log/README.md](./log/README.md) | log append 規則 |
+| [Abby 雙機設定](./docs/ABBY-TWO-PC-SETUP.md) | 共用安裝與同步；工作日誌僅留本機 |
 
 ## License
 

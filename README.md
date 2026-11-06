@@ -373,7 +373,7 @@ Confirm the `.addin` file and DLL were deployed under the matching `%APPDATA%\Au
 | [scripts/README.md](./scripts/README.md) | Script documentation |
 | [docs/DOCUMENT_AUDIENCE_INVENTORY.md](./docs/DOCUMENT_AUDIENCE_INVENTORY.md) | Document audience inventory |
 | [docs/DOCS_STRUCTURE.md](./docs/DOCS_STRUCTURE.md) | Docs directory guide |
-| [log/README.md](./log/README.md) | Log append rules |
+| [Abby two-PC setup](./docs/ABBY-TWO-PC-SETUP.md) | Shared installation and synchronization; work logs stay local |
 
 ## License
 
