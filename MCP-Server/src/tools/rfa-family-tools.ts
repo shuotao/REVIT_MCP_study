@@ -212,10 +212,20 @@ export const rfaFamilyTools: Tool[] = [
         description:
             "Create a sweep in the active family document. Sweeps closed profile loops along a planar path (handrails, mouldings, frames). " +
             "Profiles are drawn in 2D [u, v] mm and Revit places them perpendicular to the path at its start. " +
-            "Path: pathPoints polyline or pathSegments of lines and 3-point arcs, all in one plane.",
+            "Path: pathPoints polyline or pathSegments of lines and 3-point arcs, all in one plane; or pathReferenceLineIds (reference lines from " +
+            "rfa_create_reference_line) so the sweep follows the lines when parameters move them. With diameterParameter and no profiles, a circular " +
+            "profile is generated and its diameter is labelled with the parameter (parametric round pipe); the result includes a flex check.",
         inputSchema: {
             type: "object",
             properties: {
+                pathReferenceLineIds: {
+                    type: "array",
+                    items: { type: "number" },
+                    description: "Reference line element ids forming a connected planar path (closed loops allowed). The sweep follows these lines.",
+                },
+                diameterParameter: { type: "string", description: "Length parameter for a circular profile's diameter (pathReferenceLineIds mode). Profiles may then be omitted." },
+                profileCurveIndex: { type: "number", description: "Index of the path curve where the profile is placed (pathReferenceLineIds mode). Default 0." },
+                viewName: { type: "string", description: "View looking along the path at the profile, for the diameter label. Auto-picked when omitted." },
                 pathPoints: {
                     type: "array",
                     items: { type: "array", items: { type: "number" } },
@@ -242,7 +252,6 @@ export const rfaFamilyTools: Tool[] = [
                     additionalProperties: { type: "string" },
                 },
             },
-            required: ["profiles"],
         },
     },
     {
@@ -268,6 +277,53 @@ export const rfaFamilyTools: Tool[] = [
                 },
             },
             required: ["baseProfile", "topProfile", "heightMm"],
+        },
+    },
+    {
+        name: "rfa_create_reference_line",
+        description:
+            "Create a reference line (straight line or 3-point arc) hosted on a reference plane in the active family document, and constrain it to other reference planes. " +
+            "Reference lines are the rig for parametric pipes and bars: constrain the line here (align, or dimension with a length parameter), then sweep a profile along it " +
+            "with rfa_create_sweep pathReferenceLineIds. This works where constraining sketch curves does not (family documents have no sketch-edit API). " +
+            "The line moves with hostPlane along its normal; use constraints for the in-plane directions. Targets: curve (straight line parallel to the plane), start, end, center (arc). " +
+            "Arcs can also carry radiusParameter. Every point must already sit where the constraint says (on the plane, or at the parameter's current distance).",
+        inputSchema: {
+            type: "object",
+            properties: {
+                hostPlane: { type: "string", description: "Reference plane the line lies in (its work plane)." },
+                line: {
+                    type: "object",
+                    properties: {
+                        startMm: { type: "array", items: { type: "number" }, description: "[x, y, z] mm" },
+                        endMm: { type: "array", items: { type: "number" }, description: "[x, y, z] mm" },
+                    },
+                },
+                arc: {
+                    type: "object",
+                    properties: {
+                        startMm: { type: "array", items: { type: "number" } },
+                        midMm: { type: "array", items: { type: "number" } },
+                        endMm: { type: "array", items: { type: "number" } },
+                    },
+                    description: "3-point arc, [x, y, z] mm.",
+                },
+                constraints: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            target: { type: "string", enum: ["curve", "start", "end", "center"], description: "Which part to constrain. Default curve." },
+                            referencePlane: { type: "string" },
+                            distanceParameter: { type: "string", description: "Length parameter for the distance. Omit to align and lock (the part must lie on the plane)." },
+                            viewName: { type: "string", description: "View for the alignment/dimension. Auto-picked (elevations first) when omitted." },
+                        },
+                        required: ["referencePlane"],
+                    },
+                },
+                radiusParameter: { type: "string", description: "Arc only: length parameter labelling the radius." },
+                viewName: { type: "string", description: "View for the radius dimension. Auto-picked when omitted." },
+            },
+            required: ["hostPlane"],
         },
     },
 ];

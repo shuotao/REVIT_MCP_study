@@ -319,6 +319,8 @@ namespace RevitMCP.Core
         private object RfaCreateSweep(JObject parameters)
         {
             Document doc = GetActiveFamilyDocument();
+            if (parameters["pathReferenceLineIds"] is JArray)
+                return RfaCreateSweepOnReferenceLines(doc, parameters);
             FamilyManager fm = doc.FamilyManager;
 
             var curves = new List<Curve>();
@@ -406,6 +408,156 @@ namespace RevitMCP.Core
                     associated = assoc,
                     warnings,
                 };
+            }
+        }
+
+        #endregion
+
+        #region rfa_create_sweep（參考線路徑）
+
+        /// <summary>
+        /// 沿「參考線」（rfa_create_reference_line 建的）掃掠：路徑以參考取用，參考線移動時掃掠跟著動。
+        /// 可用 diameterParameter 自動產生圓形斷面並在斷面草圖標直徑綁參數（族群檔中此項可驅動，已實測）。
+        /// </summary>
+        private object RfaCreateSweepOnReferenceLines(Document doc, JObject parameters)
+        {
+            FamilyManager fm = doc.FamilyManager;
+            var warnings = new List<string>();
+
+            var ids = ((JArray)parameters["pathReferenceLineIds"]).Select(tk => tk.Value<IdType>()).ToList();
+            if (ids.Count == 0) throw new Exception("pathReferenceLineIds 至少一條");
+            var pathRefs = new ReferenceArray();
+            var pathCurves = new List<Curve>();
+            foreach (var idv in ids)
+            {
+                var ce = doc.GetElement(idv.ToElementId()) as CurveElement
+                         ?? throw new Exception($"元素 {idv} 不是參考線／模型線");
+                pathRefs.Append(ce.GeometryCurve.Reference ?? throw new Exception($"參考線 {idv} 取不到參考"));
+                pathCurves.Add(ce.GeometryCurve);
+            }
+
+            // 斷面：給 profiles，或只給 diameterParameter 自動畫圓（圓心在原點，Revit 會放到路徑起點）
+            string diaParam = parameters["diameterParameter"]?.Value<string>();
+            FamilyParameter diaFp = null;
+            if (!string.IsNullOrEmpty(diaParam))
+            {
+                diaFp = RfaFindParam(fm, diaParam) ?? throw new Exception($"找不到族群參數「{diaParam}」");
+                if (diaFp.Definition.GetDataType() != SpecTypeId.Length) throw new Exception($"「{diaParam}」不是長度參數");
+            }
+            var xyFrame = new RfaSketchFrame { Origin = XYZ.Zero, U = XYZ.BasisX, V = XYZ.BasisY, Normal = XYZ.BasisZ };
+            var loops = new CurveArrArray();
+            if (parameters["profiles"] is JArray profiles && profiles.Count > 0)
+            {
+                int li = 0;
+                foreach (JObject loop in profiles.OfType<JObject>()) loops.Append(RfaBuildLoop(loop, xyFrame, li++));
+            }
+            else if (diaFp != null)
+            {
+                double dia = fm.CurrentType?.AsDouble(diaFp) ?? 0;
+                if (dia <= 0) throw new Exception($"「{diaParam}」目前類型沒有正值，無法自動畫圓形斷面");
+                loops.Append(RfaBuildLoop(new JObject { ["circle"] = new JObject { ["center"] = new JArray(0, 0), ["radius"] = RfaToMm(dia / 2) } }, xyFrame, 0));
+            }
+            else throw new Exception("請提供 profiles，或給 diameterParameter 自動產生圓形斷面");
+
+            bool isSolid = parameters["isSolid"]?.Value<bool>() ?? true;
+            int profileCurveIndex = parameters["profileCurveIndex"]?.Value<int>() ?? 0;
+            Sweep sweep;
+            List<object> assoc;
+
+            using (var t = new Transaction(doc, "MCP: rfa_create_sweep（參考線路徑）"))
+            {
+                var fho = t.GetFailureHandlingOptions();
+                fho.SetFailuresPreprocessor(new SilentFailuresPreprocessor());
+                t.SetFailureHandlingOptions(fho);
+                t.Start();
+                SweepProfile profile = _uiApp.Application.Create.NewCurveLoopsProfile(loops);
+                try
+                {
+                    sweep = doc.FamilyCreate.NewSweep(isSolid, pathRefs, profile, profileCurveIndex, ProfilePlaneLocation.Start);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"建立掃掠失敗：{ex.Message}（參考線需首尾相接、同一平面；封閉路徑需為一圈）");
+                }
+                if (sweep == null) throw new Exception("建立掃掠失敗（Revit 回傳 null）");
+                assoc = RfaApplyMaterialAndAssociations(doc, fm, sweep, isSolid,
+                    parameters["material"]?.Value<string>(), parameters["associate"] as JObject, null, warnings);
+                if (t.Commit() != TransactionStatus.Committed) throw new Exception("建立掃掠的交易被復原");
+            }
+
+            // 斷面直徑標籤：草圖弧在草圖模式外仍可標直徑並驅動（實測 Revit 2027）
+            var dims = new List<object>();
+            string flex = null;
+            if (diaFp != null)
+            {
+                try
+                {
+                    using (var t = new Transaction(doc, "MCP: 掃掠斷面直徑標籤"))
+                    {
+                        var fho = t.GetFailureHandlingOptions();
+                        fho.SetFailuresPreprocessor(new SilentFailuresPreprocessor());
+                        t.SetFailureHandlingOptions(fho);
+                        t.Start();
+                        var arcs = RfaProfileArcs(doc, sweep);
+                        if (arcs.Count == 0) throw new Exception("斷面草圖裡找不到圓弧");
+                        foreach (var arcEl in arcs)
+                        {
+                            var arc = (Arc)arcEl.GeometryCurve;
+                            View view = RfaPickConstraintView(doc, null, null, arc.Normal, parameters["viewName"]?.Value<string>());
+                            XYZ at = arc.Center + (arc.XDirection + arc.YDirection).Normalize() * arc.Radius * 1.5;
+                            Dimension dd = doc.FamilyCreate.NewDiameterDimension(view, arc.Reference ?? new Reference(arcEl), at);
+                            dd.FamilyLabel = diaFp;
+                            dims.Add(new { id = dd.Id.GetIdValue(), view = view.Name, label = diaParam });
+                        }
+                        if (t.Commit() != TransactionStatus.Committed) throw new Exception("交易被復原");
+                    }
+                    flex = RfaFlexCheckSweepDiameter(doc, sweep, diaFp);
+                }
+                catch (Exception ex)
+                {
+                    warnings.Add($"斷面直徑未綁參數：{ex.Message}（掃掠已建立，管徑固定）");
+                }
+            }
+
+            return new
+            {
+                id = sweep.Id.GetIdValue(),
+                isSolid,
+                pathReferenceLineIds = ids,
+                pathLengthMm = RfaToMm(pathCurves.Sum(c => c.Length)),
+                diameterLabels = dims,
+                flexCheck = flex,
+                associated = assoc,
+                warnings,
+            };
+        }
+
+        private static List<CurveElement> RfaProfileArcs(Document doc, Sweep sweep)
+        {
+            Sketch sk = sweep.ProfileSketch;
+            if (sk == null) return new List<CurveElement>();
+            return sk.GetAllElements().Select(id => doc.GetElement(id)).OfType<CurveElement>()
+                .Where(ce => ce.GeometryCurve is Arc).ToList();
+        }
+
+        /// <summary>暫時把管徑 +10 mm，檢查斷面每段圓弧半徑是否等於參數的一半，然後復原</summary>
+        private static string RfaFlexCheckSweepDiameter(Document doc, Sweep sweep, FamilyParameter diaFp)
+        {
+            FamilyManager fm = doc.FamilyManager;
+            if (!string.IsNullOrEmpty(diaFp.Formula)) return "skipped（管徑參數由公式驅動）";
+            using (var t = new Transaction(doc, "MCP: 管徑撓曲自檢"))
+            {
+                var fho = t.GetFailureHandlingOptions();
+                fho.SetFailuresPreprocessor(new SilentFailuresPreprocessor());
+                t.SetFailureHandlingOptions(fho);
+                t.Start();
+                double v = (fm.CurrentType.AsDouble(diaFp) ?? 0) + RfaMm(10);
+                fm.Set(diaFp, v);
+                doc.Regenerate();
+                var bad = RfaProfileArcs(doc, sweep).Select(ce => ((Arc)ce.GeometryCurve).Radius)
+                    .Where(r => Math.Abs(r - v / 2) > RfaMm(0.1)).Select(r => RfaToMm(r * 2)).ToList();
+                t.RollBack();
+                return bad.Count == 0 ? "OK" : $"FAILED：斷面直徑 {string.Join(",", bad)} ≠ {RfaToMm(v)}";
             }
         }
 

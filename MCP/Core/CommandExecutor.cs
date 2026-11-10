@@ -1051,6 +1051,9 @@ namespace RevitMCP.Core
                     case "rfa_create_blend":
                         result = RfaCreateBlend(parameters);
                         break;
+                    case "rfa_create_reference_line":
+                        result = RfaCreateReferenceLine(parameters);
+                        break;
 
                     default:
                         throw new NotImplementedException($"未實作的命令: {request.CommandName}");
