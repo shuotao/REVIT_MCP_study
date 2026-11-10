@@ -515,56 +515,13 @@ namespace RevitMCP.Core
                 ext.StartOffset = RfaMm(startMm);
                 ext.EndOffset = RfaMm(endMm);
 
-                if (!string.IsNullOrEmpty(materialName))
-                {
-                    if (!isSolid)
-                    {
-                        warnings.Add("空心擠出沒有材質，已忽略 material");
-                    }
-                    else
-                    {
-                        var mat = new FilteredElementCollector(doc).OfClass(typeof(Material)).Cast<Material>()
-                            .FirstOrDefault(m => m.Name == materialName);
-                        if (mat == null) warnings.Add($"族群檔內找不到材質「{materialName}」，未指定材質");
-                        else ext.get_Parameter(BuiltInParameter.MATERIAL_ID_PARAM)?.Set(mat.Id);
-                    }
-                }
-
-                // 把擠出的參數綁到族群參數（例如擠出終點 ↔ 高度）
-                var assocResults = new List<object>();
-                if (associate != null)
-                {
-                    var map = new Dictionary<string, BuiltInParameter>(StringComparer.OrdinalIgnoreCase)
+                // 材質與參數綁定（例如擠出終點 ↔ 厚度），共用 RfaFamily2.cs 的輔助函式
+                var assocResults = RfaApplyMaterialAndAssociations(doc, fm, ext, isSolid, materialName, associate,
+                    new Dictionary<string, BuiltInParameter>(StringComparer.OrdinalIgnoreCase)
                     {
                         { "extrusionEnd", BuiltInParameter.EXTRUSION_END_PARAM },
                         { "extrusionStart", BuiltInParameter.EXTRUSION_START_PARAM },
-                        { "material", BuiltInParameter.MATERIAL_ID_PARAM },
-                        { "visible", BuiltInParameter.IS_VISIBLE_PARAM },
-                    };
-                    foreach (var kv in associate)
-                    {
-                        string famParamName = kv.Value?.Value<string>();
-                        if (!map.TryGetValue(kv.Key, out var bip))
-                        {
-                            warnings.Add($"associate 不支援的鍵「{kv.Key}」（可用: extrusionEnd, extrusionStart, material, visible）");
-                            continue;
-                        }
-                        Parameter elemParam = ext.get_Parameter(bip);
-                        FamilyParameter fp = RfaFindParam(fm, famParamName);
-                        if (elemParam == null) { warnings.Add($"擠出沒有「{kv.Key}」參數"); continue; }
-                        if (fp == null) { warnings.Add($"找不到族群參數「{famParamName}」，請先用 rfa_add_parameter 建立"); continue; }
-                        if (!fm.CanElementParameterBeAssociated(elemParam)) { warnings.Add($"「{kv.Key}」無法綁定族群參數"); continue; }
-                        try
-                        {
-                            fm.AssociateElementParameterToFamilyParameter(elemParam, fp);
-                            assocResults.Add(new { element = kv.Key, familyParameter = famParamName });
-                        }
-                        catch (Exception ex)
-                        {
-                            warnings.Add($"綁定「{kv.Key}」→「{famParamName}」失敗：{ex.Message}（型別需相同，例如擠出終點要綁長度參數）");
-                        }
-                    }
-                }
+                    }, warnings);
 
                 t.Commit();
 

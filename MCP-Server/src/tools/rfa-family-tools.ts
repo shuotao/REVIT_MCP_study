@@ -164,4 +164,110 @@ export const rfaFamilyTools: Tool[] = [
             required: ["typeName"],
         },
     },
+    {
+        name: "rfa_create_dimension",
+        description:
+            "Create a dimension in the active family document. Measures between parallel reference planes. " +
+            "Two planes + label binds the dimension to a length parameter (the planes then follow the parameter); three or more planes + equalize sets EQ. " +
+            "Combine with rfa_align_to_reference_plane so forms follow the planes.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                referencePlanes: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "Names of parallel reference planes (order does not matter; they are sorted along the normal).",
+                },
+                label: { type: "string", description: "Length family parameter to label the dimension with (exactly two planes)." },
+                equalize: { type: "boolean", description: "Set EQ on a multi-segment dimension (three or more planes)." },
+                throughPointMm: {
+                    type: "array",
+                    items: { type: "number" },
+                    description: "[x, y, z] mm point the dimension line passes through. Default: end of the first plane, usually outside the geometry.",
+                },
+                viewName: { type: "string", description: "Host view. Auto-picked (plan for vertical planes, elevation for horizontal) when omitted." },
+            },
+            required: ["referencePlanes"],
+        },
+    },
+    {
+        name: "rfa_align_to_reference_plane",
+        description:
+            "Lock form faces to reference planes. Works in the active family document. " +
+            "For each plane, finds the form's planar face lying on it and creates a locked alignment, so the form moves with the plane (e.g. when a labelled dimension changes). " +
+            "The face must already be coplanar with the plane.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                elementId: { type: "number", description: "ElementId of the extrusion / blend / sweep." },
+                referencePlanes: { type: "array", items: { type: "string" }, description: "Reference plane names to align to." },
+                lock: { type: "boolean", description: "Lock the alignments. Default true.", default: true },
+                viewName: { type: "string", description: "Optional host view; auto-picked when omitted." },
+            },
+            required: ["elementId", "referencePlanes"],
+        },
+    },
+    {
+        name: "rfa_create_sweep",
+        description:
+            "Create a sweep in the active family document. Sweeps closed profile loops along a planar path (handrails, mouldings, frames). " +
+            "Profiles are drawn in 2D [u, v] mm and Revit places them perpendicular to the path at its start. " +
+            "Path: pathPoints polyline or pathSegments of lines and 3-point arcs, all in one plane.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                pathPoints: {
+                    type: "array",
+                    items: { type: "array", items: { type: "number" } },
+                    description: "Polyline path [[x, y, z], ...] in mm (family coordinates).",
+                },
+                closed: { type: "boolean", description: "Close the pathPoints polyline back to its first point." },
+                pathSegments: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            line: { type: "object", properties: { start: { type: "array", items: { type: "number" } }, end: { type: "array", items: { type: "number" } } } },
+                            arc: { type: "object", properties: { start: { type: "array", items: { type: "number" } }, mid: { type: "array", items: { type: "number" } }, end: { type: "array", items: { type: "number" } } } },
+                        },
+                    },
+                    description: "Alternative to pathPoints: connected line / arc segments, [x, y, z] mm.",
+                },
+                profiles: { type: "array", items: profileLoopSchema, description: "Cross-section loops in [u, v] mm; extra loops inside the first become holes." },
+                isSolid: { type: "boolean", description: "true = solid (default), false = void.", default: true },
+                material: { type: "string", description: "Material name that already exists in the family document (solid only)." },
+                associate: {
+                    type: "object",
+                    description: "Bind properties to family parameters. Keys: material (material param), visible (yes/no param).",
+                    additionalProperties: { type: "string" },
+                },
+            },
+            required: ["profiles"],
+        },
+    },
+    {
+        name: "rfa_create_blend",
+        description:
+            "Create a blend in the active family document. Lofts from a base loop to a top loop (one closed loop each, any shapes) over heightMm along the sketch plane normal. " +
+            "Sketch on plane XY/XZ/YZ (+ planeOffsetMm) or a named reference plane; both loops use the same [u, v] mm coordinates.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                baseProfile: profileLoopSchema,
+                topProfile: profileLoopSchema,
+                heightMm: { type: "number", description: "Distance from base to top along the sketch plane normal, mm." },
+                plane: { type: "string", enum: ["XY", "XZ", "YZ"], description: "Sketch plane when referencePlane is not given. Default XY." },
+                planeOffsetMm: { type: "number", description: "Offset of the sketch plane along its normal axis, mm. Default 0." },
+                referencePlane: { type: "string", description: "Sketch the base on this named reference plane instead." },
+                isSolid: { type: "boolean", description: "true = solid (default), false = void.", default: true },
+                material: { type: "string", description: "Material name that already exists in the family document (solid only)." },
+                associate: {
+                    type: "object",
+                    description: "Bind properties to family parameters. Keys: blendTop, blendBase (length params), material, visible.",
+                    additionalProperties: { type: "string" },
+                },
+            },
+            required: ["baseProfile", "topProfile", "heightMm"],
+        },
+    },
 ];
