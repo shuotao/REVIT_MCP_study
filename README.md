@@ -14,9 +14,9 @@ Revit MCP lets AI clients call Autodesk Revit tools through the Model Context Pr
 
 ## What is this?
 
-Talk to Revit in plain language. Ask your AI client to *"dimension every wall on this view"* or *"check the curtain-wall elevations"*, and Revit does it — through **239 MCP tools** backed by **90 professional BIM SOPs** (building code, quantity take-off, compliance checks).
+Talk to Revit in plain language. Ask your AI client to *"dimension every wall on this view"* or *"check the curtain-wall elevations"*, and Revit does it — through **249 MCP tools** backed by **95 professional BIM SOPs** (building code, quantity take-off, compliance checks).
 
-**Who it's for:** BIM engineers and architects who use Revit and want AI-assisted, standards-based workflows. You'll need Revit (2022–2026) on Windows and to be comfortable installing an add-in.
+**Who it's for:** BIM engineers and architects who use Revit and want AI-assisted, standards-based workflows. You'll need Revit (2022–2027) on Windows and to be comfortable installing an add-in.
 
 ## Quickstart (3 steps)
 
@@ -33,8 +33,8 @@ Questions or want to show what you built? → **[Discussions](https://github.com
 
 | Item | Count | Source |
 |---|---:|---|
-| Runtime MCP tools | 239 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 94 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
+| Runtime MCP tools | 249 | `registerRevitTools()` in `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 95 | `domain/*.md` except `README.md`, plus `domain/references/*.md` |
 | Claude skills | 61 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.zh-TW.md`, this file, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and run:
@@ -84,8 +84,8 @@ External AI clients do not need an API key inside this repository. Their account
 | Item | Requirement |
 |---|---|
 | OS | Windows 10 or later |
-| Revit | Autodesk Revit 2022, 2023, 2024, 2025, 2026 |
-| .NET | .NET Framework 4.8 for Revit 2022-2024; .NET 8 for Revit 2025-2026 |
+| Revit | Autodesk Revit 2022, 2023, 2024, 2025, 2026, 2027 |
+| .NET | .NET Framework 4.8 for Revit 2022-2024; .NET 8 for Revit 2025-2026; .NET 10 for Revit 2027 |
 | Node.js | LTS, preferably 20.x or later |
 
 ## One-Click Setup
@@ -141,7 +141,10 @@ dotnet build -c Release.R23 RevitMCP.csproj   # Revit 2023
 dotnet build -c Release.R24 RevitMCP.csproj   # Revit 2024
 dotnet build -c Release.R25 RevitMCP.csproj   # Revit 2025
 dotnet build -c Release.R26 RevitMCP.csproj   # Revit 2026
+dotnet build -c Release.R27 RevitMCP.csproj   # Revit 2027 (.NET 10 SDK)
 ```
+
+Revit 2027 uses .NET 10 ([Autodesk migration notes](https://blog.autodesk.io/revit-2027-sdk-net-10-api-changes-and-additions/)). Install the .NET 10 SDK and build `Release.R27`; do not reuse an R25/R26 DLL. Deploy with `powershell -ExecutionPolicy Bypass -File scripts/install-addon.ps1 -Version 2027 -NonInteractive`. The installer uses the supported per-user Addins directory. Compilation and isolated installer checks have passed; loading and tool execution inside Revit 2027 still need a live smoke test.
 
 Expected output:
 
@@ -259,7 +262,7 @@ REVIT_MCP/
     Core/
       SocketService.cs         Revit-side WebSocket server
       ExternalEventManager.cs  UI-thread execution bridge
-      RevitCompatibility.cs    Revit 2022-2026 compatibility helpers
+      RevitCompatibility.cs    Revit 2022-2027 compatibility helpers
       CommandExecutor.cs       Main command dispatcher
       Commands/*.cs            Command modules
   MCP-Server/                  MCP Server (Node.js / TypeScript)

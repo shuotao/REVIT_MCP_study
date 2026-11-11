@@ -231,11 +231,11 @@ HEAD = """<!DOCTYPE html>
     </div>
     <div class="bim-card">
       <h4><a href="domain-index.html" style="border-bottom:1px solid var(--accent-border);">Domain（知識）</a></h4>
-      <p style="font-size:13px;">法規條文、SOP、計算公式。94 個。被 Skill 引用。</p>
+      <p style="font-size:13px;">法規條文、SOP、計算公式。95 個。被 Skill 引用。</p>
     </div>
     <div class="bim-card">
       <h4>Tool（執行）</h4>
-      <p style="font-size:13px;">原子操作（query / create / modify）。239 個 MCP tools。</p>
+      <p style="font-size:13px;">原子操作（query / create / modify）。249 個 MCP tools。</p>
     </div>
   </div>
   <p class="bim-section-desc" style="margin-top:var(--gap-md);">「<strong>不要把每個 Domain 都升級成 Skill</strong>」——這是本專案的核心架構原則。詳見 <a href="philosophy-22-propositions.html">22 命題</a>。</p>
@@ -289,7 +289,7 @@ TAIL = """    </tbody>
 <!-- ============================================ -->
 <section data-collapse class="bim-section bim-anchor" id="why-not-merge">
   <div class="bim-section-eyebrow">RATIONALE · 為什麼不每個 Domain 都升級成 Skill</div>
-  <h2 class="bim-section-title">@@N@@ Skill vs 94 Domain — 為什麼數量不同？</h2>
+  <h2 class="bim-section-title">@@N@@ Skill vs 95 Domain — 為什麼數量不同？</h2>
 
   <div class="bim-grid bim-grid-2">
     <div class="bim-card bim-card-bad">
@@ -299,7 +299,7 @@ TAIL = """    </tbody>
     </div>
     <div class="bim-card bim-card-ok">
       <h4 style="color:var(--ok);">✓ 本專案做法</h4>
-      <p>Skill = 編排（@@N@@ 個 metadata 常駐）；Domain = 知識（94 markdown，被引用才載入）。</p>
+      <p>Skill = 編排（@@N@@ 個 metadata 常駐）；Domain = 知識（95 markdown，被引用才載入）。</p>
       <p style="font-size:13px;color:var(--text-muted);">知識複用，編排薄層。一個防火 SOP 被三個 Skill 共享，原文只有一份。</p>
     </div>
   </div>

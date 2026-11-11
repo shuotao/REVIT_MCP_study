@@ -262,6 +262,7 @@ if (Test-Path $csproj) {
     Write-Check "Release.R24 config" ($content -match "Release\.R24") "Missing Revit 2024 config"
     Write-Check "Release.R25 config" ($content -match "Release\.R25") "Missing Revit 2025 config"
     Write-Check "Release.R26 config" ($content -match "Release\.R26") "Missing Revit 2026 config"
+    Write-Check "Release.R27 config" ($content -match "Release\.R27") "Missing Revit 2027 config"
 }
 else {
     Write-Check "csproj exists" $false "Cannot validate build config"
@@ -559,7 +560,7 @@ else {
         $versions += $Version
     }
     else {
-        $versions = @("22", "24", "25", "26")
+        $versions = @("22", "23", "24", "25", "26", "27")
     }
 
     Write-Host ""
@@ -634,6 +635,7 @@ else {
         "2024" = "Release.R24"
         "2025" = "Release.R25"
         "2026" = "Release.R26"
+        "2027" = "Release.R27"
     }
     # supportedVersions 由對應表導出，檔內單一事實來源（取代原硬編陣列）
     $supportedVersions = @($versionConfigMap.Keys | Sort-Object)

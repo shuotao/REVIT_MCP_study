@@ -18,7 +18,7 @@
 param(
     # R1：明確指定目標 Revit 版本。未指定且偵測到多版本時，互動模式會詢問、
     # 非互動模式直接失敗——絕不擅自挑一個（舊版取「最高版本」，會把建構丟到別條作業線的 Revit）。
-    [ValidateSet('2022', '2023', '2024', '2025', '2026')]
+    [ValidateSet('2022', '2023', '2024', '2025', '2026', '2027')]
     [string]$Version,
 
     # R1：對所有「已安裝 Revit 且已有對應建構產物」的版本逐一部署。
@@ -191,6 +191,7 @@ $versionConfigMap = [ordered]@{
     "2024" = "Release.R24"
     "2025" = "Release.R25"
     "2026" = "Release.R26"
+    "2027" = "Release.R27"
 }
 
 # R3 防呆用：兩代 runtime 的相依組成不同。
@@ -233,7 +234,7 @@ Write-Host ""
 if ($foundVersions.Count -eq 0) {
     Write-Host "[錯誤] 沒有找到已安裝的 Revit" -ForegroundColor Red
     Write-Host "   檢查的路徑：$addinsBase\<year>" -ForegroundColor Yellow
-    Write-Host "   支援的版本：2022、2023、2024、2025、2026" -ForegroundColor Yellow
+    Write-Host "   支援的版本：2022、2023、2024、2025、2026、2027" -ForegroundColor Yellow
     Wait-ForExit 1
 }
 
@@ -328,16 +329,16 @@ function Install-ToVersion {
     $expectFx = $netFxVersions -contains $RevitYear
     if ($expectFx -and $hasShims -eq 0) {
         Write-Host "  [中止] Revit $RevitYear 屬 .NET Framework 4.8 世代，應含 5 個相容 shim，實際 0 個" -ForegroundColor Red
-        Write-Host "         $srcDir 看起來是 .NET 8（R25/R26）的產物；錯版部署只會在 Revit 載入時才失敗" -ForegroundColor Yellow
+        Write-Host "         $srcDir 看起來是 .NET 8/10（R25-R27）的產物；錯版部署只會在 Revit 載入時才失敗" -ForegroundColor Yellow
         Write-Host "         請重新建構：dotnet build -c $BuildConfig MCP\RevitMCP.csproj" -ForegroundColor Yellow
         return [pscustomobject]@{ Version = $RevitYear; Status = 'FAIL'; Reason = 'generation mismatch (expected .NET Framework, got .NET 8 layout)' }
     }
     if ((-not $expectFx) -and $hasShims -gt 0) {
-        Write-Host "  [中止] Revit $RevitYear 屬 .NET 8 世代，不應含相容 shim，實際 $hasShims 個" -ForegroundColor Red
+        Write-Host "  [中止] Revit $RevitYear 屬現代 .NET 世代，不應含相容 shim，實際 $hasShims 個" -ForegroundColor Red
         Write-Host "         $srcDir 看起來是 .NET Framework 4.8（R22-R24）的產物" -ForegroundColor Yellow
-        return [pscustomobject]@{ Version = $RevitYear; Status = 'FAIL'; Reason = 'generation mismatch (expected .NET 8, got .NET Framework layout)' }
+        return [pscustomobject]@{ Version = $RevitYear; Status = 'FAIL'; Reason = 'generation mismatch (expected modern .NET, got .NET Framework layout)' }
     }
-    $genName = if ($expectFx) { '.NET Framework 4.8' } else { '.NET 8' }
+    $genName = if ($expectFx) { '.NET Framework 4.8' } elseif ($RevitYear -eq '2027') { '.NET 10' } else { '.NET 8' }
     Write-Host "  世代檢查通過（$genName，$($srcDlls.Count) 個 DLL）" -ForegroundColor Green
 
     foreach ($d in @($addonPath, $dllDestDir)) {

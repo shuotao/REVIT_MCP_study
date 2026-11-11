@@ -109,6 +109,7 @@ Write-Host "[3/8] .NET SDK" -ForegroundColor White
 
 $hasFramework48 = $false
 $hasNet8 = $false
+$hasNet10 = $false
 
 try {
     $dotnetVersions = (dotnet --list-sdks 2>$null)
@@ -116,13 +117,19 @@ try {
         Write-Check "dotnet CLI" "PASS" "可用"
 
         foreach ($line in $dotnetVersions) {
-            if ($line -match "^8\.") { $hasNet8 = $true }
+            if ($line -match "^(8|9|[1-9][0-9])\.") { $hasNet8 = $true }
+            if ($line -match "^[1-9][0-9]\.") { $hasNet10 = $true }
         }
 
-        if ($hasNet8) {
-            Write-Check ".NET 8 SDK" "PASS" "Revit 2025-2026 可用"
+        if ($hasNet10) {
+            Write-Check ".NET 10+ SDK" "PASS" "Revit 2027 可用"
         } else {
-            Write-Check ".NET 8 SDK" "WARN" "未安裝（僅影響 Revit 2025-2026 建構）"
+            Write-Check ".NET 10+ SDK" "WARN" "Revit 2027 建構需要 .NET 10 SDK"
+        }
+        if ($hasNet8) {
+            Write-Check ".NET 8+ SDK" "PASS" "Revit 2025-2026 可用"
+        } else {
+            Write-Check ".NET 8+ SDK" "WARN" "未安裝（僅影響 Revit 2025-2026 建構）"
         }
     }
 } catch {
@@ -171,7 +178,7 @@ $detectedVersions = @()
 
 if (Test-Path $addinsBase) {
     $versionFolders = Get-ChildItem $addinsBase -Directory -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -match "^20(2[2-6])$" }
+        Where-Object { $_.Name -match "^20(2[2-7])$" }
 
     foreach ($folder in $versionFolders) {
         $detectedVersions += $folder.Name
@@ -179,7 +186,7 @@ if (Test-Path $addinsBase) {
     }
 
     if ($detectedVersions.Count -eq 0) {
-        Write-Check "Revit Addins" "WARN" "找到 Addins 根目錄但無 2022-2026 版本資料夾（Revit 可能未安裝）"
+        Write-Check "Revit Addins" "WARN" "找到 Addins 根目錄但無 2022-2027 版本資料夾（Revit 可能未安裝）"
     }
 } else {
     Write-Check "Revit Addins 資料夾" "WARN" "不存在：$addinsBase（Revit 可能未安裝在此電腦）"

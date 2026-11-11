@@ -166,7 +166,7 @@ if ($Help) {
 
   Parameters:
     -NonInteractive     Skip all prompts, use defaults
-    -RevitVersions      Comma-separated versions: "2024,2025,2026"
+    -RevitVersions      Comma-separated versions: "2024,2025,2026,2027"
     -SkipPrerequisites  Skip Node.js and .NET SDK checks
     -SkipMCPServer      Skip npm install and build
     -SkipRevitBuild     Skip dotnet build
@@ -351,19 +351,23 @@ else {
     }
 
     # --- .NET SDK ---
-    $hasDotnet = Test-CommandAvailable "dotnet"
+    $hasDotnet = (Test-CommandAvailable "dotnet") -and (@(& dotnet --list-sdks 2>$null).Count -gt 0)
     if ($hasDotnet) {
         try {
             $sdkList = (dotnet --list-sdks 2>$null)
             $hasNet8 = $false
+            $hasNet10 = $false
             if ($sdkList) {
                 foreach ($line in $sdkList) {
-                    if ($line -match "^8\.") { $hasNet8 = $true }
+                    if ($line -match "^(8|9|[1-9][0-9])\.") { $hasNet8 = $true }
+                    if ($line -match "^([1-9][0-9])\.") { $hasNet10 = $true }
                 }
             }
             Write-OK ".NET CLI 可用"
+            if ($hasNet10) { Write-OK ".NET 10+ SDK 可用（Revit 2027）" }
+            else { Write-Info "Revit 2027 建構需要 .NET 10 SDK：https://dotnet.microsoft.com/download/dotnet/10.0" }
             if ($hasNet8) {
-                Write-OK ".NET 8 SDK 已安裝（Revit 2025-2026 可用）"
+                Write-OK ".NET 8+ SDK 可用（Revit 2025-2026）"
             }
             else {
                 Write-Info ".NET 8 SDK 未安裝（僅影響 Revit 2025/2026）"
@@ -378,13 +382,13 @@ else {
     else {
         Write-Fail "未偵測到 .NET SDK"
         if ($hasWinget) {
-            Write-Info "正在透過 winget 安裝 .NET 8 SDK..."
+            Write-Info "正在透過 winget 安裝 .NET 10 SDK..."
             try {
-                $wingetOutput = Invoke-ExternalCommand { & winget install Microsoft.DotNet.SDK.8 --scope user --accept-source-agreements --accept-package-agreements 2>&1 }
+                $wingetOutput = Invoke-ExternalCommand { & winget install Microsoft.DotNet.SDK.10 --scope user --accept-source-agreements --accept-package-agreements 2>&1 }
                 Refresh-PathEnv
                 if (Test-CommandAvailable "dotnet") {
-                    Write-OK ".NET 8 SDK 安裝完成"
-                    Add-Result ".NET SDK" "OK" "Installed .NET 8"
+                    Write-OK ".NET 10 SDK 安裝完成"
+                    Add-Result ".NET SDK" "OK" "Installed .NET 10"
                 }
                 else {
                     Write-Info ".NET SDK 安裝完成，但需要重新載入環境變數"
@@ -394,7 +398,7 @@ else {
             }
             catch {
                 Write-Fail "winget 安裝失敗"
-                Write-Info "請前往 https://dotnet.microsoft.com/download 下載 .NET 8 SDK"
+                Write-Info "請前往 https://dotnet.microsoft.com/download 下載 .NET 10 SDK"
                 Add-Result ".NET SDK" "FAIL" "Install failed"
             }
         }
@@ -402,7 +406,7 @@ else {
             Write-Host ""
             Write-Host "    請依照以下步驟手動安裝 .NET SDK：" -ForegroundColor White
             Write-Host "    1. 開啟瀏覽器，前往 https://dotnet.microsoft.com/download" -ForegroundColor White
-            Write-Host "    2. 下載 .NET 8 SDK" -ForegroundColor White
+            Write-Host "    2. 下載 .NET 10 SDK" -ForegroundColor White
             Write-Host "    3. 執行安裝程式" -ForegroundColor White
             Write-Host "    4. 安裝完成後，關閉此視窗重新執行 setup.bat" -ForegroundColor White
             Write-Host ""
@@ -428,7 +432,7 @@ else {
 
 Write-StepHeader "選擇 Revit 版本"
 
-$supportedVersions = @("2022", "2023", "2024", "2025", "2026")
+$supportedVersions = @("2022", "2023", "2024", "2025", "2026", "2027")
 $detectedVersions = @()
 $selectedVersions = @()
 
@@ -690,6 +694,7 @@ else {
             "2024" = "Release.R24"
             "2025" = "Release.R25"
             "2026" = "Release.R26"
+            "2027" = "Release.R27"
         }
 
         foreach ($ver in $selectedVersions) {
@@ -702,6 +707,11 @@ else {
 
             # --- Build ---
             if (-not $skipBuild) {
+                if ($ver -eq "2027" -and -not (@(& dotnet --list-sdks 2>$null) -match "^[1-9][0-9]\.")) {
+                    Write-Fail "Revit 2027 requires .NET 10 SDK or newer. Install it and rerun setup."
+                    Add-Result "Revit $ver" "FAIL" ".NET 10 SDK missing"
+                    continue
+                }
                 Write-Info "正在編譯 Revit $ver（dotnet build -c $config）..."
                 Push-Location $mcpDir
                 try {

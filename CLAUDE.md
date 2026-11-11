@@ -37,8 +37,8 @@ These counts must be derived from source, not copied by memory.
 
 | Item | Current Count | Source of Truth |
 |---|---:|---|
-| Runtime MCP tools | 239 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
-| Domain SOP files | 94 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
+| Runtime MCP tools | 249 | `registerRevitTools()` from `MCP-Server/src/tools/index.ts` |
+| Domain SOP files | 95 | `domain/*.md` except `domain/README.md`, plus `domain/references/*.md` |
 | Claude skills | 61 | `.claude/skills/*/SKILL.md` |
 
 When these numbers change, update `CLAUDE.md`, `README.md`, `README.zh-TW.md`, `docs/DOCUMENT_AUDIENCE_INVENTORY.md`, and any public site copy that makes grand-total claims. Then run `scripts/verify-qaqc.ps1 -SkipBuild -SkipDeploy`.
@@ -92,7 +92,7 @@ A `vault/` directory at the repo root, if present, is a user's personal knowledg
 
 ## Build Commands
 
-Build via the `/build-revit` skill. Full commands (MCP Server npm build; `dotnet build -c Release.R{22,23,24,25,26} RevitMCP.csproj`) are in README.md's Build section.
+Build via the `/build-revit` skill. Full commands (MCP Server npm build; `dotnet build -c Release.R{22,23,24,25,26,27} RevitMCP.csproj`) are in README.md's Build section.
 
 Expected output path stays `MCP/bin/Release.R{YY}/RevitMCP.dll`. Do not rely on old `bin/Release/RevitMCP.dll` instructions.
 
@@ -170,7 +170,7 @@ Required:
 - One csproj: `MCP/RevitMCP.csproj`.
 - One add-in manifest: `MCP/RevitMCP.addin`.
 - One primary installer: `scripts/install-addon.ps1`.
-- Build configs: `Release.R22`, `Release.R23`, `Release.R24`, `Release.R25`, `Release.R26`.
+- Build configs: `Release.R22`, `Release.R23`, `Release.R24`, `Release.R25`, `Release.R26`, `Release.R27`.
 - Add-in assembly path remains relative: `RevitMCP\RevitMCP.dll`.
 
 ## AI Guard Rails
@@ -351,6 +351,7 @@ Read the matching file before applying a workflow or calculation.
 | green material parameter, 綠建材參數, GreenMaterial_ 共享參數, 綠建材標註, 六槽位, Mat1, layerComposition, materialSlotAssignment | `domain/GM_parameter-schema.md` |
 | green material search, 綠建材關鍵字, 關鍵字檢索, 同義擴充, DATA Engine, GBM 證號查詢 | `domain/GM_keyword-search.md` |
 | RFA family injection, 門窗綠建材, 獨立元件, RFA 導入, loadable family, 防音門窗, Low-E玻璃, 遮陽係數, 隔音Rw | `domain/GM_rfa-family-injection.md` |
+| family authoring, RFA 族群編輯器, rfa_ tools, family document, reference plane, reference line, extrusion, sweep, blend | `domain/rfa-family-authoring.md` |
 | opening candidate, 開孔候選, opening scan, 開孔預掃, scan_opening_candidates, 套管前置檢核, clearanceMm | `domain/mep-opening-candidate-scan.md` |
 | cad 圖塊放置, block 轉族群, 灑水頭建模, 閥件建模, point placement from CAD block, INSERT to FamilyInstance, get_dwg_block_instances, preview_family_instances_from_dwg_blocks, create_family_instances_from_dwg_blocks | `domain/cad-block-point-placement.md` |
 | space centroid, 空間中心點, 代表點, centroid, 批次放置, 逐室放置, 風口放置, air terminal, place_family_instances, get_space_centroid, IsPointInSpace | `domain/space-centroid-placement.md` |

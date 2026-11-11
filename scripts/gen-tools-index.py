@@ -35,7 +35,7 @@ CATEGORIES = [
      "產生或修改實體構件：牆、柱、樑、帷幕、地形、IFC 同步。",
      ["cad-block-placement-tools", "cad-link-tools", "curtain-wall-tools", "dwg-beam-tools",
       "dwg-column-tools", "grading-tools", "grid-tools", "ifc-structural-sync-tools", "opening-type-tools",
-      "structure-tools", "wall-tools"]),
+      "structure-tools", "wall-tools", "rfa-family-tools"]),
     ("C", "房間與空間",
      "房間邊界、編號、面積、走廊、施工架周長。",
      "房間邊界、編號、面積、走廊、施工架周長。",
