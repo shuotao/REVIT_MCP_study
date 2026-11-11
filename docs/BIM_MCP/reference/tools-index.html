@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script>try{if(localStorage.getItem("bim-theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}</script>
-<title>Tools 索引（239 個）· BIM_MCP</title>
-<meta property="og:title" content="RevitMCP Tools 索引：239 個執行層工具">
-<meta property="og:description" content="239 個 MCP 工具 × 唯讀/寫入標註 × 來源模組。Tool 是執行層，方法在 Domain、編排在 Skill。">
+<title>Tools 索引（249 個）· BIM_MCP</title>
+<meta property="og:title" content="RevitMCP Tools 索引：249 個執行層工具">
+<meta property="og:description" content="249 個 MCP 工具 × 唯讀/寫入標註 × 來源模組。Tool 是執行層，方法在 Domain、編排在 Skill。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;600;700;800&display=swap">
@@ -88,17 +88,17 @@
 </nav>
 
 <header class="bim-hero">
-  <div class="bim-hero-eyebrow">TOOLS INDEX <span class="accent">239 個</span></div>
+  <div class="bim-hero-eyebrow">TOOLS INDEX <span class="accent">249 個</span></div>
   <h1 class="bim-hero-title">Tools · <span class="accent">執行層</span><br>模型上真正被動到的那一下</h1>
-  <p class="bim-hero-sub">Tool 是<strong>執行</strong>。它不決定方法，也不決定順序——方法在 <a href="domain-index.html">Domain</a>，順序在 <a href="skills-index.html">Skill</a>。這一頁把 239 個工具攤開，讓你看得到「有什麼」以及「哪些會動到模型」。</p>
+  <p class="bim-hero-sub">Tool 是<strong>執行</strong>。它不決定方法，也不決定順序——方法在 <a href="domain-index.html">Domain</a>，順序在 <a href="skills-index.html">Skill</a>。這一頁把 249 個工具攤開，讓你看得到「有什麼」以及「哪些會動到模型」。</p>
 </header>
 
 <section class="bim-section">
   <h2 class="bim-section-title">先看懂三個標記</h2>
   <p>每張卡右上角的標記來自 <code>annotations.ts</code> 集中產生的 <code>annotations</code>，不是這一頁另外標的。</p>
   <ul>
-    <li><strong>唯讀</strong>（95 個）——設計上不寫入 Revit 模型（<code>export_*</code> 與 <code>capture_view_image</code> 會另外寫出外部或暫存檔案）。</li>
-    <li><strong>會寫入</strong>（140 個）——會在 Transaction 裡改模型，但不刪除既有內容。可以 Undo，但會進 Revit 的復原堆疊。</li>
+    <li><strong>唯讀</strong>（96 個）——設計上不寫入 Revit 模型（<code>export_*</code> 與 <code>capture_view_image</code> 會另外寫出外部或暫存檔案）。</li>
+    <li><strong>會寫入</strong>（149 個）——會在 Transaction 裡改模型，但不刪除既有內容。可以 Undo，但會進 Revit 的復原堆疊。</li>
     <li><strong>破壞性</strong>（4 個）——刪除或不可逆地取代既有內容：<code>curate_mep_sizes · dedup_detail_elements_in_view · delete_element · import_excel_to_drafting_views</code>。這份名單是白名單，程式碼裡多一個就會被閘門擋下。</li>
   </ul>
   <p style="color:var(--text-muted);font-size:13px;">「唯讀」是工具作者的宣告，不是執行時的沙箱。它告訴你這支工具<em>設計上</em>不寫入，不是保證它<em>不可能</em>寫入。</p>
@@ -112,7 +112,7 @@
     </thead>
     <tbody>
         <tr><td><strong><a href="#cat-A">A</a></strong></td><td>基礎與查詢</td><td class="num">32</td><td>讀模型、找元素、問參數，也含少數寫入前置（載入共用參數）。</td></tr>
-        <tr><td><strong><a href="#cat-B">B</a></strong></td><td>建模與構件</td><td class="num">51</td><td>產生或修改實體構件：牆、柱、樑、帷幕、地形、IFC 同步。</td></tr>
+        <tr><td><strong><a href="#cat-B">B</a></strong></td><td>建模與構件</td><td class="num">61</td><td>產生或修改實體構件：牆、柱、樑、帷幕、地形、IFC 同步。</td></tr>
         <tr><td><strong><a href="#cat-C">C</a></strong></td><td>房間與空間</td><td class="num">19</td><td>房間邊界、編號、面積、走廊、施工架周長。</td></tr>
         <tr><td><strong><a href="#cat-D">D</a></strong></td><td>MEP 與碰撞</td><td class="num">25</td><td>風管系統、空間代表點、套管開孔、CSA 干涉、梁下淨高與管線淨距檢討。</td></tr>
         <tr><td><strong><a href="#cat-E">E</a></strong></td><td>法規檢核</td><td class="num">13</td><td>排煙、偵煙、樓梯——有法源、有判準的檢查。</td></tr>
@@ -121,11 +121,11 @@
         <tr><td><strong><a href="#cat-H">H</a></strong></td><td>視覺化</td><td class="num">31</td><td>上色、覆寫、隱藏顯示，也含材質與 Type 建構。</td></tr>
     </tbody>
   </table>
-  <p style="color:var(--text-muted);font-size:13px;">分類是 54 個來源模組的一個分割——每個模組恰好屬於一類，八類加總等於 239。這一頁由 <code>scripts/gen-tools-index.py</code> 從 <code>registerRevitTools()</code> 產生，不是手寫的。</p>
+  <p style="color:var(--text-muted);font-size:13px;">分類是 55 個來源模組的一個分割——每個模組恰好屬於一類，八類加總等於 249。這一頁由 <code>scripts/gen-tools-index.py</code> 從 <code>registerRevitTools()</code> 產生，不是手寫的。</p>
 </section>
 
 <section class="bim-section" data-search-root>
-  <h2 class="bim-section-title">239 個工具 · 依用途分組</h2>
+  <h2 class="bim-section-title">249 個工具 · 依用途分組</h2>
   <div class="bim-search">
     <label for="tool-search">搜尋工具名稱或描述</label>
     <input type="search" id="tool-search" data-search-input placeholder="例如：採光、牆、sheet">
@@ -463,7 +463,7 @@
       </div>
     </div>
     <div data-search-group="B">
-    <h3 id="cat-B" class="cat-header">B · 建模與構件（51 個）</h3>
+    <h3 id="cat-B" class="cat-header">B · 建模與構件（61 個）</h3>
     <p class="cat-blurb">產生或修改實體構件：牆、柱、樑、帷幕、地形、IFC 同步。</p>
     </div>
     <div class="tool-card" id="align_structural_framing" data-tool="align_structural_framing" data-search-item data-effect="write" data-search-in="B">
@@ -937,6 +937,106 @@
       </div>
       <div>
         <div class="tool-desc">恢復先前由 unjoin_element_joins 取消的接合關係（共用 pair 儲存，限同一 Revit session）。</div>
+      </div>
+    </div>
+    <div class="tool-card" id="rfa_add_parameter" data-tool="rfa_add_parameter" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">rfa_add_parameter</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">rfa-family-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">Add family parameters to the active family document. Each may carry a formula or an initial value for the current type. Existing names are skipped. Values use mm / degrees / m² / m³ / true-false / material name.</div>
+      </div>
+    </div>
+    <div class="tool-card" id="rfa_align_to_reference_plane" data-tool="rfa_align_to_reference_plane" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">rfa_align_to_reference_plane</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">rfa-family-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">Lock form faces to reference planes. Works in the active family document. For each plane, finds the form&#x27;s planar face lying on it and creates a locked alignment, so the form moves with the plane (e.g. when a labelled dimension changes). The face must already be coplanar with the plane.</div>
+      </div>
+    </div>
+    <div class="tool-card" id="rfa_create_blend" data-tool="rfa_create_blend" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">rfa_create_blend</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">rfa-family-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">Create a blend in the active family document. Lofts from a base loop to a top loop (one closed loop each, any shapes) over heightMm along the sketch plane normal. Sketch on plane XY/XZ/YZ (+ planeOffsetMm) or a named reference plane; both loops use the same [u, v] mm coordinates.</div>
+      </div>
+    </div>
+    <div class="tool-card" id="rfa_create_dimension" data-tool="rfa_create_dimension" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">rfa_create_dimension</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">rfa-family-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">Create a dimension in the active family document. Measures between parallel reference planes. Two planes + label binds the dimension to a length parameter (the planes then follow the parameter); three or more planes + equalize sets EQ. Combine with rfa_align_to_reference_plane so forms follow the planes.</div>
+      </div>
+    </div>
+    <div class="tool-card" id="rfa_create_extrusion" data-tool="rfa_create_extrusion" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">rfa_create_extrusion</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">rfa-family-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">Create an extrusion in the active family document. Builds a solid or void from one or more closed 2D profiles (extra loops inside the first become holes). Sketch on plane XY/XZ/YZ (+ planeOffsetMm) or on a named reference plane; the extrusion runs along the sketch plane normal (XY → +Z, XZ → -Y, YZ → +X). Optionally assign a material and bind extrusionEnd/extrusionStart/material/visible to existing family parameters.</div>
+      </div>
+    </div>
+    <div class="tool-card" id="rfa_create_reference_line" data-tool="rfa_create_reference_line" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">rfa_create_reference_line</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">rfa-family-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">Create a reference line (straight line or 3-point arc) hosted on a reference plane in the active family document, and constrain it to other reference planes. Reference lines are the rig for parametric pipes and bars: constrain the line here (align, or dimension with a length parameter), then sweep a profile along it with rfa_create_sweep pathReferenceLineIds. This works where constraining sketch curves does not (family documents have no sketch-edit API). The line moves with hostPlane along its normal; use constraints for the in-plane directions. Targets: curve (straight line parallel to the plane), start, end, center (arc). Arcs can also carry radiusParameter. Every point must already sit where the constraint says (on the plane, or at the parameter&#x27;s current distance).</div>
+      </div>
+    </div>
+    <div class="tool-card" id="rfa_create_reference_plane" data-tool="rfa_create_reference_plane" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">rfa_create_reference_plane</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">rfa-family-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">Create reference planes in the active family document. Creates one or more named planes. Shortcut form: normal X/Y/Z + offsetMm (X/Y planes are vertical and drawn in a plan view; Z planes are horizontal and drawn in a front/back elevation). Advanced form: bubbleEndMm + freeEndMm + cutVector. Planes whose name already exists are skipped.</div>
+      </div>
+    </div>
+    <div class="tool-card" id="rfa_create_sweep" data-tool="rfa_create_sweep" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">rfa_create_sweep</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">rfa-family-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">Create a sweep in the active family document. Sweeps closed profile loops along a planar path (handrails, mouldings, frames). Profiles are drawn in 2D [u, v] mm and Revit places them perpendicular to the path at its start. Path: pathPoints polyline or pathSegments of lines and 3-point arcs, all in one plane; or pathReferenceLineIds (reference lines from rfa_create_reference_line) so the sweep follows the lines when parameters move them. With diameterParameter and no profiles, a circular profile is generated and its diameter is labelled with the parameter (parametric round pipe); the result includes a flex check.</div>
+      </div>
+    </div>
+    <div class="tool-card" id="rfa_get_document_info" data-tool="rfa_get_document_info" data-search-item data-effect="readonly" data-search-in="B">
+      <div>
+        <div class="tool-name">rfa_get_document_info</div>
+        <div class="tool-flags"><span class="tool-badge readonly">唯讀</span></div>
+        <div class="tool-module">rfa-family-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">Read the active family (.rfa) document. Returns category, placement type, types, family parameters with current values, reference planes, levels, views and existing solid/void forms. Call this first before any other rfa_* tool; it fails if the active document is a project instead of a family.</div>
+      </div>
+    </div>
+    <div class="tool-card" id="rfa_set_family_type" data-tool="rfa_set_family_type" data-search-item data-effect="write" data-search-in="B">
+      <div>
+        <div class="tool-name">rfa_set_family_type</div>
+        <div class="tool-flags"><span class="tool-badge write">會寫入</span></div>
+        <div class="tool-module">rfa-family-tools</div>
+      </div>
+      <div>
+        <div class="tool-desc">Create or update a family type in the active family document. The type becomes current; sets parameter values and formulas, optionally rename. A new type copies values from baseType (or the current type).</div>
       </div>
     </div>
     <div class="tool-card" id="scan_penetrated_beams_in_view" data-tool="scan_penetrated_beams_in_view" data-search-item data-effect="readonly" data-search-in="B">
@@ -2577,7 +2677,7 @@
     <a href="../index.html" class="bim-footer-btn">回 BIM_MCP 首頁</a>
   </div>
   <p>BIM_MCP · reference / tools-index</p>
-  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">239 個 MCP 工具完整索引，由 scripts/gen-tools-index.py 從 registerRevitTools() 產生；唯讀/寫入標註由 annotations.ts 集中產生。</p>
+  <p style="font-size:11px;color:var(--text-faint);margin-top:6px;">249 個 MCP 工具完整索引，由 scripts/gen-tools-index.py 從 registerRevitTools() 產生；唯讀/寫入標註由 annotations.ts 集中產生。</p>
 </footer>
 
 <script src="../shared.js"></script>

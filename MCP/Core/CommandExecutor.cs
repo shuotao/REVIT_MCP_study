@@ -1015,6 +1015,22 @@ namespace RevitMCP.Core
                         result = CreateDuctSystem(parameters);
                         break;
 
+                    case "rfa_get_document_info":
+                        result = RfaGetDocumentInfo(parameters);
+                        break;
+                    case "rfa_create_reference_plane":
+                        result = RfaCreateReferencePlane(parameters);
+                        break;
+                    case "rfa_create_extrusion":
+                        result = RfaCreateExtrusion(parameters);
+                        break;
+                    case "rfa_add_parameter":
+                        result = RfaAddParameter(parameters);
+                        break;
+                    case "rfa_set_family_type":
+                        result = RfaSetFamilyType(parameters);
+                        break;
+
                     case "get_model_snapshot":
                         result = GetModelSnapshot(parameters);
                         break;
